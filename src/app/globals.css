@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+    --bg: #080b10;
+    --surface: #0e1219;
+    --surface2: #151c27;
+    --border: #1e2a3a;
+    --border2: #253040;
+
+    --cyan: #00e5ff;
+    --purple: #b985f4;
+    --green: #3effa3;
+    --yellow: #ffd166;
+    --pink: #ff6b9d;
+    --blue: #5b9cf6;
+
+    --text: #c9d3e0;
+    --text-dim: #5a6a7e;
+    --text-hi: #eef2f8;
+
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'DM Mono', monospace;
+    --font-hero: 'Inter', sans-serif;
+
+    --radius: 14px;
+    --glow-cyan: 0 0 24px rgba(0, 229, 255, .18);
+    --glow-purple: 0 0 24px rgba(185, 133, 244, .18);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: .88rem;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0d12;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1e2a3a;
+    border-radius: 3px;
+}
+
+/* ════════════════════════════════════════
+   GRID NOISE BACKGROUND
+════════════════════════════════════════ */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        linear-gradient(rgba(0, 229, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, .03) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ════════════════════════════════════════
+   ANIMATIONS
+════════════════════════════════════════ */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ════════════════════════════════════════
+   SHARED COMPONENT STYLES
+════════════════════════════════════════ */
+
+/* Buttons */
+.btn-primary {
+    transition: all .2s;
+}
+.btn-primary:hover {
+    background: #33ecff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 229, 255, .3);
+}
+
+.btn-ghost {
+    transition: all .2s;
+}
+.btn-ghost:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+/* Topic Cards */
+.topic-card {
+    transition: all .3s ease;
+    position: relative;
+}
+
+.card-cyan:hover {
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2) !important;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(0, 229, 255, 0.03) 50%, transparent 100%);
+}
+.card-cyan:hover::before {
+    opacity: 0.03;
+}
+
+.card-purple:hover {
+    border-color: #b985f4 !important;
+    box-shadow: 0 0 32px rgba(185, 133, 244, .4), 0 0 16px rgba(185, 133, 244, .2) !important;
+    background: linear-gradient(135deg, rgba(185, 133, 244, 0.08) 0%, rgba(185, 133, 244, 0.03) 50%, transparent 100%);
+}
+.card-purple:hover::before {
+    opacity: 0.03;
+}
+
+.card-blue:hover {
+    border-color: #5b9cf6 !important;
+    box-shadow: 0 0 32px rgba(91, 156, 246, .4), 0 0 16px rgba(91, 156, 246, .2) !important;
+    background: linear-gradient(135deg, rgba(91, 156, 246, 0.08) 0%, rgba(91, 156, 246, 0.03) 50%, transparent 100%);
+}
+.card-blue:hover::before {
+    opacity: 0.03;
+}
+
+.card-green:hover {
+    border-color: #3effa3 !important;
+    box-shadow: 0 0 32px rgba(62, 255, 163, .4), 0 0 16px rgba(62, 255, 163, .2) !important;
+    background: linear-gradient(135deg, rgba(62, 255, 163, 0.08) 0%, rgba(62, 255, 163, 0.03) 50%, transparent 100%);
+}
+.card-green:hover::before {
+    opacity: 0.03;
+}
+
+.card-yellow:hover {
+    border-color: #ffd166 !important;
+    box-shadow: 0 0 32px rgba(255, 209, 102, .4), 0 0 16px rgba(255, 209, 102, .2) !important;
+    background: linear-gradient(135deg, rgba(255, 209, 102, 0.08) 0%, rgba(255, 209, 102, 0.03) 50%, transparent 100%);
+}
+.card-yellow:hover::before {
+    opacity: 0.03;
+}
+
+.card-pink:hover {
+    border-color: #ff6b9d !important;
+    box-shadow: 0 0 32px rgba(255, 107, 157, .4), 0 0 16px rgba(255, 107, 157, .2) !important;
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(255, 107, 157, 0.03) 50%, transparent 100%);
+}
+.card-pink:hover::before {
+    opacity: 0.03;
+}
+
+/* ════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════ */
+/* Mobile: < 640px */
+/* Tablet: 640px - 1024px */
+/* Desktop: > 1024px */
+
+@media (max-width: 768px) {
+    .section-title-container {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 0.5rem !important;
+    }
+    
+    .section-title-container h2 {
+        width: 100%;
+    }
+    
+    .section-hint {
+        text-align: center !important;
+        max-width: 100% !important;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr !important;
+        padding: 0 clamp(1rem, 5vw, 1.5rem) clamp(2rem, 5vw, 3rem) !important;
+    }
+    
+    .topic-card {
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .card-featured {
+        grid-column: span 1 !important;
+    }
+    .token-preview {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    :root {
+        --spacing-section: 2rem;
+        --spacing-container: 1rem;
+    }
+
+    body {
+        font-size: .82rem;
+    }
+
+    body::before {
+        background-size: 30px 30px;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    :root {
+        --spacing-section: 3rem;
+        --spacing-container: 1.5rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    :root {
+        --spacing-section: 4rem;
+        --spacing-container: 2rem;
+    }
+}

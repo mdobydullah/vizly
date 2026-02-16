@@ -1,0 +1,118 @@
+{
+  "visuals": [
+    {
+      "id": "jwt",
+      "title": "JSON Web Token",
+      "category": "Auth · Security",
+      "tags": ["Auth", "Security", "Token"],
+      "description": "How JWTs are structured, encoded, and verified. Includes live animated diagram of the full auth flow.",
+      "readTime": "8 min read",
+      "icon": "🔐",
+      "link": "/visuals/jwt",
+      "color": "cyan",
+      "colorConfig": {
+        "primary": "#00e5ff",
+        "background": "rgba(0, 229, 255, .08)",
+        "border": "rgba(0, 229, 255, .15)",
+        "hoverShadow": "0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2)"
+      },
+      "createdAt": "2025-02-10T10:00:00Z",
+      "updatedAt": "2025-02-17T08:30:00Z"
+    },
+    {
+      "id": "oauth",
+      "title": "OAuth 2.0",
+      "category": "Auth · Protocol",
+      "tags": ["Auth", "Protocol", "OAuth"],
+      "description": "Delegated authorization flows — Authorization Code, PKCE, and Client Credentials explained visually.",
+      "readTime": "10 min read",
+      "icon": "🛡️",
+      "link": "#",
+      "color": "purple",
+      "colorConfig": {
+        "primary": "#b985f4",
+        "background": "rgba(185, 133, 244, .08)",
+        "border": "rgba(185, 133, 244, .15)",
+        "hoverShadow": "0 0 32px rgba(185, 133, 244, .4), 0 0 16px rgba(185, 133, 244, .2)"
+      },
+      "createdAt": "2025-02-12T14:00:00Z",
+      "updatedAt": "2025-02-16T09:15:00Z"
+    },
+    {
+      "id": "rest-graphql",
+      "title": "REST vs GraphQL",
+      "category": "API Design",
+      "tags": ["API", "REST", "GraphQL"],
+      "description": "Deep comparison of REST and GraphQL with real-world query examples, over-fetching, and schema design.",
+      "readTime": "7 min read",
+      "icon": "🔗",
+      "link": "#",
+      "color": "blue",
+      "colorConfig": {
+        "primary": "#5b9cf6",
+        "background": "rgba(91, 156, 246, .08)",
+        "border": "rgba(91, 156, 246, .15)",
+        "hoverShadow": "0 0 32px rgba(91, 156, 246, .4), 0 0 16px rgba(91, 156, 246, .2)"
+      },
+      "createdAt": "2025-02-08T11:00:00Z",
+      "updatedAt": "2025-02-15T16:45:00Z"
+    },
+    {
+      "id": "caching",
+      "title": "Caching Strategies",
+      "category": "Performance",
+      "tags": ["Performance", "Cache", "Optimization"],
+      "description": "LRU, write-through, write-behind, cache-aside — every strategy with hit/miss animated diagrams.",
+      "readTime": "9 min read",
+      "icon": "⚡",
+      "link": "#",
+      "color": "green",
+      "colorConfig": {
+        "primary": "#3effa3",
+        "background": "rgba(62, 255, 163, .08)",
+        "border": "rgba(62, 255, 163, .15)",
+        "hoverShadow": "0 0 32px rgba(62, 255, 163, .4), 0 0 16px rgba(62, 255, 163, .2)"
+      },
+      "createdAt": "2025-02-05T09:00:00Z",
+      "updatedAt": "2025-02-14T13:20:00Z"
+    },
+    {
+      "id": "message-queues",
+      "title": "Message Queues",
+      "category": "Async Systems",
+      "tags": ["Async", "Messaging", "Queue"],
+      "description": "Kafka, RabbitMQ, and SQS compared — producers, consumers, dead-letter queues and at-least-once delivery.",
+      "readTime": "11 min read",
+      "icon": "📨",
+      "link": "#",
+      "color": "yellow",
+      "colorConfig": {
+        "primary": "#ffd166",
+        "background": "rgba(255, 209, 102, .08)",
+        "border": "rgba(255, 209, 102, .15)",
+        "hoverShadow": "0 0 32px rgba(255, 209, 102, .4), 0 0 16px rgba(255, 209, 102, .2)"
+      },
+      "createdAt": "2025-02-01T08:30:00Z",
+      "updatedAt": "2025-02-13T10:00:00Z"
+    },
+    {
+      "id": "load-balancing",
+      "title": "Load Balancing",
+      "category": "Infrastructure",
+      "tags": ["Infrastructure", "Scaling", "Network"],
+      "description": "Round-robin, least-connections, consistent hashing — and how Layer 4 vs Layer 7 LBs differ.",
+      "readTime": "6 min read",
+      "icon": "⚖️",
+      "link": "#",
+      "color": "pink",
+      "colorConfig": {
+        "primary": "#ff6b9d",
+        "background": "rgba(255, 107, 157, .08)",
+        "border": "rgba(255, 107, 157, .15)",
+        "hoverShadow": "0 0 32px rgba(255, 107, 157, .4), 0 0 16px rgba(255, 107, 157, .2)"
+      },
+      "createdAt": "2025-01-28T15:00:00Z",
+      "updatedAt": "2025-02-12T11:30:00Z"
+    }
+  ]
+}
