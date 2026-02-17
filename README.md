@@ -1,4 +1,4 @@
-# Programly
+# Vizly
 
 Interactive engineering guides with visual, animated explanations for system design, security, and complex technical concepts.
 

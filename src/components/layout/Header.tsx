@@ -54,7 +54,7 @@ export default function Header() {
                         color: 'var(--text-hi)',
                         letterSpacing: '-.01em'
                     }}>
-                        Program<span style={{ color: 'var(--cyan)' }}>ly</span>
+                        Viz<span style={{ color: 'var(--cyan)' }}>ly</span>
                     </span>
                 </Link>
                 <nav className="nav-desktop" style={{
@@ -73,7 +73,7 @@ export default function Header() {
                         Visuals
                     </Link>
                     <button
-                        onClick={() => window.open('https://github.com/mdobydullah/programly', '_blank')}
+                        onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
                         style={{
                             background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
                             color: '#000',

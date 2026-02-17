@@ -1,7 +1,7 @@
 export const config = {
   app: {
-    name: "Programly",
-    fullName: "Programly — Interactive Engineering Guides",
+    name: "Vizly",
+    fullName: "Vizly — Interactive Engineering Guides",
     description: "Visual roadmaps and animated guides to system design, security, and complex engineering concepts.",
   },
   urls: {

@@ -1,16 +1,16 @@
 "use client";
 
-import {VisualCard} from "@/components/home/VisualCard";
+import { VisualCard } from "@/components/home/VisualCard";
 import visualsData from "@/data/visuals.json";
-import {VisualsData} from "@/types/visuals";
-import {useRouter} from "next/navigation";
+import { VisualsData } from "@/types/visuals";
+import { useRouter } from "next/navigation";
 
 const data = visualsData as VisualsData;
 
 export default function Home() {
     const router = useRouter();
     return (
-        <div style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {/* ── HERO SECTION ── */}
             <section style={{
                 position: 'relative',
@@ -30,7 +30,7 @@ export default function Home() {
                     borderRadius: '50%',
                     background: 'radial-gradient(ellipse, rgba(0, 229, 255, .07) 0%, transparent 70%)',
                     pointerEvents: 'none'
-                }}/>
+                }} />
 
                 <div style={{
                     display: 'inline-block',
@@ -60,11 +60,11 @@ export default function Home() {
                     animation: 'fadeUp .6s ease .2s both'
                 }}>
                     Learn Through <em style={{
-                    fontStyle: 'normal',
-                    background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                }}>Visuals</em>
+                        fontStyle: 'normal',
+                        background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                    }}>Visuals</em>
                 </h1>
 
                 <p style={{
@@ -102,7 +102,7 @@ export default function Home() {
                         All Visuals →
                     </button>
                     <button
-                        onClick={() => window.open('https://github.com/mdobydullah/programly', '_blank')}
+                        onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
                         style={{
                             display: 'none',
                             background: 'transparent',
@@ -135,7 +135,7 @@ export default function Home() {
                 margin: '0 auto',
                 animation: 'fadeUp .6s ease .5s both'
             }}>
-                <div style={{textAlign: 'center'}}>
+                <div style={{ textAlign: 'center' }}>
                     <span style={{
                         fontFamily: 'var(--font-display)',
                         fontSize: '1.5rem',
@@ -150,7 +150,7 @@ export default function Home() {
                         textTransform: 'uppercase'
                     }}>Topics</span>
                 </div>
-                <div style={{textAlign: 'center'}}>
+                <div style={{ textAlign: 'center' }}>
                     <span style={{
                         fontFamily: 'var(--font-display)',
                         fontSize: '1.5rem',
@@ -165,7 +165,7 @@ export default function Home() {
                         textTransform: 'uppercase'
                     }}>Readers</span>
                 </div>
-                <div style={{textAlign: 'center'}}>
+                <div style={{ textAlign: 'center' }}>
                     <span style={{
                         fontFamily: 'var(--font-display)',
                         fontSize: '1.5rem',
@@ -231,7 +231,7 @@ export default function Home() {
                     })
                     .slice(0, 9)
                     .map((visual, index) => (
-                        <VisualCard key={visual.id} visual={visual} index={index}/>
+                        <VisualCard key={visual.id} visual={visual} index={index} />
                     ))}
             </div>
 
