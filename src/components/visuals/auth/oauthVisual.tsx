@@ -14,16 +14,14 @@ export function OauthVisual() {
     const playersRef = useRef<HTMLDivElement>(null);
 
     // Animation State
-    const [playersVisible, setPlayersVisible] = useState(false);
+
     const [flowVisibleCount, setFlowVisibleCount] = useState(0);
 
     const runAnimation = () => {
         // Reset
-        setPlayersVisible(false);
         setFlowVisibleCount(0);
 
         if (!animationsEnabled) {
-            setPlayersVisible(true);
             setFlowVisibleCount(9);
             return;
         }
@@ -31,42 +29,21 @@ export function OauthVisual() {
         // Initial delay
         const start = 300 * animationSpeed;
 
-        // 1. Players Fade In
-        setTimeout(() => setPlayersVisible(true), start);
-
-        // 2. Run Flow Steps
-        const flowStart = start + (1000 * animationSpeed);
+        // Run Flow Steps
+        const flowStart = start + (300 * animationSpeed);
         for (let i = 1; i <= 9; i++) {
-            setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 1100 * animationSpeed));
+            setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 800 * animationSpeed));
         }
     };
 
     // Auto-scrolling logic
-    useEffect(() => {
-        if (!animationsEnabled || flowVisibleCount === 0) return;
-
-        const timer = setTimeout(() => {
-            if (flowVisibleCount === 1) {
-                flowSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else if (flowVisibleCount === 9) {
-                const fullFlowSection = document.getElementById('full-oauth-flow');
-                fullFlowSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                const activeStep = document.querySelector(`.flow-step.s${flowVisibleCount}`);
-                if (activeStep) {
-                    activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        }, 150 * animationSpeed);
-        return () => clearTimeout(timer);
-    }, [flowVisibleCount, animationsEnabled, animationSpeed]);
+    // Auto-scroll removed as per user request
 
     useEffect(() => {
         runAnimation();
     }, [replayCount, animationsEnabled]);
 
     const handleReplay = () => {
-        window.scrollTo({ top: 0 });
         setReplayCount(prev => prev + 1);
     };
 
@@ -93,7 +70,7 @@ export function OauthVisual() {
                 }}
             >
                 {/* Resource Owner */}
-                <div className={`viz-box viz-reveal card-cyan delay-100 ${playersVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-cyan visible">
                     <span className="viz-label">Resource Owner</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
@@ -119,7 +96,7 @@ export function OauthVisual() {
                 </div>
 
                 {/* Client */}
-                <div className={`viz-box viz-reveal card-purple delay-300 ${playersVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-purple visible">
                     <span className="viz-label">Client</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
@@ -145,7 +122,7 @@ export function OauthVisual() {
                 </div>
 
                 {/* Authorization Server */}
-                <div className={`viz-box viz-reveal card-yellow delay-500 ${playersVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-yellow visible">
                     <span className="viz-label">Auth Server</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
@@ -171,7 +148,7 @@ export function OauthVisual() {
                 </div>
 
                 {/* Resource Server */}
-                <div className={`viz-box viz-reveal card-pink delay-700 ${playersVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-pink visible">
                     <span className="viz-label">Resource Server</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
@@ -265,9 +242,12 @@ export function OauthVisual() {
                 </div>
             </div>
 
-            <div id="full-oauth-flow" className={`viz-fade-up ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
+            <button className="viz-replay-btn" onClick={handleReplay} style={{ margin: '2rem auto 0' }}>
+                ↺ Replay Animation
+            </button>
+
+            <div id="full-oauth-flow" className="viz-fade-up visible" style={{
                 paddingTop: '3rem',
-                pointerEvents: flowVisibleCount >= 9 ? 'all' : 'none'
             }}>
                 {/* ═══════════════ MERMAID FLOW ═══════════════ */}
                 <h2 className="section-title">Sequence Diagram</h2>

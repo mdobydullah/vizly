@@ -99,3 +99,27 @@
 .viz-formula span {
     opacity: 0.6;
 }
+
+/* ════════════════════════════════════════
+   SHARED REPLAY BUTTON
+════════════════════════════════════════ */
+.viz-replay-btn {
+    display: block;
+    margin: 1.5rem auto 0;
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    transition: all 0.2s;
+}
+
+.viz-replay-btn:hover {
+    background: #5afab3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(62, 255, 163, 0.3);
+}

@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Twitter, Github, Linkedin, Heart, Settings, X, Play, Square } from "lucide-react";
+import { Twitter, Github, Linkedin, Heart, Settings, X } from "lucide-react";
 import { config } from "@/lib/config";
 import { useState } from "react";
 import { useSettings } from "@/context/SettingsContext";
 
 export default function Footer() {
-    const { animationsEnabled, setAnimationsEnabled, animationSpeed, setAnimationSpeed } = useSettings();
+    const { animationSpeed, setAnimationSpeed } = useSettings();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     return (
@@ -282,51 +282,12 @@ export default function Footer() {
                         </button>
                     </div>
 
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '.8rem',
-                        background: 'rgba(255,255,255,0.03)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--border)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
-                            <div style={{ color: animationsEnabled ? 'var(--cyan)' : 'var(--text-dim)' }}>
-                                {animationsEnabled ? <Play size={16} /> : <Square size={16} />}
-                            </div>
-                            <span style={{ fontSize: '.82rem', color: 'var(--text)' }}>Animations</span>
-                        </div>
-                        <button
-                            onClick={() => setAnimationsEnabled(!animationsEnabled)}
-                            style={{
-                                width: '36px',
-                                height: '20px',
-                                borderRadius: '10px',
-                                background: animationsEnabled ? 'var(--cyan)' : '#333',
-                                border: 'none',
-                                position: 'relative',
-                                cursor: 'pointer',
-                                transition: 'background 0.3s'
-                            }}
-                        >
-                            <div style={{
-                                width: '14px',
-                                height: '14px',
-                                borderRadius: '50%',
-                                background: '#fff',
-                                position: 'absolute',
-                                top: '3px',
-                                left: animationsEnabled ? '19px' : '3px',
-                                transition: 'left 0.3s'
-                            }} />
-                        </button>
-                    </div>
+
 
                     <div style={{ marginTop: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.6rem' }}>
                             <Settings size={14} style={{ color: 'var(--text-dim)' }} />
-                            <span style={{ fontSize: '.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Speed</span>
+                            <span style={{ fontSize: '.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Animation Speed</span>
                         </div>
                         <div style={{
                             display: 'grid',
@@ -339,7 +300,7 @@ export default function Footer() {
                         }}>
                             {[
                                 { label: 'Slow', value: 2 },
-                                { label: 'Norm', value: 1 },
+                                { label: 'Normal', value: 1 },
                                 { label: 'Fast', value: 0.25 }
                             ].map((s) => (
                                 <button

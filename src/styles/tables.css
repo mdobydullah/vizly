@@ -1,0 +1,61 @@
+/* src/styles/tables.css */
+
+/* ════════════════════════════════════════
+   REUSABLE COMPARISON TABLE
+════════════════════════════════════════ */
+.viz-comparison-table-wrap {
+    max-width: 1100px;
+    margin: 2rem auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.viz-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    font-family: var(--font-body);
+}
+
+.viz-table thead {
+    background: var(--surface2);
+}
+
+.viz-table th {
+    text-align: left;
+    padding: 1rem;
+    color: var(--text-hi);
+    border-bottom: 1px solid var(--border2);
+    font-weight: 700;
+}
+
+.viz-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.viz-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Rating Dots */
+.viz-rating-dots {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.viz-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border2);
+}
+
+.viz-dot.on {
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(62, 255, 163, 0.5);
+}

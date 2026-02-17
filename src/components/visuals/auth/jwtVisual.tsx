@@ -14,25 +14,14 @@ export function JwtVisual() {
     const tokenBoxRef = useRef<HTMLDivElement>(null);
 
     // Animation State
-    const [structVisible, setStructVisible] = useState(false);
-    const [encodePulse, setEncodePulse] = useState({ h: false, p: false, s: false });
-    const [formulaVisible, setFormulaVisible] = useState(false);
-    const [tokenVisible, setTokenVisible] = useState(false);
+
     const [flowVisibleCount, setFlowVisibleCount] = useState(0);
 
     const runAnimation = () => {
-        // Reset
-        setStructVisible(false);
-        setEncodePulse({ h: false, p: false, s: false });
-        setFormulaVisible(false);
-        setTokenVisible(false);
+        // Reset only flow
         setFlowVisibleCount(0);
 
         if (!animationsEnabled) {
-            setStructVisible(true);
-            setEncodePulse({ h: false, p: false, s: false });
-            setFormulaVisible(true);
-            setTokenVisible(true);
             setFlowVisibleCount(9);
             return;
         }
@@ -40,64 +29,19 @@ export function JwtVisual() {
         // Initial delay
         const start = 300 * animationSpeed;
 
-        // 1. Structure Cards Fade In
-        setTimeout(() => setStructVisible(true), start);
-
-        // 2. Pulse Encoders
-        setTimeout(() => setEncodePulse(prev => ({ ...prev, h: true })), start + (800 * animationSpeed));
-        setTimeout(() => setEncodePulse(prev => ({ ...prev, p: true })), start + (1000 * animationSpeed));
-        setTimeout(() => setEncodePulse(prev => ({ ...prev, s: true })), start + (1200 * animationSpeed));
-
-        // 3. Show Formula
-        setTimeout(() => setFormulaVisible(true), start + (1800 * animationSpeed));
-
-        // 4. Show Token
-        setTimeout(() => setTokenVisible(true), start + (2300 * animationSpeed));
-
-        // 5. Run Flow Steps
-        const flowStart = start + (3200 * animationSpeed);
+        // Run Flow Steps
         for (let i = 1; i <= 9; i++) {
-            setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 1000 * animationSpeed));
+            setTimeout(() => setFlowVisibleCount(i), start + (i * 800 * animationSpeed));
         }
     };
 
-    // Natural "Human" Progressive Scroll
-    useEffect(() => {
-        if (!animationsEnabled) return;
-        if (tokenVisible && flowVisibleCount === 0) {
-            const timer = setTimeout(() => {
-                tokenBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 200 * animationSpeed);
-            return () => clearTimeout(timer);
-        }
-    }, [tokenVisible, animationsEnabled, animationSpeed]);
-
-    useEffect(() => {
-        if (!animationsEnabled || flowVisibleCount === 0) return;
-
-        // Slight delay to mimic human reaction time after seeing new content
-        const timer = setTimeout(() => {
-            if (flowVisibleCount === 1) {
-                flowSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else if (flowVisibleCount === 9) {
-                const fullFlowSection = document.getElementById('full-auth-flow');
-                fullFlowSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                const activeStep = document.querySelector(`.flow-step.s${flowVisibleCount}`);
-                if (activeStep) {
-                    activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        }, 150 * animationSpeed);
-        return () => clearTimeout(timer);
-    }, [flowVisibleCount, animationsEnabled, animationSpeed]);
+    // Auto-scroll removed as per user request
 
     useEffect(() => {
         runAnimation();
     }, [replayCount, animationsEnabled]);
 
     const handleReplay = () => {
-        window.scrollTo({ top: 0 });
         setReplayCount(prev => prev + 1);
     };
 
@@ -115,7 +59,7 @@ export function JwtVisual() {
 
             <div className="viz-card-grid">
                 {/* Header */}
-                <div className={`viz-box viz-reveal card-cyan delay-100 ${structVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-cyan visible">
                     <span className="viz-label">Header</span>
                     <pre className="viz-pre">{`{
   "alg": "HS256",
@@ -124,7 +68,7 @@ export function JwtVisual() {
                 </div>
 
                 {/* Payload */}
-                <div className={`viz-box viz-reveal card-purple delay-300 ${structVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-purple visible">
                     <span className="viz-label">Payload</span>
                     <pre className="viz-pre">{`{
   "sub":  "1234567890",
@@ -134,7 +78,7 @@ export function JwtVisual() {
                 </div>
 
                 {/* Signature */}
-                <div className={`viz-box viz-reveal card-yellow delay-500 ${structVisible ? 'visible' : ''}`}>
+                <div className="viz-box viz-reveal card-yellow visible">
                     <span className="viz-label">Signature</span>
                     <pre className="viz-pre">{`HMAC-SHA256(
   base64Url(header) +
@@ -149,13 +93,13 @@ export function JwtVisual() {
 
             {/* Encode Row */}
             <div className="viz-row">
-                <div className={`viz-action action-cyan ${encodePulse.h ? 'pulsing' : ''}`}>
+                <div className="viz-action action-cyan">
                     ⚙ Base 64 encode
                 </div>
-                <div className={`viz-action action-purple ${encodePulse.p ? 'pulsing' : ''}`}>
+                <div className="viz-action action-purple">
                     ⚙ Base 64 encode
                 </div>
-                <div className={`viz-action action-yellow ${encodePulse.s ? 'pulsing' : ''}`}>
+                <div className="viz-action action-yellow">
                     compute
                 </div>
             </div>
@@ -164,7 +108,7 @@ export function JwtVisual() {
 
             {/* Combine */}
             <div className="viz-formula-wrap">
-                <div className={`viz-formula ${formulaVisible ? 'visible' : ''}`}>
+                <div className="viz-formula visible">
                     <span className="t-cyan">{`{{header}}`}</span>
                     <span>.</span>
                     <span className="t-purple">{`{{payload}}`}</span>
@@ -176,7 +120,7 @@ export function JwtVisual() {
             <div className="viz-arrow-down">▼</div>
 
             {/* JWT Token */}
-            <div ref={tokenBoxRef} className={`viz-output-box viz-reveal card-green ${tokenVisible ? 'visible' : ''}`}>
+            <div ref={tokenBoxRef} className="viz-output-box viz-reveal card-green visible">
                 <span className="viz-label">JWT</span>
                 <p className="viz-output-text">
                     <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>
@@ -256,9 +200,11 @@ export function JwtVisual() {
                 </div>
             </div>
 
-            <div id="full-auth-flow" className={`viz-fade-up ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
-                pointerEvents: flowVisibleCount >= 9 ? 'all' : 'none'
-            }}>
+            <button className="viz-replay-btn" onClick={handleReplay} style={{ margin: '2rem auto 0' }}>
+                ↺ Replay Animation
+            </button>
+
+            <div id="full-auth-flow" className="viz-fade-up visible">
                 {/* ═══════════════ MERMAID FLOW ═══════════════ */}
                 <h2 className="section-title">Full Authentication Flow</h2>
 

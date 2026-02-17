@@ -18,7 +18,6 @@ export function VisualLayout({
     title,
     description,
     primaryColor = 'var(--cyan)',
-    onReplay,
     children,
     contributors
 }: Readonly<VisualLayoutProps>) {
@@ -45,11 +44,27 @@ export function VisualLayout({
         mermaid.contentLoaded();
     }, [primaryColor]);
 
-    // Handle replay with scroll reset
-    const handleReplay = () => {
-        window.scrollTo({ top: 0 });
-        onReplay();
-    };
+    // Scroll to top and Initialize Visual environment
+    useEffect(() => {
+        window.scrollTo(0, 0);
+
+        // Initialize Mermaid (common for visuals)
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'var(--font-mono)',
+            themeVariables: {
+                primaryColor: primaryColor, // Use dynamic primary color
+                primaryTextColor: '#fff',
+                primaryBorderColor: primaryColor,
+                lineColor: '#5a6a7e',
+                secondaryColor: '#b985f4',
+                tertiaryColor: '#3effa3'
+            }
+        });
+        mermaid.contentLoaded();
+    }, [primaryColor]);
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [shouldShowExpand, setShouldShowExpand] = React.useState(false);
@@ -217,25 +232,12 @@ export function VisualLayout({
                     maxWidth: '860px',
                     margin: '4rem auto 0',
                 }}>
-                <button
-                    className="replay-btn"
-                    onClick={handleReplay}
-                    style={{
-                        borderColor: primaryColor,
-                        color: primaryColor,
-                        background: 'transparent',
-                        padding: '0.6rem 1.4rem',
-                        marginBottom: '3rem'
-                    }}
-                >
-                    ↺ Replay animation
-                </button>
 
-                <div style={{
+                {/* <div style={{
                     width: '100%',
                     borderTop: '1px solid var(--border)',
                     marginBottom: contributors && contributors.length > 0 ? '3rem' : '0',
-                }} />
+                }} /> */}
 
                 {contributors && contributors.length > 0 && (
                     <div style={{

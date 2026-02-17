@@ -10,4 +10,7 @@ export const visualComponents: Record<string, any> = {
     oauth: dynamic(() => import('./auth/oauthVisual').then(mod => mod.OauthVisual), {
         loading: () => <VisualLoader />
     }),
+    'caching-strategies': dynamic(() => import('./performance/CachingStrategiesVisual').then(mod => mod.CachingStrategiesVisual), {
+        loading: () => <VisualLoader />
+    }),
 };
