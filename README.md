@@ -19,6 +19,6 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Scripts
 
-- `npm run dev` - Start dev server (port 3002)
+- `npm run dev` - Start dev server (port 3000)
 - `npm run build` - Build for production
 - `npm run lint` - Run ESLint

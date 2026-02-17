@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { VisualCard } from "@/components/home/VisualCard";
 import visualsData from "@/data/visuals";
 import { VisualsData, SortOption } from "@/types/visuals";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 const data = visualsData as VisualsData;
 
@@ -18,12 +20,29 @@ const getUniqueCategories = () => {
   return Array.from(categories).sort();
 };
 
-export default function Visuals() {
+function VisualsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
+  // Get category from URL or default to "all"
+  const selectedCategory = searchParams.get("category") || "all";
+
   const categories = getUniqueCategories();
+
+  // Update URL when category changes
+  const handleCategoryChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "all") {
+      params.delete("category");
+    } else {
+      params.set("category", val);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   // Filter and sort visuals
   const filteredVisuals = useMemo(() => {
@@ -76,7 +95,7 @@ export default function Visuals() {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCategory("all");
+    handleCategoryChange("all");
     setSortBy("newest");
   };
 
@@ -98,7 +117,7 @@ export default function Visuals() {
         flexDirection: 'column',
         gap: '1rem',
         position: 'relative',
-        zIndex: 1
+        zIndex: 10
       }}>
         {/* Search and Category Row */}
         <div style={{
@@ -143,29 +162,12 @@ export default function Visuals() {
           </div>
 
           {/* Category Filter */}
-          <select
+          <SearchableSelect
+            options={categories}
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              padding: '.7rem 1rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              color: 'var(--text)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '.85rem',
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: '160px',
-              transition: 'all .2s'
-            }}
-            className="filter-select"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+            onChange={handleCategoryChange}
+            placeholder="All Categories"
+          />
 
           {/* Sort Dropdown */}
           <select
@@ -268,5 +270,23 @@ export default function Visuals() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function Visuals() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh',
+        color: 'var(--text-dim)'
+      }}>
+        Loading visuals...
+      </div>
+    }>
+      <VisualsContent />
+    </Suspense>
   );
 }

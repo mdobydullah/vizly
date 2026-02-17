@@ -2,8 +2,9 @@
 description: generate a one-line git commit message for the current changes
 ---
 
+// turbo
 1. **Stage Changes**:
-   Run `git status` and `git add .` to stage all modifications.
+   Run `git add .` then `git status` to stage all modifications and verify staged files.
 
 2. **Summarize Changes**:
    Analyze the recent edits made in the conversation, focusing on:
