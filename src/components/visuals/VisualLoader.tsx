@@ -3,7 +3,7 @@
 import React from 'react';
 
 export const VisualLoader = () => (
-    <div className="visual-loader-container" style={{
+    <div className="viz-loader-container" style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -44,7 +44,7 @@ export const VisualLoader = () => (
             gap: '1.2rem',
             opacity: 0.8
         }}>
-            <div className="visual-spinner"></div>
+            <div className="viz-spinner"></div>
             <span>Init visual environment...</span>
         </div>
 
@@ -57,7 +57,7 @@ export const VisualLoader = () => (
                 0% { transform: translateX(-100%); }
                 100% { transform: translateX(50%); }
             }
-            .visual-spinner {
+            .viz-spinner {
                 width: 28px;
                 height: 28px;
                 border: 2px solid rgba(0, 229, 255, 0.1);

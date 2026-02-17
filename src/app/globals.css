@@ -1,4 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap');
+@import "../styles/visuals.css";
+@import "../styles/cards.css";
+@import "../styles/actions.css";
+@import "../styles/mermaid.css";
+@import "../styles/layout.css";
 
 /* ════════════════════════════════════════
    DESIGN TOKENS
@@ -99,9 +104,12 @@ body::before {
 }
 
 @keyframes floating {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-20px);
     }
@@ -111,6 +119,7 @@ body::before {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -207,7 +216,7 @@ body::before {
 }
 
 /* Visuals */
-.visual-container {
+.viz-container {
     background: var(--bg);
     color: #abb2bf;
     font-family: 'Segoe UI', system-ui, sans-serif;
@@ -215,7 +224,7 @@ body::before {
     padding: 2rem 1rem 4rem;
 }
 
-.visual-container .section-title {
+.viz-container .section-title {
     text-align: center;
     font-size: 1.3rem;
     color: #fff;
@@ -341,7 +350,7 @@ body::before {
 }
 
 /* Visual Boxes & Grids */
-.visual-card-grid {
+.viz-card-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
@@ -349,7 +358,7 @@ body::before {
     margin: 0 auto 1.4rem;
 }
 
-.visual-box {
+.viz-box {
     background: var(--dim);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -359,7 +368,7 @@ body::before {
     position: relative;
 }
 
-.visual-label {
+.viz-label {
     font-size: .75rem;
     font-weight: 700;
     letter-spacing: .05em;
@@ -373,13 +382,13 @@ body::before {
     z-index: 10;
 }
 
-.visual-pre {
+.viz-pre {
     font-family: 'Cascadia Code', 'Fira Code', monospace;
     font-size: .78rem;
     margin: 0;
 }
 
-.visual-row {
+.viz-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
@@ -387,7 +396,7 @@ body::before {
     margin: 0 auto 1.2rem;
 }
 
-.visual-action-box {
+.viz-action-box {
     text-align: center;
     padding: .6rem;
     border-radius: 8px;
@@ -397,7 +406,7 @@ body::before {
     border: 1px solid;
 }
 
-.visual-arrow-down {
+.viz-arrow-down {
     text-align: center;
     font-size: 1.1rem;
     color: #3a3a5c;
@@ -408,13 +417,13 @@ body::before {
     margin-right: auto;
 }
 
-.visual-formula-wrap {
+.viz-formula-wrap {
     max-width: 860px;
     margin: 0 auto;
     text-align: center;
 }
 
-.visual-formula {
+.viz-formula {
     display: inline-block;
     border: 1px solid var(--green);
     border-radius: 8px;
@@ -425,7 +434,7 @@ body::before {
     background: #051209;
 }
 
-.visual-output-box {
+.viz-output-box {
     max-width: 860px;
     margin: 1rem auto 0;
     border: 1px solid var(--green);
@@ -435,7 +444,7 @@ body::before {
     position: relative;
 }
 
-.visual-output-text {
+.viz-output-text {
     font-family: var(--font-mono);
     font-size: .72rem;
     word-break: break-all;
@@ -461,8 +470,8 @@ body::before {
 
 @media(max-width: 600px) {
 
-    .visual-card-grid,
-    .visual-row {
+    .viz-card-grid,
+    .viz-row {
         grid-template-columns: 1fr;
     }
 }

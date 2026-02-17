@@ -1,0 +1,46 @@
+/* src/styles/actions.css */
+
+/* --- Action Boxes (Encoders/Processors) --- */
+.viz-action {
+    text-align: center;
+    padding: .6rem;
+    border-radius: 8px;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    border: 1px solid;
+    transition: all 0.3s ease;
+}
+
+.action-cyan {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: #041215;
+}
+
+.action-purple {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: #120415;
+}
+
+.action-yellow {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: #15110a;
+}
+
+/* --- Pulse Triggering --- */
+/* (Animations defined in visuals.css) */
+
+.pulsing.action-cyan {
+    animation: pulse-cyan .8s ease 2;
+}
+
+.pulsing.action-purple {
+    animation: pulse-purple .8s ease 2;
+}
+
+.pulsing.action-yellow {
+    animation: pulse-yellow .8s ease 2;
+}

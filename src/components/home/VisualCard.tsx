@@ -130,12 +130,12 @@ export function VisualCard({ visual, index }: VisualCardProps) {
       </div>
       
       <style jsx>{`
-        .visual-card {
+        .viz-card {
           transition: all .3s ease;
           position: relative;
         }
         
-        .visual-card::before {
+        .viz-card::before {
           content: '';
           position: absolute;
           inset: 0;
@@ -147,7 +147,7 @@ export function VisualCard({ visual, index }: VisualCardProps) {
           z-index: -1;
         }
         
-        .visual-card:hover {
+        .viz-card:hover {
           transform: translateY(-4px);
           border-color: ${visual.colorConfig.primary} !important;
           box-shadow: ${visual.colorConfig.hoverShadow} !important;
@@ -159,17 +159,17 @@ export function VisualCard({ visual, index }: VisualCardProps) {
           );
         }
         
-        .visual-card:hover::before {
+        .viz-card:hover::before {
           opacity: 0.03;
         }
         
-        .visual-card:hover .card-arrow {
+        .viz-card:hover .card-arrow {
           background: ${visual.colorConfig.primary};
           color: #000;
           transform: scale(1.1);
         }
         
-        .visual-card:hover :global(.card-icon) {
+        .viz-card:hover :global(.card-icon) {
           background: ${visual.colorConfig.primary}20 !important;
           border-color: ${visual.colorConfig.primary}40 !important;
           transform: scale(1.05);
@@ -180,14 +180,14 @@ export function VisualCard({ visual, index }: VisualCardProps) {
 
   if (visual.link.startsWith('#')) {
     return (
-      <div style={cardStyle} className={`visual-card card-${visual.color}`}>
+      <div style={cardStyle} className={`viz-card card-${visual.color}`}>
         {cardContent}
       </div>
     );
   }
 
   return (
-    <Link href={visual.link} style={cardStyle} className={`visual-card card-${visual.color}`}>
+    <Link href={visual.link} style={cardStyle} className={`viz-card card-${visual.color}`}>
       {cardContent}
     </Link>
   );

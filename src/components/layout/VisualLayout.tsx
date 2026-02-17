@@ -50,7 +50,7 @@ export function VisualLayout({
     };
 
     return (
-        <div className="visual-container">
+        <div className="viz-container">
             {/* Section Title */}
             <div className="section-title-container" style={{
                 padding: 'clamp(2rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem)',

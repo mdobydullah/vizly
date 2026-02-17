@@ -2,8 +2,8 @@
 description: generate a one-line git commit message for the current changes
 ---
 
-1. **Check Status**:
-   Run `git status` to see which files were modified.
+1. **Stage Changes**:
+   Run `git status` and `git add .` to stage all modifications.
 
 2. **Summarize Changes**:
    Analyze the recent edits made in the conversation, focusing on:
@@ -22,4 +22,4 @@ description: generate a one-line git commit message for the current changes
    Share the one-line commit message with the user.
 
 5. **Final Action**:
-   Ask the user if they would like you to execute the `git add .`, commit, and push the changes.
+   Ask the user if they would like you to commit and push the changes.

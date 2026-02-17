@@ -1,0 +1,51 @@
+/* src/styles/cards.css */
+
+/* --- Card Theme Variants --- */
+
+/* Cyan Theme */
+.card-cyan {
+    border-color: var(--cyan) !important;
+    color: var(--cyan) !important;
+}
+
+.card-cyan .viz-label {
+    background: #0a2a30 !important;
+    color: var(--cyan) !important;
+    border: 1px solid var(--cyan) !important;
+}
+
+/* Purple Theme */
+.card-purple {
+    border-color: var(--purple) !important;
+    color: var(--purple) !important;
+}
+
+.card-purple .viz-label {
+    background: #1e0a30 !important;
+    color: var(--purple) !important;
+    border: 1px solid var(--purple) !important;
+}
+
+/* Yellow Theme */
+.card-yellow {
+    border-color: var(--yellow) !important;
+    color: var(--yellow) !important;
+}
+
+.card-yellow .viz-label {
+    background: #1e1a00 !important;
+    color: var(--yellow) !important;
+    border: 1px solid var(--yellow) !important;
+}
+
+/* Green Theme */
+.card-green {
+    border-color: var(--green) !important;
+    color: var(--green) !important;
+}
+
+.card-green .viz-label {
+    background: #051209 !important;
+    color: var(--green) !important;
+    border: 1px solid var(--green) !important;
+}

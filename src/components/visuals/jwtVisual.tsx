@@ -110,77 +110,23 @@ export function JwtVisual() {
       introText="JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed."
       onReplay={handleReplay}
     >
-      <style jsx>{`
-        /* JWT Specific Animations & Colors */
-        .header-card { border-color: var(--cyan); color: var(--cyan); opacity: 0; transform: translateY(-20px); transition: opacity .5s .1s, transform .5s .1s; }
-        .header-card.visible { opacity: 1; transform: translateY(0); }
-        .header-card :global(.visual-label) { background: #0a2a30; color: var(--cyan); border: 1px solid var(--cyan); }
-
-        .payload-card { border-color: var(--purple); color: var(--purple); opacity: 0; transform: translateY(-20px); transition: opacity .5s .3s, transform .5s .3s; }
-        .payload-card.visible { opacity: 1; transform: translateY(0); }
-        .payload-card :global(.visual-label) { background: #1e0a30; color: var(--purple); border: 1px solid var(--purple); }
-
-        .sig-card { border-color: var(--yellow); color: var(--yellow); opacity: 0; transform: translateY(-20px); transition: opacity .5s .5s, transform .5s .5s; }
-        .sig-card.visible { opacity: 1; transform: translateY(0); }
-        .sig-card :global(.visual-label) { background: #1e1a00; color: var(--yellow); border: 1px solid var(--yellow); }
-
-        .visual-formula { opacity: 0; transition: opacity .5s; }
-        .visual-formula.visible { opacity: 1; }
-        .visual-formula span { opacity: .6; }
-
-        .visual-output-box { opacity: 0; transition: opacity .6s; }
-        .visual-output-box.visible { opacity: 1; }
-        .visual-output-box :global(.visual-label) { background: #051209; color: var(--green); border: 1px solid var(--green); }
-
-        /* Pulses */
-        @keyframes pulse-border {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, .4); }
-          50% { box-shadow: 0 0 0 6px rgba(0, 229, 255, 0); }
-        }
-        @keyframes pulse-border-purple {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(198, 120, 221, .4); }
-          50% { box-shadow: 0 0 0 6px rgba(198, 120, 221, 0); }
-        }
-        @keyframes pulse-border-yellow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(229, 192, 123, .4); }
-          50% { box-shadow: 0 0 0 6px rgba(229, 192, 123, 0); }
-        }
-
-        .enc-cyan { border-color: var(--cyan); color: var(--cyan); background: #041215; }
-        .enc-cyan.pulsing { animation: pulse-border .8s ease 2; }
-        .enc-purple { border-color: var(--purple); color: var(--purple); background: #120415; }
-        .enc-purple.pulsing { animation: pulse-border-purple .8s ease 2; }
-        .enc-yellow { border-color: var(--yellow); color: var(--yellow); background: #15110a; }
-        .enc-yellow.pulsing { animation: pulse-border-yellow .8s ease 2; }
-
-        .full-flow-section { 
-          opacity: 0; 
-          transform: translateY(20px); 
-          transition: opacity 0.6s ease, transform 0.6s ease; 
-        }
-        .full-flow-section.visible { 
-          opacity: 1; 
-          transform: translateY(0); 
-        }
-      `}</style>
-
       {/* ═══════════════ STRUCTURE ═══════════════ */}
       <h2 className="section-title">Structure of a JWT</h2>
 
-      <div className="visual-card-grid">
+      <div className="viz-card-grid">
         {/* Header */}
-        <div className={`visual-box header-card ${structVisible ? 'visible' : ''}`}>
-          <span className="visual-label">Header</span>
-          <pre className="visual-pre">{`{
+        <div className={`viz-box viz-reveal card-cyan delay-100 ${structVisible ? 'visible' : ''}`}>
+          <span className="viz-label">Header</span>
+          <pre className="viz-pre">{`{
   "alg": "HS256",
   "typ": "JWT"
 }`}</pre>
         </div>
 
         {/* Payload */}
-        <div className={`visual-box payload-card ${structVisible ? 'visible' : ''}`}>
-          <span className="visual-label">Payload</span>
-          <pre className="visual-pre">{`{
+        <div className={`viz-box viz-reveal card-purple delay-300 ${structVisible ? 'visible' : ''}`}>
+          <span className="viz-label">Payload</span>
+          <pre className="viz-pre">{`{
   "sub":  "1234567890",
   "name": "John Doe",
   "iat":  1516239022
@@ -188,9 +134,9 @@ export function JwtVisual() {
         </div>
 
         {/* Signature */}
-        <div className={`visual-box sig-card ${structVisible ? 'visible' : ''}`}>
-          <span className="visual-label">Signature</span>
-          <pre className="visual-pre">{`HMAC-SHA256(
+        <div className={`viz-box viz-reveal card-yellow delay-500 ${structVisible ? 'visible' : ''}`}>
+          <span className="viz-label">Signature</span>
+          <pre className="viz-pre">{`HMAC-SHA256(
   base64Url(header) +
   "." +
   base64Url(payload),
@@ -199,26 +145,26 @@ export function JwtVisual() {
         </div>
       </div>
 
-      <div className="visual-arrow-down">▼</div>
+      <div className="viz-arrow-down">▼</div>
 
       {/* Encode Row */}
-      <div className="visual-row">
-        <div className={`visual-action-box enc-cyan ${encodePulse.h ? 'pulsing' : ''}`}>
+      <div className="viz-row">
+        <div className={`viz-action action-cyan ${encodePulse.h ? 'pulsing' : ''}`}>
           ⚙ Base 64 encode
         </div>
-        <div className={`visual-action-box enc-purple ${encodePulse.p ? 'pulsing' : ''}`}>
+        <div className={`viz-action action-purple ${encodePulse.p ? 'pulsing' : ''}`}>
           ⚙ Base 64 encode
         </div>
-        <div className={`visual-action-box enc-yellow ${encodePulse.s ? 'pulsing' : ''}`}>
+        <div className={`viz-action action-yellow ${encodePulse.s ? 'pulsing' : ''}`}>
           compute
         </div>
       </div>
 
-      <div className="visual-arrow-down">▼</div>
+      <div className="viz-arrow-down">▼</div>
 
       {/* Combine */}
-      <div className="visual-formula-wrap">
-        <div className={`visual-formula ${formulaVisible ? 'visible' : ''}`}>
+      <div className="viz-formula-wrap">
+        <div className={`viz-formula ${formulaVisible ? 'visible' : ''}`}>
           <span className="t-cyan">{`{{header}}`}</span>
           <span>.</span>
           <span className="t-purple">{`{{payload}}`}</span>
@@ -227,12 +173,12 @@ export function JwtVisual() {
         </div>
       </div>
 
-      <div className="visual-arrow-down">▼</div>
+      <div className="viz-arrow-down">▼</div>
 
       {/* JWT Token */}
-      <div ref={tokenBoxRef} className={`visual-output-box ${tokenVisible ? 'visible' : ''}`}>
-        <span className="visual-label">JWT</span>
-        <p className="visual-output-text">
+      <div ref={tokenBoxRef} className={`viz-output-box viz-reveal card-green ${tokenVisible ? 'visible' : ''}`}>
+        <span className="viz-label">JWT</span>
+        <p className="viz-output-text">
           <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>
           <span>.</span>
           <span className="t-purple">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ</span>
@@ -310,21 +256,13 @@ export function JwtVisual() {
         </div>
       </div>
 
-      <div id="full-auth-flow" className={`full-flow-section ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
+      <div id="full-auth-flow" className={`viz-fade-up ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
         pointerEvents: flowVisibleCount >= 9 ? 'all' : 'none'
       }}>
         {/* ═══════════════ MERMAID FLOW ═══════════════ */}
         <h2 className="section-title">Full Authentication Flow</h2>
 
-        <div style={{
-          maxWidth: '860px',
-          margin: '2rem auto',
-          background: 'rgba(0, 0, 0, 0.2)',
-          padding: '2rem',
-          borderRadius: '16px',
-          border: '1px solid var(--border)',
-          overflowX: 'auto'
-        }}>
+        <div className="viz-mermaid-wrap">
           <div className="mermaid">
             {`sequenceDiagram
     autonumber

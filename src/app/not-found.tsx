@@ -7,7 +7,7 @@ export default function NotFound() {
     const featuredVisuals = visualsData.visuals.slice(0, 3);
 
     return (
-        <div className="visual-container" style={{
+        <div className="viz-container" style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

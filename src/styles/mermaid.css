@@ -1,0 +1,17 @@
+/* src/styles/mermaid.css */
+
+/* --- Mermaid (Diagram) Containers --- */
+.viz-mermaid-wrap {
+    max-width: 860px;
+    margin: 2rem auto;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+/* Customizing the mermaid diagram items if needed */
+.mermaid {
+    font-family: var(--font-mono) !important;
+}

@@ -83,30 +83,9 @@ export default function Visuals() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Section Title */}
-      <div className="section-title-container" style={{
-        padding: 'clamp(2rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem)',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.5rem',
-        textAlign: 'center'
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '1.35rem',
-          fontWeight: 800,
-          color: 'var(--text-hi)',
-          letterSpacing: '-.02em'
-        }}>All Visuals</h2>
-        <p className="section-hint" style={{
-          color: 'var(--text-dim)',
-          fontSize: '.8rem',
-          maxWidth: '500px',
-          textAlign: 'center'
-        }}>Click any card to explore an animated, in-depth guide.</p>
+      <div className="viz-section-header">
+        <h2 className="viz-section-title">All Visuals</h2>
+        <p className="viz-section-hint">Click any card to explore an animated, in-depth guide.</p>
       </div>
 
       {/* Filters Bar */}
@@ -250,16 +229,7 @@ export default function Visuals() {
       </div>
 
       {/* Cards Grid */}
-      <div className="cards-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
-        gap: 'clamp(1rem, 2vw, 1.2rem)',
-        padding: '0 clamp(1rem, 4vw, 2rem) clamp(2rem, 5vw, 3rem)',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 1
-      }}>
+      <div className="viz-grid">
         {filteredVisuals.map((visual, index) => (
           <VisualCard key={visual.id} visual={visual} index={index} />
         ))}
