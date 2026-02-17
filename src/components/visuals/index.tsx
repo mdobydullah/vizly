@@ -13,4 +13,7 @@ export const visualComponents: Record<string, any> = {
     'caching-strategies': dynamic(() => import('./performance/CachingStrategiesVisual').then(mod => mod.CachingStrategiesVisual), {
         loading: () => <VisualLoader />
     }),
+    'message-queues': dynamic(() => import('./async/MessageQueuesVisual').then(mod => mod.MessageQueuesVisual), {
+        loading: () => <VisualLoader />
+    }),
 };

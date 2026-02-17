@@ -8,9 +8,9 @@
             "Messaging",
             "Queue"
         ],
-        "description": "Kafka, RabbitMQ, and SQS compared — producers, consumers, dead-letter queues and at-least-once delivery.",
+        "description": "Asynchronous communication pattern enabling decoupled services to exchange messages via queues. Producers send messages, consumers process them independently, with support for dead-letter queues and delivery guarantees.",
         "icon": "📨",
-        "link": "#",
+        "link": "/visuals/message-queues",
         "color": "yellow",
         "colorConfig": {
             "primary": "#ffd166",
