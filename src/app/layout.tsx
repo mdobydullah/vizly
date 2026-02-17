@@ -5,9 +5,11 @@ import Footer from "@/components/layout/Footer";
 import { config } from "@/lib/config";
 
 export const metadata: Metadata = {
-    title: config.app.fullName,
-    description: config.app.description,
+  title: config.app.fullName,
+  description: config.app.description,
 };
+
+import { SettingsProvider } from "@/context/SettingsContext";
 
 export default function RootLayout({
   children,
@@ -21,11 +23,13 @@ export default function RootLayout({
         display: 'flex',
         flexDirection: 'column'
       }}>
-        <Header />
-        <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
-          {children}
-        </main>
-        <Footer />
+        <SettingsProvider>
+          <Header />
+          <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+            {children}
+          </main>
+          <Footer />
+        </SettingsProvider>
       </body>
     </html>
   );

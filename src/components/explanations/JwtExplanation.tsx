@@ -2,17 +2,37 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import visualsData from "@/data/visuals.json";
+import mermaid from 'mermaid';
+import { useSettings } from "@/context/SettingsContext";
 
 const visual = visualsData.visuals.find(v => v.id === "jwt")!;
 
 export function JwtExplanation() {
   const [replayCount, setReplayCount] = useState(0);
+  const { animationsEnabled, animationSpeed } = useSettings();
   const flowSectionRef = useRef<HTMLHeadingElement>(null);
   const tokenBoxRef = useRef<HTMLDivElement>(null);
 
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Initialize Mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      fontFamily: 'var(--font-mono)',
+      themeVariables: {
+        primaryColor: '#00e5ff',
+        primaryTextColor: '#fff',
+        primaryBorderColor: '#00e5ff',
+        lineColor: '#5a6a7e',
+        secondaryColor: '#b985f4',
+        tertiaryColor: '#3effa3'
+      }
+    });
+    mermaid.contentLoaded();
   }, []);
 
   // Animation State
@@ -30,63 +50,73 @@ export function JwtExplanation() {
     setTokenVisible(false);
     setFlowVisibleCount(0);
 
-    // Start Sequence
-    setTimeout(() => {
-      // 1. Structure Cards Fade In
+    if (!animationsEnabled) {
       setStructVisible(true);
+      setEncodePulse({ h: false, p: false, s: false });
+      setFormulaVisible(true);
+      setTokenVisible(true);
+      setFlowVisibleCount(9);
+      return;
+    }
 
-      // 2. Pulse Encoders
-      setTimeout(() => setEncodePulse(prev => ({ ...prev, h: true })), 800);
-      setTimeout(() => setEncodePulse(prev => ({ ...prev, p: true })), 1000);
-      setTimeout(() => setEncodePulse(prev => ({ ...prev, s: true })), 1200);
+    // Initial delay
+    const start = 300 * animationSpeed;
 
-      // 3. Show Formula
-      setTimeout(() => setFormulaVisible(true), 1800);
+    // 1. Structure Cards Fade In
+    setTimeout(() => setStructVisible(true), start);
 
-      // 4. Show Token
-      setTimeout(() => {
-        setTokenVisible(true);
-      }, 2300);
+    // 2. Pulse Encoders
+    setTimeout(() => setEncodePulse(prev => ({ ...prev, h: true })), start + (800 * animationSpeed));
+    setTimeout(() => setEncodePulse(prev => ({ ...prev, p: true })), start + (1000 * animationSpeed));
+    setTimeout(() => setEncodePulse(prev => ({ ...prev, s: true })), start + (1200 * animationSpeed));
 
-      // 5. Run Flow Steps
-      const baseDelay = 3200;
-      for (let i = 1; i <= 8; i++) {
-        setTimeout(() => setFlowVisibleCount(i), baseDelay + (i * 1000));
-      }
-    }, 300);
+    // 3. Show Formula
+    setTimeout(() => setFormulaVisible(true), start + (1800 * animationSpeed));
+
+    // 4. Show Token
+    setTimeout(() => setTokenVisible(true), start + (2300 * animationSpeed));
+
+    // 5. Run Flow Steps
+    const flowStart = start + (3200 * animationSpeed);
+    for (let i = 1; i <= 9; i++) {
+      setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 1000 * animationSpeed));
+    }
   };
 
   // Natural "Human" Progressive Scroll
   useEffect(() => {
+    if (!animationsEnabled) return;
     if (tokenVisible && flowVisibleCount === 0) {
       const timer = setTimeout(() => {
         tokenBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
+      }, 200 * animationSpeed);
       return () => clearTimeout(timer);
     }
-  }, [tokenVisible]);
+  }, [tokenVisible, animationsEnabled, animationSpeed]);
 
   useEffect(() => {
-    if (flowVisibleCount === 0) return;
+    if (!animationsEnabled || flowVisibleCount === 0) return;
 
     // Slight delay to mimic human reaction time after seeing new content
     const timer = setTimeout(() => {
       if (flowVisibleCount === 1) {
         flowSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (flowVisibleCount === 9) {
+        const fullFlowSection = document.getElementById('full-auth-flow');
+        fullFlowSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         const activeStep = document.querySelector(`.flow-step.s${flowVisibleCount}`);
         if (activeStep) {
-          // 'nearest' is the most natural - it only scrolls if the element is out of view
           activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }
-    }, 150);
+    }, 150 * animationSpeed);
     return () => clearTimeout(timer);
-  }, [flowVisibleCount]);
+  }, [flowVisibleCount, animationsEnabled, animationSpeed]);
 
   useEffect(() => {
     runAnimation();
-  }, [replayCount]);
+  }, [replayCount, animationsEnabled]);
 
   const handleReplay = () => {
     window.scrollTo({ top: 0 });
@@ -96,281 +126,56 @@ export function JwtExplanation() {
   return (
     <>
       <style jsx>{`
-        .jwt-title {
-          text-align: center;
-          font-size: 1.6rem;
-          color: #fff;
-          margin-bottom: .3rem;
-          font-weight: normal;
-        }
+        /* JWT Specific Animations & Colors */
+        .header-card { border-color: var(--cyan); color: var(--cyan); opacity: 0; transform: translateY(-20px); transition: opacity .5s .1s, transform .5s .1s; }
+        .header-card.visible { opacity: 1; transform: translateY(0); }
+        .header-card :global(.visual-label) { background: #0a2a30; color: var(--cyan); border: 1px solid var(--cyan); }
 
-        .jwt-title span {
-          color: var(--cyan);
-          background: #0a2a30;
-          padding: .15em .5em;
-          border-radius: 6px;
-        }
+        .payload-card { border-color: var(--purple); color: var(--purple); opacity: 0; transform: translateY(-20px); transition: opacity .5s .3s, transform .5s .3s; }
+        .payload-card.visible { opacity: 1; transform: translateY(0); }
+        .payload-card :global(.visual-label) { background: #1e0a30; color: var(--purple); border: 1px solid var(--purple); }
 
-        .jwt-subtitle {
-          text-align: center;
-          font-size: .75rem;
-          color: #555;
-          margin-top: .2rem;
-          margin-bottom: 2.5rem;
-        }
+        .sig-card { border-color: var(--yellow); color: var(--yellow); opacity: 0; transform: translateY(-20px); transition: opacity .5s .5s, transform .5s .5s; }
+        .sig-card.visible { opacity: 1; transform: translateY(0); }
+        .sig-card :global(.visual-label) { background: #1e1a00; color: var(--yellow); border: 1px solid var(--yellow); }
 
-        /* Card Styles */
-        .card {
-          background: var(--dim);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 1.2rem 1.4rem;
-          font-size: .82rem;
-          line-height: 1.6;
-          position: relative;
-        }
+        .visual-formula { opacity: 0; transition: opacity .5s; }
+        .visual-formula.visible { opacity: 1; }
+        .visual-formula span { opacity: .6; }
 
-        .card-label {
-          font-size: .75rem;
-          font-weight: 700;
-          letter-spacing: .05em;
-          padding: .2em .6em;
-          border-radius: 6px;
-          position: absolute;
-          top: -12px;
-          left: 50%;
-          transform: translateX(-50%);
-          white-space: nowrap;
-        }
+        .visual-output-box { opacity: 0; transition: opacity .6s; }
+        .visual-output-box.visible { opacity: 1; }
+        .visual-output-box :global(.visual-label) { background: #051209; color: var(--green); border: 1px solid var(--green); }
 
-        pre {
-          font-family: 'Cascadia Code', 'Fira Code', monospace;
-          font-size: .78rem;
-          margin: 0;
-        }
-
-        /* Structure Grid */
-        .struct-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          max-width: 860px;
-          margin: 0 auto 1.4rem;
-        }
-
-        .header-card {
-          border-color: var(--cyan);
-          color: var(--cyan);
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: opacity .5s .1s, transform .5s .1s;
-        }
-
-        .header-card.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .header-card .card-label {
-          background: #0a2a30;
-          color: var(--cyan);
-          border: 1px solid var(--cyan);
-        }
-
-        .payload-card {
-          border-color: var(--purple);
-          color: var(--purple);
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: opacity .5s .3s, transform .5s .3s;
-        }
-
-        .payload-card.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .payload-card .card-label {
-          background: #1e0a30;
-          color: var(--purple);
-          border: 1px solid var(--purple);
-        }
-
-        .sig-card {
-          border-color: var(--yellow);
-          color: var(--yellow);
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: opacity .5s .5s, transform .5s .5s;
-        }
-
-        .sig-card.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .sig-card .card-label {
-          background: #1e1a00;
-          color: var(--yellow);
-          border: 1px solid var(--yellow);
-        }
-
-        /* Encode Row */
-        .encode-row {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          max-width: 860px;
-          margin: 0 auto 1.2rem;
-        }
-
-        .encode-box {
-          text-align: center;
-          padding: .6rem;
-          border-radius: 8px;
-          font-size: .78rem;
-          font-weight: 600;
-          letter-spacing: .03em;
-          border: 1px solid;
-        }
-
-        .enc-cyan {
-          border-color: var(--cyan);
-          color: var(--cyan);
-          background: #041215;
-        }
-
-        .enc-purple {
-          border-color: var(--purple);
-          color: var(--purple);
-          background: #120415;
-        }
-
-        .enc-yellow {
-          border-color: var(--yellow);
-          color: var(--yellow);
-          background: #15110a;
-        }
-
+        /* Pulses */
         @keyframes pulse-border {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(0, 229, 255, .4);
-          }
-          50% {
-            box-shadow: 0 0 0 6px rgba(0, 229, 255, 0);
-          }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, .4); }
+          50% { box-shadow: 0 0 0 6px rgba(0, 229, 255, 0); }
         }
-
-        .enc-cyan.pulsing {
-          animation: pulse-border .8s ease 2;
-        }
-
-        .enc-purple.pulsing {
-          animation: pulse-border-purple .8s ease 2;
-        }
-
-        .enc-yellow.pulsing {
-          animation: pulse-border-yellow .8s ease 2;
-        }
-
         @keyframes pulse-border-purple {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(198, 120, 221, .4);
-          }
-          50% {
-            box-shadow: 0 0 0 6px rgba(198, 120, 221, 0);
-          }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(198, 120, 221, .4); }
+          50% { box-shadow: 0 0 0 6px rgba(198, 120, 221, 0); }
         }
-
         @keyframes pulse-border-yellow {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(229, 192, 123, .4);
-          }
-          50% {
-            box-shadow: 0 0 0 6px rgba(229, 192, 123, 0);
-          }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(229, 192, 123, .4); }
+          50% { box-shadow: 0 0 0 6px rgba(229, 192, 123, 0); }
         }
 
-        /* Arrow */
-        .down-arrow {
-          text-align: center;
-          font-size: 1.1rem;
-          color: #3a3a5c;
-          line-height: 1;
-          margin: .1rem 0;
-          max-width: 860px;
-          margin-left: auto;
-          margin-right: auto;
+        .enc-cyan { border-color: var(--cyan); color: var(--cyan); background: #041215; }
+        .enc-cyan.pulsing { animation: pulse-border .8s ease 2; }
+        .enc-purple { border-color: var(--purple); color: var(--purple); background: #120415; }
+        .enc-purple.pulsing { animation: pulse-border-purple .8s ease 2; }
+        .enc-yellow { border-color: var(--yellow); color: var(--yellow); background: #15110a; }
+        .enc-yellow.pulsing { animation: pulse-border-yellow .8s ease 2; }
+
+        .full-flow-section { 
+          opacity: 0; 
+          transform: translateY(20px); 
+          transition: opacity 0.6s ease, transform 0.6s ease; 
         }
-
-        /* Combine Formula */
-        .combine-wrap {
-          max-width: 860px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .combine-formula {
-          display: inline-block;
-          border: 1px solid var(--green);
-          border-radius: 8px;
-          padding: .5rem 1.2rem;
-          color: var(--green);
-          font-family: monospace;
-          font-size: .9rem;
-          background: #051209;
-          opacity: 0;
-          transition: opacity .5s;
-        }
-
-        .combine-formula.visible {
-          opacity: 1;
-        }
-
-        .combine-formula span {
-          opacity: .6;
-        }
-
-        .t-cyan { color: var(--cyan); }
-        .t-purple { color: var(--purple); }
-        .t-yellow { color: var(--yellow); }
-
-        /* Token Box */
-        .token-box {
-          max-width: 860px;
-          margin: 1rem auto 0;
-          border: 1px solid var(--green);
-          border-radius: 10px;
-          background: #051209;
-          padding: 1rem 1.2rem;
-          position: relative;
-          opacity: 0;
-          transition: opacity .6s;
-        }
-
-        .token-box.visible {
-          opacity: 1;
-        }
-
-        .token-box .card-label {
-          background: #051209;
-          color: var(--green);
-          border: 1px solid var(--green);
-        }
-
-        .token-text {
-          font-family: monospace;
-          font-size: .72rem;
-          word-break: break-all;
-          line-height: 1.6;
-        }
-
-        /* Mobile Responsive */
-        @media(max-width:600px) {
-          .struct-grid,
-          .encode-row {
-            grid-template-columns: 1fr;
-          }
+        .full-flow-section.visible { 
+          opacity: 1; 
+          transform: translateY(0); 
         }
       `}</style>
 
@@ -432,20 +237,20 @@ export function JwtExplanation() {
         {/* ═══════════════ STRUCTURE ═══════════════ */}
         <h2 className="section-title">Structure of a JWT</h2>
 
-        <div className="struct-grid">
+        <div className="visual-card-grid">
           {/* Header */}
-          <div className={`card header-card ${structVisible ? 'visible' : ''}`}>
-            <span className="card-label">Header</span>
-            <pre>{`{
+          <div className={`visual-box header-card ${structVisible ? 'visible' : ''}`}>
+            <span className="visual-label">Header</span>
+            <pre className="visual-pre">{`{
   "alg": "HS256",
   "typ": "JWT"
 }`}</pre>
           </div>
 
           {/* Payload */}
-          <div className={`card payload-card ${structVisible ? 'visible' : ''}`}>
-            <span className="card-label">Payload</span>
-            <pre>{`{
+          <div className={`visual-box payload-card ${structVisible ? 'visible' : ''}`}>
+            <span className="visual-label">Payload</span>
+            <pre className="visual-pre">{`{
   "sub":  "1234567890",
   "name": "John Doe",
   "iat":  1516239022
@@ -453,9 +258,9 @@ export function JwtExplanation() {
           </div>
 
           {/* Signature */}
-          <div className={`card sig-card ${structVisible ? 'visible' : ''}`}>
-            <span className="card-label">Signature</span>
-            <pre>{`HMAC-SHA256(
+          <div className={`visual-box sig-card ${structVisible ? 'visible' : ''}`}>
+            <span className="visual-label">Signature</span>
+            <pre className="visual-pre">{`HMAC-SHA256(
   base64Url(header) +
   "." +
   base64Url(payload),
@@ -464,26 +269,26 @@ export function JwtExplanation() {
           </div>
         </div>
 
-        <div className="down-arrow">▼</div>
+        <div className="visual-arrow-down">▼</div>
 
         {/* Encode Row */}
-        <div className="encode-row">
-          <div className={`encode-box enc-cyan ${encodePulse.h ? 'pulsing' : ''}`}>
+        <div className="visual-row">
+          <div className={`visual-action-box enc-cyan ${encodePulse.h ? 'pulsing' : ''}`}>
             ⚙ Base 64 encode
           </div>
-          <div className={`encode-box enc-purple ${encodePulse.p ? 'pulsing' : ''}`}>
+          <div className={`visual-action-box enc-purple ${encodePulse.p ? 'pulsing' : ''}`}>
             ⚙ Base 64 encode
           </div>
-          <div className={`encode-box enc-yellow ${encodePulse.s ? 'pulsing' : ''}`}>
+          <div className={`visual-action-box enc-yellow ${encodePulse.s ? 'pulsing' : ''}`}>
             compute
           </div>
         </div>
 
-        <div className="down-arrow">▼</div>
+        <div className="visual-arrow-down">▼</div>
 
         {/* Combine */}
-        <div className="combine-wrap">
-          <div className={`combine-formula ${formulaVisible ? 'visible' : ''}`}>
+        <div className="visual-formula-wrap">
+          <div className={`visual-formula ${formulaVisible ? 'visible' : ''}`}>
             <span className="t-cyan">{`{{header}}`}</span>
             <span>.</span>
             <span className="t-purple">{`{{payload}}`}</span>
@@ -492,14 +297,16 @@ export function JwtExplanation() {
           </div>
         </div>
 
-        <div className="down-arrow">▼</div>
+        <div className="visual-arrow-down">▼</div>
 
         {/* JWT Token */}
-        <div ref={tokenBoxRef} className={`token-box ${tokenVisible ? 'visible' : ''}`}>
-          <span className="card-label">JWT</span>
-          <p className="token-text">
-            <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>.
-            <span className="t-purple">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ</span>.
+        <div ref={tokenBoxRef} className={`visual-output-box ${tokenVisible ? 'visible' : ''}`}>
+          <span className="visual-label">JWT</span>
+          <p className="visual-output-text">
+            <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>
+            <span>.</span>
+            <span className="t-purple">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ</span>
+            <span>.</span>
             <span className="t-yellow">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span>
           </p>
         </div>
@@ -569,6 +376,40 @@ export function JwtExplanation() {
             <div className="step-body">
               <div className="step-actor">🖥 Backend Server → Browser</div>
               <div className="step-desc">Verification passes — server returns <strong>Response Data</strong> 🎉</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="full-auth-flow" className={`full-flow-section ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
+          pointerEvents: flowVisibleCount >= 9 ? 'all' : 'none'
+        }}>
+          {/* ═══════════════ MERMAID FLOW ═══════════════ */}
+          <h2 className="section-title">Full Authentication Flow</h2>
+
+          <div style={{
+            maxWidth: '860px',
+            margin: '2rem auto',
+            background: 'rgba(0, 0, 0, 0.2)',
+            padding: '2rem',
+            borderRadius: '16px',
+            border: '1px solid var(--border)',
+            overflowX: 'auto'
+          }}>
+            <div className="mermaid">
+              {`sequenceDiagram
+      autonumber
+      participant U as 👤 User
+      participant B as 🌐 Browser
+      participant S as 🖥 Backend Server
+  
+      U->>B: 1. Fill credentials & Login
+      B->>S: 2. POST /login (Authenticate)
+      Note right of S: 3. Validate & Create JWT
+      S->>B: 4. Response (Cookie + JWT)
+      U->>B: 5. Navigates to protected page
+      B->>S: 6. Request (Auth: Bearer JWT)
+      Note right of S: 7. Verify Signature & Claims
+      S->>B: 8. Send Response Data 🎉`}
             </div>
           </div>
         </div>
