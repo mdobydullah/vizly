@@ -1,0 +1,25 @@
+[
+    {
+        "id": "message-queues",
+        "title": "Message Queues",
+        "category": "Async Systems",
+        "tags": [
+            "Async",
+            "Messaging",
+            "Queue"
+        ],
+        "description": "Kafka, RabbitMQ, and SQS compared — producers, consumers, dead-letter queues and at-least-once delivery.",
+        "readTime": "11 min read",
+        "icon": "📨",
+        "link": "#",
+        "color": "yellow",
+        "colorConfig": {
+            "primary": "#ffd166",
+            "background": "rgba(255, 209, 102, .08)",
+            "border": "rgba(255, 209, 102, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 209, 102, .4), 0 0 16px rgba(255, 209, 102, .2)"
+        },
+        "createdAt": "2025-02-01T08:30:00Z",
+        "updatedAt": "2025-02-13T10:00:00Z"
+    }
+]

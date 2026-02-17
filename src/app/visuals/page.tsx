@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { VisualCard } from "@/components/home/VisualCard";
-import visualsData from "@/data/visuals.json";
+import visualsData from "@/data/visuals";
 import { VisualsData, SortOption } from "@/types/visuals";
 
 const data = visualsData as VisualsData;

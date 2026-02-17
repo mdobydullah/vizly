@@ -1,6 +1,6 @@
-import {Metadata} from 'next';
-import {config} from "@/lib/config";
-import {JwtExplanation} from '@/components/explanations/JwtExplanation';
+import { Metadata } from 'next';
+import { config } from "@/lib/config";
+import { JwtVisual } from '@/components/visuals/jwtVisual';
 
 export const metadata: Metadata = {
     title: `JWT Visual Guide - ${config.app.name}`,
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function JwtPage() {
-    return <JwtExplanation/>;
+    return <JwtVisual />;
 }

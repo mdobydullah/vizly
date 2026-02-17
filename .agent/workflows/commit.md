@@ -20,3 +20,6 @@ description: generate a one-line git commit message for the current changes
 
 4. **Present to User**:
    Share the one-line commit message with the user.
+
+5. **Final Action**:
+   Ask the user if they would like you to execute the `git add .`, commit, and push the changes.

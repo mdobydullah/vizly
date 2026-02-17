@@ -1,7 +1,7 @@
 "use client";
 
 import { VisualCard } from "@/components/home/VisualCard";
-import visualsData from "@/data/visuals.json";
+import visualsData from "@/data/visuals";
 import { VisualsData } from "@/types/visuals";
 import { useRouter } from "next/navigation";
 

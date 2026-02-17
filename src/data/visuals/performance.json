@@ -1,0 +1,25 @@
+[
+    {
+        "id": "caching",
+        "title": "Caching Strategies",
+        "category": "Performance",
+        "tags": [
+            "Performance",
+            "Cache",
+            "Optimization"
+        ],
+        "description": "LRU, write-through, write-behind, cache-aside — every strategy with hit/miss animated diagrams.",
+        "readTime": "9 min read",
+        "icon": "⚡",
+        "link": "#",
+        "color": "green",
+        "colorConfig": {
+            "primary": "#3effa3",
+            "background": "rgba(62, 255, 163, .08)",
+            "border": "rgba(62, 255, 163, .15)",
+            "hoverShadow": "0 0 32px rgba(62, 255, 163, .4), 0 0 16px rgba(62, 255, 163, .2)"
+        },
+        "createdAt": "2025-02-05T09:00:00Z",
+        "updatedAt": "2025-02-14T13:20:00Z"
+    }
+]

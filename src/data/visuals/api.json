@@ -1,0 +1,25 @@
+[
+    {
+        "id": "rest-graphql",
+        "title": "REST vs GraphQL",
+        "category": "API Design",
+        "tags": [
+            "API",
+            "REST",
+            "GraphQL"
+        ],
+        "description": "Deep comparison of REST and GraphQL with real-world query examples, over-fetching, and schema design.",
+        "readTime": "7 min read",
+        "icon": "🔗",
+        "link": "#",
+        "color": "blue",
+        "colorConfig": {
+            "primary": "#5b9cf6",
+            "background": "rgba(91, 156, 246, .08)",
+            "border": "rgba(91, 156, 246, .15)",
+            "hoverShadow": "0 0 32px rgba(91, 156, 246, .4), 0 0 16px rgba(91, 156, 246, .2)"
+        },
+        "createdAt": "2025-02-08T11:00:00Z",
+        "updatedAt": "2025-02-15T16:45:00Z"
+    }
+]

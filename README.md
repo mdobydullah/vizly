@@ -10,12 +10,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## Features
-
-- Visual learning roadmaps inspired by roadmap.sh
-- Interactive JWT, OAuth 2.0, and system design guides
-- Animated technical explanations
-
 ## Stack
 
 - Next.js 16
