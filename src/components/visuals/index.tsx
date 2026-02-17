@@ -16,4 +16,7 @@ export const visualComponents: Record<string, any> = {
     'message-queues': dynamic(() => import('./async/MessageQueuesVisual').then(mod => mod.MessageQueuesVisual), {
         loading: () => <VisualLoader />
     }),
+    'load-balancing': dynamic(() => import('./infrastructure/LoadBalancingVisual').then(mod => mod.LoadBalancingVisual), {
+        loading: () => <VisualLoader />
+    }),
 };

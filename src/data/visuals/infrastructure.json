@@ -10,7 +10,7 @@
         ],
         "description": "Round-robin, least-connections, consistent hashing — and how Layer 4 vs Layer 7 LBs differ.",
         "icon": "⚖️",
-        "link": "#",
+        "link": "/visuals/load-balancing",
         "color": "pink",
         "colorConfig": {
             "primary": "#ff6b9d",

@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Load Balancing — Visual Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --surface: #12161f;
+            --surface2: #1a1f2b;
+            --border: #1f2937;
+            --border2: #2d3748;
+
+            --green: #3effa3;
+            --cyan: #00d9ff;
+            --yellow: #ffcc00;
+            --orange: #ff8c42;
+            --red: #ff5370;
+            --purple: #c792ea;
+            --blue: #5b9cf6;
+            --pink: #ff6b9d;
+
+            --text: #cbd5e1;
+            --text-dim: #64748b;
+            --text-hi: #f1f5f9;
+
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: .88rem;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        /* grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 107, 157, .02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 107, 157, .02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-hi);
+            letter-spacing: -.02em;
+            margin-bottom: .4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 em {
+            font-style: normal;
+            background: linear-gradient(90deg, var(--pink), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: .84rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ════════════════════════════════════════
+   SECTION TITLE
+════════════════════════════════════════ */
+        h2 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-hi);
+            margin: 3rem 0 1.2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -6px;
+            width: 60px;
+            height: 3px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--pink), var(--purple));
+        }
+
+        /* ════════════════════════════════════════
+   ALGORITHM CARDS
+════════════════════════════════════════ */
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pattern-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.4rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color .3s, transform .3s, box-shadow .3s;
+        }
+
+        .pattern-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--card-glow, rgba(255, 107, 157, .04)) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+        }
+
+        .pattern-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--card-color, var(--pink));
+            box-shadow: 0 8px 32px var(--card-shadow, rgba(255, 107, 157, .15));
+        }
+
+        .pattern-card:hover::before {
+            opacity: 1;
+        }
+
+        .pattern-header {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            margin-bottom: 1rem;
+        }
+
+        .pattern-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--card-icon-bg, rgba(255, 107, 157, .08));
+            border: 1px solid var(--card-icon-border, rgba(255, 107, 157, .2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .pattern-name {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-hi);
+        }
+
+        .pattern-desc {
+            font-size: .78rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .pattern-stats {
+            display: flex;
+            gap: .8rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            font-size: .68rem;
+            font-family: var(--font-mono);
+            padding: .2em .6em;
+            border-radius: 6px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: var(--text-dim);
+        }
+
+        .stat-chip.hi {
+            border-color: var(--card-color, var(--pink));
+            color: var(--card-color, var(--pink));
+            background: var(--card-glow, rgba(255, 107, 157, .05));
+        }
+
+        /* use cases */
+        .use-case {
+            font-size: .72rem;
+            color: var(--text-dim);
+            padding: .4rem .6rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, .02);
+            border-left: 2px solid var(--card-color, var(--pink));
+            margin-top: .6rem;
+        }
+
+        .use-case strong {
+            color: var(--text);
+        }
+
+        /* algorithm color schemes */
+        .card-pink {
+            --card-color: var(--pink);
+            --card-glow: rgba(255, 107, 157, .04);
+            --card-shadow: rgba(255, 107, 157, .15);
+            --card-icon-bg: rgba(255, 107, 157, .08);
+            --card-icon-border: rgba(255, 107, 157, .2);
+        }
+
+        .card-purple {
+            --card-color: var(--purple);
+            --card-glow: rgba(199, 146, 234, .04);
+            --card-shadow: rgba(199, 146, 234, .15);
+            --card-icon-bg: rgba(199, 146, 234, .08);
+            --card-icon-border: rgba(199, 146, 234, .2);
+        }
+
+        .card-cyan {
+            --card-color: var(--cyan);
+            --card-glow: rgba(0, 217, 255, .04);
+            --card-shadow: rgba(0, 217, 255, .15);
+            --card-icon-bg: rgba(0, 217, 255, .08);
+            --card-icon-border: rgba(0, 217, 255, .2);
+        }
+
+        .card-blue {
+            --card-color: var(--blue);
+            --card-glow: rgba(91, 156, 246, .04);
+            --card-shadow: rgba(91, 156, 246, .15);
+            --card-icon-bg: rgba(91, 156, 246, .08);
+            --card-icon-border: rgba(91, 156, 246, .2);
+        }
+
+        .card-green {
+            --card-color: var(--green);
+            --card-glow: rgba(62, 255, 163, .04);
+            --card-shadow: rgba(62, 255, 163, .15);
+            --card-icon-bg: rgba(62, 255, 163, .08);
+            --card-icon-border: rgba(62, 255, 163, .2);
+        }
+
+        .card-orange {
+            --card-color: var(--orange);
+            --card-glow: rgba(255, 140, 66, .04);
+            --card-shadow: rgba(255, 140, 66, .15);
+            --card-icon-bg: rgba(255, 140, 66, .08);
+            --card-icon-border: rgba(255, 140, 66, .2);
+        }
+
+        /* ════════════════════════════════════════
+   ANIMATED FLOW DIAGRAM
+════════════════════════════════════════ */
+        .flow-section {
+            max-width: 1100px;
+            margin: 0 auto 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-controls {
+            display: flex;
+            gap: .8rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .flow-btn {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: .5rem 1.1rem;
+            font-size: .78rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .flow-btn:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
+        .flow-btn.active {
+            background: var(--pink);
+            color: #000;
+            border-color: var(--pink);
+            font-weight: 700;
+        }
+
+        /* flow diagram container */
+        .flow-diagram {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem 1.5rem;
+            position: relative;
+            min-height: 500px;
+        }
+
+        .flow-title {
+            text-align: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-hi);
+            margin-bottom: 1.8rem;
+        }
+
+        /* client node */
+        .client-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .client-node {
+            display: inline-block;
+            background: var(--surface2);
+            border: 2px solid var(--border2);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            font-size: .75rem;
+            font-weight: 700;
+            transition: all .3s;
+        }
+
+        .client-label {
+            font-size: .65rem;
+            color: var(--text-dim);
+            margin-top: .4rem;
+        }
+
+        /* load balancer */
+        .lb-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .lb-node {
+            display: inline-block;
+            background: var(--surface2);
+            border: 2px solid var(--pink);
+            border-radius: 10px;
+            padding: 1.2rem 2rem;
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--pink);
+            box-shadow: 0 0 20px rgba(255, 107, 157, .15);
+            transition: all .3s;
+        }
+
+        .lb-node.active {
+            animation: pulse-lb .8s ease infinite;
+        }
+
+        @keyframes pulse-lb {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .lb-label {
+            font-size: .65rem;
+            color: var(--text-dim);
+            margin-top: .4rem;
+        }
+
+        .lb-algo {
+            font-size: .7rem;
+            color: var(--pink);
+            background: rgba(255, 107, 157, .08);
+            border: 1px solid rgba(255, 107, 157, .2);
+            padding: .25em .7em;
+            border-radius: 6px;
+            margin-top: .4rem;
+            display: inline-block;
+        }
+
+        /* server pool */
+        .server-pool {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .server-node {
+            background: var(--surface2);
+            border: 2px solid var(--border2);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            font-size: .7rem;
+            font-weight: 700;
+            min-width: 90px;
+            text-align: center;
+            transition: all .3s;
+            position: relative;
+        }
+
+        .server-node::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--green);
+            border: 2px solid var(--surface);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .server-node.healthy::before {
+            opacity: 1;
+        }
+
+        .server-node.unhealthy {
+            border-color: var(--red);
+            opacity: .4;
+        }
+
+        .server-node.unhealthy::before {
+            opacity: 1;
+            background: var(--red);
+        }
+
+        .server-node.active {
+            border-color: var(--pink);
+            background: rgba(255, 107, 157, .08);
+            color: var(--pink);
+            box-shadow: 0 0 20px rgba(255, 107, 157, .25);
+            transform: translateY(-4px);
+        }
+
+        .server-node.processing {
+            border-color: var(--cyan);
+            background: rgba(0, 217, 255, .08);
+            color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 217, 255, .2);
+        }
+
+        .server-load {
+            font-size: .65rem;
+            color: var(--text-dim);
+            margin-top: .3rem;
+            font-weight: 400;
+        }
+
+        .load-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border2);
+            border-radius: 2px;
+            margin-top: .3rem;
+            overflow: hidden;
+        }
+
+        .load-fill {
+            height: 100%;
+            background: var(--pink);
+            transition: width .3s;
+        }
+
+        /* traffic arrows */
+        .arrow-down {
+            text-align: center;
+            color: var(--pink);
+            font-size: 1.2rem;
+            line-height: 1;
+            margin: .8rem 0;
+            animation: bounce-arrow 1.5s ease infinite;
+        }
+
+        @keyframes bounce-arrow {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(6px);
+            }
+        }
+
+        /* request counter */
+        .request-counter {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: .75rem;
+            color: var(--text-dim);
+        }
+
+        .counter-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--pink);
+            font-family: var(--font-display);
+        }
+
+        /* flow steps */
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            margin-top: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            opacity: .3;
+            transition: opacity .3s;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border2);
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: all .3s;
+        }
+
+        .step.active .step-num {
+            border-color: var(--pink);
+            color: var(--pink);
+            background: rgba(255, 107, 157, .08);
+        }
+
+        .step-text {
+            font-size: .76rem;
+            color: var(--text-dim);
+            transition: color .3s;
+        }
+
+        .step.active .step-text {
+            color: var(--text-hi);
+        }
+
+        /* ════════════════════════════════════════
+   LAYER 4 VS LAYER 7 COMPARISON
+════════════════════════════════════════ */
+        .layer-comparison {
+            max-width: 1100px;
+            margin: 0 auto 3rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .layer-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.6rem;
+            position: relative;
+        }
+
+        .layer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 14px 14px 0 0;
+            background: var(--layer-color, var(--cyan));
+        }
+
+        .layer-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-hi);
+            margin-bottom: .3rem;
+        }
+
+        .layer-subtitle {
+            font-size: .7rem;
+            color: var(--text-dim);
+            margin-bottom: 1.2rem;
+            font-family: var(--font-mono);
+            letter-spacing: .05em;
+        }
+
+        .layer-features {
+            display: flex;
+            flex-direction: column;
+            gap: .7rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: .6rem;
+            font-size: .75rem;
+            line-height: 1.5;
+        }
+
+        .feature-icon {
+            color: var(--layer-color, var(--cyan));
+            font-size: .9rem;
+            flex-shrink: 0;
+            margin-top: .1rem;
+        }
+
+        .layer-usecases {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .8rem;
+            font-size: .72rem;
+            color: var(--text-dim);
+            border-left: 2px solid var(--layer-color, var(--cyan));
+        }
+
+        .layer-usecases strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: .3rem;
+        }
+
+        /* ════════════════════════════════════════
+   COMPARISON TABLE
+════════════════════════════════════════ */
+        .comparison-section {
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .comparison-table {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .76rem;
+            font-family: var(--font-mono);
+        }
+
+        thead {
+            background: var(--surface2);
+        }
+
+        th {
+            text-align: left;
+            padding: .8rem 1rem;
+            font-weight: 700;
+            color: var(--text-hi);
+            border-bottom: 1px solid var(--border2);
+            font-size: .72rem;
+            letter-spacing: .04em;
+        }
+
+        th:first-child {
+            width: 18%;
+        }
+
+        td {
+            padding: .75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-dim);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 107, 157, .02);
+        }
+
+        .check {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .cross {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .rating {
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border2);
+        }
+
+        .dot.on {
+            background: var(--pink);
+        }
+
+        /* ════════════════════════════════════════
+   HEALTH CHECK SECTION
+════════════════════════════════════════ */
+        .health-section {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .health-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-hi);
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        .health-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .health-type {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 3px solid var(--health-color, var(--green));
+        }
+
+        .health-type-title {
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--text-hi);
+            margin-bottom: .4rem;
+        }
+
+        .health-type-desc {
+            font-size: .72rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* ════════════════════════════════════════
+   LEGEND
+════════════════════════════════════════ */
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .72rem;
+            color: var(--text-dim);
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+
+        .leg-healthy {
+            border-color: var(--green);
+            background: rgba(62, 255, 163, .15);
+        }
+
+        .leg-unhealthy {
+            border-color: var(--red);
+            background: rgba(255, 83, 112, .15);
+        }
+
+        .leg-active {
+            border-color: var(--pink);
+            background: rgba(255, 107, 157, .15);
+        }
+
+        .leg-processing {
+            border-color: var(--cyan);
+            background: rgba(0, 217, 255, .15);
+        }
+
+        /* ════════════════════════════════════════
+   REPLAY BUTTON
+════════════════════════════════════════ */
+        .replay-btn {
+            display: block;
+            margin: 2rem auto 0;
+            background: var(--pink);
+            color: #000;
+            border: none;
+            padding: .6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .82rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            transition: all .2s;
+        }
+
+        .replay-btn:hover {
+            background: #ff8bb1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 157, .3);
+        }
+
+        /* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+        @media(max-width:768px) {
+            .server-pool {
+                gap: .8rem;
+            }
+
+            .patterns-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .layer-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .health-types {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: .68rem;
+            }
+
+            th,
+            td {
+                padding: .6rem .7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>What is <em>Load Balancing</em>?</h1>
+    <p class="subtitle">Visual guide to algorithms, Layer 4 vs Layer 7, health checks, and traffic distribution</p>
+
+    <!-- ══════════════════════════════════════
+     LOAD BALANCING ALGORITHMS
+══════════════════════════════════════ -->
+    <h2>Load Balancing Algorithms</h2>
+
+    <div class="patterns-grid">
+
+        <!-- Round Robin -->
+        <div class="pattern-card card-pink">
+            <div class="pattern-header">
+                <div class="pattern-icon">🔄</div>
+                <div class="pattern-name">Round Robin</div>
+            </div>
+            <p class="pattern-desc">
+                Distributes requests sequentially across all servers in rotation. Simple, fair, but doesn't account for
+                server load.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Most Common</span>
+                <span class="stat-chip">Simple</span>
+                <span class="stat-chip">Equal Distribution</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Stateless apps, homogeneous servers with equal capacity
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Easy to implement, evenly distributes load
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> Ignores server health and current load
+            </div>
+        </div>
+
+        <!-- Least Connections -->
+        <div class="pattern-card card-purple">
+            <div class="pattern-header">
+                <div class="pattern-icon">📊</div>
+                <div class="pattern-name">Least Connections</div>
+            </div>
+            <p class="pattern-desc">
+                Routes to server with fewest active connections. Better for long-lived connections like WebSockets or
+                databases.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Dynamic</span>
+                <span class="stat-chip">Load-Aware</span>
+                <span class="stat-chip">WebSockets</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Long-lived connections, chat apps, streaming services
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Prevents overload, balances active sessions
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> Requires connection tracking overhead
+            </div>
+        </div>
+
+        <!-- Weighted Round Robin -->
+        <div class="pattern-card card-cyan">
+            <div class="pattern-header">
+                <div class="pattern-icon">⚖️</div>
+                <div class="pattern-name">Weighted Round Robin</div>
+            </div>
+            <p class="pattern-desc">
+                Assigns weights to servers based on capacity. More powerful servers receive proportionally more traffic.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Capacity-Based</span>
+                <span class="stat-chip">Flexible</span>
+                <span class="stat-chip">Heterogeneous</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Mixed hardware, different server capacities (8-core vs 16-core)
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Maximizes resource usage across different servers
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> Requires manual weight configuration
+            </div>
+        </div>
+
+        <!-- IP Hash -->
+        <div class="pattern-card card-blue">
+            <div class="pattern-header">
+                <div class="pattern-icon">🔑</div>
+                <div class="pattern-name">IP Hash (Sticky Sessions)</div>
+            </div>
+            <p class="pattern-desc">
+                Routes based on client IP hash. Same client always hits same server. Maintains session affinity without
+                cookies.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Session Affinity</span>
+                <span class="stat-chip">Stateful</span>
+                <span class="stat-chip">Deterministic</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Stateful apps with local caching, session-based auth
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Consistent routing, no session replication needed
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> Uneven distribution if clients have varied activity
+            </div>
+        </div>
+
+        <!-- Least Response Time -->
+        <div class="pattern-card card-green">
+            <div class="pattern-header">
+                <div class="pattern-icon">⚡</div>
+                <div class="pattern-name">Least Response Time</div>
+            </div>
+            <p class="pattern-desc">
+                Routes to server with lowest latency and fewest active connections. Performance-aware algorithm.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Performance</span>
+                <span class="stat-chip">Latency-Based</span>
+                <span class="stat-chip">Adaptive</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Geo-distributed servers, latency-sensitive applications
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Optimizes for fastest response, considers health
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> More complex, requires active monitoring
+            </div>
+        </div>
+
+        <!-- Consistent Hashing -->
+        <div class="pattern-card card-orange">
+            <div class="pattern-header">
+                <div class="pattern-icon">🎯</div>
+                <div class="pattern-name">Consistent Hashing</div>
+            </div>
+            <p class="pattern-desc">
+                Hash ring algorithm. When servers are added/removed, only affected keys are remapped. Minimal cache
+                invalidation.
+            </p>
+            <div class="pattern-stats">
+                <span class="stat-chip hi">Caching</span>
+                <span class="stat-chip">Scalable</span>
+                <span class="stat-chip">Minimal Disruption</span>
+            </div>
+            <div class="use-case">
+                <strong>Use case:</strong> Distributed caches (Memcached, Redis clusters), CDN routing
+            </div>
+            <div class="use-case">
+                <strong>Pros:</strong> Stable mappings, efficient scaling
+            </div>
+            <div class="use-case">
+                <strong>Cons:</strong> More complex implementation
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+     ANIMATED FLOW DIAGRAM
+══════════════════════════════════════ -->
+    <h2>Traffic Distribution in Action</h2>
+
+    <div class="flow-section">
+        <div class="flow-controls">
+            <button class="flow-btn active" data-pattern="round-robin">Round Robin</button>
+            <button class="flow-btn" data-pattern="least-conn">Least Connections</button>
+            <button class="flow-btn" data-pattern="weighted">Weighted</button>
+            <button class="flow-btn" data-pattern="health">Health Check</button>
+        </div>
+
+        <div class="flow-diagram">
+            <div class="flow-title" id="flowTitle">Round Robin Algorithm</div>
+
+            <!-- Client -->
+            <div class="client-section">
+                <div class="client-node" id="client">👥 Clients</div>
+                <div class="client-label">Multiple incoming requests</div>
+            </div>
+
+            <div class="arrow-down">▼</div>
+
+            <!-- Load Balancer -->
+            <div class="lb-section">
+                <div class="lb-node" id="loadBalancer">
+                    ⚖️ Load Balancer
+                    <div class="lb-algo" id="algoLabel">Round Robin</div>
+                </div>
+                <div class="lb-label">Nginx / HAProxy / AWS ELB</div>
+            </div>
+
+            <div class="arrow-down">▼</div>
+
+            <!-- Server Pool -->
+            <div class="server-pool" id="serverPool">
+                <!-- dynamically populated -->
+            </div>
+
+            <!-- Request Counter -->
+            <div class="request-counter">
+                <div>Requests processed: <span class="counter-value" id="requestCount">0</span></div>
+            </div>
+
+            <!-- Steps -->
+            <div class="flow-steps" id="flowSteps">
+                <!-- dynamically populated -->
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box leg-healthy"></div> Healthy Server
+            </div>
+            <div class="legend-item">
+                <div class="legend-box leg-unhealthy"></div> Unhealthy Server
+            </div>
+            <div class="legend-item">
+                <div class="legend-box leg-active"></div> Receiving Request
+            </div>
+            <div class="legend-item">
+                <div class="legend-box leg-processing"></div> Processing
+            </div>
+        </div>
+
+        <button class="replay-btn" id="replayBtn">↺ Replay Animation</button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     LAYER 4 VS LAYER 7
+══════════════════════════════════════ -->
+    <h2>Layer 4 vs Layer 7 Load Balancing</h2>
+
+    <div class="layer-comparison">
+
+        <!-- Layer 4 -->
+        <div class="layer-card" style="--layer-color:var(--cyan);">
+            <div class="layer-title">Layer 4 (Transport Layer)</div>
+            <div class="layer-subtitle">TCP/UDP • IP + PORT BASED</div>
+
+            <div class="layer-features">
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div><strong>Fast</strong> — Routes based on IP:Port without inspecting packet content</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <div><strong>Protocol Agnostic</strong> — Works with any TCP/UDP application</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📦</div>
+                    <div><strong>Lower Overhead</strong> — No SSL termination or content inspection</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <div><strong>Connection-Based</strong> — Routes entire connection to one server</div>
+                </div>
+            </div>
+
+            <div class="layer-usecases">
+                <strong>Use Cases:</strong>
+                High-throughput services, database connections, gaming servers, VoIP, streaming where content inspection
+                isn't needed.
+            </div>
+        </div>
+
+        <!-- Layer 7 -->
+        <div class="layer-card" style="--layer-color:var(--purple);">
+            <div class="layer-title">Layer 7 (Application Layer)</div>
+            <div class="layer-subtitle">HTTP/HTTPS • CONTENT-AWARE</div>
+
+            <div class="layer-features">
+                <div class="feature-item">
+                    <div class="feature-icon">🔍</div>
+                    <div><strong>Content-Based Routing</strong> — Route by URL, headers, cookies, payload</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🛡️</div>
+                    <div><strong>SSL Termination</strong> — Decrypt HTTPS, inspect, re-encrypt</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎨</div>
+                    <div><strong>Advanced Features</strong> — Caching, compression, rate limiting, WAF</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div><strong>Request-Based</strong> — Can split single connection across multiple servers</div>
+                </div>
+            </div>
+
+            <div class="layer-usecases">
+                <strong>Use Cases:</strong>
+                Microservices routing (/api/users → service A), A/B testing, geo-routing, API gateways, CDN origin
+                selection.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+     HEALTH CHECKS
+══════════════════════════════════════ -->
+    <h2>Health Check Mechanisms</h2>
+
+    <div class="health-section">
+        <div class="health-title">How Load Balancers Detect Unhealthy Servers</div>
+        <div class="health-types">
+
+            <div class="health-type" style="--health-color:var(--green);">
+                <div class="health-type-title">Passive Health Checks</div>
+                <div class="health-type-desc">
+                    Monitor real traffic. Mark server unhealthy after N consecutive failed requests from actual users.
+                </div>
+            </div>
+
+            <div class="health-type" style="--health-color:var(--cyan);">
+                <div class="health-type-title">Active Health Checks</div>
+                <div class="health-type-desc">
+                    Periodic probes (HTTP GET /health, TCP handshake). LB actively pings servers every X seconds.
+                </div>
+            </div>
+
+            <div class="health-type" style="--health-color:var(--purple);">
+                <div class="health-type-title">Deep Health Checks</div>
+                <div class="health-type-desc">
+                    Application-aware checks. Verify DB connections, cache availability, disk space before marking
+                    healthy.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     COMPARISON TABLE
+══════════════════════════════════════ -->
+    <h2>Algorithm Comparison</h2>
+
+    <div class="comparison-section">
+        <div class="comparison-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Complexity</th>
+                        <th>Session Affinity</th>
+                        <th>Load Awareness</th>
+                        <th>Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Round Robin</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot"></span><span
+                                    class="dot"></span><span class="dot"></span><span class="dot"></span></span> Very
+                            Simple</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td>Stateless apps, equal servers</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Least Connections</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot on"></span><span
+                                    class="dot on"></span><span class="dot"></span><span class="dot"></span></span>
+                            Medium</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td><span class="check">✓</span> Yes (connections)</td>
+                        <td>Long-lived connections, WebSockets</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weighted Round Robin</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot on"></span><span
+                                    class="dot"></span><span class="dot"></span><span class="dot"></span></span> Simple
+                        </td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td><span class="check">✓</span> Static (capacity)</td>
+                        <td>Mixed hardware, different specs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IP Hash</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot on"></span><span
+                                    class="dot"></span><span class="dot"></span><span class="dot"></span></span> Simple
+                        </td>
+                        <td><span class="check">✓</span> Yes</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td>Stateful apps, session caching</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Least Response Time</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot on"></span><span
+                                    class="dot on"></span><span class="dot on"></span><span class="dot"></span></span>
+                            Complex</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td><span class="check">✓</span> Yes (latency+load)</td>
+                        <td>Performance-critical, geo-distributed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Consistent Hashing</strong></td>
+                        <td><span class="rating"><span class="dot on"></span><span class="dot on"></span><span
+                                    class="dot on"></span><span class="dot on"></span><span
+                                    class="dot on"></span></span> Complex</td>
+                        <td><span class="check">✓</span> Yes</td>
+                        <td><span class="cross">✗</span> No</td>
+                        <td>Distributed caches, CDN routing</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        /* ══════════════════════════════════════
+           FLOW ANIMATIONS
+        ══════════════════════════════════════ */
+
+        const patterns = {
+            'round-robin': {
+                title: 'Round Robin Algorithm',
+                algo: 'Round Robin',
+                servers: [
+                    { id: 's1', name: 'Server 1', load: 0, healthy: true },
+                    { id: 's2', name: 'Server 2', load: 0, healthy: true },
+                    { id: 's3', name: 'Server 3', load: 0, healthy: true },
+                    { id: 's4', name: 'Server 4', load: 0, healthy: true }
+                ],
+                steps: [
+                    { text: 'Request #1 → Server 1 (sequential)', target: 0 },
+                    { text: 'Request #2 → Server 2 (next in rotation)', target: 1 },
+                    { text: 'Request #3 → Server 3 (continue rotation)', target: 2 },
+                    { text: 'Request #4 → Server 4 (last server)', target: 3 },
+                    { text: 'Request #5 → Server 1 (back to start)', target: 0 },
+                    { text: 'Request #6 → Server 2 (cycle repeats)', target: 1 }
+                ]
+            },
+            'least-conn': {
+                title: 'Least Connections Algorithm',
+                algo: 'Least Connections',
+                servers: [
+                    { id: 's1', name: 'Server 1', load: 20, healthy: true },
+                    { id: 's2', name: 'Server 2', load: 60, healthy: true },
+                    { id: 's3', name: 'Server 3', load: 10, healthy: true },
+                    { id: 's4', name: 'Server 4', load: 40, healthy: true }
+                ],
+                steps: [
+                    { text: 'Request arrives — check active connections', target: null },
+                    { text: 'Server 3 has fewest connections (10)', target: 2, highlight: true },
+                    { text: 'Route request to Server 3', target: 2 },
+                    { text: 'Server 3 load increases (10 → 25)', target: 2 },
+                    { text: 'Next request — Server 1 now has least (20)', target: 0, highlight: true },
+                    { text: 'Dynamically balances based on active sessions', target: null }
+                ]
+            },
+            'weighted': {
+                title: 'Weighted Round Robin',
+                algo: 'Weighted RR',
+                servers: [
+                    { id: 's1', name: 'Server 1', load: 30, healthy: true, weight: 1 },
+                    { id: 's2', name: 'Server 2', load: 60, healthy: true, weight: 2 },
+                    { id: 's3', name: 'Server 3', load: 70, healthy: true, weight: 3 },
+                    { id: 's4', name: 'Server 4', load: 80, healthy: true, weight: 4 }
+                ],
+                steps: [
+                    { text: 'Server 4 has weight=4 (most powerful)', target: 3, highlight: true },
+                    { text: 'Server 4 receives 4 out of 10 requests', target: 3 },
+                    { text: 'Server 3 has weight=3 → 3/10 requests', target: 2 },
+                    { text: 'Server 2 has weight=2 → 2/10 requests', target: 1 },
+                    { text: 'Server 1 has weight=1 → 1/10 requests', target: 0 },
+                    { text: 'More powerful servers handle more traffic', target: null }
+                ]
+            },
+            'health': {
+                title: 'Health Check & Failover',
+                algo: 'Active Health',
+                servers: [
+                    { id: 's1', name: 'Server 1', load: 40, healthy: true },
+                    { id: 's2', name: 'Server 2', load: 30, healthy: true },
+                    { id: 's3', name: 'Server 3', load: 0, healthy: false },
+                    { id: 's4', name: 'Server 4', load: 50, healthy: true }
+                ],
+                steps: [
+                    { text: 'LB sends health check probe to all servers', target: null },
+                    { text: 'Server 3 fails health check (timeout/500 error)', target: 2, unhealthy: true },
+                    { text: 'LB marks Server 3 as unhealthy — remove from pool', target: 2, unhealthy: true },
+                    { text: 'Incoming requests skip Server 3', target: null },
+                    { text: 'Traffic distributed only to healthy servers (1,2,4)', target: [0, 1, 3] },
+                    { text: 'LB continues probing — auto-recovers when healthy', target: null }
+                ]
+            }
+        };
+
+        let currentPattern = 'round-robin';
+        let animTimeout;
+        let requestCount = 0;
+
+        const flowTitle = document.getElementById('flowTitle');
+        const serverPool = document.getElementById('serverPool');
+        const flowSteps = document.getElementById('flowSteps');
+        const algoLabel = document.getElementById('algoLabel');
+        const requestCountEl = document.getElementById('requestCount');
+        const loadBalancer = document.getElementById('loadBalancer');
+
+        function resetFlow() {
+            clearTimeout(animTimeout);
+            flowSteps.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            loadBalancer.classList.remove('active');
+            requestCount = 0;
+            requestCountEl.textContent = '0';
+        }
+
+        function renderServers(servers) {
+            serverPool.innerHTML = servers.map(s => `
+    <div class="server-node ${s.healthy ? 'healthy' : 'unhealthy'}" id="${s.id}">
+      ${s.name}
+      ${s.weight ? `<div style="font-size:.6rem;color:var(--text-dim);margin-top:.2rem;">weight: ${s.weight}</div>` : ''}
+      <div class="server-load">${s.load}% load</div>
+      <div class="load-bar">
+        <div class="load-fill" style="width:${s.load}%"></div>
+      </div>
+    </div>
+  `).join('');
+        }
+
+        function playFlow(patternKey) {
+            resetFlow();
+            const pattern = patterns[patternKey];
+            flowTitle.textContent = pattern.title;
+            algoLabel.textContent = pattern.algo;
+
+            renderServers(pattern.servers);
+
+            // render steps
+            flowSteps.innerHTML = pattern.steps.map((s, i) => `
+    <div class="step" data-step="${i}">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-text">${s.text}</div>
+    </div>
+  `).join('');
+
+            // animate steps
+            pattern.steps.forEach((step, i) => {
+                animTimeout = setTimeout(() => {
+                    // reset all servers
+                    pattern.servers.forEach(srv => {
+                        const el = document.getElementById(srv.id);
+                        if (el) {
+                            el.className = `server-node ${srv.healthy ? 'healthy' : 'unhealthy'}`;
+                        }
+                    });
+
+                    loadBalancer.classList.add('active');
+
+                    // highlight target server(s)
+                    if (step.target !== null && step.target !== undefined) {
+                        const targets = Array.isArray(step.target) ? step.target : [step.target];
+                        targets.forEach(idx => {
+                            const server = pattern.servers[idx];
+                            const el = document.getElementById(server.id);
+                            if (el) {
+                                if (step.unhealthy) {
+                                    el.classList.add('unhealthy');
+                                    el.classList.remove('healthy');
+                                } else {
+                                    el.classList.add(step.highlight ? 'processing' : 'active');
+                                    requestCount++;
+                                    requestCountEl.textContent = requestCount;
+                                }
+                            }
+                        });
+                    }
+
+                    // activate step text
+                    const stepEl = flowSteps.querySelector(`[data-step="${i}"]`);
+                    if (stepEl) stepEl.classList.add('active');
+
+                }, i * 1800);
+            });
+        }
+
+        // button controls
+        document.querySelectorAll('.flow-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.flow-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPattern = btn.dataset.pattern;
+                playFlow(currentPattern);
+            });
+        });
+
+        document.getElementById('replayBtn').addEventListener('click', () => playFlow(currentPattern));
+
+        // auto-play on load
+        window.addEventListener('load', () => setTimeout(() => playFlow('round-robin'), 300));
+    </script>
+
+</body>
+
+</html>
