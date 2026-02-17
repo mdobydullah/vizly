@@ -49,3 +49,27 @@
     color: var(--green) !important;
     border: 1px solid var(--green) !important;
 }
+
+/* Pink Theme */
+.card-pink {
+    border-color: var(--pink) !important;
+    color: var(--pink) !important;
+}
+
+.card-pink .viz-label {
+    background: #1e050f !important;
+    color: var(--pink) !important;
+    border: 1px solid var(--pink) !important;
+}
+
+/* Blue Theme */
+.card-blue {
+    border-color: var(--blue) !important;
+    color: var(--blue) !important;
+}
+
+.card-blue .viz-label {
+    background: #05101e !important;
+    color: var(--blue) !important;
+    border: 1px solid var(--blue) !important;
+}

@@ -1,0 +1,297 @@
+"use client";
+
+import React, { useEffect, useState, useRef } from 'react';
+import visualsData from "@/data/visuals";
+import { useSettings } from "@/context/SettingsContext";
+import { VisualLayout } from '@/components/layout/VisualLayout';
+
+const visual = visualsData.visuals.find(v => v.id === "oauth")!;
+
+export function OauthVisual() {
+    const [replayCount, setReplayCount] = useState(0);
+    const { animationsEnabled, animationSpeed } = useSettings();
+    const flowSectionRef = useRef<HTMLHeadingElement>(null);
+    const playersRef = useRef<HTMLDivElement>(null);
+
+    // Animation State
+    const [playersVisible, setPlayersVisible] = useState(false);
+    const [flowVisibleCount, setFlowVisibleCount] = useState(0);
+
+    const runAnimation = () => {
+        // Reset
+        setPlayersVisible(false);
+        setFlowVisibleCount(0);
+
+        if (!animationsEnabled) {
+            setPlayersVisible(true);
+            setFlowVisibleCount(9);
+            return;
+        }
+
+        // Initial delay
+        const start = 300 * animationSpeed;
+
+        // 1. Players Fade In
+        setTimeout(() => setPlayersVisible(true), start);
+
+        // 2. Run Flow Steps
+        const flowStart = start + (1000 * animationSpeed);
+        for (let i = 1; i <= 9; i++) {
+            setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 1100 * animationSpeed));
+        }
+    };
+
+    // Auto-scrolling logic
+    useEffect(() => {
+        if (!animationsEnabled || flowVisibleCount === 0) return;
+
+        const timer = setTimeout(() => {
+            if (flowVisibleCount === 1) {
+                flowSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (flowVisibleCount === 9) {
+                const fullFlowSection = document.getElementById('full-oauth-flow');
+                fullFlowSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                const activeStep = document.querySelector(`.flow-step.s${flowVisibleCount}`);
+                if (activeStep) {
+                    activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }, 150 * animationSpeed);
+        return () => clearTimeout(timer);
+    }, [flowVisibleCount, animationsEnabled, animationSpeed]);
+
+    useEffect(() => {
+        runAnimation();
+    }, [replayCount, animationsEnabled]);
+
+    const handleReplay = () => {
+        window.scrollTo({ top: 0 });
+        setReplayCount(prev => prev + 1);
+    };
+
+    return (
+        <VisualLayout
+            category={visual.category}
+            title={visual.title}
+            description={visual.description}
+            primaryColor={visual.colorConfig.primary}
+            onReplay={handleReplay}
+            contributors={visual.contributors}
+        >
+            {/* ═══════════════ ROLES ═══════════════ */}
+            <h2 className="section-title">Key Players in OAuth 2.0</h2>
+
+            <div
+                ref={playersRef}
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1rem',
+                    maxWidth: '1000px',
+                    margin: '0 auto 1.4rem'
+                }}
+            >
+                {/* Resource Owner */}
+                <div className={`viz-box viz-reveal card-cyan delay-100 ${playersVisible ? 'visible' : ''}`}>
+                    <span className="viz-label">Resource Owner</span>
+                    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+                        <div style={{
+                            background: 'rgba(0, 229, 255, 0.03)',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '0.8rem',
+                            fontSize: '2rem',
+                            border: '1px dashed rgba(0, 229, 255, 0.2)'
+                        }}>👤</div>
+                        <div style={{
+                            fontSize: '.65rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--cyan)',
+                            background: 'rgba(0, 229, 255, 0.05)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            display: 'inline-block',
+                            marginBottom: '0.5rem'
+                        }}>User Agent</div>
+                        <p style={{ fontSize: '0.72rem', opacity: 0.8, lineHeight: 1.4 }}>The end-user who grants access to their data.</p>
+                    </div>
+                </div>
+
+                {/* Client */}
+                <div className={`viz-box viz-reveal card-purple delay-300 ${playersVisible ? 'visible' : ''}`}>
+                    <span className="viz-label">Client</span>
+                    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+                        <div style={{
+                            background: 'rgba(185, 133, 244, 0.03)',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '0.8rem',
+                            fontSize: '2rem',
+                            border: '1px dashed rgba(185, 133, 244, 0.2)'
+                        }}>📱</div>
+                        <div style={{
+                            fontSize: '.65rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--purple)',
+                            background: 'rgba(185, 133, 244, 0.05)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            display: 'inline-block',
+                            marginBottom: '0.5rem'
+                        }}>App / Website</div>
+                        <p style={{ fontSize: '0.72rem', opacity: 0.8, lineHeight: 1.4 }}>The application requesting access to the resource.</p>
+                    </div>
+                </div>
+
+                {/* Authorization Server */}
+                <div className={`viz-box viz-reveal card-yellow delay-500 ${playersVisible ? 'visible' : ''}`}>
+                    <span className="viz-label">Auth Server</span>
+                    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+                        <div style={{
+                            background: 'rgba(255, 209, 102, 0.03)',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '0.8rem',
+                            fontSize: '2rem',
+                            border: '1px dashed rgba(255, 209, 102, 0.2)'
+                        }}>🔐</div>
+                        <div style={{
+                            fontSize: '.65rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--yellow)',
+                            background: 'rgba(255, 209, 102, 0.05)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            display: 'inline-block',
+                            marginBottom: '0.5rem'
+                        }}>OAuth Provider</div>
+                        <p style={{ fontSize: '0.72rem', opacity: 0.8, lineHeight: 1.4 }}>Authenticates user and issues Access Tokens.</p>
+                    </div>
+                </div>
+
+                {/* Resource Server */}
+                <div className={`viz-box viz-reveal card-pink delay-700 ${playersVisible ? 'visible' : ''}`}>
+                    <span className="viz-label">Resource Server</span>
+                    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+                        <div style={{
+                            background: 'rgba(255, 107, 157, 0.03)',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '0.8rem',
+                            fontSize: '2rem',
+                            border: '1px dashed rgba(255, 107, 157, 0.2)'
+                        }}>🗄️</div>
+                        <div style={{
+                            fontSize: '.65rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--pink)',
+                            background: 'rgba(255, 107, 157, 0.05)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            display: 'inline-block',
+                            marginBottom: '0.5rem'
+                        }}>API / Data</div>
+                        <p style={{ fontSize: '0.72rem', opacity: 0.8, lineHeight: 1.4 }}>The API holding the protected user data.</p>
+                    </div>
+                </div>
+            </div>
+            {/* ═══════════════ HOW IT WORKS ═══════════════ */}
+            <h2 ref={flowSectionRef} className="section-title">Authorization Code Flow</h2>
+
+            <div className="flow-wrap">
+                <div className={`flow-step s1 ${flowVisibleCount >= 1 ? 'visible' : ''}`}>
+                    <div className="step-num">1</div>
+                    <div className="step-body">
+                        <div className="step-actor">👤 User → 📱 Client</div>
+                        <div className="step-desc">User wants to log in or connect their account and clicks <strong>"Connect"</strong>.</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s2 ${flowVisibleCount >= 2 ? 'visible' : ''}`}>
+                    <div className="step-num">2</div>
+                    <div className="step-body">
+                        <div className="step-actor">📱 Client → 🔐 Auth Server</div>
+                        <div className="step-desc">Client redirects User to the Auth Server with <code>client_id</code> and <code>scopes</code>.</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s3 ${flowVisibleCount >= 3 ? 'visible' : ''}`}>
+                    <div className="step-num">3</div>
+                    <div className="step-body">
+                        <div className="step-actor">👤 User &amp; 🔐 Auth Server</div>
+                        <div className="step-desc">User authenticates (logs in) and <strong>denies/grants</strong> requested permissions.</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s4 ${flowVisibleCount >= 4 ? 'visible' : ''}`}>
+                    <div className="step-num">4</div>
+                    <div className="step-body">
+                        <div className="step-actor">🔐 Auth Server → 📱 Client</div>
+                        <div className="step-desc">Server redirects back to Client's <code>redirect_uri</code> with a temporary <strong>Auth Code</strong>.</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s5 ${flowVisibleCount >= 5 ? 'visible' : ''}`}>
+                    <div className="step-num">5</div>
+                    <div className="step-body">
+                        <div className="step-actor">📱 Client → 🔐 Auth Server</div>
+                        <div className="step-desc">Client sends <strong>Auth Code + Client Secret</strong> to the server (back-channel).</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s6 ${flowVisibleCount >= 6 ? 'visible' : ''}`}>
+                    <div className="step-num">6</div>
+                    <div className="step-body">
+                        <div className="step-actor">🔐 Auth Server</div>
+                        <div className="step-desc">Server validates the code and secret, then issues an <strong>Access Token</strong> (and Refresh Token).</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s7 ${flowVisibleCount >= 7 ? 'visible' : ''}`}>
+                    <div className="step-num">7</div>
+                    <div className="step-body">
+                        <div className="step-actor">📱 Client → 🗄️ Resource Server</div>
+                        <div className="step-desc">Client requests data using the <strong>Access Token</strong> in the <code>Authorization</code> header.</div>
+                    </div>
+                </div>
+
+                <div className={`flow-step s8 ${flowVisibleCount >= 8 ? 'visible' : ''}`}>
+                    <div className="step-num">8</div>
+                    <div className="step-body">
+                        <div className="step-actor">🗄️ Resource Server</div>
+                        <div className="step-desc">Server validates the token and returns the <strong>Protected Resource/Data</strong>.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="full-oauth-flow" className={`viz-fade-up ${flowVisibleCount >= 9 ? 'visible' : ''}`} style={{
+                paddingTop: '3rem',
+                pointerEvents: flowVisibleCount >= 9 ? 'all' : 'none'
+            }}>
+                {/* ═══════════════ MERMAID FLOW ═══════════════ */}
+                <h2 className="section-title">Sequence Diagram</h2>
+
+                <div className="viz-mermaid-wrap">
+                    <div className="mermaid">
+                        {`sequenceDiagram
+    autonumber
+    participant U as 👤 User
+    participant C as 📱 Client App
+    participant AS as 🔐 Auth Server
+    participant RS as 🗄️ Resource Server
+
+    U->>C: 1. Click "Login/Connect"
+    C->>AS: 2. Redirect to Login (client_id, scope)
+    U->>AS: 3. Authenticate & Authorize
+    AS->>C: 4. Redirect with Auth Code
+    C->>AS: 5. Exchange Code + Secret for Token
+    AS->>C: 6. Return Access Token
+    C->>RS: 7. Request Data with Token
+    RS->>C: 8. Return Protected Resource 🎉`}
+                    </div>
+                </div>
+            </div>
+        </VisualLayout>
+    );
+}

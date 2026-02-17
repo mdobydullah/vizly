@@ -46,7 +46,7 @@ export default function Home() {
                     textTransform: 'uppercase',
                     animation: 'fadeUp .6s ease .1s both'
                 }}>
-                    ✦ Visualize → Learn → Master
+                    ✦ Visualize → Grasp → Retain
                 </div>
 
                 <h1 style={{

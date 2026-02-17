@@ -4,8 +4,10 @@ import { VisualLoader } from './VisualLoader';
 // Map of visual IDs to their components with dynamic loading
 // This is a plain object used by Server Components to identify the correct component.
 export const visualComponents: Record<string, any> = {
-    jwt: dynamic(() => import('./jwtVisual').then(mod => mod.JwtVisual), {
+    jwt: dynamic(() => import('./auth/jwtVisual').then(mod => mod.JwtVisual), {
         loading: () => <VisualLoader />
     }),
-    // oauth: dynamic(() => import('./oauthVisual').then(mod => mod.OauthVisual)),
+    oauth: dynamic(() => import('./auth/oauthVisual').then(mod => mod.OauthVisual), {
+        loading: () => <VisualLoader />
+    }),
 };
