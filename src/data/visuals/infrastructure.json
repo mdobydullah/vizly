@@ -9,7 +9,6 @@
             "Network"
         ],
         "description": "Round-robin, least-connections, consistent hashing — and how Layer 4 vs Layer 7 LBs differ.",
-        "readTime": "6 min read",
         "icon": "⚖️",
         "link": "#",
         "color": "pink",
@@ -20,6 +19,7 @@
             "hoverShadow": "0 0 32px rgba(255, 107, 157, .4), 0 0 16px rgba(255, 107, 157, .2)"
         },
         "createdAt": "2025-01-28T15:00:00Z",
-        "updatedAt": "2025-02-12T11:30:00Z"
+        "updatedAt": "2025-02-12T11:30:00Z",
+        "contributors": "obydul"
     }
 ]

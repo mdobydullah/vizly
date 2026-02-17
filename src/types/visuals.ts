@@ -5,6 +5,15 @@ export interface ColorConfig {
   hoverShadow: string;
 }
 
+export interface Contributor {
+  username: string;
+  name: string;
+  role: string;
+  handles: {
+    url: string;
+  }[];
+}
+
 export interface Visual {
   id: string;
   title: string;
@@ -18,6 +27,7 @@ export interface Visual {
   colorConfig: ColorConfig;
   createdAt: string;
   updatedAt: string;
+  contributors?: Contributor[];
 }
 
 export interface VisualsData {

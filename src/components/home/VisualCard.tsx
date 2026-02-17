@@ -8,9 +8,9 @@ interface VisualCardProps {
   index: number;
 }
 
-export function VisualCard({ visual, index }: VisualCardProps) {
+export function VisualCard({ visual, index }: Readonly<VisualCardProps>) {
   const animationDelay = `.${index + 1}s`;
-  
+
   const isUpcoming = visual.link === '#' || visual.link === null;
 
   const cardStyle = {
@@ -64,11 +64,11 @@ export function VisualCard({ visual, index }: VisualCardProps) {
         border: `1px solid ${visual.colorConfig.border}`,
         transition: 'all .3s ease'
       }}
-      className="card-icon"
+        className="card-icon"
       >
         {visual.icon}
       </div>
-      
+
       <div style={{
         fontSize: '.65rem',
         letterSpacing: '.1em',
@@ -80,7 +80,7 @@ export function VisualCard({ visual, index }: VisualCardProps) {
       }}>
         {visual.category}
       </div>
-      
+
       <div style={{
         fontFamily: 'var(--font-display)',
         fontWeight: 700,
@@ -91,16 +91,21 @@ export function VisualCard({ visual, index }: VisualCardProps) {
       }}>
         {visual.title}
       </div>
-      
+
       <div style={{
         fontSize: '.78rem',
         color: 'var(--text-dim)',
         lineHeight: 1.6,
-        marginBottom: '1rem'
+        marginBottom: '1rem',
+        display: '-webkit-box',
+        WebkitLineClamp: 3,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+        minHeight: '3.8em' // Optional: keep cards consistent if one has less text
       }}>
         {visual.description}
       </div>
-      
+
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -109,8 +114,13 @@ export function VisualCard({ visual, index }: VisualCardProps) {
         fontSize: '.7rem',
         color: 'var(--text-dim)'
       }}>
-        <span>{visual.readTime}</span>
-        <div 
+        <span>
+          {visual.contributors && visual.contributors.length > 0
+            ? `by ${visual.contributors[0].name}`
+            : visual.readTime
+          }
+        </span>
+        <div
           className="card-arrow"
           style={{
             width: '26px',
@@ -128,7 +138,7 @@ export function VisualCard({ visual, index }: VisualCardProps) {
           ↗
         </div>
       </div>
-      
+
       <style jsx>{`
         .viz-card {
           transition: all .3s ease;

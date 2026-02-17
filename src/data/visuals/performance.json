@@ -9,7 +9,6 @@
             "Optimization"
         ],
         "description": "LRU, write-through, write-behind, cache-aside — every strategy with hit/miss animated diagrams.",
-        "readTime": "9 min read",
         "icon": "⚡",
         "link": "#",
         "color": "green",
@@ -20,6 +19,7 @@
             "hoverShadow": "0 0 32px rgba(62, 255, 163, .4), 0 0 16px rgba(62, 255, 163, .2)"
         },
         "createdAt": "2025-02-05T09:00:00Z",
-        "updatedAt": "2025-02-14T13:20:00Z"
+        "updatedAt": "2025-02-14T13:20:00Z",
+        "contributors": "obydul"
     }
 ]
