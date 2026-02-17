@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import visualsData from "@/data/visuals.json";
+
+const visual = visualsData.visuals.find(v => v.id === "jwt")!;
 
 export function JwtExplanation() {
   const [replayCount, setReplayCount] = useState(0);
+  const flowSectionRef = useRef<HTMLHeadingElement>(null);
+  const tokenBoxRef = useRef<HTMLDivElement>(null);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -39,47 +44,58 @@ export function JwtExplanation() {
       setTimeout(() => setFormulaVisible(true), 1800);
 
       // 4. Show Token
-      setTimeout(() => setTokenVisible(true), 2300);
+      setTimeout(() => {
+        setTokenVisible(true);
+      }, 2300);
 
       // 5. Run Flow Steps
       const baseDelay = 3200;
       for (let i = 1; i <= 8; i++) {
-        setTimeout(() => setFlowVisibleCount(i), baseDelay + (i * 380));
+        setTimeout(() => setFlowVisibleCount(i), baseDelay + (i * 1000));
       }
     }, 300);
   };
+
+  // Natural "Human" Progressive Scroll
+  useEffect(() => {
+    if (tokenVisible && flowVisibleCount === 0) {
+      const timer = setTimeout(() => {
+        tokenBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [tokenVisible]);
+
+  useEffect(() => {
+    if (flowVisibleCount === 0) return;
+
+    // Slight delay to mimic human reaction time after seeing new content
+    const timer = setTimeout(() => {
+      if (flowVisibleCount === 1) {
+        flowSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        const activeStep = document.querySelector(`.flow-step.s${flowVisibleCount}`);
+        if (activeStep) {
+          // 'nearest' is the most natural - it only scrolls if the element is out of view
+          activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [flowVisibleCount]);
 
   useEffect(() => {
     runAnimation();
   }, [replayCount]);
 
   const handleReplay = () => {
+    window.scrollTo({ top: 0 });
     setReplayCount(prev => prev + 1);
   };
 
   return (
     <>
       <style jsx>{`
-        :root {
-          --bg: #0d0d0d;
-          --cyan: #00e5ff;
-          --purple: #c678dd;
-          --yellow: #e5c07b;
-          --green: #98c379;
-          --blue: #61afef;
-          --pink: #e06c75;
-          --dim: #1e1e2e;
-          --border: #2a2a3e;
-        }
-
-        .jwt-container {
-          background: var(--bg);
-          color: #abb2bf;
-          font-family: 'Segoe UI', system-ui, sans-serif;
-          min-height: 100vh;
-          padding: 2rem 1rem 4rem;
-        }
-
         .jwt-title {
           text-align: center;
           font-size: 1.6rem;
@@ -101,14 +117,6 @@ export function JwtExplanation() {
           color: #555;
           margin-top: .2rem;
           margin-bottom: 2.5rem;
-        }
-
-        .section-title {
-          text-align: center;
-          font-size: 1.3rem;
-          color: #fff;
-          margin: 2.5rem 0 1.5rem;
-          font-weight: normal;
         }
 
         /* Card Styles */
@@ -336,7 +344,6 @@ export function JwtExplanation() {
           background: #051209;
           padding: 1rem 1.2rem;
           position: relative;
-          overflow: hidden;
           opacity: 0;
           transition: opacity .6s;
         }
@@ -358,92 +365,6 @@ export function JwtExplanation() {
           line-height: 1.6;
         }
 
-        /* Flow Steps */
-        .flow-wrap {
-          max-width: 860px;
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-          gap: .6rem;
-        }
-
-        .flow-step {
-          display: flex;
-          align-items: center;
-          gap: .8rem;
-          opacity: 0;
-          transform: translateY(16px);
-          transition: opacity .45s ease, transform .45s ease;
-        }
-
-        .flow-step.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .step-num {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: .8rem;
-          flex-shrink: 0;
-          border: 2px solid;
-        }
-
-        .step-body {
-          flex: 1;
-          background: var(--dim);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          padding: .55rem .9rem;
-          font-size: .82rem;
-        }
-
-        .step-actor {
-          font-size: .72rem;
-          opacity: .6;
-          margin-bottom: .1rem;
-          text-transform: uppercase;
-          letter-spacing: .05em;
-        }
-
-        .step-desc {
-          color: #cdd6f4;
-        }
-
-        /* Step Colors */
-        .s1 .step-num { border-color: var(--blue); color: var(--blue); }
-        .s2 .step-num { border-color: var(--cyan); color: var(--cyan); }
-        .s3 .step-num { border-color: var(--green); color: var(--green); }
-        .s4 .step-num { border-color: var(--purple); color: var(--purple); }
-        .s5 .step-num { border-color: var(--blue); color: var(--blue); }
-        .s6 .step-num { border-color: var(--cyan); color: var(--cyan); }
-        .s7 .step-num { border-color: var(--yellow); color: var(--yellow); }
-        .s8 .step-num { border-color: var(--green); color: var(--green); }
-
-        /* Replay Button */
-        .replay-btn {
-          display: block;
-          margin: 2rem auto 0;
-          background: none;
-          border: 1px solid var(--cyan);
-          color: var(--cyan);
-          padding: .5rem 1.4rem;
-          border-radius: 20px;
-          cursor: pointer;
-          font-size: .85rem;
-          transition: background .2s;
-          font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-
-        .replay-btn:hover {
-          background: #0a2a30;
-        }
-
         /* Mobile Responsive */
         @media(max-width:600px) {
           .struct-grid,
@@ -453,11 +374,60 @@ export function JwtExplanation() {
         }
       `}</style>
 
-      <div className="jwt-container">
-        <h1 className="jwt-title">
-          <span>JSON Web Token</span>
-        </h1>
-        <p className="jwt-subtitle">Learn JWT in a simple and visual way</p>
+      <div className="visual-container">
+
+        {/* Section Title */}
+        <div className="section-title-container" style={{
+          padding: 'clamp(2rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem)',
+          maxWidth: '1100px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '.7rem',
+            letterSpacing: '.1em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--cyan)',
+            marginBottom: '0.2rem',
+            opacity: .8
+          }}>
+            {visual.category}
+          </div>
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            color: 'var(--text-hi)',
+            letterSpacing: '-.02em'
+          }}>{visual.title}</h2>
+          <p className="section-hint" style={{
+            color: 'var(--text-dim)',
+            fontSize: '.8rem',
+            maxWidth: '500px',
+            textAlign: 'center'
+          }}>{visual.description}</p>
+        </div>
+
+        <div style={{
+          maxWidth: '860px',
+          margin: '0 auto 2.5rem',
+          padding: '1.5rem',
+          background: 'rgba(0, 229, 255, 0.03)',
+          border: '1px solid var(--border)',
+          borderRadius: '12px',
+          fontSize: '.88rem',
+          color: 'var(--text)',
+          lineHeight: '1.7',
+          textAlign: 'center'
+        }}>
+          JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
+        </div>
 
         {/* ═══════════════ STRUCTURE ═══════════════ */}
         <h2 className="section-title">Structure of a JWT</h2>
@@ -525,7 +495,7 @@ export function JwtExplanation() {
         <div className="down-arrow">▼</div>
 
         {/* JWT Token */}
-        <div className={`token-box ${tokenVisible ? 'visible' : ''}`}>
+        <div ref={tokenBoxRef} className={`token-box ${tokenVisible ? 'visible' : ''}`}>
           <span className="card-label">JWT</span>
           <p className="token-text">
             <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>.
@@ -535,7 +505,7 @@ export function JwtExplanation() {
         </div>
 
         {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-        <h2 className="section-title">How JWT Works?</h2>
+        <h2 ref={flowSectionRef} className="section-title">How JWT Works?</h2>
 
         <div className="flow-wrap">
           <div className={`flow-step s1 ${flowVisibleCount >= 1 ? 'visible' : ''}`}>
