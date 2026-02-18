@@ -159,7 +159,7 @@ const LAYERS = [
 // MAIN COMPONENT
 // ════════════════════════════════════════
 
-export function LoadBalancingVisual() {
+export function LoadBalancingGuide() {
     const [replayCount, setReplayCount] = useState(0);
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePatternKey, setActivePatternKey] = useState('round-robin');
