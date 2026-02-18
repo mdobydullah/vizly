@@ -21,5 +21,28 @@
         "createdAt": "2025-01-28T15:00:00Z",
         "updatedAt": "2025-02-12T11:30:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "cdn",
+        "title": "Content Delivery Network (CDN)",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Performance",
+            "Network"
+        ],
+        "description": "A distributed group of servers that caches content near end users.",
+        "icon": "🌍",
+        "link": "/guides/cdn",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#22d3ee",
+            "background": "rgba(34, 211, 238, .08)",
+            "border": "rgba(34, 211, 238, .15)",
+            "hoverShadow": "0 0 32px rgba(34, 211, 238, .4), 0 0 16px rgba(34, 211, 238, .2)"
+        },
+        "createdAt": "2026-02-19T00:00:00Z",
+        "updatedAt": "2026-02-19T00:00:00Z",
+        "contributors": "obydul"
     }
 ]

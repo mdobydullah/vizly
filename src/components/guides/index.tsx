@@ -22,4 +22,7 @@ export const guideComponents: Record<string, any> = {
     'database-replication': dynamic(() => import('./database/DatabaseReplicationGuide').then(mod => mod.DatabaseReplicationGuide), {
         loading: () => <GuideLoader />
     }),
+    cdn: dynamic(() => import('./infrastructure/CdnGuide').then(mod => mod.CdnGuide), {
+        loading: () => <GuideLoader />
+    }),
 };
