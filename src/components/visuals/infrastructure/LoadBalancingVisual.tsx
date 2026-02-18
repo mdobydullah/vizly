@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { Settings } from 'lucide-react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
@@ -153,7 +154,7 @@ const LAYERS = [
 
 export function LoadBalancingVisual() {
     const [replayCount, setReplayCount] = useState(0);
-    const { animationSpeed } = useSettings();
+    const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePatternKey, setActivePatternKey] = useState('round-robin');
 
     // Animation State
@@ -326,16 +327,38 @@ export function LoadBalancingVisual() {
             </div>
 
             <div className="lb-flow-section">
-                <div className="lb-flow-controls">
-                    {Object.keys(FLOW_PATTERNS).map(key => (
-                        <button
-                            key={key}
-                            className={`lb-flow-btn ${activePatternKey === key ? 'active' : ''}`}
-                            onClick={() => playPattern(key)}
-                        >
-                            {FLOW_PATTERNS[key].algo}
-                        </button>
-                    ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                    <div className="lb-flow-controls" style={{ marginBottom: 0 }}>
+                        {Object.keys(FLOW_PATTERNS).map(key => (
+                            <button
+                                key={key}
+                                className={`lb-flow-btn ${activePatternKey === key ? 'active' : ''}`}
+                                onClick={() => playPattern(key)}
+                            >
+                                {FLOW_PATTERNS[key].algo}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border2)',
+                            background: 'var(--surface)',
+                            color: 'var(--text-dim)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all .2s'
+                        }}
+                        className="social-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
                 </div>
 
                 <div className="lb-flow-diagram">

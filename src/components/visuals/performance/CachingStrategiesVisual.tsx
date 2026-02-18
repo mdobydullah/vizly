@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
+import { Settings } from "lucide-react";
 import { VisualLayout } from '@/components/layout/VisualLayout';
 import '@/styles/visuals/performance/caching-strategies.css';
 
@@ -147,7 +148,7 @@ const COMPARISON = [
 
 export function CachingStrategiesVisual() {
     const [replayCount, setReplayCount] = useState(0);
-    const { animationSpeed } = useSettings();
+    const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('cache-aside');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
     const animRef = useRef<NodeJS.Timeout[]>([]);
@@ -241,7 +242,7 @@ export function CachingStrategiesVisual() {
                 <p className="viz-section-hint">Interact with the patterns to see how data flows between components</p>
             </div>
 
-            <div className="viz-flow-controls">
+            <div className="viz-flow-controls" style={{ alignItems: 'center' }}>
                 {STRATEGIES.map(s => (
                     <button
                         key={s.id}
@@ -251,6 +252,28 @@ export function CachingStrategiesVisual() {
                         {s.title.split(' (')[0]}
                     </button>
                 ))}
+
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border2)',
+                        background: 'var(--surface)',
+                        color: 'var(--text-dim)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all .2s',
+                        marginLeft: '0.25rem'
+                    }}
+                    className="social-btn"
+                    aria-label="Settings"
+                >
+                    <Settings size={14} />
+                </button>
             </div>
 
             <div className="viz-flow-diagram">

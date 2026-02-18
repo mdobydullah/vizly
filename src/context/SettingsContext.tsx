@@ -3,23 +3,19 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 interface SettingsContextType {
-    readonly animationsEnabled: boolean;
-    setAnimationsEnabled: (enabled: boolean) => void;
     readonly animationSpeed: number; // multiplier: 0.25 (fast) to 2.0 (slow)
     setAnimationSpeed: (speed: number) => void;
+    readonly isSettingsOpen: boolean;
+    setIsSettingsOpen: (open: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-    const [animationsEnabled, setAnimationsEnabled] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
-        const savedEnabled = localStorage.getItem('animations_enabled');
-        if (savedEnabled !== null) {
-            setAnimationsEnabled(savedEnabled === 'true');
-        }
         const savedSpeed = localStorage.getItem('animation_speed');
         if (savedSpeed !== null) {
             setAnimationSpeed(Number.parseFloat(savedSpeed));
@@ -27,17 +23,14 @@ export function SettingsProvider({ children }: Readonly<{ children: React.ReactN
     }, []);
 
     const contextValue = useMemo(() => ({
-        animationsEnabled,
-        setAnimationsEnabled: (enabled: boolean) => {
-            setAnimationsEnabled(enabled);
-            localStorage.setItem('animations_enabled', String(enabled));
-        },
         animationSpeed,
         setAnimationSpeed: (speed: number) => {
             setAnimationSpeed(speed);
             localStorage.setItem('animation_speed', String(speed));
-        }
-    }), [animationsEnabled, animationSpeed]);
+        },
+        isSettingsOpen,
+        setIsSettingsOpen
+    }), [animationSpeed, isSettingsOpen]);
 
     return (
         <SettingsContext.Provider value={contextValue}>

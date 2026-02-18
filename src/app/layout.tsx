@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 import { SettingsProvider } from "@/context/SettingsContext";
+import { SettingsModal } from "@/components/common/SettingsModal";
 
 export default function RootLayout({
   children,
@@ -29,6 +30,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <SettingsModal />
         </SettingsProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { Settings } from 'lucide-react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
@@ -199,7 +200,7 @@ const GUARANTEES = [
 
 export function MessageQueuesVisual() {
     const [replayCount, setReplayCount] = useState(0);
-    const { animationSpeed } = useSettings();
+    const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('simple');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
     const animRef = useRef<NodeJS.Timeout[]>([]);
@@ -282,18 +283,40 @@ export function MessageQueuesVisual() {
                 <p className="viz-section-hint">Explore different messaging patterns with interactive animations</p>
             </div>
 
-            <div className="mq-flow-controls">
-                {Object.keys(FLOW_PATTERNS).map(key => (
-                    <button
-                        key={key}
-                        className={`mq-tab-btn ${activePattern === key ? 'active' : ''}`}
-                        onClick={() => playPattern(key)}
-                    >
-                        {key === 'simple' ? 'Simple Queue' : 
-                         key === 'pubsub' ? 'Pub/Sub' : 
-                         key === 'dlq' ? 'Dead Letter Queue' : 'Fanout'}
-                    </button>
-                ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div className="mq-flow-controls" style={{ marginBottom: 0 }}>
+                    {Object.keys(FLOW_PATTERNS).map(key => (
+                        <button
+                            key={key}
+                            className={`mq-tab-btn ${activePattern === key ? 'active' : ''}`}
+                            onClick={() => playPattern(key)}
+                        >
+                            {key === 'simple' ? 'Simple Queue' :
+                                key === 'pubsub' ? 'Pub/Sub' :
+                                    key === 'dlq' ? 'Dead Letter Queue' : 'Fanout'}
+                        </button>
+                    ))}
+                </div>
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border2)',
+                        background: 'var(--surface)',
+                        color: 'var(--text-dim)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all .2s'
+                    }}
+                    className="social-btn"
+                    aria-label="Settings"
+                >
+                    <Settings size={14} />
+                </button>
             </div>
 
             <div className="mq-flow-diagram">
@@ -309,11 +332,11 @@ export function MessageQueuesVisual() {
 
                 <div className="mq-nodes">
                     {FLOW_PATTERNS[activePattern].nodes.map((node) => (
-                        <MQNode 
-                            key={node.id} 
-                            node={node} 
-                            activeIdx={currentStepIdx} 
-                            pattern={activePattern} 
+                        <MQNode
+                            key={node.id}
+                            node={node}
+                            activeIdx={currentStepIdx}
+                            pattern={activePattern}
                         />
                     ))}
                 </div>
@@ -321,12 +344,12 @@ export function MessageQueuesVisual() {
                 <div className="flow-wrap" style={{ maxWidth: '600px', margin: '0 auto' }}>
                     {FLOW_PATTERNS[activePattern].steps.map((step, i) => (
                         <div key={step.text} className={`flow-step ${currentStepIdx >= i ? 'visible' : ''}`} style={{ opacity: currentStepIdx === i ? 1 : 0.4 }}>
-                            <div className="step-num" style={{ 
-                                borderColor: currentStepIdx === i ? 'var(--yellow)' : 'var(--border2)', 
+                            <div className="step-num" style={{
+                                borderColor: currentStepIdx === i ? 'var(--yellow)' : 'var(--border2)',
                                 color: currentStepIdx === i ? 'var(--yellow)' : 'var(--text-dim)',
                                 background: currentStepIdx === i ? 'rgba(255, 209, 102, 0.08)' : 'transparent'
                             }}>{i + 1}</div>
-                            <div className="step-body" style={{ 
+                            <div className="step-body" style={{
                                 background: currentStepIdx === i ? 'rgba(255, 209, 102, 0.05)' : 'var(--dim)',
                                 borderLeft: currentStepIdx === i ? '2px solid var(--yellow)' : '2px solid transparent'
                             }}>

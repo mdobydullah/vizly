@@ -159,10 +159,10 @@
 
 .card-orange {
     --card-color: var(--orange);
-    --card-glow: rgba(255, 140, 66, .04);
-    --card-shadow: rgba(255, 140, 66, .15);
-    --card-icon-bg: rgba(255, 140, 66, .08);
-    --card-icon-border: rgba(255, 140, 66, .2);
+    --card-glow: rgba(255, 159, 28, .04);
+    --card-shadow: rgba(255, 159, 28, .15);
+    --card-icon-bg: rgba(255, 159, 28, .08);
+    --card-icon-border: rgba(255, 159, 28, .2);
 }
 
 
@@ -260,7 +260,6 @@
 }
 
 .lb-node {
-    display: inline-block;
     background: var(--surface2);
     border: 2px solid var(--pink);
     border-radius: 10px;
