@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import mermaid from 'mermaid';
 import { Contributor } from '@/types/visuals';
-import { Github, Twitter, Linkedin, Globe, Mail, ExternalLink } from 'lucide-react';
+import { Github, Twitter, Linkedin, Globe, Mail, ExternalLink, ArrowUp } from 'lucide-react';
 
 interface VisualLayoutProps {
     category: string;
@@ -44,32 +47,37 @@ export function VisualLayout({
         mermaid.contentLoaded();
     }, [primaryColor]);
 
-    // Scroll to top and Initialize Visual environment
-    useEffect(() => {
-        window.scrollTo(0, 0);
-
-        // Initialize Mermaid (common for visuals)
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'dark',
-            securityLevel: 'loose',
-            fontFamily: 'var(--font-mono)',
-            themeVariables: {
-                primaryColor: primaryColor, // Use dynamic primary color
-                primaryTextColor: '#fff',
-                primaryBorderColor: primaryColor,
-                lineColor: '#5a6a7e',
-                secondaryColor: '#b985f4',
-                tertiaryColor: '#3effa3'
-            }
-        });
-        mermaid.contentLoaded();
-    }, [primaryColor]);
-
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [shouldShowExpand, setShouldShowExpand] = React.useState(false);
+    const [showScrollTop, setShowScrollTop] = React.useState(false);
+    const [mounted, setMounted] = useState(false);
     const contributorsRef = React.useRef<HTMLDivElement>(null);
     const descriptionRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Track scroll position to show/hide scroll-to-top button
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 300) {
+                setShowScrollTop(true);
+            } else {
+                setShowScrollTop(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
 
     // Check if description is long enough to expand
     useEffect(() => {
@@ -372,7 +380,83 @@ export function VisualLayout({
                 div::-webkit-scrollbar-thumb:hover {
                     background: ${primaryColor}60;
                 }
+
+                .scroll-to-top-btn {
+                    position: fixed;
+                    bottom: 2rem;
+                    right: 2rem;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 50%;
+                    background: var(--surface2);
+                    border: 1px solid var(--border);
+                    color: ${primaryColor};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    z-index: 100;
+                    opacity: 0;
+                    visibility: hidden;
+                    transform: translateY(10px);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                }
+
+                .scroll-to-top-btn.visible {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: translateY(0);
+                }
+
+                }
             `}</style>
-        </div>
+
+            {mounted && createPortal(
+                <button
+                    className={`scroll-to-top-btn ${showScrollTop ? 'visible' : ''}`}
+                    onClick={scrollToTop}
+                    aria-label="Scroll to top"
+                    title="Scroll to top"
+                    style={{
+                        position: 'fixed',
+                        bottom: '2rem',
+                        right: '2rem',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        background: 'var(--surface2)',
+                        border: '1px solid var(--border)',
+                        color: primaryColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        zIndex: 9999, // Ensure it's above everything including footer
+                        opacity: showScrollTop ? 1 : 0,
+                        visibility: showScrollTop ? 'visible' : 'hidden',
+                        transform: showScrollTop ? 'translateY(0)' : 'translateY(10px)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `${primaryColor}20`;
+                        e.currentTarget.style.borderColor = primaryColor;
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--surface2)';
+                        e.currentTarget.style.borderColor = 'var(--border)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    }}
+                >
+                    <ArrowUp size={20} />
+                </button>,
+                document.body
+            )
+            }
+        </div >
     );
 }
