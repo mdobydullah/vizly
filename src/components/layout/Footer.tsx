@@ -5,6 +5,9 @@ import { Twitter, Github, Linkedin, Heart, Settings } from "lucide-react";
 import { config } from "@/lib/config";
 import { useSettings } from "@/context/SettingsContext";
 
+import topics from "@/data/common/footer-topics.json";
+import vizlyLinks from "@/data/common/footer-vizly.json";
+
 export default function Footer() {
     const { setIsSettingsOpen } = useSettings();
 
@@ -78,42 +81,22 @@ export default function Footer() {
                         letterSpacing: '.02em'
                     }}>Topics</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
-                        <Link href="/jwt" style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            JSON Web Tokens
-                        </Link>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            OAuth 2.0
-                        </a>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            REST vs GraphQL
-                        </a>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            Caching
-                        </a>
+                        {topics.map((topic) => (
+                            <Link
+                                key={topic.name}
+                                href={topic.href}
+                                style={{
+                                    fontSize: '.75rem',
+                                    color: 'var(--text-dim)',
+                                    textDecoration: 'none',
+                                    transition: 'color .2s',
+                                    cursor: 'pointer'
+                                }}
+                                className="footer-link"
+                            >
+                                {topic.name}
+                            </Link>
+                        ))}
                     </div>
                 </div>
                 <div>
@@ -124,44 +107,43 @@ export default function Footer() {
                         color: 'var(--text-hi)',
                         marginBottom: '.8rem',
                         letterSpacing: '.02em'
-                    }}>Resources</h4>
+                    }}>Vizly</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            System Design Handbook
-                        </a>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            Cheat Sheets
-                        </a>
-                        <a style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            Newsletter
-                        </a>
-                        <a href="https://github.com/mdobydullah" target="_blank" rel="noopener noreferrer" style={{
-                            fontSize: '.75rem',
-                            color: 'var(--text-dim)',
-                            textDecoration: 'none',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="footer-link">
-                            GitHub
-                        </a>
+                        {vizlyLinks.map((resource) => (
+                            resource.isExternal ? (
+                                <a
+                                    key={resource.name}
+                                    href={resource.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        fontSize: '.75rem',
+                                        color: 'var(--text-dim)',
+                                        textDecoration: 'none',
+                                        transition: 'color .2s',
+                                        cursor: 'pointer'
+                                    }}
+                                    className="footer-link"
+                                >
+                                    {resource.name}
+                                </a>
+                            ) : (
+                                <Link
+                                    key={resource.name}
+                                    href={resource.href}
+                                    style={{
+                                        fontSize: '.75rem',
+                                        color: 'var(--text-dim)',
+                                        textDecoration: 'none',
+                                        transition: 'color .2s',
+                                        cursor: 'pointer'
+                                    }}
+                                    className="footer-link"
+                                >
+                                    {resource.name}
+                                </Link>
+                            )
+                        ))}
                     </div>
                 </div>
             </div>

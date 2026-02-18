@@ -237,7 +237,7 @@ export function VisualLayout({
                     marginTop: '4rem',
                     paddingBottom: '4rem',
                     width: '100%',
-                    maxWidth: '860px',
+                    maxWidth: '1100px',
                     margin: '4rem auto 0',
                 }}>
 
@@ -262,46 +262,68 @@ export function VisualLayout({
                         }}>Visual Contributors</h3>
 
                         <div className="contributors-grid" style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            justifyContent: 'center',
-                            gap: 'clamp(1.5rem, 4vw, 3rem)',
-                            maxHeight: contributors.length > 3 ? '450px' : 'auto',
-                            overflowY: contributors.length > 3 ? 'auto' : 'visible',
-                            padding: '1.5rem 1rem',
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: `${primaryColor}40 transparent`,
-                            width: '100%'
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: '2rem',
+                            width: '100%',
+                            padding: '1rem 0'
                         }}>
                             {contributors.map((contributor) => (
-                                <div key={contributor.username} style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    textAlign: 'center',
-                                    minWidth: '200px'
-                                }}>
+                                <div key={contributor.username}
+                                    className="contributor-card"
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        textAlign: 'center',
+                                        background: 'linear-gradient(145deg, var(--surface2) 0%, rgba(21, 28, 39, 0.6) 100%)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '16px',
+                                        padding: '2.5rem 2rem',
+                                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        height: '100%',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                                    }}>
                                     <span style={{
                                         fontWeight: 700,
                                         color: 'var(--text-hi)',
-                                        fontSize: '0.95rem',
+                                        fontSize: '1rem',
                                         fontFamily: 'var(--font-display)',
-                                        marginBottom: '0.2rem'
+                                        marginBottom: '0.3rem',
+                                        lineHeight: '1.3',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
                                     }}>
                                         {contributor.name}
                                     </span>
                                     <span style={{
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.8rem',
                                         color: 'var(--text-dim)',
-                                        marginBottom: '0.8rem',
+                                        marginBottom: '1.5rem',
                                         fontFamily: 'var(--font-mono)',
                                         textTransform: 'uppercase',
-                                        letterSpacing: '0.05em'
+                                        letterSpacing: '0.05em',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        minHeight: '2.4em' // maintain height for alignment
                                     }}>
                                         {contributor.role}
                                     </span>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        {contributor.handles.map((handle) => (
+
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '0.8rem',
+                                        marginTop: 'auto'
+                                    }}>
+                                        {contributor.handles.slice(0, 5).map((handle) => (
                                             <a
                                                 key={handle.url}
                                                 href={handle.url}
@@ -311,22 +333,22 @@ export function VisualLayout({
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                    color: primaryColor,
+                                                    color: 'var(--text-dim)',
                                                     textDecoration: 'none',
                                                     padding: '0.5rem',
-                                                    borderRadius: '8px',
-                                                    background: `${primaryColor}10`,
-                                                    border: `1px solid ${primaryColor}30`,
+                                                    borderRadius: '10px',
+                                                    background: 'var(--bg)',
+                                                    border: '1px solid var(--border2)',
                                                     transition: 'all 0.2s ease',
-                                                    width: '32px',
-                                                    height: '32px'
+                                                    width: '38px',
+                                                    height: '38px'
                                                 }}
                                                 className="contributor-handle"
                                                 title={handle.url.split('//').pop()?.split('/')[0] || 'Link'}
                                             >
                                                 {(() => {
                                                     const url = handle.url.toLowerCase();
-                                                    const iconSize = 16;
+                                                    const iconSize = 18;
                                                     if (url.includes('github.com')) return <Github size={iconSize} />;
                                                     if (url.includes('twitter.com') || url.includes('x.com')) return <Twitter size={iconSize} />;
                                                     if (url.includes('linkedin.com')) return <Linkedin size={iconSize} />;
@@ -347,38 +369,46 @@ export function VisualLayout({
             <style jsx>{`
                 .contributor-handle:hover {
                     background: ${primaryColor}20 !important;
-                    border-color: ${primaryColor}60 !important;
-                    transform: translateY(-1px);
+                    border-color: ${primaryColor}80 !important;
+                    transform: translateY(-3px);
+                    color: ${primaryColor} !important;
+                    box-shadow: 0 4px 12px ${primaryColor}30;
                 }
                 
-                @media (max-width: 640px) {
+                .contributor-card:hover {
+                    border-color: ${primaryColor}60 !important;
+                    transform: translateY(-8px) !important;
+                    box-shadow: 0 20px 40px -10px ${primaryColor}20 !important;
+                    background: linear-gradient(145deg, var(--surface2) 0%, ${primaryColor}08 100%) !important;
+                }
+                
+                .contributor-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(90deg, transparent, ${primaryColor}, transparent);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .contributor-card:hover::before {
+                    opacity: 1;
+                }
+
+                @media (max-width: 1024px) {
                     .contributors-grid {
-                        gap: 2rem !important;
-                        padding: 1rem 0 !important;
+                        grid-template-columns: repeat(2, 1fr) !important;
+                        gap: 1rem !important;
                     }
                 }
 
-                @media (max-width: 480px) {
-                    .contributors-grid > div {
-                        min-width: 100% !important;
+                @media (max-width: 640px) {
+                    .contributors-grid {
+                        grid-template-columns: 1fr !important;
                     }
-                }
-                
-                div::-webkit-scrollbar {
-                    width: 4px;
-                }
-                
-                div::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                
-                div::-webkit-scrollbar-thumb {
-                    background: ${primaryColor}40;
-                    border-radius: 10px;
-                }
-                
-                div::-webkit-scrollbar-thumb:hover {
-                    background: ${primaryColor}60;
                 }
 
                 .scroll-to-top-btn {
