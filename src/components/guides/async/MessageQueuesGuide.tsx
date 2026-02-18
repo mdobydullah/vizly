@@ -212,7 +212,7 @@ const RESOURCES = [
 // MAIN COMPONENT
 // ════════════════════════════════════════
 
-export function MessageQueuesVisual() {
+export function MessageQueuesGuide() {
     const [replayCount, setReplayCount] = useState(0);
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('simple');

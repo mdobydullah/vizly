@@ -4,11 +4,14 @@ description: Create a new animated guide component for a technical topic
 
 1. **Information Gathering**:
    - Ask the user which technical topic to visualize (e.g., Database Indexing, Service Discovery, GRPC).
+   - Read `.agent/create-new-guide.md` to understand the design requirements, structure, and animation details for the new guide.
    - Read `src/data/guides/index.ts` to see existing metadata and ensure the new guide has a unique ID and proper data entry.
    - Use `src/components/guides/infrastructure/LoadBalancingVisual.tsx` or `src/components/guides/async/MessageQueuesVisual.tsx` as reference architecture.
 
 2. **Component Creation Strategy**:
-   - **Guide Layout**: Always wrap the component in `<GuideLayout>` from `@/components/layout/GuideLayout`.
+   - **Guide Layout**: Always wrap the component in `<GuideLayout>` from `@/components/layout/GuideLayout`. 
+     - **CRITICAL**: Use `const guide = guidesData.guides.find(v => v.id === "X")!` at module level.
+     - Pass `contributors={guide.contributors}` to `<GuideLayout>` to ensure attribution is shown.
    - **Animation System**: 
      - Use `useSettings` from `@/context/SettingsContext` to access `animationSpeed` (multiplier for delays) and `setIsSettingsOpen`.
      - Implement a pattern playback function (e.g., `playPattern`) with `setTimeout` chains managed in a `useRef` array (to allow cleanup).
@@ -17,6 +20,7 @@ description: Create a new animated guide component for a technical topic
      - Create a grid of cards using the centralized `.viz-card` system from `src/styles/cards.css`.
      - Apply theme classes (e.g., `card-cyan`, `card-purple`, `card-orange`) to automatically get premium hover effects, glows, and theme colors.
      - Use `.viz-tag` and `.viz-tag.hi` for metadata chips within cards.
+     - **Interactivity**: Cards should act as navigation triggers. Clicking a card must smooth-scroll to the visualization section and auto-play the corresponding pattern.
    - **Interactive Flow Section**: 
      - Create a diagram area (`viz-flow-diagram` or category-specific equivalent).
      - Provide algorithm/pattern tabs in a centered flex container with the settings button aligned to the right.
@@ -29,7 +33,7 @@ description: Create a new animated guide component for a technical topic
      - For metric ratings, use a consistent dot system (e.g., `<Rating dots={n} />`) using `.viz-rating-dots` and `.viz-dot.on`.
 
 3. **Implementation Steps**:
-   - Create the new component in a categorized subdirectory: `src/components/guides/[category]/[Topic]Visual.tsx`.
+   - Create the new component in a categorized subdirectory: `src/components/guides/[category]/[Topic]Guide.tsx`.
    - Create a corresponding CSS file in `src/styles/guides/[category]/[topic].css` if custom diagram styles are needed.
    - Add the guide metadata to `src/data/guides/[category].json`.
    - Ensure the guide is correctly exported and mapped in the main routing logic in `src/components/guides/index.tsx`.

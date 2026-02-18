@@ -14,7 +14,7 @@ const RESOURCES = [
     { title: "Auth0: JSON Web Token Explained", type: "web", url: "https://auth0.com/learn/json-web-tokens/" },
 ];
 
-export function JwtVisual() {
+export function JwtGuide() {
     return (
         <GuideLayout
             category={guide.category}

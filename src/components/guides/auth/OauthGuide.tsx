@@ -14,7 +14,7 @@ const RESOURCES = [
     { title: "RFC 6749: The OAuth 2.0 Authorization Framework", type: "web", url: "https://datatracker.ietf.org/doc/html/rfc6749" },
 ];
 
-export function OauthVisual() {
+export function OauthGuide() {
     return (
         <GuideLayout
             category={guide.category}

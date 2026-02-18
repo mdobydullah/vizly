@@ -4,19 +4,22 @@ import { GuideLoader } from './GuideLoader';
 // Map of guide IDs to their components with dynamic loading
 // This is a plain object used by Server Components to identify the correct component.
 export const guideComponents: Record<string, any> = {
-    jwt: dynamic(() => import('./auth/jwtVisual').then(mod => mod.JwtVisual), {
+    jwt: dynamic(() => import('./auth/JwtGuide').then(mod => mod.JwtGuide), {
         loading: () => <GuideLoader />
     }),
-    oauth: dynamic(() => import('./auth/oauthVisual').then(mod => mod.OauthVisual), {
+    oauth: dynamic(() => import('./auth/OauthGuide').then(mod => mod.OauthGuide), {
         loading: () => <GuideLoader />
     }),
-    'caching-strategies': dynamic(() => import('./performance/CachingStrategiesVisual').then(mod => mod.CachingStrategiesVisual), {
+    'caching-strategies': dynamic(() => import('./performance/CachingStrategiesGuide').then(mod => mod.CachingStrategiesGuide), {
         loading: () => <GuideLoader />
     }),
-    'message-queues': dynamic(() => import('./async/MessageQueuesVisual').then(mod => mod.MessageQueuesVisual), {
+    'message-queues': dynamic(() => import('./async/MessageQueuesGuide').then(mod => mod.MessageQueuesGuide), {
         loading: () => <GuideLoader />
     }),
-    'load-balancing': dynamic(() => import('./infrastructure/LoadBalancingVisual').then(mod => mod.LoadBalancingVisual), {
+    'load-balancing': dynamic(() => import('./infrastructure/LoadBalancingGuide').then(mod => mod.LoadBalancingGuide), {
+        loading: () => <GuideLoader />
+    }),
+    'database-replication': dynamic(() => import('./database/DatabaseReplicationGuide').then(mod => mod.DatabaseReplicationGuide), {
         loading: () => <GuideLoader />
     }),
 };

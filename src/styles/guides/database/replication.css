@@ -1,0 +1,431 @@
+/* src/styles/guides/database/replication.css */
+
+.rep-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.rep-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+}
+
+.rep-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--card-glow, rgba(255, 159, 28, .04)) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+}
+
+.rep-card:hover::before {
+    opacity: 1;
+}
+
+.rep-card-header {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-bottom: 1rem;
+}
+
+.rep-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--card-icon-bg, rgba(255, 159, 28, .08));
+    border: 1px solid var(--card-icon-border, rgba(255, 159, 28, .2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.rep-card-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-hi);
+}
+
+.rep-card-desc {
+    font-size: .78rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.rep-card-stats {
+    display: flex;
+    gap: .8rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.rep-stat-chip {
+    font-size: .68rem;
+    font-family: var(--font-mono);
+    padding: .2em .6em;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+}
+
+.rep-stat-chip.hi {
+    border-color: var(--card-color, var(--orange));
+    color: var(--card-color, var(--orange));
+    background: var(--card-glow, rgba(255, 159, 28, .05));
+}
+
+.rep-use-case {
+    font-size: .72rem;
+    color: var(--text-dim);
+    padding: .4rem .6rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .02);
+    border-left: 2px solid var(--card-color, var(--orange));
+    margin-top: .6rem;
+}
+
+.rep-use-case strong {
+    color: var(--text);
+}
+
+
+/* ════════════════════════════════════════
+   ANIMATED FLOW DIAGRAM
+════════════════════════════════════════ */
+.rep-flow-section {
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.rep-flow-controls {
+    display: flex;
+    gap: .8rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.rep-flow-btn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: .5rem 1.1rem;
+    font-size: .78rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.rep-flow-btn:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.rep-flow-btn.active {
+    background: var(--orange);
+    color: #000;
+    border-color: var(--orange);
+    font-weight: 700;
+}
+
+/* flow diagram container */
+.rep-flow-diagram {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem 1.5rem;
+    position: relative;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rep-flow-title {
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-hi);
+    margin-bottom: 1.8rem;
+}
+
+/* client node */
+.rep-client-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.rep-client-node {
+    display: inline-block;
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    font-size: .75rem;
+    font-weight: 700;
+    transition: all .3s;
+}
+
+.rep-client-label {
+    font-size: .65rem;
+    color: var(--text-dim);
+    margin-top: .4rem;
+}
+
+/* server pool */
+.rep-server-pool {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.rep-node-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.rep-node {
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    border-radius: 10px;
+    padding: 1.2rem;
+    font-size: .8rem;
+    font-weight: 700;
+    min-width: 120px;
+    text-align: center;
+    transition: all .3s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
+.rep-node.leader {
+    border-color: var(--orange);
+    box-shadow: 0 0 20px rgba(255, 159, 28, .15);
+}
+
+.rep-node.follower {
+    border-color: var(--blue);
+}
+
+.rep-node-role {
+    font-size: .6rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .4rem;
+    color: var(--text-dim);
+}
+
+.rep-node.leader .rep-node-role {
+    color: var(--orange);
+}
+
+.rep-node.follower .rep-node-role {
+    color: var(--blue);
+}
+
+.rep-node-data {
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    background: #000;
+    padding: .3rem .6rem;
+    border-radius: 4px;
+    margin-top: .6rem;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    transition: all 0.3s;
+}
+
+.rep-node-data.updated {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(62, 255, 163, .05);
+}
+
+/* Animations/Status */
+.rep-node.write-flash {
+    animation: flash-orange 0.5s ease;
+}
+
+.rep-node.read-flash {
+    animation: flash-blue 0.5s ease;
+}
+
+@keyframes flash-orange {
+    0%, 100% { border-color: var(--orange); box-shadow: 0 0 0 transparent; }
+    50% { border-color: #ffcc80; box-shadow: 0 0 20px var(--orange); }
+}
+
+@keyframes flash-blue {
+    0%, 100% { border-color: var(--blue); box-shadow: 0 0 0 transparent; }
+    50% { border-color: #80bfff; box-shadow: 0 0 20px var(--blue); }
+}
+
+
+/* traffic arrows */
+.rep-arrow-down {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    line-height: 1;
+    margin: .8rem 0;
+}
+
+/* flow steps */
+.rep-flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.rep-step {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    opacity: .3;
+    transition: opacity .3s;
+}
+
+.rep-step.active {
+    opacity: 1;
+}
+
+.rep-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all .3s;
+}
+
+.rep-step.active .rep-step-num {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: rgba(255, 159, 28, .08);
+}
+
+.rep-step-text {
+    font-size: .76rem;
+    color: var(--text-dim);
+    transition: color .3s;
+}
+
+.rep-step.active .rep-step-text {
+    color: var(--text-hi);
+}
+
+/* Replay Button */
+.rep-replay-btn {
+    display: block;
+    margin: 2rem auto 0;
+    background: var(--orange);
+    color: #000;
+    border: none;
+    padding: .6rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    transition: all .2s;
+}
+
+.rep-replay-btn:hover {
+    background: #ffb347;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 159, 28, .3);
+}
+
+/* Legend */
+.rep-legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.rep-legend-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .72rem;
+    color: var(--text-dim);
+}
+
+.rep-legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid;
+}
+
+/* Horizontal connector for replication */
+.rep-connector {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background: var(--border2);
+    z-index: 0;
+    transition: all 0.3s;
+}
+
+.rep-connector.active {
+    background: var(--orange);
+    box-shadow: 0 0 10px rgba(255, 159, 28, 0.5);
+}
+
+/* Packet Animation */
+.rep-packet {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--orange);
+    z-index: 10;
+    box-shadow: 0 0 8px var(--orange);
+    opacity: 0;
+}
+
+.rep-packet.animate {
+    opacity: 1;
+    /* Animation handled via JS styles or keyframes if path is fixed */
+}
+

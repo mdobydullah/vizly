@@ -153,7 +153,7 @@ const RESOURCES = [
 // MAIN COMPONENT
 // ════════════════════════════════════════
 
-export function CachingStrategiesVisual() {
+export function CachingStrategiesGuide() {
     const [replayCount, setReplayCount] = useState(0);
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('cache-aside');

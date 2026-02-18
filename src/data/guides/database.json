@@ -1,0 +1,25 @@
+[
+    {
+        "id": "database-replication",
+        "title": "Database Replication",
+        "category": "Database",
+        "tags": [
+            "Database",
+            "Scaling",
+            "Availability"
+        ],
+        "description": "Database replication is the frequent electronic copying of data from a database in one computer or server to a database in another so that all users share the same level of information.",
+        "icon": "🗄️",
+        "link": "/guides/database-replication",
+        "color": "orange",
+        "colorConfig": {
+            "primary": "#ff9f1c",
+            "background": "rgba(255, 159, 28, .08)",
+            "border": "rgba(255, 159, 28, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 159, 28, .4), 0 0 16px rgba(255, 159, 28, .2)"
+        },
+        "createdAt": "2026-02-18T12:00:00Z",
+        "updatedAt": "2026-02-18T12:00:00Z",
+        "contributors": "obydul"
+    }
+]
