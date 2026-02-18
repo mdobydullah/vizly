@@ -1,51 +1,33 @@
 ---
-description: Create a new animated guide component for a technical topic
+description: Process for creating a new high-utility animated guide
 ---
 
 1. **Information Gathering**:
    - Ask the user which technical topic to visualize (e.g., Database Indexing, Service Discovery, GRPC).
-   - Read `.agent/create-new-guide.md` to understand the design requirements, structure, and animation details for the new guide.
-   - Read `src/data/guides/index.ts` to see existing metadata and ensure the new guide has a unique ID and proper data entry.
-   - Use `src/components/guides/infrastructure/LoadBalancingVisual.tsx` or `src/components/guides/async/MessageQueuesVisual.tsx` as reference architecture.
+   - Read `.agent/README.md` for project context.
+   - Read all files in `.agent/rules/` for design, architecture, and specification requirements.
+   - Read `src/data/guides/index.ts` to identify the correct category and check for existing IDs.
 
-2. **Component Creation Strategy**:
-   - **Guide Layout**: Always wrap the component in `<GuideLayout>` from `@/components/layout/GuideLayout`. 
-     - **CRITICAL**: Use `const guide = guidesData.guides.find(v => v.id === "X")!` at module level.
-     - Pass `contributors={guide.contributors}` to `<GuideLayout>` to ensure attribution is shown.
-   - **Animation System**: 
-     - Use `useSettings` from `@/context/SettingsContext` to access `animationSpeed` (multiplier for delays) and `setIsSettingsOpen`.
-     - Implement a pattern playback function (e.g., `playPattern`) with `setTimeout` chains managed in a `useRef` array (to allow cleanup).
-     - Provide a settings toggle button (⚙️) next to flow controls that calls `setIsSettingsOpen(true)`.
-   - **Concept Section**: 
-     - Create a grid of cards using the centralized `.viz-card` system from `src/styles/cards.css`.
-     - Apply theme classes (e.g., `card-cyan`, `card-purple`, `card-orange`) to automatically get premium hover effects, glows, and theme colors.
-     - Use `.viz-tag` and `.viz-tag.hi` for metadata chips within cards.
-     - **Interactivity**: Cards should act as navigation triggers. Clicking a card must smooth-scroll to the visualization section and auto-play the corresponding pattern.
-   - **Interactive Flow Section**: 
-     - Create a diagram area (`viz-flow-diagram` or category-specific equivalent).
-     - Provide algorithm/pattern tabs in a centered flex container with the settings button aligned to the right.
-     - Use state variables (e.g., `currentStepIdx`, `activePattern`) to trigger CSS transitions on nodes and arrows.
-   - **Structure Section**: If applicable, use `flow-wrap` and `flow-step` for vertical step-by-step logic explanations.
-   - **Comparison Tables**: 
-     - Use `.viz-comparison-table-wrap` for the container.
-     - Apply `.viz-table` to the `<table>` element.
-     - These tables are responsive by default (horizontal scroll) and include standard dark-mode styling.
-     - For metric ratings, use a consistent dot system (e.g., `<Rating dots={n} />`) using `.viz-rating-dots` and `.viz-dot.on`.
+2. **Data & Metadata Setup**:
+   - Assign a unique ID to the new guide.
+   - Add the guide metadata (title, description, contributors, category) to the appropriate file in `src/data/guides/[category].json`.
+   - Ensure the new data is reflected in the main `guidesData` export.
 
-3. **Implementation Steps**:
-   - Create the new component in a categorized subdirectory: `src/components/guides/[category]/[Topic]Guide.tsx`.
-   - Create a corresponding CSS file in `src/styles/guides/[category]/[topic].css` if custom diagram styles are needed.
-   - Add the guide metadata to `src/data/guides/[category].json`.
-   - Ensure the guide is correctly exported and mapped in the main routing logic in `src/components/guides/index.tsx`.
+3. **Core Development**:
+   - **Component**: Create the guide component at `src/components/guides/[category]/[Topic]Guide.tsx`.
+     - *Follow Rule 01 for architecture.*
+     - *Follow Rule 02 for UI and component structure.*
+     - *Follow Rule 03 for specific visualization requirements (Mermaid, Charts, etc.).*
+   - **Styling**: Create topic-specific styles (if needed) at `src/styles/guides/[category]/[topic].css`.
+     - *Adhere to Vanilla CSS and design tokens specified in Rule 02.*
 
-4. **Style & Brand Guidelines**:
-   - **Don't Duplicate CSS**: Never repeat card theme variables, hover effects, or table base styles. Rely on global classes in `cards.css` and `tables.css`.
-   - **Design Tokens**: Use standard variables like `var(--cyan)`, `var(--purple)`, `var(--pink)`, etc., for consistency.
-   - **Premium Feel**: Use the specialized orange variant (`var(--orange)`) for high-contrast "scalable/consistent" topics.
-   - **Consistency**: Keep icon sizes (28x28 for small, 42x42 for large) and border radii (14px-16px) in sync with the design system.
-   - **Table Accuracy**: Ensure "Risk" or logical flags in tables use `var(--green)` for success and `var(--pink)` for warnings/risks.
+4. **Integration & Routing**:
+   - Export the new guide component.
+   - Register the guide in the main routing/mapping logic in `src/components/guides/index.tsx`.
+   - Verify that the URL slug matches the guide ID.
 
-5. **Final Review**:
-   - Verify that the "Settings" button correctly opens the global modal.
-   - Ensure "Replay" functionality (in `GuideLayout`) of patterns works by resetting all animation state.
-   - Check mobile layout grid responsiveness.
+5. **Quality Assurance**:
+   - Verify the "Settings" button functionality.
+   - Test "Play/Replay" logic for animations.
+   - Check responsiveness on mobile viewports.
+   - Run a final check against the **Content Checklist in Rule 03**.

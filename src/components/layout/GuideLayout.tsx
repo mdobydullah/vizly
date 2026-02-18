@@ -315,7 +315,7 @@ export function GuideLayout({
                                         textOverflow: 'ellipsis',
                                         minHeight: '2.4em' // maintain height for alignment
                                     }}>
-                                        {contributor.role}
+                                        {contributor.bio}
                                     </span>
 
                                     <div style={{

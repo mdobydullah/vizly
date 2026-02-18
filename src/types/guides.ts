@@ -8,7 +8,7 @@ export interface ColorConfig {
 export interface Contributor {
   username: string;
   name: string;
-  role: string;
+  bio: string;
   handles: {
     url: string;
   }[];

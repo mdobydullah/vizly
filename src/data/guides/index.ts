@@ -1,9 +1,8 @@
 import { Guide, GuidesData } from '@/types/guides';
 import contributorsMap from '../contributors';
 
-// Dynamically load all .json files in this folder
-// Note: This relies on Webpack's require.context, which is supported by Next.js
-const context = (require as any).context('./', false, /\.json$/);
+// Dynamically load all .json files in this folder and subfolders
+const context = (require as any).context('./', true, /\.json$/);
 
 const allGuides: Guide[] = context.keys().flatMap((key: string) => {
     const guides = context(key);

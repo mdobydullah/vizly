@@ -15,7 +15,7 @@ Every visual guide is linked to one or more contributors. To keep things organiz
 {
     "username": "obydul",
     "name": "Obydul",
-    "role": "Software Engineer",
+    "bio": "Software Engineer",
     "handles": [
         { "url": "https://github.com/your-username" },
         { "url": "https://linkedin.com/in/your-profile" }
@@ -79,6 +79,29 @@ export const guideComponents: Record<string, any> = {
     }),
 };
 ```
+## 5. How to use AI Models
+
+Vizly is designed to be **AI-Ready**. If you are using an AI agent (like Claude, ChatGPT, Gemini, or OpenCode) to help you build a guide, follow these steps to ensure the best results:
+
+### Point to the Agent Environment
+Direct the AI to the `.agent/` directory immediately. You can say:
+> "Please read `.agent/README.md` and follow all files in `.agent/rules/` before starting."
+
+### Use Specialized Workflows
+We have pre-defined workflows to maintain consistency. You can trigger them by name:
+- **`/new-guide`**: Starts the step-by-step process for a new visualization.
+- **`/commit`**: Generates a standardized commit message for your changes.
+
+### Follow the Rules
+Each numbered rule in `.agent/rules/` ensures the AI stays within project boundaries:
+1. **01-architecture.md**: Folder structure and data flow.
+2. **02-ui-standard.md**: Design language (Vanilla CSS, native nesting, design tokens).
+3. **03-guide-specification.md**: Mandatory sections (Mermaid, Animated Flow, Legend) for every guide.
+
+### Reference "Golden Samples"
+If the AI is struggling with the UI, point it to a high-quality existing guide:
+> "Look at `src/components/guides/infrastructure/LoadBalancingGuide.tsx` as a golden reference for this layout."
+
 
 ## Summary Checklist
 - [ ] Added profile to `src/data/contributors/`
