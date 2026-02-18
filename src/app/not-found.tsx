@@ -1,10 +1,10 @@
 import { Search, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import visualsData from "@/data/visuals";
+import guidesData from "@/data/guides";
 
 export default function NotFound() {
-    // Get some featured visuals to show
-    const featuredVisuals = visualsData.visuals.slice(0, 3);
+    // Get some featured guides to show
+    const featuredGuides = guidesData.guides.slice(0, 3);
 
     return (
         <div className="viz-container" style={{
@@ -163,8 +163,8 @@ export default function NotFound() {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '2rem'
                 }}>
-                    {featuredVisuals.map(v => (
-                        <Link key={v.id} href={`/visuals/${v.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                    {featuredGuides.map(g => (
+                        <Link key={g.id} href={`/guides/${g.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                             <div className="topic-card card-cyan" style={{
                                 padding: '2rem',
                                 background: 'rgba(14, 18, 25, 0.5)',
@@ -185,7 +185,7 @@ export default function NotFound() {
                                     textTransform: 'uppercase',
                                     fontWeight: 700,
                                     letterSpacing: '0.1em'
-                                }}>{v.category}</div>
+                                }}>{g.category}</div>
                                 <h4 style={{
                                     color: 'var(--text-hi)',
                                     fontSize: '1.25rem',
@@ -193,7 +193,7 @@ export default function NotFound() {
                                     fontFamily: 'var(--font-display)',
                                     fontWeight: 700,
                                     letterSpacing: '-0.01em'
-                                }}>{v.title}</h4>
+                                }}>{g.title}</h4>
                                 <p style={{
                                     color: 'var(--text-dim)',
                                     fontSize: '0.9rem',
@@ -203,7 +203,7 @@ export default function NotFound() {
                                     overflow: 'hidden',
                                     lineHeight: '1.6',
                                     marginTop: 'auto'
-                                }}>{v.description}</p>
+                                }}>{g.description}</p>
                             </div>
                         </Link>
                     ))}

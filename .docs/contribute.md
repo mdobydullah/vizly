@@ -25,22 +25,22 @@ Every visual guide is linked to one or more contributors. To keep things organiz
 
 > **Note:** A maximum of **5 handles** will be displayed on your profile. The system automatically detects the icon based on the domain (e.g., GitHub, Twitter/X, LinkedIn).
 
-## 2. Add Visual Metadata
+## 2. Add Guide Metadata
 
-Visuals are categorized and displayed on the home page based on metadata files in `src/data/visuals/`.
+Guides are categorized and displayed on the home page based on metadata files in `src/data/guides/`.
 
-**File Path Example:** `src/data/visuals/performance.json` (or create a new category file)
+**File Path Example:** `src/data/guides/performance.json` (or create a new category file)
 
 ```json
 [
     {
-        "id": "your-visual-id",
+        "id": "your-guide-id",
         "title": "A Great Technical Topic",
         "category": "Architecture",
         "tags": ["Distributed Systems", "Scaling"],
         "description": "A deep dive into how X works with interactive animations.",
         "icon": "🚀",
-        "link": "/visuals/your-visual-id",
+        "link": "/guides/your-guide-id",
         "color": "cyan",
         "colorConfig": {
             "primary": "#00e5ff",
@@ -57,33 +57,33 @@ Visuals are categorized and displayed on the home page based on metadata files i
 
 > **Tip:** You can list multiple contributors by using a comma-separated string of usernames.
 
-## 3. Develop the Visual Component
+## 3. Develop the Guide Component
 
-Visuals are built using React and modern CSS. Create your component in a relevant subdirectory under `src/components/visuals/`.
+Guides are built using React and modern CSS. Create your component in a relevant subdirectory under `src/components/guides/`.
 
-**File Path Example:** `src/components/visuals/architecture/YourVisual.tsx`
+**File Path Example:** `src/components/guides/architecture/YourGuide.tsx`
 
-> **Note:** Use the `VisualLoader` component for loading states and try to maintain the project's design system tokens (colors, fonts).
+> **Note:** Use the `GuideLoader` component for loading states and try to maintain the project's design system tokens (colors, fonts).
 
-## 4. Register Your Visual
+## 4. Register Your Guide
 
-Finally, you need to tell the application about your new component so it can be rendered at `/visuals/your-visual-id`.
+Finally, you need to tell the application about your new component so it can be rendered at `/guides/your-guide-id`.
 
-Open `src/components/visuals/index.tsx` and add your component to the `visualComponents` mapping:
+Open `src/components/guides/index.tsx` and add your component to the `guideComponents` mapping:
 
 ```tsx
-export const visualComponents: Record<string, any> = {
-    // ... existing visuals
-    'your-visual-id': dynamic(() => import('./architecture/YourVisual').then(mod => mod.YourVisual), {
-        loading: () => <VisualLoader />
+export const guideComponents: Record<string, any> = {
+    // ... existing guides
+    'your-guide-id': dynamic(() => import('./architecture/YourGuide').then(mod => mod.YourGuide), {
+        loading: () => <GuideLoader />
     }),
 };
 ```
 
 ## Summary Checklist
 - [ ] Added profile to `src/data/contributors/`
-- [ ] Added metadata to `src/data/visuals/`
-- [ ] Created visual component in `src/components/visuals/`
-- [ ] Registered component in `src/components/visuals/index.tsx`
+- [ ] Added metadata to `src/data/guides/`
+- [ ] Created guide component in `src/components/guides/`
+- [ ] Registered component in `src/components/guides/index.tsx`
 
 If you have any questions, feel free to reach out to @obydul!

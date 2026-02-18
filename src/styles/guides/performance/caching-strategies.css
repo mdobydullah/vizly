@@ -1,0 +1,406 @@
+/* src/styles/guides/performance/caching-strategies.css */
+
+.caching-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .caching-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .caching-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cache-card {
+    border-radius: 16px;
+    padding: 1.2rem;
+    gap: 0.8rem;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.card-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-hi);
+}
+
+.card-description {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(21, 28, 39, 0.5);
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+.tag.highlight-green {
+    color: #4aedc4;
+    background: rgba(74, 237, 196, 0.08);
+    border: 1px solid rgba(74, 237, 196, 0.3);
+}
+
+.tag.highlight-cyan {
+    color: #00e5ff;
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+.tag.highlight-yellow {
+    color: #ffd166;
+    background: rgba(255, 209, 102, 0.08);
+    border: 1px solid rgba(255, 209, 102, 0.3);
+}
+
+.tag.highlight-orange {
+    color: #ff9f1c;
+    background: rgba(255, 159, 28, 0.08);
+    border: 1px solid rgba(255, 159, 28, 0.3);
+}
+
+.card-info-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-box {
+    background: #0d1117;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    position: relative;
+    padding-left: 1.2rem;
+    overflow: hidden;
+}
+
+.info-box::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.card-green .info-box::before {
+    background: var(--green);
+}
+
+.card-cyan .info-box::before {
+    background: var(--cyan);
+}
+
+.card-yellow .info-box::before {
+    background: var(--yellow);
+}
+
+.card-orange .info-box::before {
+    background: #ff9f1c;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-hi);
+    margin-right: 0.5rem;
+}
+
+.info-value {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+/* Visualization Styles for Bottom Section */
+.caching-viz-wrap {
+    max-width: 1000px;
+    margin: 4rem auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* ════════════════════════════════════════
+   INTERACTIVE FLOW COMPONENTS
+════════════════════════════════════════ */
+.viz-flow-controls {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.viz-tab-btn {
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.viz-tab-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.viz-tab-btn.active {
+    background: var(--cyan);
+    color: #000;
+    border-color: var(--cyan);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+}
+
+.viz-flow-title {
+    text-align: center;
+    margin: 0 auto 2rem;
+    font-family: var(--font-hero);
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--text-hi);
+    letter-spacing: -0.01em;
+    max-width: 600px;
+}
+
+.viz-flow-diagram {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    min-height: 380px;
+    margin: 0 auto 2rem;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+}
+
+.viz-nodes {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 0;
+    margin: 0 auto 2rem;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 700px;
+    height: 100px;
+}
+
+.viz-node-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 140px;
+}
+
+.viz-node-box {
+    width: 80px;
+    height: 56px;
+    background: #1a1f2b;
+    border: 2px solid #2d3748;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 3;
+}
+
+.viz-node-label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.viz-node-box.active {
+    border-color: var(--cyan);
+    background: rgba(0, 217, 255, 0.1);
+    color: var(--cyan);
+    transform: scale(1.05);
+    box-shadow: 0 0 24px rgba(0, 217, 255, 0.2);
+}
+
+.viz-node-box.hit {
+    border-color: var(--green);
+    background: rgba(62, 255, 163, 0.1);
+    color: var(--green);
+}
+
+.viz-node-box.miss {
+    border-color: #ffb07c;
+    background: rgba(255, 140, 66, 0.1);
+    color: #ffb07c;
+}
+
+/* SVG Arrows */
+.viz-arrows-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.viz-connector {
+    stroke: var(--border2);
+    stroke-width: 2.5;
+    fill: none;
+    transition: all 0.3s;
+}
+
+.viz-connector.active {
+    stroke: var(--cyan);
+    stroke-dasharray: 8, 5;
+    animation: dash-move 1s linear infinite;
+}
+
+@keyframes dash-move {
+    to {
+        stroke-dashoffset: -13;
+    }
+}
+
+.viz-connector.hit {
+    stroke: var(--green);
+}
+
+.viz-connector.miss {
+    stroke: #ffb07c;
+}
+
+.viz-flow-status {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+}
+
+/* Override step styles for compactness */
+.viz-flow-diagram .flow-wrap {
+    gap: 0.4rem;
+}
+
+.viz-flow-diagram .flow-step {
+    gap: 0.6rem;
+}
+
+.viz-flow-diagram .step-num {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+}
+
+.viz-flow-diagram .step-body {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.78rem;
+}
+
+/* Add any specific mermaid or diagram styles here if needed */
+
+/* ════════════════════════════════════════
+   LEGEND
+════════════════════════════════════════ */
+.viz-legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.viz-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.viz-legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid;
+}
+
+.leg-hit {
+    border-color: var(--green);
+    background: rgba(62, 255, 163, 0.15);
+}
+
+.leg-miss {
+    border-color: #ffb07c;
+    /* matching miss node color */
+    background: rgba(255, 140, 66, 0.15);
+}
+
+@keyframes popupIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

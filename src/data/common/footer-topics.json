@@ -1,18 +1,18 @@
 [
     {
         "name": "Caching Strategies",
-        "href": "/visuals/caching-strategies"
+        "href": "/guides/caching-strategies"
     },
     {
         "name": "JSON Web Tokens",
-        "href": "/visuals/jwt"
+        "href": "/guides/jwt"
     },
     {
         "name": "Message Queues",
-        "href": "/visuals/message-queues"
+        "href": "/guides/message-queues"
     },
     {
         "name": "Load Balancing",
-        "href": "/visuals/load-balancing"
+        "href": "/guides/load-balancing"
     }
 ]

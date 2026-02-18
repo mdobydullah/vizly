@@ -2,7 +2,7 @@ export const config = {
   app: {
     name: "Vizly",
     fullName: "Vizly — Interactive Engineering Guides",
-    description: "Visual roadmaps and animated guides to system design, security, and complex engineering concepts.",
+    description: "Animated guides to system design, security, and complex engineering concepts.",
   },
   urls: {
     github: "https://github.com/mdobydullah",

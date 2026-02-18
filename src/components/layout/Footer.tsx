@@ -68,7 +68,7 @@ export default function Footer() {
                         lineHeight: 1.6,
                         maxWidth: '220px'
                     }}>
-                        Visual, animated guides to engineering concepts for modern engineers.
+                        Interactive, animated guides to engineering concepts for modern engineers.
                     </p>
                 </div>
                 <div>

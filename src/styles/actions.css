@@ -31,7 +31,7 @@
 }
 
 /* --- Pulse Triggering --- */
-/* (Animations defined in visuals.css) */
+/* (Animations defined in guides.css) */
 
 .pulsing.action-cyan {
     animation: pulse-cyan .8s ease 2;

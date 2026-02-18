@@ -1,11 +1,10 @@
 "use client";
 
-import { VisualCard } from "@/components/home/VisualCard";
-import visualsData from "@/data/visuals";
-import { VisualsData } from "@/types/visuals";
+import { GuideCard } from "@/components/home/GuideCard";
+import guidesData from "@/data/guides";
 import { useRouter } from "next/navigation";
 
-const data = visualsData as VisualsData;
+const data = guidesData;
 
 export default function Home() {
     const router = useRouter();
@@ -86,7 +85,7 @@ export default function Home() {
                     animation: 'fadeUp .6s ease .4s both'
                 }}>
                     <button onClick={() => {
-                        router.push('/visuals');
+                        router.push('/guides');
                     }} style={{
                         background: 'var(--cyan)',
                         color: '#000',
@@ -99,7 +98,7 @@ export default function Home() {
                         cursor: 'pointer',
                         transition: 'all .2s'
                     }} className="btn-primary">
-                        All Visuals →
+                        All Guides →
                     </button>
                     <button
                         onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
@@ -184,13 +183,13 @@ export default function Home() {
 
             {/* Section Title */}
             <div className="viz-section-header">
-                <h2 className="viz-section-title">Latest Visuals</h2>
+                <h2 className="viz-section-title">Latest Guides</h2>
                 <p className="viz-section-hint">Click any card to explore an animated, in-depth guide.</p>
             </div>
 
             {/* Cards Grid */}
             <div className="viz-grid">
-                {[...data.visuals]
+                {[...data.guides]
                     .sort((a, b) => {
                         // Sort by link availability first (available before upcoming)
                         const aHasLink = a.link !== '#' && a.link !== null;
@@ -200,8 +199,8 @@ export default function Home() {
                         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                     })
                     .slice(0, 9)
-                    .map((visual, index) => (
-                        <VisualCard key={visual.id} visual={visual} index={index} />
+                    .map((guide, index) => (
+                        <GuideCard key={guide.id} guide={guide} index={index} />
                     ))}
             </div>
 

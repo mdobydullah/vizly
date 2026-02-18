@@ -1,6 +1,6 @@
-# Visual Framework Guidelines
+# Guide Framework Guidelines
 
-This document defines the rules for using and extending the "Vizly Mini-Framework" for technical visualizations. AI agents should follow these patterns to maintain consistency across all visuals.
+This document defines the rules for using and extending the "Vizly Mini-Framework" for technical guides. AI agents should follow these patterns to maintain consistency across all guides.
 
 ## 1. Preferred Technology: Vanilla CSS
 We explicitly use **Vanilla CSS (.css)** instead of SCSS/SASS.
@@ -10,7 +10,7 @@ We explicitly use **Vanilla CSS (.css)** instead of SCSS/SASS.
 
 ## 2. CSS Organization
 All shared styles must be modularized in `src/styles/`:
-- `visuals.css`: Core animations (`@keyframes`), reveal utilities (`.viz-reveal`), and staggered delays (`.delay-X00`).
+- `guides.css`: Core animations (`@keyframes`), reveal utilities (`.viz-reveal`), and staggered delays (`.delay-X00`).
 - `cards.css`: Theming for informational boxes and floating labels (`.card-color`).
 - `actions.css`: Styling for process/processor boxes (`.viz-action`).
 - `mermaid.css`: Container styling for diagrams (`.viz-mermaid-wrap`).
@@ -31,7 +31,7 @@ Use the CSS variables defined in `:root` (e.g., `var(--cyan)`, `var(--purple)`).
 - When creating a new color theme, add it to all relevant files (`cards.css`, `actions.css`) to maintain the "variant" pattern.
 
 ## 4. Component Implementation
-When building new visuals:
-1. **No Inline Styles**: Avoid `<style jsx>` or `style={{...}}` for framework-level visuals. Use the framework classes.
+When building new guides:
+1. **No Inline Styles**: Avoid `<style jsx>` or `style={{...}}` for framework-level guides. Use the framework classes.
 2. **Semantic Classes**: Use the `.viz-*` prefix for new framework utilities to avoid collisions with global app styles.
 3. **Consistency**: Ensure process steps use `.viz-action` and data structures use `.viz-box`.

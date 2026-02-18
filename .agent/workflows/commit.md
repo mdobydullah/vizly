@@ -16,7 +16,7 @@ description: generate a one-line git commit message for the current changes
    Write a single-line commit message in the format `prefix: descriptive message`.
    Examples:
    - `feat: add global animation settings and footer controls`
-   - `refactor: move visual styles to globals.css and clean up animation logic`
+   - `refactor: move guide styles to guides.css and clean up animation logic`
    - `fix: correct visibility issues in guided flows`
 
 4. **Present to User**:

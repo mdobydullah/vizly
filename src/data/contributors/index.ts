@@ -1,4 +1,4 @@
-import { Contributor } from '@/types/visuals';
+import { Contributor } from '@/types/guides';
 
 // Dynamically load all .json files in this folder and subfolders
 const context = (require as any).context('./', true, /\.json$/);

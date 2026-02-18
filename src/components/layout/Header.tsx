@@ -62,7 +62,7 @@ export default function Header() {
                     alignItems: 'center',
                     gap: 'clamp(.8rem, 2vw, 1.6rem)'
                 }}>
-                    <Link href="/visuals" style={{
+                    <Link href="/guides" style={{
                         color: 'var(--text-dim)',
                         fontSize: '.8rem',
                         textDecoration: 'none',
@@ -70,7 +70,7 @@ export default function Header() {
                         transition: 'color .2s',
                         cursor: 'pointer'
                     }} className="nav-link">
-                        Visuals
+                        Guides
                     </Link>
                     <button
                         onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
