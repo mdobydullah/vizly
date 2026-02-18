@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
@@ -117,6 +117,13 @@ const COMPARISON = [
     { name: "IP Hash", complexity: 2, session: true, loadAware: false, bestFor: "Stateful apps, session caching" },
     { name: "Least Response Time", complexity: 4, session: false, loadAware: true, bestFor: "Performance-critical, geo-distributed" },
     { name: "Consistent Hashing", complexity: 5, session: true, loadAware: false, bestFor: "Distributed caches, CDN routing" },
+];
+
+const RESOURCES = [
+    { title: "System Design Primer - Load Balancing", type: "youtube", url: "https://www.youtube.com/watch?v=K0Ta65OqQkY" },
+    { title: "NGINX Load Balancing Guide", type: "web", url: "https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/" },
+    { title: "AWS ELB Documentation", type: "web", url: "https://aws.amazon.com/elasticloadbalancing/" },
+    { title: "Grokking System Design Interview", type: "course", url: "https://www.educative.io/courses/grokking-the-system-design-interview" },
 ];
 
 const LAYERS = [
@@ -509,6 +516,53 @@ export function LoadBalancingVisual() {
                 </table>
             </div>
 
+            {/* ═══════════════ RESOURCES ═══════════════ */}
+            <div className="viz-section-header" style={{ marginTop: '3rem' }}>
+                <h2 className="viz-section-title">Resources</h2>
+            </div>
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Title</th>
+                            <th style={{ width: '20%' }}>Type</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {RESOURCES.map((res) => (
+                            <tr key={res.title}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 600 }}>{res.title}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ResourceIcon type={res.type} />
+                                        <span style={{ textTransform: 'capitalize' }}>{res.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a
+                                        href={`${res.url}${res.url.includes('?') ? '&' : '?'}ref=vizly.dev`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            color: 'var(--blue)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        className="hover:underline"
+                                    >
+                                        Open <ExternalLink size={14} />
+                                    </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
         </VisualLayout>
     );
 }
@@ -566,4 +620,13 @@ function Rating({ dots }: Readonly<{ dots: number }>) {
             ))}
         </div>
     );
+}
+
+function ResourceIcon({ type }: Readonly<{ type: string }>) {
+    switch (type) {
+        case 'youtube': return <Youtube size={18} color="#FF4444" />;
+        case 'web': return <Globe size={18} color="#4A90E2" />;
+        case 'course': return <BookOpen size={18} color="#F5A623" />;
+        default: return <ExternalLink size={18} />;
+    }
 }

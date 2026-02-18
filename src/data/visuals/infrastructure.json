@@ -8,7 +8,7 @@
             "Scaling",
             "Network"
         ],
-        "description": "Round-robin, least-connections, consistent hashing — and how Layer 4 vs Layer 7 LBs differ.",
+        "description": "Load balancing is the strategic distribution of network traffic or application workloads across multiple servers, ensuring high availability, improved responsiveness, and preventing any single server from becoming overloaded. Acting as an intermediary between users and server pools, it optimizes resource usage and provides failover capabilities, enhancing overall system reliability and speed.",
         "icon": "⚖️",
         "link": "/visuals/load-balancing",
         "color": "pink",

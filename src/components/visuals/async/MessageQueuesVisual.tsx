@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
@@ -199,6 +199,13 @@ const GUARANTEES = [
         desc: "Each message delivered exactly once. Most expensive, requires distributed transactions or careful design.",
         example: "Use: Financial transactions, payment processing, critical state changes"
     }
+];
+
+const RESOURCES = [
+    { title: "System Design Primer - Message Queues", type: "youtube", url: "https://www.youtube.com/watch?v=iJLL-KPqBpM" },
+    { title: "RabbitMQ Tutorials", type: "web", url: "https://www.rabbitmq.com/tutorials" },
+    { title: "Apache Kafka Documentation", type: "web", url: "https://kafka.apache.org/documentation/" },
+    { title: "AWS SQS Documentation", type: "web", url: "https://aws.amazon.com/sqs/" },
 ];
 
 // ════════════════════════════════════════
@@ -432,6 +439,53 @@ export function MessageQueuesVisual() {
                 </table>
             </div>
 
+            {/* ═══════════════ RESOURCES ═══════════════ */}
+            <div className="viz-section-header" style={{ marginTop: '3rem' }}>
+                <h2 className="viz-section-title">Resources</h2>
+            </div>
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Title</th>
+                            <th style={{ width: '20%' }}>Type</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {RESOURCES.map((res) => (
+                            <tr key={res.title}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 600 }}>{res.title}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ResourceIcon type={res.type} />
+                                        <span style={{ textTransform: 'capitalize' }}>{res.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a
+                                        href={`${res.url}${res.url.includes('?') ? '&' : '?'}ref=vizly.dev`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            color: 'var(--blue)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        className="hover:underline"
+                                    >
+                                        Open <ExternalLink size={14} />
+                                    </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
         </VisualLayout>
     );
 }
@@ -479,4 +533,13 @@ function Rating({ dots }: Readonly<{ dots: number }>) {
             ))}
         </div>
     );
+}
+
+function ResourceIcon({ type }: Readonly<{ type: string }>) {
+    switch (type) {
+        case 'youtube': return <Youtube size={18} color="#FF4444" />;
+        case 'web': return <Globe size={18} color="#4A90E2" />;
+        case 'course': return <BookOpen size={18} color="#F5A623" />;
+        default: return <ExternalLink size={18} />;
+    }
 }

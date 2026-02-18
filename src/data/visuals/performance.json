@@ -8,7 +8,7 @@
             "Cache",
             "Optimization"
         ],
-        "description": "LRU, write-through, write-behind, cache-aside — every strategy with hit/miss animated diagrams.",
+        "description": "Caching strategies are techniques for storing, managing, and retrieving data to reduce application latency, database load, and operating expenses.",
         "icon": "⚡",
         "link": "/visuals/caching-strategies",
         "color": "green",

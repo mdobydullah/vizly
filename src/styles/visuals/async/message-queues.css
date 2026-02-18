@@ -533,3 +533,23 @@
     font-size: 0.8rem;
     color: var(--text-dim);
 }
+
+.mq-rating-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.mq-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+}
+
+.mq-dot.on {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    box-shadow: 0 0 6px rgba(255, 209, 102, 0.4);
+}

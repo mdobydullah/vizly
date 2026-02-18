@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import visualsData from "@/data/visuals";
 import { useSettings } from "@/context/SettingsContext";
-import { Settings } from "lucide-react";
+import { Settings, Youtube, Globe, BookOpen, ExternalLink } from "lucide-react";
 import { VisualLayout } from '@/components/layout/VisualLayout';
 import '@/styles/visuals/performance/caching-strategies.css';
 
@@ -140,6 +140,13 @@ const COMPARISON = [
     { name: "Read-Through", read: 4, write: 5, consistency: 3, complexity: 1, risk: "None" },
     { name: "Write-Through", read: 5, write: 2, consistency: 5, complexity: 3, risk: "None" },
     { name: "Write-Behind", read: 5, write: 5, consistency: 2, complexity: 4, risk: "High" },
+];
+
+const RESOURCES = [
+    { title: "Caching Strategies and Patterns", type: "web", url: "https://docs.aws.amazon.com/whitepapers/latest/database-caching-strategies-using-redis/caching-patterns.html" },
+    { title: "System Design - Caching", type: "youtube", url: "https://www.youtube.com/watch?v=U3RkDLtS7uY" },
+    { title: "Redis: Caching Patterns", type: "web", url: "https://redis.com/blog/caching-patterns/" },
+    { title: "Caching Strategies for High Performance", type: "course", url: "https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/caching" },
 ];
 
 // ════════════════════════════════════════
@@ -368,7 +375,54 @@ export function CachingStrategiesVisual() {
                 </table>
             </div>
 
-        </VisualLayout>
+            {/* ═══════════════ RESOURCES ═══════════════ */}
+            <div className="viz-section-header" style={{ marginTop: '3rem' }}>
+                <h2 className="viz-section-title">Resources</h2>
+            </div>
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Title</th>
+                            <th style={{ width: '20%' }}>Type</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {RESOURCES.map((res) => (
+                            <tr key={res.title}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 600 }}>{res.title}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ResourceIcon type={res.type} />
+                                        <span style={{ textTransform: 'capitalize' }}>{res.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a
+                                        href={`${res.url}${res.url.includes('?') ? '&' : '?'}ref=vizly.dev`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            color: 'var(--blue)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        className="hover:underline"
+                                    >
+                                        Open <ExternalLink size={14} />
+                                    </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+        </VisualLayout >
     );
 }
 
@@ -426,4 +480,13 @@ function Rating({ dots }: Readonly<{ dots: number }>) {
             ))}
         </div>
     );
+}
+
+function ResourceIcon({ type }: Readonly<{ type: string }>) {
+    switch (type) {
+        case 'youtube': return <Youtube size={18} color="#FF4444" />;
+        case 'web': return <Globe size={18} color="#4A90E2" />;
+        case 'course': return <BookOpen size={18} color="#F5A623" />;
+        default: return <ExternalLink size={18} />;
+    }
 }

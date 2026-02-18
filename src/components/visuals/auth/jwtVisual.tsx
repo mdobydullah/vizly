@@ -1,10 +1,18 @@
 "use client";
 
 import React from 'react';
+import { Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
 import visualsData from "@/data/visuals";
 import { VisualLayout } from '@/components/layout/VisualLayout';
 
 const visual = visualsData.visuals.find(v => v.id === "jwt")!;
+
+const RESOURCES = [
+    { title: "Introduction to JSON Web Tokens", type: "web", url: "https://jwt.io/introduction" },
+    { title: "RFC 7519: JSON Web Token (JWT)", type: "web", url: "https://datatracker.ietf.org/doc/html/rfc7519" },
+    { title: "What is a JWT? (JSON Web Token)", type: "youtube", url: "https://www.youtube.com/watch?v=7Q17ubqLfaM" },
+    { title: "Auth0: JSON Web Token Explained", type: "web", url: "https://auth0.com/learn/json-web-tokens/" },
+];
 
 export function JwtVisual() {
     return (
@@ -184,6 +192,62 @@ export function JwtVisual() {
                     </div>
                 </div>
             </div>
+
+            {/* ═══════════════ RESOURCES ═══════════════ */}
+            <div className="viz-section-header" style={{ marginTop: '3rem' }}>
+                <h2 className="viz-section-title">Resources</h2>
+            </div>
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Title</th>
+                            <th style={{ width: '20%' }}>Type</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {RESOURCES.map((res) => (
+                            <tr key={res.title}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 600 }}>{res.title}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ResourceIcon type={res.type} />
+                                        <span style={{ textTransform: 'capitalize' }}>{res.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a
+                                        href={`${res.url}${res.url.includes('?') ? '&' : '?'}ref=vizly.dev`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            color: 'var(--blue)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        className="hover:underline"
+                                    >
+                                        Open <ExternalLink size={14} />
+                                    </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </VisualLayout>
     );
+}
+
+function ResourceIcon({ type }: Readonly<{ type: string }>) {
+    switch (type) {
+        case 'youtube': return <Youtube size={18} color="#FF4444" />;
+        case 'web': return <Globe size={18} color="#4A90E2" />;
+        case 'course': return <BookOpen size={18} color="#F5A623" />;
+        default: return <ExternalLink size={18} />;
+    }
 }
