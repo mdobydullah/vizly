@@ -107,6 +107,13 @@ const FLOW_PATTERNS: Record<string, Pattern> = {
     }
 };
 
+const TAB_LABELS: Record<string, string> = {
+    'simple': 'Simple Queue',
+    'pubsub': 'Pub/Sub',
+    'dlq': 'Dead Letter Queue',
+    'fanout': 'Fanout'
+};
+
 const QUEUE_SYSTEMS = [
     {
         id: 'kafka',
@@ -251,7 +258,7 @@ export function MessageQueuesVisual() {
                 {QUEUE_SYSTEMS.map((s) => (
                     <div
                         key={s.id}
-                        className={`mq-card ${s.colorClass}`}
+                        className={`viz-card mq-card ${s.colorClass}`}
                     >
                         <div className="mq-card-header">
                             <div className="mq-card-icon">{s.icon}</div>
@@ -291,9 +298,7 @@ export function MessageQueuesVisual() {
                             className={`mq-tab-btn ${activePattern === key ? 'active' : ''}`}
                             onClick={() => playPattern(key)}
                         >
-                            {key === 'simple' ? 'Simple Queue' :
-                                key === 'pubsub' ? 'Pub/Sub' :
-                                    key === 'dlq' ? 'Dead Letter Queue' : 'Fanout'}
+                            {TAB_LABELS[key]}
                         </button>
                     ))}
                 </div>
@@ -400,8 +405,8 @@ export function MessageQueuesVisual() {
                 <h2 className="viz-section-title">System Comparison</h2>
                 <p className="viz-section-hint">Compare popular message queue systems by key metrics</p>
             </div>
-            <div className="mq-comparison-table-wrap">
-                <table className="mq-table">
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
                     <thead>
                         <tr>
                             <th>System</th>

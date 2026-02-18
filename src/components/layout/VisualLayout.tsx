@@ -8,7 +8,7 @@ interface VisualLayoutProps {
     title: string;
     description: string;
     primaryColor?: string;
-    onReplay: () => void;
+    onReplay?: () => void;
     children: React.ReactNode;
     contributors?: Contributor[];
 }

@@ -200,7 +200,7 @@ export function CachingStrategiesVisual() {
                 {STRATEGIES.map((s, idx) => (
                     <div
                         key={s.id}
-                        className={`cache-card ${s.colorClass}`}
+                        className={`viz-card cache-card ${s.colorClass}`}
                         role="button"
                         tabIndex={0}
                         onClick={() => {

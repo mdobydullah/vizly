@@ -23,42 +23,9 @@
 }
 
 .mq-card {
-    background: #0e1219;
-    border: 1px solid #1e2a3a;
     border-radius: 16px;
     padding: 1.4rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     gap: 0.8rem;
-}
-
-/* Hover Effect - Glow Border and subtle background shift */
-.mq-card:hover {
-    transform: translateY(-4px);
-    background: #111827;
-}
-
-.card-yellow:hover {
-    border-color: var(--yellow) !important;
-    box-shadow: 0 0 32px rgba(255, 209, 102, 0.25);
-}
-
-.card-orange:hover {
-    border-color: var(--orange) !important;
-    box-shadow: 0 0 32px rgba(255, 140, 66, 0.25);
-}
-
-.card-purple:hover {
-    border-color: var(--purple) !important;
-    box-shadow: 0 0 32px rgba(199, 146, 234, 0.25);
-}
-
-.card-cyan:hover {
-    border-color: var(--cyan) !important;
-    box-shadow: 0 0 32px rgba(0, 217, 255, 0.25);
 }
 
 .mq-card-header {
@@ -329,9 +296,12 @@
 }
 
 @keyframes pulse-node {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -518,75 +488,7 @@
     border-left: 2px solid var(--card-color, var(--yellow));
 }
 
-/* ════════════════════════════════════════
-   COMPARISON TABLE
-════════════════════════════════════════ */
-.mq-comparison-table-wrap {
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    padding: 0 2rem;
-}
 
-.mq-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-    font-family: var(--font-mono);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-}
-
-.mq-table thead {
-    background: var(--surface2);
-}
-
-.mq-table th {
-    text-align: left;
-    padding: 0.8rem 1rem;
-    font-weight: 700;
-    color: var(--text-hi);
-    border-bottom: 1px solid var(--border2);
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-}
-
-.mq-table th:first-child {
-    width: 15%;
-}
-
-.mq-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-dim);
-    vertical-align: top;
-}
-
-.mq-table tr:last-child td {
-    border-bottom: none;
-}
-
-.mq-table tr:hover {
-    background: rgba(255, 209, 102, 0.02);
-}
-
-.mq-rating-dots {
-    display: inline-flex;
-    gap: 3px;
-    align-items: center;
-}
-
-.mq-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--border2);
-}
-
-.mq-dot.on {
-    background: var(--yellow);
-}
 
 /* ════════════════════════════════════════
    SECTION TITLE

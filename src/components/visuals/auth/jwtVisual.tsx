@@ -1,57 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import visualsData from "@/data/visuals";
-import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
 
 const visual = visualsData.visuals.find(v => v.id === "jwt")!;
 
 export function JwtVisual() {
-    const [replayCount, setReplayCount] = useState(0);
-    const { animationsEnabled, animationSpeed } = useSettings();
-    const flowSectionRef = useRef<HTMLHeadingElement>(null);
-    const tokenBoxRef = useRef<HTMLDivElement>(null);
-
-    // Animation State
-
-    const [flowVisibleCount, setFlowVisibleCount] = useState(0);
-
-    const runAnimation = () => {
-        // Reset only flow
-        setFlowVisibleCount(0);
-
-        if (!animationsEnabled) {
-            setFlowVisibleCount(9);
-            return;
-        }
-
-        // Initial delay
-        const start = 300 * animationSpeed;
-
-        // Run Flow Steps
-        for (let i = 1; i <= 9; i++) {
-            setTimeout(() => setFlowVisibleCount(i), start + (i * 800 * animationSpeed));
-        }
-    };
-
-    // Auto-scroll removed as per user request
-
-    useEffect(() => {
-        runAnimation();
-    }, [replayCount, animationsEnabled]);
-
-    const handleReplay = () => {
-        setReplayCount(prev => prev + 1);
-    };
-
     return (
         <VisualLayout
             category={visual.category}
             title={visual.title}
             description={visual.description}
             primaryColor={visual.colorConfig.primary}
-            onReplay={handleReplay}
             contributors={visual.contributors}
         >
             {/* ═══════════════ STRUCTURE ═══════════════ */}
@@ -120,7 +81,7 @@ export function JwtVisual() {
             <div className="viz-arrow-down">▼</div>
 
             {/* JWT Token */}
-            <div ref={tokenBoxRef} className="viz-output-box viz-reveal card-green visible">
+            <div className="viz-output-box viz-reveal card-green visible">
                 <span className="viz-label">JWT</span>
                 <p className="viz-output-text">
                     <span className="t-cyan">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>
@@ -132,10 +93,10 @@ export function JwtVisual() {
             </div>
 
             {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-            <h2 ref={flowSectionRef} className="section-title">How JWT Works?</h2>
+            <h2 className="section-title">How JWT Works?</h2>
 
             <div className="flow-wrap">
-                <div className={`flow-step s1 ${flowVisibleCount >= 1 ? 'visible' : ''}`}>
+                <div className="flow-step s1 visible">
                     <div className="step-num">1</div>
                     <div className="step-body">
                         <div className="step-actor">👤 User → Browser</div>
@@ -143,7 +104,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s2 ${flowVisibleCount >= 2 ? 'visible' : ''}`}>
+                <div className="flow-step s2 visible">
                     <div className="step-num">2</div>
                     <div className="step-body">
                         <div className="step-actor">🌐 Browser → Backend Server</div>
@@ -151,7 +112,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s3 ${flowVisibleCount >= 3 ? 'visible' : ''}`}>
+                <div className="flow-step s3 visible">
                     <div className="step-num">3</div>
                     <div className="step-body">
                         <div className="step-actor">🖥 Backend Server</div>
@@ -159,7 +120,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s4 ${flowVisibleCount >= 4 ? 'visible' : ''}`}>
+                <div className="flow-step s4 visible">
                     <div className="step-num">4</div>
                     <div className="step-body">
                         <div className="step-actor">🖥 Backend Server → Browser</div>
@@ -167,7 +128,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s5 ${flowVisibleCount >= 5 ? 'visible' : ''}`}>
+                <div className="flow-step s5 visible">
                     <div className="step-num">5</div>
                     <div className="step-body">
                         <div className="step-actor">👤 User</div>
@@ -175,7 +136,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s6 ${flowVisibleCount >= 6 ? 'visible' : ''}`}>
+                <div className="flow-step s6 visible">
                     <div className="step-num">6</div>
                     <div className="step-body">
                         <div className="step-actor">🌐 Browser → Backend Server</div>
@@ -183,7 +144,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s7 ${flowVisibleCount >= 7 ? 'visible' : ''}`}>
+                <div className="flow-step s7 visible">
                     <div className="step-num">7</div>
                     <div className="step-body">
                         <div className="step-actor">🖥 Backend Server</div>
@@ -191,7 +152,7 @@ export function JwtVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s8 ${flowVisibleCount >= 8 ? 'visible' : ''}`}>
+                <div className="flow-step s8 visible">
                     <div className="step-num">8</div>
                     <div className="step-body">
                         <div className="step-actor">🖥 Backend Server → Browser</div>
@@ -199,10 +160,6 @@ export function JwtVisual() {
                     </div>
                 </div>
             </div>
-
-            <button className="viz-replay-btn" onClick={handleReplay} style={{ margin: '2rem auto 0' }}>
-                ↺ Replay Animation
-            </button>
 
             <div id="full-auth-flow" className="viz-fade-up visible">
                 {/* ═══════════════ MERMAID FLOW ═══════════════ */}

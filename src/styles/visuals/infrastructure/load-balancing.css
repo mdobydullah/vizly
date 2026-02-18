@@ -11,16 +11,8 @@
 }
 
 .lb-card {
-    background: #0e1219;
-    border: 1px solid #1e2a3a;
     border-radius: 14px;
     padding: 1.4rem;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color .3s, transform .3s, box-shadow .3s;
-    display: flex;
-    flex-direction: column;
 }
 
 .lb-card::before {
@@ -32,12 +24,6 @@
     opacity: 0;
     transition: opacity .3s;
     pointer-events: none;
-}
-
-.lb-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--card-color, var(--pink));
-    box-shadow: 0 8px 32px var(--card-shadow, rgba(255, 107, 157, .15));
 }
 
 .lb-card:hover::before {
@@ -117,53 +103,7 @@
 }
 
 /* algorithm color schemes */
-.card-pink {
-    --card-color: var(--pink);
-    --card-glow: rgba(255, 107, 157, .04);
-    --card-shadow: rgba(255, 107, 157, .15);
-    --card-icon-bg: rgba(255, 107, 157, .08);
-    --card-icon-border: rgba(255, 107, 157, .2);
-}
-
-.card-purple {
-    --card-color: var(--purple);
-    --card-glow: rgba(199, 146, 234, .04);
-    --card-shadow: rgba(199, 146, 234, .15);
-    --card-icon-bg: rgba(199, 146, 234, .08);
-    --card-icon-border: rgba(199, 146, 234, .2);
-}
-
-.card-cyan {
-    --card-color: var(--cyan);
-    --card-glow: rgba(0, 217, 255, .04);
-    --card-shadow: rgba(0, 217, 255, .15);
-    --card-icon-bg: rgba(0, 217, 255, .08);
-    --card-icon-border: rgba(0, 217, 255, .2);
-}
-
-.card-blue {
-    --card-color: var(--blue);
-    --card-glow: rgba(91, 156, 246, .04);
-    --card-shadow: rgba(91, 156, 246, .15);
-    --card-icon-bg: rgba(91, 156, 246, .08);
-    --card-icon-border: rgba(91, 156, 246, .2);
-}
-
-.card-green {
-    --card-color: var(--green);
-    --card-glow: rgba(62, 255, 163, .04);
-    --card-shadow: rgba(62, 255, 163, .15);
-    --card-icon-bg: rgba(62, 255, 163, .08);
-    --card-icon-border: rgba(62, 255, 163, .2);
-}
-
-.card-orange {
-    --card-color: var(--orange);
-    --card-glow: rgba(255, 159, 28, .04);
-    --card-shadow: rgba(255, 159, 28, .15);
-    --card-icon-bg: rgba(255, 159, 28, .08);
-    --card-icon-border: rgba(255, 159, 28, .2);
-}
+/* algorithm color schemes handled in cards.css */
 
 
 /* ════════════════════════════════════════
@@ -577,67 +517,13 @@
 /* ════════════════════════════════════════
    COMPARISON TABLE
 ════════════════════════════════════════ */
-.lb-comparison-section {
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    position: relative;
-    z-index: 1;
-}
-
-.lb-comparison-table {
-    background: #0e1219;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-}
-
-.lb-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .76rem;
-    font-family: var(--font-mono);
-}
-
-.lb-table thead {
-    background: var(--surface2);
-}
-
-.lb-table th {
-    text-align: left;
-    padding: .8rem 1rem;
-    font-weight: 700;
-    color: var(--text-hi);
-    border-bottom: 1px solid var(--border2);
-    font-size: .72rem;
-    letter-spacing: .04em;
-}
-
-.lb-table th:first-child {
-    width: 18%;
-}
-
-.lb-table td {
-    padding: .75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-dim);
-    vertical-align: top;
-}
-
-.lb-table tr:last-child td {
-    border-bottom: none;
-}
-
-.lb-table tr:hover {
-    background: rgba(255, 107, 157, .02);
-}
-
 .lb-check {
     color: var(--green);
     font-weight: 700;
 }
 
 .lb-cross {
-    color: var(--red);
+    color: var(--pink);
     font-weight: 700;
 }
 

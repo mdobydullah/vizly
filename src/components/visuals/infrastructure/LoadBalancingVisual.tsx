@@ -236,63 +236,63 @@ export function LoadBalancingVisual() {
             <h2 className="section-title">Load Balancing Algorithms</h2>
             <div className="lb-grid">
                 {/* Round Robin */}
-                <div className="lb-card card-pink">
+                <div className="viz-card lb-card card-pink">
                     <div className="lb-card-header">
                         <div className="lb-card-icon">🔄</div>
                         <div className="lb-card-name">Round Robin</div>
                     </div>
-                    <p className="lb-card-desc">Distributes requests sequentially across all servers in rotation. Simple, fair, but doesn't account for server load.</p>
+                    <p className="lb-card-desc">Requests distributed in fixed circular order. Perfect for identical backend servers.</p>
                     <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Most Common</span>
-                        <span className="lb-stat-chip">Simple</span>
+                        <span className="lb-stat-chip hi">Simplicity</span>
+                        <span className="lb-stat-chip">Stateless</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Stateless apps, equal servers</div>
+                    <div className="lb-use-case"><strong>Use case:</strong> Simple APIs, mirrored web servers</div>
                 </div>
 
                 {/* Least Connections */}
-                <div className="lb-card card-purple">
+                <div className="viz-card lb-card card-purple">
                     <div className="lb-card-header">
-                        <div className="lb-card-icon">📊</div>
+                        <div className="lb-card-icon">📉</div>
                         <div className="lb-card-name">Least Connections</div>
                     </div>
-                    <p className="lb-card-desc">Routes to server with fewest active connections. Better for long-lived connections like WebSockets.</p>
+                    <p className="lb-card-desc">Routes to the server with fewest active requests. Ideal for long-lived connections.</p>
                     <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Dynamic</span>
-                        <span className="lb-stat-chip">WebSockets</span>
+                        <span className="lb-stat-chip hi">Adaptive</span>
+                        <span className="lb-stat-chip">WebSocket</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Chat apps, streaming</div>
+                    <div className="lb-use-case"><strong>Use case:</strong> Database pools, long-poll APIs</div>
                 </div>
 
                 {/* Weighted RR */}
-                <div className="lb-card card-cyan">
+                <div className="viz-card lb-card card-cyan">
                     <div className="lb-card-header">
                         <div className="lb-card-icon">⚖️</div>
-                        <div className="lb-card-name">Weighted RR</div>
+                        <div className="lb-card-name">Weighted Round Robin</div>
                     </div>
-                    <p className="lb-card-desc">Assigns weights based on capacity. More powerful servers receive proportionally more traffic.</p>
+                    <p className="lb-card-desc">Assigns more traffic to powerful servers. Distributes by capacity weight index.</p>
                     <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Capacity-Based</span>
-                        <span className="lb-stat-chip">Flexible</span>
+                        <span className="lb-stat-chip hi">Hybrid Pool</span>
+                        <span className="lb-stat-chip">Capacity</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Mixed hardware (8-core vs 16-core)</div>
+                    <div className="lb-use-case"><strong>Use case:</strong> Mixing old and new hardware</div>
                 </div>
 
                 {/* IP Hash */}
-                <div className="lb-card card-blue">
+                <div className="viz-card lb-card card-blue">
                     <div className="lb-card-header">
                         <div className="lb-card-icon">🔑</div>
-                        <div className="lb-card-name">IP Hash</div>
+                        <div className="lb-card-name">IP Hash / Sticky</div>
                     </div>
-                    <p className="lb-card-desc">Routes based on client IP hash. Same client always hits same server. Maintains session affinity.</p>
+                    <p className="lb-card-desc">Client IP determines server mapping. Ensures same user visits same server (Sticky Session).</p>
                     <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Sticky Sessions</span>
-                        <span className="lb-stat-chip">Stateful</span>
+                        <span className="lb-stat-chip hi">Affinity</span>
+                        <span className="lb-stat-chip">Session</span>
                     </div>
                     <div className="lb-use-case"><strong>Use case:</strong> Caching, session-based auth</div>
                 </div>
 
                 {/* Least Response Time */}
-                <div className="lb-card card-green">
+                <div className="viz-card lb-card card-green">
                     <div className="lb-card-header">
                         <div className="lb-card-icon">⚡</div>
                         <div className="lb-card-name">Least Response Time</div>
@@ -306,7 +306,7 @@ export function LoadBalancingVisual() {
                 </div>
 
                 {/* Consistent Hashing */}
-                <div className="lb-card card-orange">
+                <div className="viz-card lb-card card-orange">
                     <div className="lb-card-header">
                         <div className="lb-card-icon">🎯</div>
                         <div className="lb-card-name">Consistent Hashing</div>
@@ -484,31 +484,29 @@ export function LoadBalancingVisual() {
             <div className="viz-section-header" style={{ marginTop: '3rem' }}>
                 <h2 className="viz-section-title">Algorithm Comparison</h2>
             </div>
-            <div className="lb-comparison-section">
-                <div className="lb-comparison-table">
-                    <table className="lb-table">
-                        <thead>
-                            <tr>
-                                <th>Algorithm</th>
-                                <th>Complexity</th>
-                                <th>Session Affinity</th>
-                                <th>Load Aware</th>
-                                <th>Best For</th>
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Complexity</th>
+                            <th>Session Affinity</th>
+                            <th>Load Aware</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {COMPARISON.map(row => (
+                            <tr key={row.name}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 700 }}>{row.name}</td>
+                                <td><Rating dots={row.complexity} /></td>
+                                <td>{row.session ? <span className="lb-check">✓ Yes</span> : <span className="lb-cross">✗ No</span>}</td>
+                                <td>{row.loadAware ? <span className="lb-check">✓ Yes</span> : <span className="lb-cross">✗ No</span>}</td>
+                                <td style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>{row.bestFor}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {COMPARISON.map(row => (
-                                <tr key={row.name}>
-                                    <td style={{ color: 'var(--text-hi)', fontWeight: 700 }}>{row.name}</td>
-                                    <td><Rating dots={row.complexity} /></td>
-                                    <td>{row.session ? <span className="lb-check">✓ Yes</span> : <span className="lb-cross">✗ No</span>}</td>
-                                    <td>{row.loadAware ? <span className="lb-check">✓ Yes</span> : <span className="lb-cross">✗ No</span>}</td>
-                                    <td>{row.bestFor}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
         </VisualLayout>

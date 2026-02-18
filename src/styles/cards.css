@@ -1,9 +1,54 @@
 /* src/styles/cards.css */
 
+/* --- Base Card System --- */
+.viz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.viz-card:hover {
+    transform: translateY(-4px);
+    background: #111827;
+}
+
+.viz-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--card-bg-hover, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.viz-card:hover::before {
+    opacity: 0.03;
+}
+
 /* --- Card Theme Variants --- */
 
 /* Cyan Theme */
 .card-cyan {
+    --card-color: var(--cyan);
+    --card-glow: rgba(0, 229, 255, 0.04);
+    --card-shadow: rgba(0, 229, 255, 0.15);
+    --card-shadow-hover: rgba(0, 229, 255, 0.4);
+    --card-shadow-soft: rgba(0, 229, 255, 0.2);
+    --card-icon-bg: rgba(0, 229, 255, 0.08);
+    --card-icon-border: rgba(0, 229, 255, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(0, 229, 255, 0.03) 50%, transparent 100%);
+    --tag-color: var(--cyan);
+    --tag-bg: rgba(0, 229, 255, 0.05);
+
     border-color: var(--cyan) !important;
     color: var(--cyan) !important;
 }
@@ -16,6 +61,17 @@
 
 /* Purple Theme */
 .card-purple {
+    --card-color: var(--purple);
+    --card-glow: rgba(185, 133, 244, 0.04);
+    --card-shadow: rgba(185, 133, 244, 0.15);
+    --card-shadow-hover: rgba(185, 133, 244, 0.4);
+    --card-shadow-soft: rgba(185, 133, 244, 0.2);
+    --card-icon-bg: rgba(185, 133, 244, 0.08);
+    --card-icon-border: rgba(185, 133, 244, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(185, 133, 244, 0.08) 0%, rgba(185, 133, 244, 0.03) 50%, transparent 100%);
+    --tag-color: var(--purple);
+    --tag-bg: rgba(185, 133, 244, 0.05);
+
     border-color: var(--purple) !important;
     color: var(--purple) !important;
 }
@@ -28,6 +84,17 @@
 
 /* Yellow Theme */
 .card-yellow {
+    --card-color: var(--yellow);
+    --card-glow: rgba(255, 209, 102, 0.04);
+    --card-shadow: rgba(255, 209, 102, 0.15);
+    --card-shadow-hover: rgba(255, 209, 102, 0.4);
+    --card-shadow-soft: rgba(255, 209, 102, 0.2);
+    --card-icon-bg: rgba(255, 209, 102, 0.08);
+    --card-icon-border: rgba(255, 209, 102, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(255, 209, 102, 0.08) 0%, rgba(255, 209, 102, 0.03) 50%, transparent 100%);
+    --tag-color: var(--yellow);
+    --tag-bg: rgba(255, 209, 102, 0.05);
+
     border-color: var(--yellow) !important;
     color: var(--yellow) !important;
 }
@@ -40,6 +107,17 @@
 
 /* Green Theme */
 .card-green {
+    --card-color: var(--green);
+    --card-glow: rgba(62, 255, 163, 0.04);
+    --card-shadow: rgba(62, 255, 163, 0.15);
+    --card-shadow-hover: rgba(62, 255, 163, 0.4);
+    --card-shadow-soft: rgba(62, 255, 163, 0.2);
+    --card-icon-bg: rgba(62, 255, 163, 0.08);
+    --card-icon-border: rgba(62, 255, 163, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(62, 255, 163, 0.08) 0%, rgba(62, 255, 163, 0.03) 50%, transparent 100%);
+    --tag-color: var(--green);
+    --tag-bg: rgba(62, 255, 163, 0.05);
+
     border-color: var(--green) !important;
     color: var(--green) !important;
 }
@@ -52,6 +130,17 @@
 
 /* Pink Theme */
 .card-pink {
+    --card-color: var(--pink);
+    --card-glow: rgba(255, 107, 157, 0.04);
+    --card-shadow: rgba(255, 107, 157, 0.15);
+    --card-shadow-hover: rgba(255, 107, 157, 0.4);
+    --card-shadow-soft: rgba(255, 107, 157, 0.2);
+    --card-icon-bg: rgba(255, 107, 157, 0.08);
+    --card-icon-border: rgba(255, 107, 157, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(255, 107, 157, 0.03) 50%, transparent 100%);
+    --tag-color: var(--pink);
+    --tag-bg: rgba(255, 107, 157, 0.05);
+
     border-color: var(--pink) !important;
     color: var(--pink) !important;
 }
@@ -64,6 +153,17 @@
 
 /* Blue Theme */
 .card-blue {
+    --card-color: var(--blue);
+    --card-glow: rgba(91, 156, 246, 0.04);
+    --card-shadow: rgba(91, 156, 246, 0.15);
+    --card-shadow-hover: rgba(91, 156, 246, 0.4);
+    --card-shadow-soft: rgba(91, 156, 246, 0.2);
+    --card-icon-bg: rgba(91, 156, 246, 0.08);
+    --card-icon-border: rgba(91, 156, 246, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(91, 156, 246, 0.08) 0%, rgba(91, 156, 246, 0.03) 50%, transparent 100%);
+    --tag-color: var(--blue);
+    --tag-bg: rgba(91, 156, 246, 0.05);
+
     border-color: var(--blue) !important;
     color: var(--blue) !important;
 }
@@ -72,4 +172,70 @@
     background: #05101e !important;
     color: var(--blue) !important;
     border: 1px solid var(--blue) !important;
+}
+
+/* Orange Theme */
+.card-orange {
+    --card-color: var(--orange);
+    --card-glow: rgba(255, 159, 28, 0.04);
+    --card-shadow: rgba(255, 159, 28, 0.15);
+    --card-shadow-hover: rgba(255, 159, 28, 0.4);
+    --card-shadow-soft: rgba(255, 159, 28, 0.2);
+    --card-icon-bg: rgba(255, 159, 28, 0.08);
+    --card-icon-border: rgba(255, 159, 28, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(255, 159, 28, 0.08) 0%, rgba(255, 159, 28, 0.03) 50%, transparent 100%);
+    --tag-color: var(--orange);
+    --tag-bg: rgba(255, 159, 28, 0.05);
+
+    border-color: var(--orange) !important;
+    color: var(--orange) !important;
+}
+
+.card-orange .viz-label {
+    background: #1e1005 !important;
+    color: var(--orange) !important;
+    border: 1px solid var(--orange) !important;
+}
+
+/* --- Shared Hover Logic --- */
+.card-cyan:hover,
+.card-purple:hover,
+.card-yellow:hover,
+.card-green:hover,
+.card-pink:hover,
+.card-blue:hover,
+.card-orange:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-cyan:hover::before,
+.card-purple:hover::before,
+.card-yellow:hover::before,
+.card-green:hover::before,
+.card-pink:hover::before,
+.card-blue:hover::before,
+.card-orange:hover::before {
+    opacity: 0.03;
+}
+
+/* --- Shared Tag System --- */
+.viz-tag {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(21, 28, 39, 0.5);
+    color: var(--text-dim);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.viz-tag.hi {
+    border-color: var(--tag-color, var(--cyan)) !important;
+    color: var(--tag-color, var(--cyan)) !important;
+    background: var(--tag-bg, rgba(0, 229, 255, 0.05)) !important;
 }

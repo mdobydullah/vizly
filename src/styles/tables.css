@@ -9,11 +9,23 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
-    overflow: hidden;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.viz-comparison-table-wrap::-webkit-scrollbar {
+    height: 6px;
+}
+
+.viz-comparison-table-wrap::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
 }
 
 .viz-table {
     width: 100%;
+    min-width: 600px;
     border-collapse: collapse;
     font-size: 0.85rem;
     font-family: var(--font-body);

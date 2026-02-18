@@ -1,66 +1,24 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import visualsData from "@/data/visuals";
-import { useSettings } from "@/context/SettingsContext";
 import { VisualLayout } from '@/components/layout/VisualLayout';
 
 const visual = visualsData.visuals.find(v => v.id === "oauth")!;
 
 export function OauthVisual() {
-    const [replayCount, setReplayCount] = useState(0);
-    const { animationsEnabled, animationSpeed } = useSettings();
-    const flowSectionRef = useRef<HTMLHeadingElement>(null);
-    const playersRef = useRef<HTMLDivElement>(null);
-
-    // Animation State
-
-    const [flowVisibleCount, setFlowVisibleCount] = useState(0);
-
-    const runAnimation = () => {
-        // Reset
-        setFlowVisibleCount(0);
-
-        if (!animationsEnabled) {
-            setFlowVisibleCount(9);
-            return;
-        }
-
-        // Initial delay
-        const start = 300 * animationSpeed;
-
-        // Run Flow Steps
-        const flowStart = start + (300 * animationSpeed);
-        for (let i = 1; i <= 9; i++) {
-            setTimeout(() => setFlowVisibleCount(i), flowStart + (i * 800 * animationSpeed));
-        }
-    };
-
-    // Auto-scrolling logic
-    // Auto-scroll removed as per user request
-
-    useEffect(() => {
-        runAnimation();
-    }, [replayCount, animationsEnabled]);
-
-    const handleReplay = () => {
-        setReplayCount(prev => prev + 1);
-    };
-
     return (
         <VisualLayout
             category={visual.category}
             title={visual.title}
             description={visual.description}
             primaryColor={visual.colorConfig.primary}
-            onReplay={handleReplay}
             contributors={visual.contributors}
         >
             {/* ═══════════════ ROLES ═══════════════ */}
             <h2 className="section-title">Key Players in OAuth 2.0</h2>
 
             <div
-                ref={playersRef}
                 style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -174,10 +132,10 @@ export function OauthVisual() {
                 </div>
             </div>
             {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-            <h2 ref={flowSectionRef} className="section-title">Authorization Code Flow</h2>
+            <h2 className="section-title">Authorization Code Flow</h2>
 
             <div className="flow-wrap">
-                <div className={`flow-step s1 ${flowVisibleCount >= 1 ? 'visible' : ''}`}>
+                <div className="flow-step s1 visible">
                     <div className="step-num">1</div>
                     <div className="step-body">
                         <div className="step-actor">👤 User → 📱 Client</div>
@@ -185,7 +143,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s2 ${flowVisibleCount >= 2 ? 'visible' : ''}`}>
+                <div className="flow-step s2 visible">
                     <div className="step-num">2</div>
                     <div className="step-body">
                         <div className="step-actor">📱 Client → 🔐 Auth Server</div>
@@ -193,7 +151,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s3 ${flowVisibleCount >= 3 ? 'visible' : ''}`}>
+                <div className="flow-step s3 visible">
                     <div className="step-num">3</div>
                     <div className="step-body">
                         <div className="step-actor">👤 User &amp; 🔐 Auth Server</div>
@@ -201,7 +159,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s4 ${flowVisibleCount >= 4 ? 'visible' : ''}`}>
+                <div className="flow-step s4 visible">
                     <div className="step-num">4</div>
                     <div className="step-body">
                         <div className="step-actor">🔐 Auth Server → 📱 Client</div>
@@ -209,7 +167,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s5 ${flowVisibleCount >= 5 ? 'visible' : ''}`}>
+                <div className="flow-step s5 visible">
                     <div className="step-num">5</div>
                     <div className="step-body">
                         <div className="step-actor">📱 Client → 🔐 Auth Server</div>
@@ -217,7 +175,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s6 ${flowVisibleCount >= 6 ? 'visible' : ''}`}>
+                <div className="flow-step s6 visible">
                     <div className="step-num">6</div>
                     <div className="step-body">
                         <div className="step-actor">🔐 Auth Server</div>
@@ -225,7 +183,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s7 ${flowVisibleCount >= 7 ? 'visible' : ''}`}>
+                <div className="flow-step s7 visible">
                     <div className="step-num">7</div>
                     <div className="step-body">
                         <div className="step-actor">📱 Client → 🗄️ Resource Server</div>
@@ -233,7 +191,7 @@ export function OauthVisual() {
                     </div>
                 </div>
 
-                <div className={`flow-step s8 ${flowVisibleCount >= 8 ? 'visible' : ''}`}>
+                <div className="flow-step s8 visible">
                     <div className="step-num">8</div>
                     <div className="step-body">
                         <div className="step-actor">🗄️ Resource Server</div>
@@ -241,10 +199,6 @@ export function OauthVisual() {
                     </div>
                 </div>
             </div>
-
-            <button className="viz-replay-btn" onClick={handleReplay} style={{ margin: '2rem auto 0' }}>
-                ↺ Replay Animation
-            </button>
 
             <div id="full-oauth-flow" className="viz-fade-up visible" style={{
                 paddingTop: '3rem',

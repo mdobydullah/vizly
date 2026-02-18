@@ -22,42 +22,9 @@
 }
 
 .cache-card {
-    background: #0e1219;
-    border: 1px solid #1e2a3a;
     border-radius: 16px;
     padding: 1.2rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     gap: 0.8rem;
-}
-
-/* Hover Effect - Glow Border and subtle background shift */
-.cache-card:hover {
-    transform: translateY(-4px);
-    background: #111827;
-}
-
-.card-green:hover {
-    border-color: var(--green) !important;
-    box-shadow: 0 0 32px rgba(62, 255, 163, 0.25);
-}
-
-.card-cyan:hover {
-    border-color: var(--cyan) !important;
-    box-shadow: 0 0 32px rgba(0, 229, 255, 0.25);
-}
-
-.card-yellow:hover {
-    border-color: var(--yellow) !important;
-    box-shadow: 0 0 32px rgba(255, 209, 102, 0.25);
-}
-
-.card-orange:hover {
-    border-color: #ff9f1c !important;
-    box-shadow: 0 0 32px rgba(255, 159, 28, 0.25);
 }
 
 .card-header {
