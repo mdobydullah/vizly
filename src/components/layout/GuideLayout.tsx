@@ -262,58 +262,46 @@ export function GuideLayout({
                         }}>Guide Contributors</h3>
 
                         <div className="contributors-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(3, 1fr)',
-                            gap: '2rem',
+                            marginTop: '2rem',
                             width: '100%',
-                            padding: '1rem 0'
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center',
+                            gap: '2rem'
                         }}>
                             {contributors.map((contributor) => (
                                 <div key={contributor.username}
-                                    className="contributor-card"
+                                    className="viz-box viz-reveal visible card-cyan"
                                     style={{
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         textAlign: 'center',
-                                        background: 'linear-gradient(145deg, var(--surface2) 0%, rgba(21, 28, 39, 0.6) 100%)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: '16px',
-                                        padding: '2.5rem 2rem',
-                                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                                        position: 'relative',
-                                        overflow: 'hidden',
+                                        padding: '2.2rem 0.75rem',
                                         height: '100%',
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                                     }}>
-                                    <span style={{
-                                        fontWeight: 700,
-                                        color: 'var(--text-hi)',
-                                        fontSize: '1rem',
-                                        fontFamily: 'var(--font-display)',
-                                        marginBottom: '0.3rem',
-                                        lineHeight: '1.3',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
+                                    <span className="viz-label" style={{
+                                        maxWidth: '90%',
                                         overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
-                                    }}>
-                                        {contributor.name}
-                                    </span>
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    }}>{contributor.name}</span>
                                     <span style={{
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.7rem',
                                         color: 'var(--text-dim)',
                                         marginBottom: '1.5rem',
                                         fontFamily: 'var(--font-mono)',
                                         textTransform: 'uppercase',
-                                        letterSpacing: '0.05em',
+                                        letterSpacing: '0.02em',
                                         display: '-webkit-box',
-                                        WebkitLineClamp: 2,
+                                        WebkitLineClamp: 3,
                                         WebkitBoxOrient: 'vertical',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
-                                        minHeight: '2.4em' // maintain height for alignment
+                                        minHeight: '3.6em', // maintain height for 3 lines
+                                        width: '100%',
+                                        lineHeight: '1.4'
                                     }}>
                                         {contributor.bio}
                                     </span>
@@ -321,7 +309,8 @@ export function GuideLayout({
                                     <div style={{
                                         display: 'flex',
                                         gap: '0.8rem',
-                                        marginTop: 'auto'
+                                        marginTop: 'auto',
+                                        zIndex: 20
                                     }}>
                                         {contributor.handles.slice(0, 5).map((handle) => (
                                             <a
@@ -367,48 +356,35 @@ export function GuideLayout({
             </div>
 
             <style jsx>{`
+                .contributors-grid > div {
+                    flex: 0 1 240px;
+                    min-width: 200px;
+                }
+
+                @media (min-width: 1025px) {
+                    .contributors-grid > div {
+                        flex: 0 1 calc(25% - 1.6rem);
+                    }
+                }
+
+                @media (max-width: 1024px) {
+                    .contributors-grid > div {
+                        flex: 0 1 calc(50% - 1rem);
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .contributors-grid > div {
+                        flex: 1 1 100%;
+                    }
+                }
+
                 .contributor-handle:hover {
                     background: ${primaryColor}20 !important;
                     border-color: ${primaryColor}80 !important;
                     transform: translateY(-3px);
                     color: ${primaryColor} !important;
                     box-shadow: 0 4px 12px ${primaryColor}30;
-                }
-                
-                .contributor-card:hover {
-                    border-color: ${primaryColor}60 !important;
-                    transform: translateY(-8px) !important;
-                    box-shadow: 0 20px 40px -10px ${primaryColor}20 !important;
-                    background: linear-gradient(145deg, var(--surface2) 0%, ${primaryColor}08 100%) !important;
-                }
-                
-                .contributor-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 2px;
-                    background: linear-gradient(90deg, transparent, ${primaryColor}, transparent);
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-                
-                .contributor-card:hover::before {
-                    opacity: 1;
-                }
-
-                @media (max-width: 1024px) {
-                    .contributors-grid {
-                        grid-template-columns: repeat(2, 1fr) !important;
-                        gap: 1rem !important;
-                    }
-                }
-
-                @media (max-width: 640px) {
-                    .contributors-grid {
-                        grid-template-columns: 1fr !important;
-                    }
                 }
 
                 .scroll-to-top-btn {
@@ -437,8 +413,6 @@ export function GuideLayout({
                     opacity: 1;
                     visibility: visible;
                     transform: translateY(0);
-                }
-
                 }
             `}</style>
 
