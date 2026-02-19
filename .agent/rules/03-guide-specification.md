@@ -27,4 +27,7 @@ This rule defines the functional requirements for a "Vizly Guide".
 - [ ] Proper attribution (contributors array).
 - [ ] Comparison table with dot ratings (`<Rating dots={n} />`).
 - [ ] Responsive design (Grid stacks on mobile).
-- [ ] Resources section matching the standard found in `CachingStrategiesGuide.tsx` (Table with Title, Type, Link). use `ResourceIcon` component for type icons.
+
+## 5. Color System
+- **Random Selection**: When creating a new guide, you MUST select a random color configuration from `src/data/guides/guide-colors.json`.
+- **No Manual Hex**: Do NOT generate random hex codes manually. Use the exact `primary`, `background`, `border`, and `hoverShadow` values from the selected object in the array.
