@@ -65,20 +65,23 @@ Guides are built using React and modern CSS. Create your component in a relevant
 
 > **Note:** Use the `GuideLoader` component for loading states and try to maintain the project's design system tokens (colors, fonts).
 
-## 4. Register Your Guide
+## 4. Automatic Registration
 
-Finally, you need to tell the application about your new component so it can be rendered at `/guides/your-guide-id`.
+You don't need to manually register your component! The system automatically discovers any file ending in `Guide.tsx` within the `src/components/guides/` directory (including subdirectories).
 
-Open `src/components/guides/index.tsx` and add your component to the `guideComponents` mapping:
+### Naming Conventions
+To ensure your guide is registered correctly, follow these conventions:
 
-```tsx
-export const guideComponents: Record<string, any> = {
-    // ... existing guides
-    'your-guide-id': dynamic(() => import('./architecture/YourGuide').then(mod => mod.YourGuide), {
-        loading: () => <GuideLoader />
-    }),
-};
-```
+1. **Filename**: Must end with `Guide.tsx` (e.g., `DatabaseReplicationGuide.tsx`).
+2. **Export**: Use a named export that matches the filename or ends with `Guide` (e.g., `export function DatabaseReplicationGuide()`).
+3. **Metadata ID**: The `id` you define in your JSON metadata (Step 2) **must match** the generated slug.
+
+### How Slugs are Generated
+The system removes the "Guide" suffix and converts the remaining name from PascalCase to kebab-case:
+- `LoadBalancingGuide.tsx` → `load-balancing`
+- `JwtGuide.tsx` → `jwt`
+- `MessageQueuesGuide.tsx` → `message-queues`
+
 ## 5. How to use AI Models
 
 Vizly is designed to be **AI-Ready**. If you are using an AI agent (like Claude, ChatGPT, Gemini, or OpenCode) to help you build a guide, follow these steps to ensure the best results:
@@ -106,7 +109,7 @@ If the AI is struggling with the UI, point it to a high-quality existing guide:
 ## Summary Checklist
 - [ ] Added profile to `src/data/contributors/`
 - [ ] Added metadata to `src/data/guides/`
-- [ ] Created guide component in `src/components/guides/`
-- [ ] Registered component in `src/components/guides/index.tsx`
+- [ ] Created guide component in `src/components/guides/` (following naming conventions)
+
 
 If you have any questions, feel free to reach out to @obydul!

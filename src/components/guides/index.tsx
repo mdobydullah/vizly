@@ -3,29 +3,32 @@ import { GuideLoader } from './GuideLoader';
 
 // Map of guide IDs to their components with dynamic loading
 // This is a plain object used by Server Components to identify the correct component.
-export const guideComponents: Record<string, any> = {
-    jwt: dynamic(() => import('./auth/JwtGuide').then(mod => mod.JwtGuide), {
-        loading: () => <GuideLoader />
-    }),
-    oauth: dynamic(() => import('./auth/OauthGuide').then(mod => mod.OauthGuide), {
-        loading: () => <GuideLoader />
-    }),
-    'caching-strategies': dynamic(() => import('./performance/CachingStrategiesGuide').then(mod => mod.CachingStrategiesGuide), {
-        loading: () => <GuideLoader />
-    }),
-    'message-queues': dynamic(() => import('./async/MessageQueuesGuide').then(mod => mod.MessageQueuesGuide), {
-        loading: () => <GuideLoader />
-    }),
-    'load-balancing': dynamic(() => import('./infrastructure/LoadBalancingGuide').then(mod => mod.LoadBalancingGuide), {
-        loading: () => <GuideLoader />
-    }),
-    'database-replication': dynamic(() => import('./database/DatabaseReplicationGuide').then(mod => mod.DatabaseReplicationGuide), {
-        loading: () => <GuideLoader />
-    }),
-    cdn: dynamic(() => import('./infrastructure/CdnGuide').then(mod => mod.CdnGuide), {
-        loading: () => <GuideLoader />
-    }),
-    'stateful-stateless-architecture': dynamic(() => import('./infrastructure/StatefulStatelessGuide').then(mod => mod.StatefulStatelessGuide), {
-        loading: () => <GuideLoader />
-    }),
-};
+// Automatically load all components ending with "Guide.tsx" from subdirectories
+const context = (require as any).context('./', true, /Guide\.tsx$/);
+
+export const guideComponents: Record<string, any> = {};
+
+context.keys().forEach((path: string) => {
+    // Extract filename without extension (e.g., "JwtGuide")
+    const fileName = path.split('/').pop()?.replace('.tsx', '') || '';
+
+    // Skip internal files
+    if (!fileName || fileName === 'GuideLoader' || fileName === 'index') return;
+
+    // Generate slug from filename: "LoadBalancingGuide" -> "load-balancing"
+    const slug = fileName
+        .replace(/Guide$/, '') // Remove "Guide" suffix
+        .replaceAll(/([a-z])([A-Z])/g, '$1-$2') // kebab-case
+        .toLowerCase();
+
+    // Register the component with dynamic loading
+    // We use a static './' prefix to help Webpack's static analysis
+    guideComponents[slug] = dynamic(() =>
+        import(`./${path.replace('./', '')}`).then(mod => {
+            // Find the export that ends with "Guide" or fallback to fileName or default
+            const exportName = Object.keys(mod).find(k => k.endsWith('Guide')) || fileName;
+            return mod[exportName] || mod.default;
+        }),
+        { loading: () => <GuideLoader /> }
+    );
+});
