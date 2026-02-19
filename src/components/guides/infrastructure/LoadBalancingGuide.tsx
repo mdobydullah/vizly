@@ -366,6 +366,26 @@ export function LoadBalancingGuide() {
                     >
                         <Settings size={14} />
                     </button>
+                    <button
+                        onClick={() => playPattern(activePatternKey)}
+                        style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border2)',
+                            background: 'var(--surface)',
+                            color: 'var(--text-dim)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all .2s'
+                        }}
+                        className="social-btn"
+                        aria-label="Replay Animation"
+                    >
+                        <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
+                    </button>
                 </div>
 
                 <div className="lb-flow-diagram">

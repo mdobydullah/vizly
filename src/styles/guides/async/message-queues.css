@@ -404,27 +404,7 @@
     background: rgba(255, 83, 112, 0.15);
 }
 
-/* Replay button */
-.mq-replay-btn {
-    display: block;
-    margin: 2rem auto 0;
-    background: var(--yellow);
-    color: #000;
-    border: none;
-    padding: 0.6rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 700;
-    font-family: var(--font-mono);
-    transition: all 0.2s;
-}
 
-.mq-replay-btn:hover {
-    background: #ffe066;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(255, 209, 102, 0.3);
-}
 
 /* ════════════════════════════════════════
    DELIVERY GUARANTEES

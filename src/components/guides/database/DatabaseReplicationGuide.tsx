@@ -301,6 +301,16 @@ export function DatabaseReplicationGuide({
                     >
                         <Settings size={14} color="var(--text-dim)" />
                     </button>
+                    <button
+                        onClick={() => playPattern(activePatternKey!)}
+                        className="social-btn"
+                        style={{
+                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer'
+                        }}
+                    >
+                        <span style={{ fontSize: '1.1rem', lineHeight: 1, color: 'var(--text-dim)', marginTop: '-2px' }}>↺</span>
+                    </button>
                 </div>
 
                 <div className="rep-flow-diagram">
@@ -338,10 +348,6 @@ export function DatabaseReplicationGuide({
                         ))}
                     </div>
                 </div>
-
-                <button className="rep-replay-btn" onClick={() => playPattern(activePatternKey!)}>
-                    ↺ Replay Animation
-                </button>
             </div>
 
             {/* ═══════════════ COMPARISON TABLE ═══════════════ */}

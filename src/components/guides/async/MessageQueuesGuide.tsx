@@ -329,6 +329,26 @@ export function MessageQueuesGuide() {
                 >
                     <Settings size={14} />
                 </button>
+                <button
+                    onClick={() => playPattern(activePattern)}
+                    style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border2)',
+                        background: 'var(--surface)',
+                        color: 'var(--text-dim)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all .2s'
+                    }}
+                    className="social-btn"
+                    aria-label="Replay Animation"
+                >
+                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
+                </button>
             </div>
 
             <div className="mq-flow-diagram">
@@ -387,9 +407,7 @@ export function MessageQueuesGuide() {
                 </div>
             </div>
 
-            <button className="mq-replay-btn" onClick={() => playPattern(activePattern)} style={{ margin: '2rem auto 0', display: 'block' }}>
-                ↺ Replay Animation
-            </button>
+
 
             {/* ═══════════════ DELIVERY GUARANTEES ═══════════════ */}
             <div className="viz-section-header" style={{ marginTop: '3rem' }}>

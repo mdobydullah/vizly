@@ -277,13 +277,31 @@
 }
 
 @keyframes flash-orange {
-    0%, 100% { border-color: var(--orange); box-shadow: 0 0 0 transparent; }
-    50% { border-color: #ffcc80; box-shadow: 0 0 20px var(--orange); }
+
+    0%,
+    100% {
+        border-color: var(--orange);
+        box-shadow: 0 0 0 transparent;
+    }
+
+    50% {
+        border-color: #ffcc80;
+        box-shadow: 0 0 20px var(--orange);
+    }
 }
 
 @keyframes flash-blue {
-    0%, 100% { border-color: var(--blue); box-shadow: 0 0 0 transparent; }
-    50% { border-color: #80bfff; box-shadow: 0 0 20px var(--blue); }
+
+    0%,
+    100% {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 transparent;
+    }
+
+    50% {
+        border-color: #80bfff;
+        box-shadow: 0 0 20px var(--blue);
+    }
 }
 
 
@@ -351,27 +369,7 @@
     color: var(--text-hi);
 }
 
-/* Replay Button */
-.rep-replay-btn {
-    display: block;
-    margin: 2rem auto 0;
-    background: var(--orange);
-    color: #000;
-    border: none;
-    padding: .6rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: .82rem;
-    font-weight: 700;
-    font-family: var(--font-mono);
-    transition: all .2s;
-}
 
-.rep-replay-btn:hover {
-    background: #ffb347;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(255, 159, 28, .3);
-}
 
 /* Legend */
 .rep-legend {
@@ -428,4 +426,3 @@
     opacity: 1;
     /* Animation handled via JS styles or keyframes if path is fixed */
 }
-
