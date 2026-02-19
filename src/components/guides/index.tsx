@@ -25,4 +25,7 @@ export const guideComponents: Record<string, any> = {
     cdn: dynamic(() => import('./infrastructure/CdnGuide').then(mod => mod.CdnGuide), {
         loading: () => <GuideLoader />
     }),
+    'stateful-stateless-architecture': dynamic(() => import('./infrastructure/StatefulStatelessGuide').then(mod => mod.StatefulStatelessGuide), {
+        loading: () => <GuideLoader />
+    }),
 };

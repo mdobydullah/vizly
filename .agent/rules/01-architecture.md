@@ -21,3 +21,8 @@ Use these files as the "Gold Standard" for implementation:
 - `src/components/guides/infrastructure/LoadBalancingGuide.tsx` (Complex state & comparisons)
 - `src/components/guides/performance/CachingStrategiesGuide.tsx` (Clean grid implementation)
 - `src/components/guides/auth/JwtGuide.tsx` (Simple flow structure)
+
+## 4. Metadata Best Practices
+- **ID Consistency**: Ensure the `id` used in `find()` matches exactly with the one in metadata JSON.
+- **Timestamps**: When creating or updating metadata, ALWAYS set `createdAt` and `updatedAt` to the current UTC time in ISO 8601 format (e.g., `2026-02-19T09:57:32Z`).
+- **Icons**: Use descriptive emojis for the `icon` field.
