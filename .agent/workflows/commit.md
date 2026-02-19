@@ -23,4 +23,4 @@ description: generate a one-line git commit message for the current changes
    Share the one-line commit message with the user.
 
 5. **Final Action**:
-   Ask the user if they would like you to commit and push the changes.
+   Ask the user if they would like you to commit the changes.

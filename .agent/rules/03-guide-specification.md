@@ -27,4 +27,4 @@ This rule defines the functional requirements for a "Vizly Guide".
 - [ ] Proper attribution (contributors array).
 - [ ] Comparison table with dot ratings (`<Rating dots={n} />`).
 - [ ] Responsive design (Grid stacks on mobile).
-- [ ] Resources section matching the standard found in `JwtGuide.tsx`.
+- [ ] Resources section matching the standard found in `CachingStrategiesGuide.tsx` (Table with Title, Type, Link). use `ResourceIcon` component for type icons.

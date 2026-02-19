@@ -67,5 +67,28 @@
         "createdAt": "2026-02-19T09:56:04Z",
         "updatedAt": "2026-02-19T09:56:04Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "vertical-horizontal-scaling",
+        "title": "Vertical vs Horizontal Scaling",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Scaling",
+            "Architecture"
+        ],
+        "description": "Learn the difference between scaling up (vertical) and scaling out (horizontal) with interactive visualizations.",
+        "icon": "📈",
+        "link": "/guides/vertical-horizontal-scaling",
+        "color": "pink",
+        "colorConfig": {
+            "primary": "#ff6b9d",
+            "background": "rgba(255, 107, 157, .08)",
+            "border": "rgba(255, 107, 157, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 107, 157, .4), 0 0 16px rgba(255, 107, 157, .2)"
+        },
+        "createdAt": "2026-02-19T23:15:00Z",
+        "updatedAt": "2026-02-19T23:15:00Z",
+        "contributors": "obydul"
     }
 ]

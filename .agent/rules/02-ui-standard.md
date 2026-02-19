@@ -27,3 +27,4 @@ Animations must feel premium and smooth:
 ## 4. Component Structure
 - **Layout**: Always wrap in `<GuideLayout contributors={guide.contributors}>`.
 - **Sections**: Structure pages into clear sections: `Hero`, `Concepts (Grid)`, `Visualization (Interactive)`, `Comparison (Table)`, `Resources`.
+- **Visualization Container**: Complex visualizations must be constrained (e.g., `max-width: 900px`) and centered to maintain readability on large screens. Do NOT use full width `100%` without a max-width.
