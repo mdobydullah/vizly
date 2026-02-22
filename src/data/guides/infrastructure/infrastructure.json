@@ -90,5 +90,28 @@
         "createdAt": "2026-02-19T23:15:00Z",
         "updatedAt": "2026-02-19T23:15:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "rate-limiter",
+        "title": "Rate Limiter",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "API",
+            "Security"
+        ],
+        "description": "Rate limiting controls the rate of requests that clients can make to a server. Explore Token Bucket, Leaking Bucket, Fixed Window Counter, and Sliding Window algorithms with interactive animations.",
+        "icon": "🚦",
+        "link": "/guides/rate-limiter",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#1de9b6",
+            "background": "rgba(29, 233, 182, .08)",
+            "border": "rgba(29, 233, 182, .15)",
+            "hoverShadow": "0 0 32px rgba(29, 233, 182, .4), 0 0 16px rgba(29, 233, 182, .2)"
+        },
+        "createdAt": "2026-02-22T18:52:00Z",
+        "updatedAt": "2026-02-22T18:52:00Z",
+        "contributors": "obydul"
     }
 ]

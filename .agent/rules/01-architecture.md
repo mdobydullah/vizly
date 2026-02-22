@@ -24,5 +24,5 @@ Use these files as the "Gold Standard" for implementation:
 
 ## 4. Metadata Best Practices
 - **ID Consistency**: Ensure the `id` used in `find()` matches exactly with the one in metadata JSON.
-- **Timestamps**: When creating or updating metadata, ALWAYS set `createdAt` and `updatedAt` to the current UTC time in ISO 8601 format (e.g., `2026-02-19T09:57:32Z`).
+- **Timestamps**: When creating or updating metadata, ALWAYS set `createdAt` and `updatedAt` to the current UTC time in ISO 8601 format with full hour and minute precision (e.g., `2026-02-19T09:57:32Z`). Never use midnight (`00:00:00Z`) as a placeholder.
 - **Icons**: Use descriptive emojis for the `icon` field.
