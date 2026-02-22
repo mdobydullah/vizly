@@ -11,9 +11,10 @@ This rule defines the functional requirements for a "Vizly Guide".
   - Visual nodes with state (Idle, Processing, Success, Error).
   - Step-by-step logic explanation text.
   - Replay/Flow control functionality.
+- **Beginner-Friendly Coverage**: Don't miss any important points needed to understand the topic. Think from a beginner's perspective — cover foundational concepts, explain "why" not just "how", and ensure no critical subtopic is skipped.
 
 ## 2. Mermaid Standard
-- Must include both the rendered diagram AND the raw Mermaid code in a collapsible `details` block.
+- Render the Mermaid diagram only. Do NOT include a collapsible `details` block with the raw Mermaid source code.
 - Use `sequenceDiagram` for communication flows.
 - Use `flowchart TD` for structural/logic flows.
 
@@ -31,3 +32,6 @@ This rule defines the functional requirements for a "Vizly Guide".
 ## 5. Color System
 - **Random Selection**: When creating a new guide, you MUST select a random color configuration from `src/data/guides/guide-colors.json`.
 - **No Manual Hex**: Do NOT generate random hex codes manually. Use the exact `primary`, `background`, `border`, and `hoverShadow` values from the selected object in the array.
+
+## 6. Resources
+- **Open Source First**: Always prioritize open source content (documentation, tutorials, videos) when adding resource links. Avoid paywalled or proprietary-only sources.

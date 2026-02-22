@@ -105,10 +105,10 @@
         "link": "/guides/rate-limiter",
         "color": "cyan",
         "colorConfig": {
-            "primary": "#1de9b6",
-            "background": "rgba(29, 233, 182, .08)",
-            "border": "rgba(29, 233, 182, .15)",
-            "hoverShadow": "0 0 32px rgba(29, 233, 182, .4), 0 0 16px rgba(29, 233, 182, .2)"
+            "primary": "#22d3ee",
+            "background": "rgba(34, 211, 238, .08)",
+            "border": "rgba(34, 211, 238, .15)",
+            "hoverShadow": "0 0 32px rgba(34, 211, 238, .4), 0 0 16px rgba(34, 211, 238, .2)"
         },
         "createdAt": "2026-02-22T18:52:00Z",
         "updatedAt": "2026-02-22T18:52:00Z",

@@ -33,13 +33,13 @@
         ],
         "description": "Build loosely coupled systems using events. Explore pub/sub, event sourcing, CQRS, and event-driven microservices patterns.",
         "icon": "⚡",
-        "link": "#",
-        "color": "cyan",
+        "link": "/guides/event-driven-architecture",
+        "color": "purple",
         "colorConfig": {
-            "primary": "#00e5ff",
-            "background": "rgba(0, 229, 255, .08)",
-            "border": "rgba(0, 229, 255, .15)",
-            "hoverShadow": "0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2)"
+            "primary": "#b985f4",
+            "background": "rgba(185, 133, 244, .08)",
+            "border": "rgba(185, 133, 244, .15)",
+            "hoverShadow": "0 0 32px rgba(185, 133, 244, .4), 0 0 16px rgba(185, 133, 244, .2)"
         },
         "createdAt": "2026-02-22T18:59:00Z",
         "updatedAt": "2026-02-22T18:59:00Z",
