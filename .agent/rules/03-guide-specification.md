@@ -17,6 +17,27 @@ This rule defines the functional requirements for a "Vizly Guide".
 - Render the Mermaid diagram only. Do NOT include a collapsible `details` block with the raw Mermaid source code.
 - Use `sequenceDiagram` for communication flows.
 - Use `flowchart TD` for structural/logic flows.
+- **Centering \u2014 REQUIRED**: Always wrap the Mermaid `<pre className="mermaid">` in a **dedicated topic-scoped CSS class** (e.g. `.[topic]-mermaid-wrap`). Never place it bare inside a generic `viz-card` alone.
+- **The wrapper class must define**:
+  ```css
+  .[topic]-mermaid-wrap {
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+  }
+  .[topic]-mermaid-wrap .mermaid {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+  }
+  .[topic]-mermaid-wrap .mermaid svg {
+      max-width: 100%;
+      height: auto;
+  }
+  ```
 
 ## 3. Interactivity Requirements
 - **Card-to-Flow**: Clicking a card in the top grid MUST scroll the user to the interactive section and set the active pattern to that card's topic.

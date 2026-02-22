@@ -123,9 +123,9 @@
             "Distributed Systems",
             "Hashing"
         ],
-        "description": "Distribute data across nodes with minimal redistribution. Visualize hash rings, virtual nodes, and rebalancing.",
+        "description": "Consistent hashing is a technique used to distribute data across a cluster of nodes in a way that minimizes the amount of data that needs to be moved when nodes are added or removed. It is widely used in distributed systems such as distributed databases, distributed file systems, and distributed caches.",
         "icon": "💍",
-        "link": "#",
+        "link": "/guides/consistent-hashing",
         "color": "green",
         "colorConfig": {
             "primary": "#69f0ae",
@@ -133,8 +133,8 @@
             "border": "rgba(105, 240, 174, .15)",
             "hoverShadow": "0 0 32px rgba(105, 240, 174, .4), 0 0 16px rgba(105, 240, 174, .2)"
         },
-        "createdAt": "2026-02-22T18:59:00Z",
-        "updatedAt": "2026-02-22T18:59:00Z",
+        "createdAt": "2026-02-23T21:01:00Z",
+        "updatedAt": "2026-02-23T21:01:00Z",
         "contributors": "obydul"
     },
     {

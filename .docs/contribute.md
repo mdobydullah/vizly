@@ -127,4 +127,4 @@ If the AI is struggling with the UI, point it to a high-quality existing guide:
 - [ ] Created guide component in `src/components/guides/` (following naming conventions)
 
 
-If you have any questions, feel free to reach out to @obydul!
+If you have any questions, feel free to reach out to [@obydul](https://www.linkedin.com/in/obydul)!
