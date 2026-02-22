@@ -171,7 +171,7 @@
         ],
         "description": "Prevent cascading failures in distributed systems. Visualize closed, open, and half-open states with retry logic.",
         "icon": "⚡",
-        "link": "#",
+        "link": "/guides/circuit-breaker",
         "color": "pink",
         "colorConfig": {
             "primary": "#ff4081",
@@ -202,8 +202,8 @@
             "border": "rgba(224, 64, 251, .15)",
             "hoverShadow": "0 0 32px rgba(224, 64, 251, .4), 0 0 16px rgba(224, 64, 251, .2)"
         },
-        "createdAt": "2026-02-22T18:59:00Z",
-        "updatedAt": "2026-02-22T18:59:00Z",
+        "createdAt": "2026-02-23T18:59:00Z",
+        "updatedAt": "2026-02-23T18:02:00Z",
         "contributors": "obydul"
     },
     {
