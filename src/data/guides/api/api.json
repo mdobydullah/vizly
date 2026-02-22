@@ -1,25 +1,25 @@
 [
     {
-        "id": "rest-graphql",
-        "title": "REST vs GraphQL",
+        "id": "websockets-long-polling",
+        "title": "WebSockets vs Long Polling",
         "category": "API Design",
         "tags": [
             "API",
-            "REST",
-            "GraphQL"
+            "Real-time",
+            "Networking"
         ],
-        "description": "Deep comparison of REST and GraphQL with real-world query examples, over-fetching, and schema design.",
-        "icon": "🔗",
+        "description": "Compare real-time communication strategies. WebSocket persistent connections vs HTTP long polling with trade-offs and use cases.",
+        "icon": "🔌",
         "link": "#",
-        "color": "blue",
+        "color": "green",
         "colorConfig": {
-            "primary": "#5b9cf6",
-            "background": "rgba(91, 156, 246, .08)",
-            "border": "rgba(91, 156, 246, .15)",
-            "hoverShadow": "0 0 32px rgba(91, 156, 246, .4), 0 0 16px rgba(91, 156, 246, .2)"
+            "primary": "#1de9b6",
+            "background": "rgba(29, 233, 182, .08)",
+            "border": "rgba(29, 233, 182, .15)",
+            "hoverShadow": "0 0 32px rgba(29, 233, 182, .4), 0 0 16px rgba(29, 233, 182, .2)"
         },
-        "createdAt": "2025-02-08T11:00:00Z",
-        "updatedAt": "2025-02-15T16:45:00Z",
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
         "contributors": "obydul"
     }
 ]

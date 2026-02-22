@@ -27,6 +27,8 @@ function GuidesContent() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 18;
 
   // Get category from URL or default to "all"
   const selectedCategory = searchParams.get("category") || "all";
@@ -93,10 +95,20 @@ function GuidesContent() {
     return sorted;
   }, [searchQuery, selectedCategory, sortBy]);
 
+  // Reset page when filters change
+  const totalPages = Math.ceil(filteredGuides.length / perPage);
+  const paginatedGuides = filteredGuides.slice((currentPage - 1) * perPage, currentPage * perPage);
+
   const clearFilters = () => {
     setSearchQuery("");
     handleCategoryChange("all");
     setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   };
 
   return (
@@ -224,15 +236,17 @@ function GuidesContent() {
           color: 'var(--text-dim)',
           fontFamily: 'var(--font-mono)'
         }}>
-          Showing {filteredGuides.length} of {data.guides.length} guides
+          Showing {paginatedGuides.length} of {filteredGuides.length} guides
+          {' · '}{data.guides.filter(g => g.link === '#').length} upcoming
           {searchQuery && ` matching "${searchQuery}"`}
           {selectedCategory !== "all" && ` in ${selectedCategory}`}
+          {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
         </div>
       </div>
 
       {/* Cards Grid */}
       <div className="viz-grid">
-        {filteredGuides.map((guide, index) => (
+        {paginatedGuides.map((guide, index) => (
           <GuideCard key={guide.id} guide={guide} index={index} />
         ))}
       </div>
@@ -246,6 +260,43 @@ function GuidesContent() {
         }}>
           <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>No guides found</p>
           <p style={{ fontSize: '.85rem' }}>Try adjusting your search or filters</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '.5rem',
+          margin: '2rem auto 1rem',
+          maxWidth: '1100px',
+          padding: '0 1rem'
+        }}>
+          <button
+            onClick={() => goToPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="pagination-btn"
+          >
+            ← Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => goToPage(page)}
+              className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="pagination-btn"
+          >
+            Next →
+          </button>
         </div>
       )}
 
@@ -267,6 +318,35 @@ function GuidesContent() {
         .clear-btn:hover {
           border-color: var(--cyan);
           color: var(--cyan);
+        }
+
+        .pagination-btn {
+          padding: .5rem .9rem;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          color: var(--text-dim);
+          font-family: var(--font-mono);
+          font-size: .75rem;
+          cursor: pointer;
+          transition: all .2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+          border-color: var(--cyan);
+          color: var(--cyan);
+        }
+
+        .pagination-btn.active {
+          background: var(--cyan);
+          color: #000;
+          border-color: var(--cyan);
+          font-weight: 700;
+        }
+
+        .pagination-btn:disabled {
+          opacity: .3;
+          cursor: not-allowed;
         }
       `}</style>
     </div>

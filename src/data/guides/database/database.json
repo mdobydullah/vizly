@@ -21,5 +21,74 @@
         "createdAt": "2026-02-18T12:00:00Z",
         "updatedAt": "2026-02-18T12:00:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "database-sharding",
+        "title": "Database Sharding",
+        "category": "Database",
+        "tags": [
+            "Database",
+            "Scaling",
+            "Partitioning"
+        ],
+        "description": "Horizontally partition data across multiple databases. Learn sharding strategies, consistent hashing, and rebalancing techniques.",
+        "icon": "🧩",
+        "link": "#",
+        "color": "purple",
+        "colorConfig": {
+            "primary": "#7c4dff",
+            "background": "rgba(124, 77, 255, .08)",
+            "border": "rgba(124, 77, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(124, 77, 255, .4), 0 0 16px rgba(124, 77, 255, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "database-indexing",
+        "title": "Database Indexing",
+        "category": "Database",
+        "tags": [
+            "Database",
+            "Performance",
+            "Query"
+        ],
+        "description": "B-Trees, hash indexes, and composite indexes. Visualize how indexes speed up reads and the trade-offs with write performance.",
+        "icon": "📇",
+        "link": "#",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#00e5ff",
+            "background": "rgba(0, 229, 255, .08)",
+            "border": "rgba(0, 229, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "cap-theorem",
+        "title": "CAP Theorem",
+        "category": "Database",
+        "tags": [
+            "Database",
+            "Distributed Systems",
+            "Theory"
+        ],
+        "description": "Consistency, Availability, Partition Tolerance — you can only pick two. Explore trade-offs with real-world database examples.",
+        "icon": "🔺",
+        "link": "#",
+        "color": "yellow",
+        "colorConfig": {
+            "primary": "#ffab00",
+            "background": "rgba(255, 171, 0, .08)",
+            "border": "rgba(255, 171, 0, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 171, 0, .4), 0 0 16px rgba(255, 171, 0, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
     }
 ]

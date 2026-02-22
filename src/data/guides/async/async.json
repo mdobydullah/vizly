@@ -21,5 +21,28 @@
         "createdAt": "2025-02-01T08:30:00Z",
         "updatedAt": "2025-02-13T10:00:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "event-driven-architecture",
+        "title": "Event-Driven Architecture",
+        "category": "Async Systems",
+        "tags": [
+            "Async",
+            "Architecture",
+            "Events"
+        ],
+        "description": "Build loosely coupled systems using events. Explore pub/sub, event sourcing, CQRS, and event-driven microservices patterns.",
+        "icon": "⚡",
+        "link": "#",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#00e5ff",
+            "background": "rgba(0, 229, 255, .08)",
+            "border": "rgba(0, 229, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
     }
 ]

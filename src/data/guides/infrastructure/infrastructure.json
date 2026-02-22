@@ -113,5 +113,120 @@
         "createdAt": "2026-02-22T18:52:00Z",
         "updatedAt": "2026-02-22T18:52:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "consistent-hashing",
+        "title": "Consistent Hashing",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Distributed Systems",
+            "Hashing"
+        ],
+        "description": "Distribute data across nodes with minimal redistribution. Visualize hash rings, virtual nodes, and rebalancing.",
+        "icon": "💍",
+        "link": "#",
+        "color": "green",
+        "colorConfig": {
+            "primary": "#69f0ae",
+            "background": "rgba(105, 240, 174, .08)",
+            "border": "rgba(105, 240, 174, .15)",
+            "hoverShadow": "0 0 32px rgba(105, 240, 174, .4), 0 0 16px rgba(105, 240, 174, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "api-gateway",
+        "title": "API Gateway",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "API",
+            "Microservices"
+        ],
+        "description": "Single entry point for all client requests. Handles routing, authentication, rate limiting, and request aggregation.",
+        "icon": "🚪",
+        "link": "#",
+        "color": "blue",
+        "colorConfig": {
+            "primary": "#00b0ff",
+            "background": "rgba(0, 176, 255, .08)",
+            "border": "rgba(0, 176, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(0, 176, 255, .4), 0 0 16px rgba(0, 176, 255, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "circuit-breaker",
+        "title": "Circuit Breaker Pattern",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Resilience",
+            "Microservices"
+        ],
+        "description": "Prevent cascading failures in distributed systems. Visualize closed, open, and half-open states with retry logic.",
+        "icon": "⚡",
+        "link": "#",
+        "color": "pink",
+        "colorConfig": {
+            "primary": "#ff4081",
+            "background": "rgba(255, 64, 129, .08)",
+            "border": "rgba(255, 64, 129, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 64, 129, .4), 0 0 16px rgba(255, 64, 129, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "service-discovery",
+        "title": "Service Discovery",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Microservices",
+            "Networking"
+        ],
+        "description": "How services find and communicate with each other. Client-side vs server-side discovery, service registries, and health checks.",
+        "icon": "🔍",
+        "link": "#",
+        "color": "purple",
+        "colorConfig": {
+            "primary": "#e040fb",
+            "background": "rgba(224, 64, 251, .08)",
+            "border": "rgba(224, 64, 251, .15)",
+            "hoverShadow": "0 0 32px rgba(224, 64, 251, .4), 0 0 16px rgba(224, 64, 251, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "proxy-reverse-proxy",
+        "title": "Proxy vs Reverse Proxy",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Networking",
+            "Security"
+        ],
+        "description": "Forward proxies protect clients, reverse proxies protect servers. Visualize traffic flow, caching, and SSL termination.",
+        "icon": "🔀",
+        "link": "#",
+        "color": "yellow",
+        "colorConfig": {
+            "primary": "#ffff00",
+            "background": "rgba(255, 255, 0, .08)",
+            "border": "rgba(255, 255, 0, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 255, 0, .4), 0 0 16px rgba(255, 255, 0, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
     }
 ]
