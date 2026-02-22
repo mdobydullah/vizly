@@ -105,6 +105,21 @@ Each numbered rule in `.agent/rules/` ensures the AI stays within project bounda
 If the AI is struggling with the UI, point it to a high-quality existing guide:
 > "Look at `src/components/guides/infrastructure/LoadBalancingGuide.tsx` as a golden reference for this layout."
 
+### Examples
+
+**For any IDE / model:**
+> Please read `.agent/README.md` and follow all files in `.agent/rules/` before starting.
+>
+> Topic: Event-Driven Architecture
+>
+> *(Then any extra optional instructions)*
+
+**For Antigravity:**
+> /new-guide
+>
+> Topic: Event-Driven Architecture
+>
+> *(Then any extra optional instructions)*
 
 ## Summary Checklist
 - [ ] Added profile to `src/data/contributors/`
