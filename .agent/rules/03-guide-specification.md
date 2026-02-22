@@ -7,7 +7,7 @@ This rule defines the functional requirements for a "Vizly Guide".
 - **Pattern Grid**: 4-6 interactive cards explaining sub-concepts.
 - **Mermaid Diagram**: Static "Architecture-as-Code" diagram before the interactive section.
 - **Animated Flow**: The centerpiece. Must have:
-  - 3-5 switchable tabs (Algorithm variants).
+  - 3-5 switchable tabs (Algorithm variants). For the tab controls, always use a flex wrap layout with rounded, bordered buttons that have hover/active states with themed glowing box-shadows (e.g. `.eda-tab-btn` styles). Do not use an inline pill background for the container.
   - Visual nodes with state (Idle, Processing, Success, Error).
   - Step-by-step logic explanation text.
   - Replay/Flow control functionality.
