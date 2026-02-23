@@ -5,11 +5,28 @@ import { Twitter, Github, Linkedin, Heart, Settings } from "lucide-react";
 import { config } from "@/lib/config";
 import { useSettings } from "@/context/SettingsContext";
 
-import topics from "@/data/common/footer-topics.json";
+import { useMemo } from "react";
+import { guidesData } from "@/data/guides";
 import vizlyLinks from "@/data/common/footer-vizly.json";
 
 export default function Footer() {
     const { setIsSettingsOpen } = useSettings();
+
+    // Pick 4 random guides once on page load — partial Fisher-Yates (O(1), safe for any dataset size)
+    const randomTopics = useMemo(() => {
+        const guides = guidesData.guides;
+        const len = guides.length;
+        const picked: typeof guides = [];
+        const usedIndices = new Set<number>();
+        while (picked.length < Math.min(4, len)) {
+            const idx = Math.floor(Math.random() * len);
+            if (!usedIndices.has(idx)) {
+                usedIndices.add(idx);
+                picked.push(guides[idx]);
+            }
+        }
+        return picked.map((g) => ({ name: g.title, href: g.link }));
+    }, []);
 
     return (
         <footer style={{
@@ -81,7 +98,7 @@ export default function Footer() {
                         letterSpacing: '.02em'
                     }}>Topics</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
-                        {topics.map((topic) => (
+                        {randomTopics.map((topic) => (
                             <Link
                                 key={topic.name}
                                 href={topic.href}
