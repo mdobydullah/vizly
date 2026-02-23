@@ -1,0 +1,275 @@
+/* src/styles/guides/infrastructure/service-discovery.css */
+
+.sd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.sd-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+}
+
+.sd-card-header {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-bottom: 1rem;
+}
+
+.sd-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--card-icon-bg, rgba(224, 64, 251, .08));
+    border: 1px solid var(--card-icon-border, rgba(224, 64, 251, .2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.sd-card-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-hi);
+}
+
+.sd-card-desc {
+    font-size: .78rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.sd-card-stats {
+    display: flex;
+    gap: .8rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.sd-stat-chip {
+    font-size: .68rem;
+    font-family: var(--font-mono);
+    padding: .2em .6em;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+}
+
+.sd-stat-chip.hi {
+    border-color: var(--card-color, var(--purple));
+    color: var(--card-color, var(--purple));
+    background: var(--card-glow, rgba(224, 64, 251, .05));
+}
+
+/* Visualization Styles */
+.sd-flow-section {
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.sd-viz-container {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.sd-discovery-model {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 2rem;
+}
+
+/* Registry Node */
+.sd-registry-node {
+    background: var(--surface2);
+    border: 3px solid var(--purple);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    min-width: 220px;
+    box-shadow: 0 0 30px rgba(224, 64, 251, 0.15);
+}
+
+.sd-registry-node.active {
+    animation: registry-pulse 1.5s infinite;
+}
+
+@keyframes registry-pulse {
+    0% {
+        box-shadow: 0 0 20px rgba(224, 64, 251, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(224, 64, 251, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(224, 64, 251, 0.1);
+    }
+}
+
+.sd-registry-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--purple);
+    margin-bottom: 0.8rem;
+}
+
+.sd-registry-table {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sd-registry-table td {
+    padding: 0.4rem;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+}
+
+.sd-registry-table tr.active td {
+    color: var(--purple);
+    background: rgba(224, 64, 251, 0.05);
+}
+
+/* Service Nodes */
+.sd-nodes-row {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sd-node {
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    border-radius: 12px;
+    padding: 1rem;
+    min-width: 140px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.sd-node.active {
+    border-color: var(--purple);
+    background: rgba(224, 64, 251, 0.08);
+    transform: translateY(-5px);
+}
+
+.sd-node.healthy {
+    border-color: var(--green);
+}
+
+.sd-node.unhealthy {
+    border-color: var(--red);
+    opacity: 0.6;
+}
+
+.sd-node-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.sd-node-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* Connectors and Animations */
+.sd-connector-line {
+    position: absolute;
+    background: var(--border2);
+    transition: all 0.3s;
+    z-index: 0;
+}
+
+.sd-connector-line.active {
+    background: var(--purple);
+    box-shadow: 0 0 10px var(--purple);
+}
+
+/* Step list */
+.sd-flow-steps {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+.sd-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0.2;
+    transition: all 0.3s;
+}
+
+.sd-step.active {
+    opacity: 1;
+}
+
+.sd-step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.sd-step.active .sd-step-num {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: rgba(224, 64, 251, 0.1);
+}
+
+.sd-step-text {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.sd-step.active .sd-step-text {
+    color: var(--text-hi);
+}
+
+@media (max-width: 768px) {
+    .sd-grid {
+        grid-template-columns: 1fr;
+    }
+}

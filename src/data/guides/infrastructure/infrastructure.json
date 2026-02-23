@@ -194,7 +194,7 @@
         ],
         "description": "How services find and communicate with each other. Client-side vs server-side discovery, service registries, and health checks.",
         "icon": "🔍",
-        "link": "#",
+        "link": "/guides/service-discovery",
         "color": "purple",
         "colorConfig": {
             "primary": "#e040fb",
@@ -202,8 +202,8 @@
             "border": "rgba(224, 64, 251, .15)",
             "hoverShadow": "0 0 32px rgba(224, 64, 251, .4), 0 0 16px rgba(224, 64, 251, .2)"
         },
-        "createdAt": "2026-02-23T18:59:00Z",
-        "updatedAt": "2026-02-23T18:02:00Z",
+        "createdAt": "2026-02-23T17:19:32Z",
+        "updatedAt": "2026-02-23T17:19:32Z",
         "contributors": "obydul"
     },
     {
