@@ -33,7 +33,7 @@
         ],
         "description": "Horizontally partition data across multiple databases. Learn sharding strategies, consistent hashing, and rebalancing techniques.",
         "icon": "🧩",
-        "link": "#",
+        "link": "/guides/database-sharding",
         "color": "purple",
         "colorConfig": {
             "primary": "#7c4dff",
@@ -41,8 +41,8 @@
             "border": "rgba(124, 77, 255, .15)",
             "hoverShadow": "0 0 32px rgba(124, 77, 255, .4), 0 0 16px rgba(124, 77, 255, .2)"
         },
-        "createdAt": "2026-02-22T18:59:00Z",
-        "updatedAt": "2026-02-22T18:59:00Z",
+        "createdAt": "2026-02-23T05:15:00Z",
+        "updatedAt": "2026-02-23T05:15:00Z",
         "contributors": "obydul"
     },
     {
@@ -87,8 +87,8 @@
             "border": "rgba(255, 171, 0, .15)",
             "hoverShadow": "0 0 32px rgba(255, 171, 0, .4), 0 0 16px rgba(255, 171, 0, .2)"
         },
-        "createdAt": "2026-02-23T19:10:00Z",
-        "updatedAt": "2026-02-23T19:20:00Z",
+        "createdAt": "2026-02-23T01:01:00Z",
+        "updatedAt": "2026-02-23T01:01:00Z",
         "contributors": "obydul"
     }
 ]

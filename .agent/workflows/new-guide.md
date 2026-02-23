@@ -6,7 +6,6 @@ description: Process for creating a new high-utility animated guide
    - Ask the user which technical topic to visualize (e.g., Database Indexing, Service Discovery, GRPC).
    - Read `.agent/README.md` for project context.
    - Read all files in `.agent/rules/` for design, architecture, and specification requirements.
-   - Read `src/data/guides/index.ts` to identify the correct category and check for existing IDs.
 
 2. **Data & Metadata Setup**:
    - Assign a unique ID to the new guide.
@@ -25,9 +24,3 @@ description: Process for creating a new high-utility animated guide
    - Export the new guide component.
    - Register the guide in the main routing/mapping logic in `src/components/guides/index.tsx`.
    - Verify that the URL slug matches the guide ID.
-
-5. **Quality Assurance**:
-   - Verify the "Settings" button functionality.
-   - Test "Play/Replay" logic for animations.
-   - Check responsiveness on mobile viewports.
-   - Run a final check against the **Content Checklist in Rule 03**.

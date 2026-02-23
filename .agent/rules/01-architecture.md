@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Rule 01: Architecture & Data Flow
 
 ## 1. Directory Mapping
@@ -22,7 +26,7 @@ Use these files as the "Gold Standard" for implementation:
 - `src/components/guides/performance/CachingStrategiesGuide.tsx` (Clean grid implementation)
 - `src/components/guides/auth/JwtGuide.tsx` (Simple flow structure)
 
-## 4. Metadata Best Practices
+## 4. Metadata Best Practices (musr do)
 - **ID Consistency**: Ensure the `id` used in `find()` matches exactly with the one in metadata JSON.
 - **Timestamps**: When creating or updating metadata, ALWAYS set `createdAt` and `updatedAt` to the current UTC time in ISO 8601 format with full hour and minute precision (e.g., `2026-02-19T09:57:32Z`). Never use midnight (`00:00:00Z`) as a placeholder.
 - **Icons**: Use descriptive emojis for the `icon` field.
