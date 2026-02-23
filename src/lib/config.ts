@@ -1,7 +1,7 @@
 export const config = {
   app: {
     name: "Vizly",
-    fullName: "Vizly — Interactive Engineering Guides",
+    fullName: "Vizly — Learn Through Visuals",
     description: "Animated guides to system design, security, and complex engineering concepts.",
   },
   urls: {

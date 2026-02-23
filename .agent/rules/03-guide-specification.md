@@ -17,7 +17,7 @@ This rule defines the functional requirements for a "Vizly Guide".
 - Render the Mermaid diagram only. Do NOT include a collapsible `details` block with the raw Mermaid source code.
 - Use `sequenceDiagram` for communication flows.
 - Use `flowchart TD` for structural/logic flows.
-- **Centering \u2014 REQUIRED**: Always wrap the Mermaid `<pre className="mermaid">` in a **dedicated topic-scoped CSS class** (e.g. `.[topic]-mermaid-wrap`). Never place it bare inside a generic `viz-card` alone.
+- **Centering — REQUIRED**: Always wrap the Mermaid `<pre className="mermaid">` in a **dedicated topic-scoped CSS class** (e.g. `.[topic]-mermaid-wrap`). Never place it bare inside a generic `viz-card` alone.
 - **The wrapper class must define**:
   ```css
   .[topic]-mermaid-wrap {
@@ -37,6 +37,18 @@ This rule defines the functional requirements for a "Vizly Guide".
       max-width: 100%;
       height: auto;
   }
+  ```
+- **Colored Nodes — REQUIRED**: Every Mermaid diagram MUST apply per-node `style` directives. Never leave nodes with the default gray/white Mermaid theme. Use the guide's accent colors (matching `colorConfig.primary` and the Vizly palette — `--cyan`, `--purple`, `--orange`, `--green`, etc.) for `fill`, `stroke`, and `color`. Example pattern:
+  ```
+  style NodeA fill:#1a1f2b,stroke:#00e5ff,color:#fff
+  style NodeB fill:#12161f,stroke:#7c4dff,color:#fff
+  style NodeC fill:#0d1117,stroke:#3effab,color:#aaa
+  ```
+  Use darker fills (`#0d1117`, `#12161f`, `#1a1f2b`) for the dark background, and bright accent strokes to make nodes pop. Distinguish different node roles by using different stroke colors.
+- **Syntax Safety — REQUIRED**: When node labels contain parentheses, arrows (`→`), or other special characters, always use the **quoted label form** (`["..."]` or `(["..."])`) instead of bare brackets. Inside quoted labels, use `\n` for line breaks and literal `()` — no backslash-escaping. Example:
+  ```
+  NodeA["B-Tree Index Scan\nO(log n)"]
+  NodeB(["✅ Result Returned"])
   ```
 
 ## 3. Interactivity Requirements

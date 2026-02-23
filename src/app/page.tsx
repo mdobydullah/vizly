@@ -184,7 +184,7 @@ export default function Home() {
             {/* Section Title */}
             <div className="viz-section-header">
                 <h2 className="viz-section-title">Latest Guides</h2>
-                <p className="viz-section-hint">Click any card to explore an animated, in-depth guide.</p>
+                <p className="viz-section-hint">Click any card to explore an interactive guide.</p>
             </div>
 
             {/* Cards Grid */}

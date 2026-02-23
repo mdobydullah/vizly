@@ -304,10 +304,10 @@ const MERMAID_CHART = `flowchart TD
     style RC fill:#0d1117,stroke:#ff9f1c,color:#aaa`;
 
 const RESOURCES = [
-    { title: 'Designing Data-Intensive Applications (DDIA) — Partitioning Chapter', type: 'book', url: 'https://dataintensive.net/' },
-    { title: 'Cassandra Consistent Hashing Docs', type: 'web', url: 'https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html' },
-    { title: 'Vitess Sharding Overview', type: 'web', url: 'https://vitess.io/docs/concepts/sharding/' },
-    { title: 'Database Sharding Explained by ByteByteGo', type: 'youtube', url: 'https://www.youtube.com/watch?v=5faMjKuB9bc' }
+    { title: 'Database Sharding Explained by ByteByteGo', type: 'youtube', url: 'https://www.youtube.com/watch?v=5faMjKuB9bc' },
+    { title: 'Database Sharding: A System Design Concept', type: 'web', url: 'https://www.geeksforgeeks.org/system-design/database-sharding-a-system-design-concept/' },
+    { title: 'Understanding Database Sharding', type: 'web', url: 'https://www.digitalocean.com/community/tutorials/understanding-database-sharding' },
+    { title: 'Cassandra Consistent Hashing Docs', type: 'web', url: 'https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html' }
 ];
 
 const SHARD_LABELS: Record<string, { label: string; range: string }> = {
