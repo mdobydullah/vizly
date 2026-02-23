@@ -20,6 +20,21 @@ The application uses a centralized data system:
   ```
 - This `guide` object must be passed to the `<GuideLayout>` component for attribution and metadata rendering.
 
+### Link Uniqueness Check — REQUIRED
+Before writing any new guide metadata, you MUST verify that the intended `link` slug does not already exist. Do this by running the following shell command against the JSON source files (no server or bundler needed):
+
+```bash
+grep -r '"link"' src/data/guides/ --include="*.json"
+```
+
+- Scan the output for the planned slug (e.g. `/guides/database-indexing`).
+- If it is **not present** → proceed with that slug.
+- If it **already exists** → derive a more specific slug that reflects the topic angle (e.g. `/guides/database-index-internals`), and update both the `link` field in the JSON **and** the component filename accordingly (`[TopicRelevant]Guide.tsx`).
+- The `id` field, the `link` slug, and the component filename must all stay in sync:
+  - `id`: `"database-index-internals"`
+  - `link`: `"/guides/database-index-internals"`
+  - `file`: `src/components/guides/database/DatabaseIndexInternalsGuide.tsx`
+
 ## 3. Reference Architecture
 Use these files as the "Gold Standard" for implementation:
 - `src/components/guides/infrastructure/LoadBalancingGuide.tsx` (Complex state & comparisons)
