@@ -1,0 +1,317 @@
+/* src/styles/guides/infrastructure/api-gateway.css */
+
+.gw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.gw-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+}
+
+.gw-card-header {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-bottom: 1rem;
+}
+
+.gw-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--card-icon-bg, rgba(0, 176, 255, .08));
+    border: 1px solid var(--card-icon-border, rgba(0, 176, 255, .2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.gw-card-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-hi);
+}
+
+.gw-card-desc {
+    font-size: .78rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.gw-card-stats {
+    display: flex;
+    gap: .8rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.gw-stat-chip {
+    font-size: .68rem;
+    font-family: var(--font-mono);
+    padding: .2em .6em;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+}
+
+.gw-stat-chip.hi {
+    border-color: var(--card-color, var(--blue));
+    color: var(--card-color, var(--blue));
+    background: var(--card-glow, rgba(0, 176, 255, .05));
+}
+
+/* Flow Diagram */
+.gw-flow-section {
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.gw-flow-diagram {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gw-request-path {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+/* Nodes */
+.gw-node {
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    font-size: .8rem;
+    font-weight: 700;
+    text-align: center;
+    transition: all .3s;
+    position: relative;
+    z-index: 2;
+    min-width: 180px;
+}
+
+.gw-node.active {
+    border-color: var(--blue);
+    background: rgba(0, 176, 255, .08);
+    color: var(--blue);
+    box-shadow: 0 0 25px rgba(0, 176, 255, .25);
+    transform: scale(1.05);
+}
+
+.gw-node.processing {
+    border-color: var(--purple);
+    background: rgba(224, 64, 251, .08);
+    color: var(--purple);
+    box-shadow: 0 0 25px rgba(224, 64, 251, .2);
+}
+
+.gw-node.error {
+    border-color: var(--red);
+    background: rgba(255, 83, 112, .08);
+    color: var(--red);
+    box-shadow: 0 0 25px rgba(255, 83, 112, .2);
+}
+
+/* Middleware stack */
+.gw-middleware-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin: 1.5rem 0;
+    padding: 1.2rem;
+    border: 2px dashed var(--border2);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+    width: 100%;
+    max-width: 320px;
+}
+
+.gw-middleware-node {
+    padding: 0.7rem;
+    font-size: 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    transition: all .2s;
+}
+
+.gw-middleware-node.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0, 217, 255, 0.05);
+}
+
+/* Service Pool */
+.gw-service-pool {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.gw-service-node {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.75rem;
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    border-radius: 10px;
+    min-width: 110px;
+    text-align: center;
+    transition: all .3s;
+}
+
+.gw-service-node.active {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(62, 255, 163, .08);
+    box-shadow: 0 0 20px rgba(62, 255, 163, .15);
+}
+
+/* Arrows */
+.gw-connector {
+    width: 2px;
+    height: 30px;
+    background: var(--border2);
+    position: relative;
+    transition: all .3s;
+}
+
+.gw-connector.active {
+    background: var(--blue);
+    box-shadow: 0 0 10px var(--blue);
+}
+
+.gw-arrow {
+    text-align: center;
+    color: var(--border2);
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+    transition: all .3s;
+}
+
+.gw-arrow.active {
+    color: var(--blue);
+    transform: translateY(4px);
+}
+
+/* Step list */
+.gw-flow-steps {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+.gw-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0.2;
+    transition: all 0.3s;
+}
+
+.gw-step.active {
+    opacity: 1;
+}
+
+.gw-step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.gw-step.active .gw-step-num {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: rgba(0, 176, 255, 0.1);
+}
+
+.gw-step-text {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.gw-step.active .gw-step-text {
+    color: var(--text-hi);
+}
+
+/* Responsibilities grid */
+.gw-resp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.gw-resp-card {
+    background: #0e1219;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.gw-resp-card:hover {
+    transform: translateY(-4px);
+}
+
+.gw-resp-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--blue);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gw-resp-desc {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .gw-grid {
+        grid-template-columns: 1fr;
+    }
+    .gw-middleware-stack {
+        max-width: 100%;
+    }
+}

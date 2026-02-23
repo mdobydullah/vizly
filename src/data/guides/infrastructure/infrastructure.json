@@ -146,9 +146,9 @@
             "API",
             "Microservices"
         ],
-        "description": "Single entry point for all client requests. Handles routing, authentication, rate limiting, and request aggregation.",
+        "description": "API Gateway is a single entry point for all client requests. It handles routing, authentication, rate limiting, and request aggregation.",
         "icon": "🚪",
-        "link": "#",
+        "link": "/guides/api-gateway",
         "color": "blue",
         "colorConfig": {
             "primary": "#00b0ff",
@@ -156,8 +156,8 @@
             "border": "rgba(0, 176, 255, .15)",
             "hoverShadow": "0 0 32px rgba(0, 176, 255, .4), 0 0 16px rgba(0, 176, 255, .2)"
         },
-        "createdAt": "2026-02-22T18:59:00Z",
-        "updatedAt": "2026-02-22T18:59:00Z",
+        "createdAt": "2026-02-23T17:01:16Z",
+        "updatedAt": "2026-02-23T17:01:16Z",
         "contributors": "obydul"
     },
     {
