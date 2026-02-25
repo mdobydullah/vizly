@@ -201,7 +201,7 @@ const RESOURCES = [
 // MAIN COMPONENT
 // ════════════════════════════════════════
 
-export function OopGuide({ codeBlock }: Readonly<{ codeBlock?: React.ReactNode }>) {
+export function OopGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [replayCount, setReplayCount] = useState(0);
     const [activePillar, setActivePillar] = useState<PillarId>('encapsulation');
@@ -539,13 +539,6 @@ classDiagram
                     ))}
                 </div>
             </div>
-
-            {/* ═══════════ CODE SNIPPET ═══════════ */}
-            <div className="viz-section-header" style={{ marginTop: '3rem' }}>
-                <h2 className="viz-section-title">Code Reference</h2>
-                <p className="viz-section-hint">All four pillars illustrated in TypeScript</p>
-            </div>
-            {codeBlock ?? null}
 
             {/* ═══════════ COMPARISON TABLE ═══════════ */}
             <div className="viz-section-header" style={{ marginTop: '3rem' }}>
