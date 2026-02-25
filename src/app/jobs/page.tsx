@@ -76,7 +76,7 @@ function JobsContent() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <div className="viz-section-header">
-                <h2 className="viz-section-title">Jobs</h2>
+                <h2 className="viz-section-title">Jobs Directory</h2>
                 <p className="viz-section-hint">A curated directory of top job boards, specialized platforms, and company hubs.</p>
             </div>
 

@@ -204,7 +204,7 @@
     align-items: center;
     gap: 0;
     position: relative;
-    min-height: 360px;
+    min-height: 260px;
 }
 
 .oop-class-row {
@@ -384,7 +384,7 @@
     flex-direction: column;
     gap: 0.45rem;
     max-width: 600px;
-    margin: 2rem auto 0;
+    margin: 1.5rem auto 0;
 }
 
 .oop-step-row {
