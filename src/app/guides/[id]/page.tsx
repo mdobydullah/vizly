@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { config } from "@/lib/config";
 import guidesData from "@/data/guides";
 import { guideComponents } from '@/components/guides';
+import { CodeBlock } from '@/components/ui/CodeBlock';
+import { OOP_CODE } from '@/components/guides/programming/oop.code';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -43,7 +45,10 @@ export default async function GuidePage({ params }: Props) {
         notFound();
     }
 
-    return <GuideComponent />;
+    // Pre-render Shiki code blocks for guides that need them
+    const codeBlock = id === 'oop'
+        ? await CodeBlock({ code: OOP_CODE, lang: 'typescript', label: 'TypeScript' })
+        : undefined;
+
+    return <GuideComponent codeBlock={codeBlock} />;
 }
-
-

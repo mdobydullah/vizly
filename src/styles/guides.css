@@ -123,3 +123,108 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(62, 255, 163, 0.3);
 }
+
+/* ════════════════════════════════════════
+   SHARED CODE BLOCK
+   • Manual spans:  use .kw .cl .fn .st .cm .nm children
+   • Shiki output:  use <CodeBlock> Server Component → src/components/ui/CodeBlock.tsx
+   Language label:  <span className="viz-code-label">TypeScript</span>
+════════════════════════════════════════ */
+.viz-code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 500px;
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+}
+
+/* Language badge — first child of .viz-code-block */
+.viz-code-label {
+    position: absolute;
+    top: 0.7rem;
+    right: 1rem;
+    font-size: 0.62rem;
+    color: #4d5a6e;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ── Manual span token colours (short / inline snippets) ── */
+.viz-code-block .kw {
+    color: #7c4dff;
+    font-weight: 700;
+}
+
+/* keyword / modifier */
+.viz-code-block .cl {
+    color: #00e5ff;
+}
+
+/* class name         */
+.viz-code-block .fn {
+    color: #1de9b6;
+}
+
+/* function / method  */
+.viz-code-block .st {
+    color: #ff9f43;
+}
+
+/* string literal     */
+.viz-code-block .cm {
+    color: #4d5a6e;
+    font-style: italic;
+}
+
+/* comment            */
+.viz-code-block .nm {
+    color: #ff4081;
+}
+
+/* number / constant  */
+
+/* ── Shiki output reset ──
+   Shiki injects inline background-color on <pre>. We kill it so our
+   container background (#0d1117) always wins.                           */
+.viz-shiki-inner {
+    display: contents;
+    /* transparent wrapper — adds no extra box */
+}
+
+.viz-shiki-inner pre {
+    background: transparent !important;
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    tab-size: 4;
+    overflow: visible;
+    /* outer .viz-code-block handles horizontal scroll */
+}
+
+.viz-shiki-inner pre code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: transparent !important;
+}
+
+/* Shiki wraps each source line in <span class="line"> */
+.viz-shiki-inner .line {
+    display: block;
+    min-height: 1.5em;
+    /* preserve blank lines */
+}

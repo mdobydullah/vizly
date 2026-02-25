@@ -1,0 +1,25 @@
+[
+    {
+        "id": "oop",
+        "title": "Object-Oriented Programming",
+        "category": "Programming",
+        "tags": [
+            "Programming",
+            "OOP",
+            "Design Patterns"
+        ],
+        "description": "Master the four pillars of OOP — Encapsulation, Abstraction, Inheritance, and Polymorphism — with interactive visualizations and real-world examples.",
+        "icon": "🧩",
+        "link": "/guides/oop",
+        "color": "deep-purple",
+        "colorConfig": {
+            "primary": "#7c4dff",
+            "background": "rgba(124, 77, 255, .08)",
+            "border": "rgba(124, 77, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(124, 77, 255, .4), 0 0 16px rgba(124, 77, 255, .2)"
+        },
+        "createdAt": "2026-02-25T18:38:15Z",
+        "updatedAt": "2026-02-25T18:38:15Z",
+        "contributors": "obydul"
+    }
+]
