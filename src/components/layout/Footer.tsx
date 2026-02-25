@@ -7,7 +7,13 @@ import { useSettings } from "@/context/SettingsContext";
 
 import { useMemo } from "react";
 import { guidesData } from "@/data/guides";
-import vizlyLinks from "@/data/common/footer-vizly.json";
+
+const vizlyLinks = [
+    { name: "About", href: "/about" },
+    { name: "Jobs", href: "/jobs" },
+    { name: "GitHub", href: config.urls.githubRepo, isExternal: true },
+    { name: "How to Contribute", href: `${config.urls.githubRepo}/blob/main/.docs/contribute.md`, isExternal: true }
+];
 
 export default function Footer() {
     const { setIsSettingsOpen } = useSettings();
@@ -201,7 +207,7 @@ export default function Footer() {
                     >
                         <Settings size={14} />
                     </button>
-                    <a href="https://www.linkedin.com/in/obydul/" target="_blank" rel="noopener noreferrer" style={{
+                    <a href={config.urls.linkedin} target="_blank" rel="noopener noreferrer" style={{
                         width: '28px',
                         height: '28px',
                         borderRadius: '6px',
@@ -217,7 +223,7 @@ export default function Footer() {
                     }} className="social-btn" aria-label="LinkedIn">
                         <Linkedin size={14} />
                     </a>
-                    <a href="https://x.com/0xObydul" target="_blank" rel="noopener noreferrer" style={{
+                    <a href={config.urls.twitter} target="_blank" rel="noopener noreferrer" style={{
                         width: '28px',
                         height: '28px',
                         borderRadius: '6px',
@@ -233,7 +239,7 @@ export default function Footer() {
                     }} className="social-btn" aria-label="Twitter">
                         <Twitter size={14} />
                     </a>
-                    <a href="https://github.com/mdobydullah" target="_blank" rel="noopener noreferrer" style={{
+                    <a href={config.urls.github} target="_blank" rel="noopener noreferrer" style={{
                         width: '28px',
                         height: '28px',
                         borderRadius: '6px',

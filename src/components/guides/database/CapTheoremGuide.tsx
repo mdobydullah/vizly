@@ -307,6 +307,7 @@ export function CapTheoremGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/database/CapTheoremGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

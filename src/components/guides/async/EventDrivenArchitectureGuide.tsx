@@ -276,6 +276,7 @@ export function EventDrivenArchitectureGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/async/EventDrivenArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

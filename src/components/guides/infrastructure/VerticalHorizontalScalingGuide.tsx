@@ -29,6 +29,7 @@ export function VerticalHorizontalScalingGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/VerticalHorizontalScalingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

@@ -110,6 +110,7 @@ export function StatefulStatelessGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/StatefulStatelessArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

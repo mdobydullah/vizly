@@ -17,6 +17,7 @@ const RESOURCES = [
 export function OauthGuide() {
     return (
         <GuideLayout
+            githubPath="src/components/guides/auth/OauthGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

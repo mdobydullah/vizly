@@ -113,6 +113,7 @@ export function CdnGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/CdnGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

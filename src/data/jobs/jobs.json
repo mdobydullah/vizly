@@ -1,0 +1,72 @@
+[
+    {
+        "id": "remote-in-tech",
+        "title": "Remote in Tech",
+        "url": "https://remoteintech.company/",
+        "description": "List of semi to fully remote-friendly tech companies.",
+        "category": "Remote"
+    },
+    {
+        "id": "y-combinator",
+        "title": "Y Combinator",
+        "url": "https://www.ycombinator.com/jobs",
+        "description": "Jobs at top Y Combinator startup companies.",
+        "category": "Startups"
+    },
+    {
+        "id": "linkedin",
+        "title": "LinkedIn",
+        "url": "https://www.linkedin.com/jobs",
+        "description": "The world's largest professional network with comprehensive job listings.",
+        "category": "General"
+    },
+    {
+        "id": "trueup",
+        "title": "TrueUp",
+        "url": "https://www.trueup.io/",
+        "description": "Track the tech job market and find open roles at top startups and big tech.",
+        "category": "Tech"
+    },
+    {
+        "id": "xing",
+        "title": "Xing",
+        "url": "https://www.xing.com/en",
+        "description": "The leading online business network in German-speaking countries.",
+        "category": "General"
+    },
+    {
+        "id": "wellfound",
+        "title": "Wellfound (AngelList)",
+        "url": "https://wellfound.com/",
+        "description": "Find tech and startup jobs you can't find anywhere else.",
+        "category": "Startups"
+    },
+    {
+        "id": "remote-ok",
+        "title": "Remote OK",
+        "url": "https://remoteok.com/",
+        "description": "Find a remote job and work from anywhere.",
+        "category": "Remote"
+    },
+    {
+        "id": "otta",
+        "title": "Otta",
+        "url": "https://otta.com/",
+        "description": "The better way to find a job in tech, matched to your preferences.",
+        "category": "Tech"
+    },
+    {
+        "id": "himalayas",
+        "title": "Himalayas",
+        "url": "https://himalayas.app/",
+        "description": "Experience the remote ecosystem and find your next remote job.",
+        "category": "Remote"
+    },
+    {
+        "id": "weworkremotely",
+        "title": "We Work Remotely",
+        "url": "https://weworkremotely.com/",
+        "description": "The largest remote work community in the world.",
+        "category": "Remote"
+    }
+]

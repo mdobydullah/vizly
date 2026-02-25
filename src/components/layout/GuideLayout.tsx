@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import mermaid from 'mermaid';
 import { Contributor } from '@/types/guides';
 import { Github, Twitter, Linkedin, Globe, Mail, ExternalLink, ArrowUp } from 'lucide-react';
+import { config } from '@/lib/config';
 
 interface GuideLayoutProps {
     category: string;
@@ -14,6 +15,7 @@ interface GuideLayoutProps {
     onReplay?: () => void;
     children: React.ReactNode;
     contributors?: Contributor[];
+    githubPath?: string;
 }
 
 export function GuideLayout({
@@ -22,7 +24,8 @@ export function GuideLayout({
     description,
     primaryColor = 'var(--cyan)',
     children,
-    contributors
+    contributors,
+    githubPath,
 }: Readonly<GuideLayoutProps>) {
 
     // Scroll to top and Initialize Visual environment
@@ -353,6 +356,33 @@ export function GuideLayout({
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Contribute Link */}
+            <div style={{
+                textAlign: 'center',
+                marginTop: '1rem',
+                paddingBottom: '2rem'
+            }}>
+                <a
+                    href={`${config.urls.githubRepo}/${githubPath ? 'blob/main/' + githubPath : 'tree/main/src/data/guides'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        fontSize: '.85rem',
+                        color: 'var(--text-dim)',
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '.5rem',
+                        transition: 'color .2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = primaryColor}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-dim)'}
+                >
+                    <span>Found an issue? Edit this page on GitHub</span>
+                    <span style={{ fontSize: '1rem' }}>↗</span>
+                </a>
             </div>
 
             <style jsx>{`

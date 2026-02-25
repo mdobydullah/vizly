@@ -194,6 +194,7 @@ export function CachingStrategiesGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/performance/CachingStrategiesGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

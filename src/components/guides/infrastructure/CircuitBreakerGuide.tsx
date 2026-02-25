@@ -246,6 +246,7 @@ export function CircuitBreakerGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/CircuitBreakerGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { config } from "@/lib/config";
 
 export default function Header() {
     return (
@@ -72,8 +73,18 @@ export default function Header() {
                     }} className="nav-link">
                         Guides
                     </Link>
+                    <Link href="/jobs" style={{
+                        color: 'var(--text-dim)',
+                        fontSize: '.8rem',
+                        textDecoration: 'none',
+                        fontFamily: 'var(--font-mono)',
+                        transition: 'color .2s',
+                        cursor: 'pointer'
+                    }} className="nav-link">
+                        Jobs
+                    </Link>
                     <button
-                        onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
+                        onClick={() => window.open(config.urls.githubRepo, '_blank')}
                         style={{
                             background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
                             color: '#000',

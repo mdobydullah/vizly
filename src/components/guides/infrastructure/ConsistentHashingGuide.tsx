@@ -295,6 +295,7 @@ export function ConsistentHashingGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/ConsistentHashingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

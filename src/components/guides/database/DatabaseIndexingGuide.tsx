@@ -377,6 +377,7 @@ export function DatabaseIndexingGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/database/DatabaseIndexingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

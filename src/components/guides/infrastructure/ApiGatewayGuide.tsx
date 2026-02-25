@@ -122,6 +122,7 @@ export function ApiGatewayGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/ApiGatewayGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

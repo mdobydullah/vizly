@@ -252,6 +252,7 @@ export function MessageQueuesGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/async/MessageQueuesGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

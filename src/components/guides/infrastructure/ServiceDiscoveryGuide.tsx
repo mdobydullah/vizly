@@ -123,6 +123,7 @@ export function ServiceDiscoveryGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/ServiceDiscoveryGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

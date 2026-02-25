@@ -369,6 +369,7 @@ export function DatabaseShardingGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/database/DatabaseShardingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

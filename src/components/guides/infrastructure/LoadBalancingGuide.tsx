@@ -232,6 +232,7 @@ export function LoadBalancingGuide() {
 
     return (
         <GuideLayout
+            githubPath="src/components/guides/infrastructure/LoadBalancingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

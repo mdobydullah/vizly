@@ -3,6 +3,7 @@
 import { GuideCard } from "@/components/home/GuideCard";
 import guidesData from "@/data/guides";
 import { useRouter } from "next/navigation";
+import { config } from "@/lib/config";
 
 const data = guidesData;
 
@@ -101,7 +102,7 @@ export default function Home() {
                         All Guides →
                     </button>
                     <button
-                        onClick={() => window.open('https://github.com/mdobydullah/vizly', '_blank')}
+                        onClick={() => window.open(config.urls.githubRepo, '_blank')}
                         style={{
                             display: 'none',
                             background: 'transparent',

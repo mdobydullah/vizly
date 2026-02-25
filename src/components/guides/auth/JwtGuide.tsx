@@ -17,6 +17,7 @@ const RESOURCES = [
 export function JwtGuide() {
     return (
         <GuideLayout
+            githubPath="src/components/guides/auth/JwtGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}
