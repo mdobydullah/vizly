@@ -40,6 +40,8 @@ Use these files as the "Gold Standard" for implementation:
 - `src/components/guides/infrastructure/LoadBalancingGuide.tsx` (Complex state & comparisons)
 - `src/components/guides/performance/CachingStrategiesGuide.tsx` (Clean grid implementation)
 - `src/components/guides/auth/JwtGuide.tsx` (Simple flow structure)
+- `src/components/guides/programming/OopGuide.tsx` (Step-by-step diagram progressions)
+- `src/components/guides/programming/BigONotationGuide.tsx` (Interactive sandbox animations)
 
 ## 4. Metadata Best Practices (musr do)
 - **ID Consistency**: Ensure the `id` used in `find()` matches exactly with the one in metadata JSON.
