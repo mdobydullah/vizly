@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Youtube, Globe, BookOpen, ExternalLink, Play, RotateCcw } from 'lucide-react';
+import { Youtube, Globe, BookOpen, ExternalLink, Play, RotateCcw, Settings } from 'lucide-react';
 import { guidesData } from "@/data/guides";
 import { GuideLayout } from '@/components/layout/GuideLayout';
+import { useSettings } from "@/context/SettingsContext";
 import '@/styles/guides/programming/big-o-notation.css';
 
 const guide = guidesData.guides.find(v => v.id === "big-onotation")!;
@@ -14,13 +15,18 @@ const RESOURCES = [
     { title: "Time and Space Complexity", type: "web", url: "https://www.hackerearth.com/practice/basic-programming/complexity-analysis/time-and-space-complexity/tutorial/" },
 ];
 
-type AlgorithmMode = 'O(1)' | 'O(n)' | 'O(n^2)';
+type AlgorithmMode = 'O(1)' | 'O(log n)' | 'O(n)' | 'O(n log n)' | 'O(n^2)' | 'O(2^n)' | 'O(n!)';
 
 const INITIAL_ARRAY_O_1 = [42, 17, 8, 99, 23, 11, 5, 88];
+const INITIAL_ARRAY_O_LOG_N = [11, 22, 33, 44, 55, 66, 77, 88]; // Target: 88
 const INITIAL_ARRAY_O_N = [12, 34, 56, 78, 90, 23, 45, 99]; // Searching for 99
+const INITIAL_ARRAY_O_N_LOG_N = [8, 4, 6, 2, 7, 3, 5, 1]; // Merge sort
 const INITIAL_ARRAY_O_N2 = [8, 7, 6, 5, 4, 3, 2, 1]; // Worst case for bubble sort
+const INITIAL_ARRAY_O_2N = [1, 2, 3, 4]; // Subsets (2^4 = 16)
+const INITIAL_ARRAY_O_N_FACT = [1, 2, 3, 4]; // Permutations (4! = 24)
 
 export function BigONotationGuide() {
+    const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [mode, setMode] = useState<AlgorithmMode>('O(1)');
     const [array, setArray] = useState<number[]>(INITIAL_ARRAY_O_1);
 
@@ -51,8 +57,12 @@ export function BigONotationGuide() {
         setSortedIndices([]);
 
         if (newMode === 'O(1)') setArray([...INITIAL_ARRAY_O_1]);
+        else if (newMode === 'O(log n)') setArray([...INITIAL_ARRAY_O_LOG_N]);
         else if (newMode === 'O(n)') setArray([...INITIAL_ARRAY_O_N]);
+        else if (newMode === 'O(n log n)') setArray([...INITIAL_ARRAY_O_N_LOG_N]);
         else if (newMode === 'O(n^2)') setArray([...INITIAL_ARRAY_O_N2]);
+        else if (newMode === 'O(2^n)') setArray([...INITIAL_ARRAY_O_2N]);
+        else if (newMode === 'O(n!)') setArray([...INITIAL_ARRAY_O_N_FACT]);
     };
 
     const playVisualization = () => {
@@ -60,7 +70,7 @@ export function BigONotationGuide() {
         resetVisualization(mode);
         setIsPlaying(true);
 
-        const BASE_SPEED = 400;
+        const BASE_SPEED = 400 * animationSpeed;
 
         if (mode === 'O(1)') {
             // O(1): Access array[0]
@@ -134,6 +144,141 @@ export function BigONotationGuide() {
                 setActiveIndices([]);
                 setIsPlaying(false);
             }, BASE_SPEED * step));
+        }
+        else if (mode === 'O(log n)') {
+            let step = 0;
+            let left = 0;
+            let right = INITIAL_ARRAY_O_LOG_N.length - 1;
+            let target = 88;
+
+            const searchStep = (l: number, r: number) => {
+                if (l > r) {
+                    timeoutsRef.current.push(setTimeout(() => {
+                        setIsPlaying(false);
+                    }, BASE_SPEED * step));
+                    return;
+                }
+
+                const mid = Math.floor((l + r) / 2);
+
+                timeoutsRef.current.push(setTimeout(() => {
+                    setActiveIndices([mid]);
+                    setOperations(prev => prev + 1);
+                }, BASE_SPEED * step));
+                step += 1.5;
+
+                if (INITIAL_ARRAY_O_LOG_N[mid] === target) {
+                    timeoutsRef.current.push(setTimeout(() => {
+                        setSortedIndices([mid]);
+                        setIsPlaying(false);
+                    }, BASE_SPEED * step));
+                } else if (INITIAL_ARRAY_O_LOG_N[mid] < target) {
+                    searchStep(mid + 1, r);
+                } else {
+                    searchStep(l, mid - 1);
+                }
+            };
+
+            searchStep(left, right);
+        }
+        else if (mode === 'O(n log n)') {
+            let step = 0;
+            let currentArray = [...INITIAL_ARRAY_O_N_LOG_N];
+
+            // Simplified visual representation of merge sort splitting
+            const chunks = [
+                [0, 1, 2, 3, 4, 5, 6, 7], // 8
+                [0, 1, 2, 3], [4, 5, 6, 7], // 4 4
+                [0, 1], [2, 3], [4, 5], [6, 7], // 2 2 2 2
+                [0], [1], [2], [3], [4], [5], [6], [7] // 1 1 1 1 1 1 1 1
+            ];
+
+            chunks.forEach((chunk) => {
+                timeoutsRef.current.push(setTimeout(() => {
+                    setActiveIndices(chunk);
+                    setOperations(prev => prev + 1);
+                }, BASE_SPEED * step));
+                step += 0.8;
+            });
+
+            // Merging visually (sorting the whole array)
+            timeoutsRef.current.push(setTimeout(() => {
+                setArray([...INITIAL_ARRAY_O_N_LOG_N].sort((a, b) => a - b));
+                setActiveIndices([]);
+                setSortedIndices([0, 1, 2, 3, 4, 5, 6, 7]);
+            }, BASE_SPEED * step));
+
+            timeoutsRef.current.push(setTimeout(() => {
+                setIsPlaying(false);
+            }, BASE_SPEED * step + BASE_SPEED));
+        }
+        else if (mode === 'O(2^n)') {
+            // Visualize subset generation (2^4 = 16)
+            let step = 0;
+            const n = INITIAL_ARRAY_O_2N.length;
+            const totalSubsets = Math.pow(2, n);
+
+            for (let i = 0; i < totalSubsets; i++) {
+                const subsetIndices: number[] = [];
+                for (let j = 0; j < n; j++) {
+                    // Check if j-th bit is set
+                    if ((i & (1 << j)) !== 0) {
+                        subsetIndices.push(j);
+                    }
+                }
+
+                timeoutsRef.current.push(setTimeout(() => {
+                    setActiveIndices(subsetIndices);
+                    setOperations(i + 1);
+                }, (BASE_SPEED * 0.5) * step));
+                step++;
+            }
+
+            timeoutsRef.current.push(setTimeout(() => {
+                setActiveIndices([]);
+                setIsPlaying(false);
+            }, (BASE_SPEED * 0.5) * step));
+        }
+        else if (mode === 'O(n!)') {
+            // Visualize permutations visually (4! = 24)
+            let step = 0;
+            const seq = [0, 1, 2, 3];
+            let count = 0;
+
+            // Simple Heap's algorithm for visual generation
+            const generate = (k: number, arr: number[]) => {
+                if (k === 1) {
+                    const currentPerm = [...arr];
+                    timeoutsRef.current.push(setTimeout(() => {
+                        setActiveIndices(currentPerm); // Highlight all to signify a generated path
+                        setOperations(prev => prev + 1);
+                    }, (BASE_SPEED * 0.3) * step));
+                    step++;
+                    count++;
+                    return;
+                }
+
+                for (let i = 0; i < k; i++) {
+                    generate(k - 1, arr);
+                    let temp;
+                    if (k % 2 === 0) {
+                        temp = arr[i];
+                        arr[i] = arr[k - 1];
+                        arr[k - 1] = temp;
+                    } else {
+                        temp = arr[0];
+                        arr[0] = arr[k - 1];
+                        arr[k - 1] = temp;
+                    }
+                }
+            };
+
+            generate(seq.length, [...seq]);
+
+            timeoutsRef.current.push(setTimeout(() => {
+                setActiveIndices([]);
+                setIsPlaying(false);
+            }, (BASE_SPEED * 0.3) * step));
         }
     };
 
@@ -227,10 +372,22 @@ export function BigONotationGuide() {
                     O(1) Array Access
                 </button>
                 <button
+                    className={`big-o-tab-btn ${mode === 'O(log n)' ? 'active' : ''}`}
+                    onClick={() => setMode('O(log n)')}
+                >
+                    O(log n) Binary Search
+                </button>
+                <button
                     className={`big-o-tab-btn ${mode === 'O(n)' ? 'active' : ''}`}
                     onClick={() => setMode('O(n)')}
                 >
                     O(n) Linear Search
+                </button>
+                <button
+                    className={`big-o-tab-btn ${mode === 'O(n log n)' ? 'active' : ''}`}
+                    onClick={() => setMode('O(n log n)')}
+                >
+                    O(n log n) Merge Sort
                 </button>
                 <button
                     className={`big-o-tab-btn ${mode === 'O(n^2)' ? 'active' : ''}`}
@@ -238,13 +395,29 @@ export function BigONotationGuide() {
                 >
                     O(n²) Bubble Sort
                 </button>
+                <button
+                    className={`big-o-tab-btn ${mode === 'O(2^n)' ? 'active' : ''}`}
+                    onClick={() => setMode('O(2^n)')}
+                >
+                    O(2ⁿ) Subsets
+                </button>
+                <button
+                    className={`big-o-tab-btn ${mode === 'O(n!)' ? 'active' : ''}`}
+                    onClick={() => setMode('O(n!)')}
+                >
+                    O(n!) Permutations
+                </button>
             </div>
 
             <div className="big-o-viz-area">
                 <p className="big-o-desc">
                     {mode === 'O(1)' && "Accessing the first element. Array size doesn't matter, it always takes 1 operation."}
+                    {mode === 'O(log n)' && "Finding '88' in a sorted array by repeatedly halving the search space."}
                     {mode === 'O(n)' && "Searching for '99' at the very end. We must check every element one by one."}
+                    {mode === 'O(n log n)' && "Splitting an array down to single elements, then merging them back in order."}
                     {mode === 'O(n^2)' && "Sorting a reverse-ordered array. We must compare and swap repeatedly for every element."}
+                    {mode === 'O(2^n)' && "Generating all possible subsets of an array of 4 elements. Total sets: 2⁴ = 16."}
+                    {mode === 'O(n!)' && "Generating every possible ordering (permutations) of 4 elements. Total orders: 4! = 24."}
                 </p>
 
                 <div className="big-o-array">
@@ -289,6 +462,26 @@ export function BigONotationGuide() {
                         disabled={isPlaying && operations === 0}
                     >
                         <RotateCcw size={18} /> Reset
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border)',
+                            background: 'var(--bg)',
+                            color: 'var(--text-med)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all .2s'
+                        }}
+                        className="hover:border-var-cyan hover:shadow-[0_0_12px_rgba(0,229,255,0.2)]"
+                        aria-label="Settings"
+                    >
+                        <Settings size={18} />
                     </button>
                 </div>
             </div>
