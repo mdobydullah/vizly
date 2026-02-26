@@ -1,0 +1,199 @@
+.big-o-mermaid-wrap {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.big-o-mermaid-wrap .mermaid {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.big-o-mermaid-wrap .mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Tab buttons for algorithms */
+.big-o-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.big-o-tab-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-med);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.big-o-tab-btn:hover {
+    border-color: var(--cyan);
+    color: var(--text-hi);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+}
+
+.big-o-tab-btn.active {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--cyan);
+    color: var(--text-hi);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+}
+
+/* Visualization area */
+.big-o-viz-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.big-o-desc {
+    color: var(--text-med);
+    margin-bottom: 2rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.big-o-array {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+}
+
+.big-o-cell {
+    width: 48px;
+    height: 48px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    color: var(--text-med);
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.big-o-cell.active-cyan {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--cyan);
+    color: var(--text-hi);
+    transform: scale(1.15);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+    z-index: 2;
+}
+
+.big-o-cell.active-pink {
+    background: rgba(255, 64, 129, 0.15);
+    border-color: var(--pink);
+    color: var(--text-hi);
+    transform: scale(1.15) translateY(-4px);
+    box-shadow: 0 0 16px rgba(255, 64, 129, 0.3);
+    z-index: 2;
+}
+
+.big-o-cell.sorted {
+    background: rgba(105, 240, 174, 0.15);
+    border-color: var(--green);
+    color: var(--text-hi);
+    box-shadow: 0 0 12px rgba(105, 240, 174, 0.2);
+}
+
+.big-o-stats {
+    display: flex;
+    gap: 4rem;
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: 1px dashed var(--border);
+    width: 100%;
+    justify-content: center;
+}
+
+.big-o-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.big-o-stat-label {
+    font-size: 0.85rem;
+    color: var(--text-low);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.big-o-stat-value {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    color: var(--cyan);
+    font-weight: 700;
+}
+
+.big-o-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+}
+
+.big-o-control-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-hi);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.big-o-control-btn:hover:not(:disabled) {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+.big-o-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.big-o-control-btn.primary {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.big-o-control-btn.primary:hover:not(:disabled) {
+    background: rgba(0, 229, 255, 0.2);
+}

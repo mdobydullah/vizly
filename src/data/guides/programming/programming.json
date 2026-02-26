@@ -21,5 +21,28 @@
         "createdAt": "2026-02-25T18:38:15Z",
         "updatedAt": "2026-02-25T18:38:15Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "big-onotation",
+        "title": "Big O Notation & Complexity",
+        "category": "Programming",
+        "tags": [
+            "Programming",
+            "Algorithms",
+            "Complexity"
+        ],
+        "description": "Understand Time and Space Complexity, Big O Notation, and visualize how algorithm performance scales with input size in worst-case scenarios.",
+        "icon": "📈",
+        "link": "/guides/big-onotation",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#00e5ff",
+            "background": "rgba(0, 229, 255, .08)",
+            "border": "rgba(0, 229, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(0, 229, 255, .4), 0 0 16px rgba(0, 229, 255, .2)"
+        },
+        "createdAt": "2026-02-26T09:17:00Z",
+        "updatedAt": "2026-02-26T09:17:00Z",
+        "contributors": "obydul"
     }
 ]
