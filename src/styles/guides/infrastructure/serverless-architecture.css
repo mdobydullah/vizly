@@ -1,0 +1,428 @@
+/* src/styles/guides/infrastructure/serverless-architecture.css */
+
+/* Mermaid Wrapper - REQUIRED */
+.sl-mermaid-wrap {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.sl-mermaid-wrap .mermaid {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.sl-mermaid-wrap .mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Custom Guide Styles */
+.sl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+}
+
+.sl-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sl-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(29, 233, 182, 0.1);
+}
+
+.sl-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.sl-card-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.sl-card-name {
+    font-family: var(--font-outfit);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-hi);
+}
+
+.sl-card-desc {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.sl-card-stats {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.sl-stat-chip {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+}
+
+.sl-stat-chip.hi {
+    color: var(--cyan);
+    border-color: rgba(29, 233, 182, 0.3);
+    background: rgba(29, 233, 182, 0.05);
+}
+
+.sl-use-case {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.sl-use-case strong {
+    color: var(--text-hi);
+}
+
+/* Tab Controls for Flow */
+.sl-flow-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.sl-flow-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sl-flow-btn:hover {
+    color: var(--text-hi);
+    border-color: var(--border2);
+}
+
+.sl-flow-btn.active {
+    background: rgba(29, 233, 182, 0.1);
+    color: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(29, 233, 182, 0.2);
+}
+
+/* Animation Section */
+.sl-flow-section {
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+}
+
+.sl-flow-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 400px;
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+.sl-flow-title {
+    font-family: var(--font-outfit);
+    font-size: 1.3rem;
+    color: var(--text-hi);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.sl-diagram-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    width: 100%;
+    padding: 0 2rem;
+    box-sizing: border-box;
+}
+
+.sl-node-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.sl-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    background: #12161f;
+    border: 2px solid var(--border2);
+    border-radius: 12px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    min-width: 140px;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+}
+
+.sl-node .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.sl-node.active {
+    border-color: var(--cyan);
+    color: var(--text-hi);
+    box-shadow: 0 0 15px rgba(29, 233, 182, 0.3);
+    transform: scale(1.05);
+}
+
+.sl-node.processing {
+    border-color: var(--purple);
+    color: var(--text-hi);
+    box-shadow: 0 0 15px rgba(224, 64, 251, 0.3);
+    animation: slPulse 1s infinite alternate;
+}
+
+.sl-node.success {
+    border-color: var(--green);
+    color: var(--text-hi);
+    box-shadow: 0 0 15px rgba(105, 240, 174, 0.3);
+}
+
+.sl-node.error {
+    border-color: #ff5252;
+    color: var(--text-hi);
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.3);
+}
+
+.sl-node-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.sl-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    transition: color 0.3s ease;
+}
+
+.sl-arrow.active {
+    color: var(--cyan);
+    text-shadow: 0 0 10px rgba(29, 233, 182, 0.5);
+}
+
+/* Steps Overlay */
+.sl-flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 500px;
+    background: rgba(10, 14, 20, 0.5);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.sl-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    opacity: 0.4;
+}
+
+.sl-step.completed {
+    opacity: 0.8;
+}
+
+.sl-step.completed .sl-step-num {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    opacity: 0.7;
+}
+
+.sl-step.completed .sl-step-text {
+    color: var(--text-hi);
+}
+
+.sl-step.active {
+    background: rgba(29, 233, 182, 0.1);
+    opacity: 1;
+    transform: translateX(6px);
+}
+
+.sl-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.3s ease;
+}
+
+.sl-step.active .sl-step-num {
+    border-color: var(--cyan);
+    color: var(--surface);
+    background: var(--cyan);
+    box-shadow: 0 0 12px rgba(29, 233, 182, 0.4);
+}
+
+.sl-step-text {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+.sl-step.active .sl-step-text {
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+/* Replay Button */
+.sl-replay-btn {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sl-replay-btn:hover {
+    color: var(--text-hi);
+    border-color: var(--border2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes slPulse {
+    from {
+        box-shadow: 0 0 10px rgba(224, 64, 251, 0.2);
+    }
+
+    to {
+        box-shadow: 0 0 20px rgba(224, 64, 251, 0.6);
+    }
+}
+
+/* Custom Table overrides for Serverless Comparison */
+.sl-check {
+    color: var(--green);
+    font-weight: 600;
+}
+
+.sl-cross {
+    color: #ff5252;
+}
+
+/* Legend items for animation */
+.sl-legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.sl-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sl-legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border2);
+}
+
+.leg-idle {
+    background: #12161f;
+}
+
+.leg-active {
+    background: rgba(29, 233, 182, 0.2);
+    border-color: var(--cyan);
+}
+
+.leg-processing {
+    background: rgba(224, 64, 251, 0.2);
+    border-color: var(--purple);
+}
+
+.leg-success {
+    background: rgba(105, 240, 174, 0.2);
+    border-color: var(--green);
+}
+
+.leg-error {
+    background: rgba(255, 82, 82, 0.2);
+    border-color: #ff5252;
+}

@@ -53,8 +53,43 @@ This rule defines the functional requirements for a "Vizly Guide".
 
 ## 3. Interactivity Requirements
 - **Card-to-Flow**: Clicking a card in the top grid MUST scroll the user to the interactive section and set the active pattern to that card's topic.
-- **Settings**: Include a settings button (⚙️) to open the `SettingsModal` via `setIsSettingsOpen(true)`.
-- **Playback**: Implement a `playPattern` function that uses `setTimeout` and cleanup logic in a `useRef`.
+- **Playback Controls — REQUIRED**: ALL new guides with animated flows MUST include a unified playback control group. Place this group next to the flow tabs. It must be a flex container with:
+  - **Play/Pause Button**: Toggles an `isPlaying` state (use `Play` and `Pause` icons from `lucide-react`).
+  - **Replay Button**: Uses the `RotateCcw` icon to restart the current animation pattern.
+  - **Settings Button**: Opens the speed control modal via `setIsSettingsOpen(true)` using the `Settings` icon.
+  - Implement the exact structure below:
+```tsx
+<div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px', background: 'var(--surface2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+    <button
+        onClick={() => setIsPlaying(!isPlaying)}
+        style={{
+            width: '28px', height: '28px', borderRadius: '6px', border: 'none',
+            background: isPlaying ? 'rgba(29, 233, 182, 0.1)' : 'transparent',
+            color: isPlaying ? 'var(--cyan)' : 'var(--text-dim)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s'
+        }}
+        title={isPlaying ? "Pause" : "Play"}
+    >
+        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+    </button>
+    <button
+        onClick={() => playPattern(activePatternKey)}
+        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+        title="Replay"
+    >
+        <RotateCcw size={14} />
+    </button>
+    <div style={{ width: '1px', height: '14px', background: 'var(--border2)', margin: '0 4px' }} />
+    <button
+        onClick={() => setIsSettingsOpen(true)}
+        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+        title="Settings"
+    >
+        <Settings size={14} />
+    </button>
+</div>
+```
+- **Animation Loop**: When supporting pause/play, implement the animation using a progressive `useEffect` loop that depends on `currentStepIdx` and `isPlaying`, rather than pushing all future steps into a static `useRef` array of timeouts.
 
 ## 4. Content Checklist
 - [ ] Unique ID registered in `src/data/guides/[category]/`.
@@ -63,7 +98,8 @@ This rule defines the functional requirements for a "Vizly Guide".
 - [ ] Responsive design (Grid stacks on mobile).
 
 ## 5. Color System
-- **Random Selection**: When creating a new guide, you MUST select a random color configuration from `src/data/guides/guide-colors.json`.
+- **Random Selection**: When creating a new guide, you MUST select a random color configuration from `src/data/guides/guide-colors.json`. Ensure that the `color` property value is a kebab-case version of the color's name (e.g. `Teal` -> `teal`, `Deep Orange` -> `deep-orange`).
+- **Card Styling Integration — REQUIRED**: The `color` string you set in the metadata JSON (e.g. `"teal"`) is used dynamically by the homepage `GuideCard` component to assign the class `.card-teal`. You MUST verify that this class definition actually exists in `src/styles/cards.css`. If it does not exist, you must append the CSS for `.card-[color]` (including `.card-[color]:hover` overrides) to `src/styles/cards.css` to ensure the home screen tile receives its correct border and hover glowing effects.
 - **No Manual Hex**: Do NOT generate random hex codes manually. Use the exact `primary`, `background`, `border`, and `hoverShadow` values from the selected object in the array.
 
 ## 6. Resources

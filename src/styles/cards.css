@@ -239,3 +239,69 @@
     color: var(--tag-color, var(--cyan)) !important;
     background: var(--tag-bg, rgba(0, 229, 255, 0.05)) !important;
 }
+
+/* Teal Theme */
+.card-teal {
+    --card-color: #1de9b6;
+    --card-glow: rgba(29, 233, 182, 0.04);
+    --card-shadow: rgba(29, 233, 182, 0.15);
+    --card-shadow-hover: rgba(29, 233, 182, 0.4);
+    --card-shadow-soft: rgba(29, 233, 182, 0.2);
+    --card-icon-bg: rgba(29, 233, 182, 0.08);
+    --card-icon-border: rgba(29, 233, 182, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(29, 233, 182, 0.08) 0%, rgba(29, 233, 182, 0.03) 50%, transparent 100%);
+    --tag-color: #1de9b6;
+    --tag-bg: rgba(29, 233, 182, 0.05);
+
+    border-color: #1de9b6 !important;
+    color: #1de9b6 !important;
+}
+
+.card-teal .viz-label {
+    background: #051a14 !important;
+    color: #1de9b6 !important;
+    border: 1px solid #1de9b6 !important;
+}
+
+.card-teal:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-teal:hover::before {
+    opacity: 0.03;
+}
+
+/* Deep Purple Theme */
+.card-deep-purple {
+    --card-color: #7c4dff;
+    --card-glow: rgba(124, 77, 255, 0.04);
+    --card-shadow: rgba(124, 77, 255, 0.15);
+    --card-shadow-hover: rgba(124, 77, 255, 0.4);
+    --card-shadow-soft: rgba(124, 77, 255, 0.2);
+    --card-icon-bg: rgba(124, 77, 255, 0.08);
+    --card-icon-border: rgba(124, 77, 255, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(124, 77, 255, 0.08) 0%, rgba(124, 77, 255, 0.03) 50%, transparent 100%);
+    --tag-color: #7c4dff;
+    --tag-bg: rgba(124, 77, 255, 0.05);
+
+    border-color: #7c4dff !important;
+    color: #7c4dff !important;
+}
+
+.card-deep-purple .viz-label {
+    background: #0a051a !important;
+    color: #7c4dff !important;
+    border: 1px solid #7c4dff !important;
+}
+
+.card-deep-purple:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-deep-purple:hover::before {
+    opacity: 0.03;
+}

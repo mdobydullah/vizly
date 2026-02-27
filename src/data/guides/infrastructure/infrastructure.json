@@ -228,5 +228,29 @@
         "createdAt": "2026-02-22T18:59:00Z",
         "updatedAt": "2026-02-22T18:59:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "serverless-architecture",
+        "title": "Serverless Architecture",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Cloud",
+            "Architecture",
+            "Scaling"
+        ],
+        "description": "Serverless architecture allows developers to build and run applications without managing infrastructure. Code execution is purely event-driven and dynamically scaled.",
+        "icon": "☁️",
+        "link": "/guides/serverless-architecture",
+        "color": "teal",
+        "colorConfig": {
+            "primary": "#1de9b6",
+            "background": "rgba(29, 233, 182, .08)",
+            "border": "rgba(29, 233, 182, .15)",
+            "hoverShadow": "0 0 32px rgba(29, 233, 182, .4), 0 0 16px rgba(29, 233, 182, .2)"
+        },
+        "createdAt": "2026-02-27T17:24:28Z",
+        "updatedAt": "2026-02-27T17:24:28Z",
+        "contributors": "obydul"
     }
 ]
