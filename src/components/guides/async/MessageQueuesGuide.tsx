@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -217,32 +217,36 @@ export function MessageQueuesGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('simple');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playPattern = useCallback((patternKey: string) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActivePattern(patternKey);
         setCurrentStepIdx(-1);
-
-        const pattern = FLOW_PATTERNS[patternKey];
-        const stepTime = 1600 * animationSpeed;
-
-        pattern.steps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playPattern('simple'), 1500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
+        if (!isPlaying) return;
+
+        const pattern = FLOW_PATTERNS[activePattern];
+        const stepTime = 1600 * animationSpeed;
+
+        if (currentStepIdx < pattern.steps.length - 1) {
+            const nextIdx = currentStepIdx + 1;
+            const delay = currentStepIdx === -1 ? 500 : stepTime;
+
+            const t = setTimeout(() => {
+                setCurrentStepIdx(nextIdx);
+            }, delay);
+
+            return () => clearTimeout(t);
+        } else {
+            setIsPlaying(false);
+        }
+    }, [currentStepIdx, isPlaying, activePattern, animationSpeed]);
+
+    useEffect(() => {
+        playPattern('simple');
     }, [replayCount, playPattern]);
 
     const handleReplay = () => {
@@ -310,46 +314,30 @@ export function MessageQueuesGuide() {
                         </button>
                     ))}
                 </div>
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Settings"
-                >
-                    <Settings size={14} />
-                </button>
-                <button
-                    onClick={() => playPattern(activePattern)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                >
-                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px', background: 'var(--surface2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: isPlaying ? 'rgba(29, 233, 182, 0.1)' : 'transparent', color: isPlaying ? 'var(--cyan)' : 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title={isPlaying ? "Pause" : "Play"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={() => playPattern(activePattern)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title="Replay"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <div style={{ width: '1px', height: '14px', background: 'var(--border2)', margin: '0 4px' }} />
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             <div className="mq-flow-diagram">

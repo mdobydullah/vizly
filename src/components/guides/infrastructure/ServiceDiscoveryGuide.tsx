@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Video, Globe, ExternalLink, Heart, Radio, Search, Database } from 'lucide-react';
+import { Settings, Video, Globe, ExternalLink, Heart, Radio, Search, Database, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -89,30 +89,27 @@ export function ServiceDiscoveryGuide() {
     const [replayCount, setReplayCount] = useState(0);
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playSequence = useCallback(() => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
         setCurrentStepIdx(-1);
-
-        const stepTime = 2000 * animationSpeed;
-
-        FLOW_STEPS.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playSequence(), 500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playSequence]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            if (currentStepIdx < FLOW_STEPS.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 500 : 2000 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -151,32 +148,27 @@ export function ServiceDiscoveryGuide() {
             <div className="viz-section-header">
                 <h2 className="viz-section-title">Discovery Lifecycle</h2>
                 <p className="viz-section-hint">Visualize service registration and lookup flow</p>
-                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '1rem' }}>
+                <div className="viz-playback-controls">
                     <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        style={{
-                            width: '28px', height: '28px', borderRadius: '6px',
-                            border: '1px solid var(--border2)', background: 'var(--surface)',
-                            color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', cursor: 'pointer', transition: 'all .2s'
-                        }}
-                        className="social-btn"
-                        aria-label="Settings"
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                     >
-                        <Settings size={14} />
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                     </button>
                     <button
                         onClick={playSequence}
-                        style={{
-                            width: '28px', height: '28px', borderRadius: '6px',
-                            border: '1px solid var(--border2)', background: 'var(--surface)',
-                            color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', cursor: 'pointer', transition: 'all .2s'
-                        }}
-                        className="social-btn"
+                        className="viz-ctrl-btn"
                         aria-label="Replay Animation"
                     >
-                        <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
                     </button>
                 </div>
             </div>

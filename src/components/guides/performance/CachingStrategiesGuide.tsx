@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
-import { Settings, Youtube, Globe, BookOpen, ExternalLink } from "lucide-react";
+import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from "lucide-react";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import '@/styles/guides/performance/caching-strategies.css';
 
@@ -158,34 +158,29 @@ export function CachingStrategiesGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePattern, setActivePattern] = useState('cache-aside');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playPattern = useCallback((patternKey: string) => {
-        // Clear previous animations
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActivePattern(patternKey);
         setCurrentStepIdx(-1);
-
-        const pattern = FLOW_PATTERNS[patternKey];
-        const stepTime = 1400 * animationSpeed;
-
-        pattern.steps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playPattern('cache-aside'), 1500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playPattern]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const pattern = FLOW_PATTERNS[activePattern];
+            if (currentStepIdx < pattern.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 1500 : 1400 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activePattern, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0 });
@@ -250,58 +245,42 @@ export function CachingStrategiesGuide() {
                 <p className="viz-section-hint">Interact with the patterns to see how data flows between components</p>
             </div>
 
-            <div className="viz-flow-controls" style={{ alignItems: 'center' }}>
-                {STRATEGIES.map(s => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="viz-flow-controls" style={{ marginBottom: 0 }}>
+                    {STRATEGIES.map(s => (
+                        <button
+                            key={s.id}
+                            className={`viz-tab-btn ${activePattern === s.id ? 'active' : ''}`}
+                            onClick={() => playPattern(s.id)}
+                        >
+                            {s.title.split(' (')[0]}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="viz-playback-controls">
                     <button
-                        key={s.id}
-                        className={`viz-tab-btn ${activePattern === s.id ? 'active' : ''}`}
-                        onClick={() => playPattern(s.id)}
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                     >
-                        {s.title.split(' (')[0]}
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                     </button>
-                ))}
-
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Settings"
-                >
-                    <Settings size={14} />
-                </button>
-
-                <button
-                    onClick={() => playPattern(activePattern)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                >
-                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                </button>
+                    <button
+                        onClick={() => playPattern(activePattern)}
+                        className="viz-ctrl-btn"
+                        aria-label="Replay Animation"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             <div className="viz-flow-diagram">

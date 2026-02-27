@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, PlayCircle, Globe, ExternalLink, Server, Smartphone } from 'lucide-react';
+import { Settings, PlayCircle, Globe, ExternalLink, Server, Smartphone, Play, Pause, RotateCcw } from 'lucide-react';
 import mermaid from 'mermaid';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
@@ -67,7 +67,8 @@ export function StatefulStatelessGuide() {
     const [activeTab, setActiveTab] = useState<'stateful' | 'stateless'>('stateful');
     const [currentStep, setCurrentStep] = useState(-1);
 
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [replayCount, setReplayCount] = useState(0);
 
     const activeSteps = SIMULATION_STEPS[activeTab];
 
@@ -81,31 +82,32 @@ export function StatefulStatelessGuide() {
     }, [activeTab]);
 
     const playAnimation = useCallback(() => {
-        // Clear existing
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
         setCurrentStep(-1);
+        setIsPlaying(true);
+    }, []);
 
-        const stepTime = 2000 * animationSpeed;
-
-        activeSteps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStep(i);
-                if (i === activeSteps.length - 1) {
-                    // Animation complete
-                }
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [activeSteps, animationSpeed]);
+    useEffect(() => {
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            if (currentStep < activeSteps.length - 1) {
+                const stepTime = 2000 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStep(prev => prev + 1);
+                }, currentStep === -1 ? 500 : stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStep, activeSteps.length, animationSpeed]);
 
     useEffect(() => {
         playAnimation();
-        return () => animRef.current.forEach(clearTimeout);
-    }, [activeTab, playAnimation]);
+    }, [activeTab, playAnimation, replayCount]);
 
     const handleReplay = () => {
-        playAnimation();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setReplayCount(prev => prev + 1);
     };
 
     return (
@@ -188,25 +190,47 @@ export function StatefulStatelessGuide() {
                 <h2 className="viz-section-title">Interactive Simulator</h2>
             </div>
 
-            <div className="simulator-controls">
-                <button
-                    className={`sim-btn ${activeTab === 'stateful' ? 'active-stateful' : ''}`}
-                    onClick={() => setActiveTab('stateful')}
-                >
-                    Stateful Flow
-                </button>
-                <button
-                    className={`sim-btn ${activeTab === 'stateless' ? 'active-stateless' : ''}`}
-                    onClick={() => setActiveTab('stateless')}
-                >
-                    Stateless Flow
-                </button>
-                <button onClick={() => setIsSettingsOpen(true)} className="sim-icon-btn">
-                    <Settings size={16} />
-                </button>
-                <button onClick={handleReplay} className="sim-icon-btn">
-                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>↺</span>
-                </button>
+            <div className="simulator-controls" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                        className={`sim-btn ${activeTab === 'stateful' ? 'active-stateful' : ''}`}
+                        onClick={() => setActiveTab('stateful')}
+                    >
+                        Stateful Flow
+                    </button>
+                    <button
+                        className={`sim-btn ${activeTab === 'stateless' ? 'active-stateless' : ''}`}
+                        onClick={() => setActiveTab('stateless')}
+                    >
+                        Stateless Flow
+                    </button>
+                </div>
+                <div className="viz-playback-controls" style={{ marginLeft: '1rem' }}>
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        title={isPlaying ? "Pause" : "Play"}
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={handleReplay}
+                        className="viz-ctrl-btn"
+                        title="Replay"
+                        aria-label="Replay Animation"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        title="Settings"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             <div className="simulator-container">

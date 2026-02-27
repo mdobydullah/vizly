@@ -464,6 +464,40 @@
     box-shadow: 0 0 15px rgba(124, 77, 255, .4);
 }
 
+/* Playback Control Additions */
+.viz-playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.viz-ctrl-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.viz-ctrl-btn:hover {
+    background: var(--surface);
+    color: var(--text-hi);
+}
+
+.viz-ctrl-btn:active {
+    transform: scale(0.95);
+}
+
 /* ── COMPARISON TABLE ── */
 .oop-rating-dots {
     display: flex;

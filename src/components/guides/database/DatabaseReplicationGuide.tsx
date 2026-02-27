@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Database, Share2, Globe, BookOpen, ExternalLink, ShieldCheck, Zap } from 'lucide-react';
+import { Settings, Database, Share2, Globe, BookOpen, ExternalLink, ShieldCheck, Zap, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -159,8 +159,7 @@ export function DatabaseReplicationGuide({
     // Animation State
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
     const [nodes, setNodes] = useState<DBNode[]>([]);
-
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const activePattern = FLOW_PATTERNS[activePatternKey];
 
@@ -169,12 +168,36 @@ export function DatabaseReplicationGuide({
         setNodes(structuredClone(FLOW_PATTERNS[activePatternKey].nodes));
     }, [activePatternKey]);
 
-    const scheduleStep = useCallback((step: Step, i: number, stepTime: number) => {
-        const t = setTimeout(() => {
-            setCurrentStepIdx(i);
+    const playPattern = useCallback((patternKey: string) => {
+        setActivePatternKey(patternKey);
+        setCurrentStepIdx(-1);
+        setIsPlaying(true);
+        setNodes(structuredClone(FLOW_PATTERNS[patternKey].nodes));
+    }, []);
 
-            // Update Node State if needed
-            if (step.stateUpdate) {
+    // Effect for play/pause loop
+    useEffect(() => {
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const pattern = FLOW_PATTERNS[activePatternKey];
+            if (currentStepIdx < pattern.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 1500 : 2000 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activePatternKey, animationSpeed]);
+
+    // Effect for step side-effects (node state updates)
+    useEffect(() => {
+        let tReset: NodeJS.Timeout;
+        if (currentStepIdx >= 0) {
+            const step = FLOW_PATTERNS[activePatternKey].steps[currentStepIdx];
+            if (step && step.stateUpdate) {
                 setNodes(prev => prev.map(n => {
                     if (step.stateUpdate![n.id] !== undefined) {
                         return { ...n, data: step.stateUpdate![n.id], status: 'writing' };
@@ -182,45 +205,13 @@ export function DatabaseReplicationGuide({
                     return n;
                 }));
 
-                // Clear writing status after a bit
-                const tReset = setTimeout(() => {
+                tReset = setTimeout(() => {
                     setNodes(prev => prev.map(n => ({ ...n, status: 'healthy' })));
                 }, 800 * animationSpeed);
-                animRef.current.push(tReset);
             }
-
-        }, i * stepTime);
-        animRef.current.push(t);
-    }, [animationSpeed]);
-
-    const playPattern = useCallback((patternKey: string) => {
-        // Clear existing
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
-        setActivePatternKey(patternKey);
-        setCurrentStepIdx(-1);
-
-        // Reset nodes
-        const startNodes = structuredClone(FLOW_PATTERNS[patternKey].nodes);
-        setNodes(startNodes);
-
-        const pattern = FLOW_PATTERNS[patternKey];
-        const stepTime = 2000 * animationSpeed;
-
-        pattern.steps.forEach((step, i) => {
-            scheduleStep(step, i, stepTime);
-        });
-
-    }, [animationSpeed, scheduleStep]);
-
-    useEffect(() => {
-        const t = setTimeout(() => playPattern(activePatternKey || 'async'), 500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playPattern, activePatternKey]);
+        }
+        return () => clearTimeout(tReset);
+    }, [currentStepIdx, activePatternKey, animationSpeed]);
 
     const handleReplay = () => {
         setReplayCount(prev => prev + 1);
@@ -281,36 +272,41 @@ export function DatabaseReplicationGuide({
             </div>
 
             <div className="rep-flow-section">
-                <div className="rep-flow-controls">
-                    {Object.keys(FLOW_PATTERNS).map(key => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    <div className="rep-flow-controls" style={{ marginBottom: 0 }}>
+                        {Object.keys(FLOW_PATTERNS).map(key => (
+                            <button
+                                key={key}
+                                className={`rep-flow-btn ${activePatternKey === key ? 'active' : ''}`}
+                                onClick={() => playPattern(key)}
+                            >
+                                {FLOW_PATTERNS[key].title}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="viz-playback-controls">
                         <button
-                            key={key}
-                            className={`rep-flow-btn ${activePatternKey === key ? 'active' : ''}`}
-                            onClick={() => playPattern(key)}
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="viz-ctrl-btn"
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                         >
-                            {FLOW_PATTERNS[key].title}
+                            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                         </button>
-                    ))}
-                    <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="social-btn"
-                        style={{
-                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer'
-                        }}
-                    >
-                        <Settings size={14} color="var(--text-dim)" />
-                    </button>
-                    <button
-                        onClick={() => playPattern(activePatternKey!)}
-                        className="social-btn"
-                        style={{
-                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer'
-                        }}
-                    >
-                        <span style={{ fontSize: '1.1rem', lineHeight: 1, color: 'var(--text-dim)', marginTop: '-2px' }}>↺</span>
-                    </button>
+                        <button
+                            onClick={() => playPattern(activePatternKey)}
+                            className="viz-ctrl-btn"
+                            aria-label="Replay Animation"
+                        >
+                            <RotateCcw size={14} />
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="viz-ctrl-btn"
+                            aria-label="Settings"
+                        >
+                            <Settings size={14} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="rep-flow-diagram">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Globe, BookOpen, Youtube, ExternalLink } from 'lucide-react';
+import { Settings, Globe, BookOpen, Youtube, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -325,32 +325,36 @@ export function DatabaseShardingGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activeStrategy, setActiveStrategy] = useState<string>('range');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playStrategy = useCallback((key: string) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActiveStrategy(key);
         setCurrentStepIdx(-1);
-
-        const strategy = STRATEGIES[key];
-        const stepTime = 1800 * animationSpeed;
-
-        strategy.steps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime + 300);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playStrategy('range'), 1200);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
+        if (!isPlaying) return;
+
+        const strategy = STRATEGIES[activeStrategy];
+        const stepTime = 1800 * animationSpeed;
+
+        if (currentStepIdx < strategy.steps.length - 1) {
+            const nextIdx = currentStepIdx + 1;
+            const delay = currentStepIdx === -1 ? 500 : stepTime;
+
+            const t = setTimeout(() => {
+                setCurrentStepIdx(nextIdx);
+            }, delay);
+
+            return () => clearTimeout(t);
+        } else {
+            setIsPlaying(false);
+        }
+    }, [currentStepIdx, isPlaying, activeStrategy, animationSpeed]);
+
+    useEffect(() => {
+        playStrategy('range');
     }, [replayCount, playStrategy]);
 
     const handleReplay = () => {
@@ -440,32 +444,30 @@ export function DatabaseShardingGuide() {
                         </button>
                     ))}
                 </div>
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{
-                        width: '28px', height: '28px', borderRadius: '6px',
-                        border: '1px solid var(--border2)', background: 'var(--surface)',
-                        color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', cursor: 'pointer', transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Settings"
-                >
-                    <Settings size={14} />
-                </button>
-                <button
-                    onClick={() => playStrategy(activeStrategy)}
-                    style={{
-                        width: '28px', height: '28px', borderRadius: '6px',
-                        border: '1px solid var(--border2)', background: 'var(--surface)',
-                        color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', cursor: 'pointer', transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                >
-                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px', background: 'var(--surface2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: isPlaying ? 'rgba(29, 233, 182, 0.1)' : 'transparent', color: isPlaying ? 'var(--cyan)' : 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title={isPlaying ? "Pause" : "Play"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={() => playStrategy(activeStrategy)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title="Replay"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <div style={{ width: '1px', height: '14px', background: 'var(--border2)', margin: '0 4px' }} />
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
+                        title="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             {/* Flow diagram */}

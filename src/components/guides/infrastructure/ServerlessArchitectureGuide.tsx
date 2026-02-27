@@ -298,7 +298,7 @@ export function ServerlessArchitectureGuide() {
                 <p className="viz-section-hint">Visualize event-driven and synchronous invocations step-by-step</p>
             </div>
             <div className="sl-flow-section">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                     <div className="sl-flow-controls" style={{ marginBottom: 0 }}>
                         {Object.keys(FLOW_PATTERNS).map((key) => (
                             <button
@@ -311,62 +311,28 @@ export function ServerlessArchitectureGuide() {
                         ))}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px', background: 'var(--surface2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div className="viz-playback-controls" style={{ marginLeft: '1rem' }}>
                         <button
                             onClick={() => setIsPlaying(!isPlaying)}
-                            style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                background: isPlaying ? 'rgba(29, 233, 182, 0.1)' : 'transparent',
-                                color: isPlaying ? 'var(--cyan)' : 'var(--text-dim)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all .2s'
-                            }}
+                            className="viz-ctrl-btn"
                             title={isPlaying ? "Pause" : "Play"}
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                         >
                             {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                         </button>
                         <button
                             onClick={() => playPattern(activePatternKey)}
-                            style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                background: 'transparent',
-                                color: 'var(--text-dim)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all .2s'
-                            }}
+                            className="viz-ctrl-btn"
                             title="Replay"
+                            aria-label="Replay Animation"
                         >
                             <RotateCcw size={14} />
                         </button>
-                        <div style={{ width: '1px', height: '14px', background: 'var(--border2)', margin: '0 4px' }} />
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                background: 'transparent',
-                                color: 'var(--text-dim)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all .2s'
-                            }}
+                            className="viz-ctrl-btn"
                             title="Settings"
+                            aria-label="Settings"
                         >
                             <Settings size={14} />
                         </button>

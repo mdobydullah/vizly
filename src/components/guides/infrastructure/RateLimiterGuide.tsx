@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Shield, Clock, Timer, Layers, BookOpen, Globe, ExternalLink } from 'lucide-react';
+import { Settings, Shield, Clock, Timer, Layers, BookOpen, Globe, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -188,37 +188,31 @@ export function RateLimiterGuide({
 
     // Animation State
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const activeAlgo = ALGO_PATTERNS[activeAlgoKey];
 
     const playAlgo = useCallback((algoKey: string) => {
-        // Clear existing
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActiveAlgoKey(algoKey);
         setCurrentStepIdx(-1);
-
-        const algo = ALGO_PATTERNS[algoKey];
-        const stepTime = 2000 * animationSpeed;
-
-        algo.steps.forEach((_step, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playAlgo(activeAlgoKey || 'token-bucket'), 500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playAlgo, activeAlgoKey]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const algo = ALGO_PATTERNS[activeAlgoKey];
+            if (currentStepIdx < algo.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 500 : 2000 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activeAlgoKey, animationSpeed]);
 
     const handleReplay = () => {
         setReplayCount(prev => prev + 1);
@@ -300,20 +294,27 @@ export function RateLimiterGuide({
                             {ALGO_PATTERNS[key].title}
                         </button>
                     ))}
-                    <div className="rl-icon-btn-group">
+                    <div className="viz-playback-controls" style={{ marginLeft: '1rem' }}>
                         <button
-                            onClick={() => setIsSettingsOpen(true)}
-                            className="rl-icon-btn"
-                            aria-label="Settings"
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="viz-ctrl-btn"
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                         >
-                            <Settings size={14} color="var(--text-dim)" />
+                            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                         </button>
                         <button
                             onClick={() => playAlgo(activeAlgoKey!)}
-                            className="rl-icon-btn"
+                            className="viz-ctrl-btn"
                             aria-label="Replay"
                         >
-                            <span style={{ fontSize: '1.1rem', lineHeight: 1, color: 'var(--text-dim)', marginTop: '-2px' }}>↺</span>
+                            <RotateCcw size={14} />
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="viz-ctrl-btn"
+                            aria-label="Settings"
+                        >
+                            <Settings size={14} />
                         </button>
                     </div>
                 </div>

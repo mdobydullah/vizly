@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
+import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -257,33 +257,29 @@ export function CapTheoremGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activeScenario, setActiveScenario] = useState('cp');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playScenario = useCallback((scenarioKey: string) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActiveScenario(scenarioKey);
         setCurrentStepIdx(-1);
-
-        const scenario = SCENARIOS[scenarioKey];
-        const stepTime = 1800 * animationSpeed;
-
-        scenario.steps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playScenario('cp'), 1500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playScenario]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const scenario = SCENARIOS[activeScenario];
+            if (currentStepIdx < scenario.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 1500 : 1800 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activeScenario, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0 });
@@ -371,46 +367,29 @@ export function CapTheoremGuide() {
                         </button>
                     ))}
                 </div>
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Settings"
-                >
-                    <Settings size={14} />
-                </button>
-                <button
-                    onClick={() => playScenario(activeScenario)}
-                    style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s'
-                    }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                >
-                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                </button>
+                <div className="viz-playback-controls">
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={() => playScenario(activeScenario)}
+                        className="viz-ctrl-btn"
+                        aria-label="Replay Animation"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             <div className="cap-flow-diagram">

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
-import { Settings, Youtube, Globe, BookOpen, ExternalLink } from "lucide-react";
+import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from "lucide-react";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import '@/styles/guides/programming/oop.css';
 
@@ -206,30 +206,29 @@ export function OopGuide() {
     const [replayCount, setReplayCount] = useState(0);
     const [activePillar, setActivePillar] = useState<PillarId>('encapsulation');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playPillar = useCallback((pillarId: PillarId) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
         setActivePillar(pillarId);
         setCurrentStepIdx(-1);
-
-        const flow = FLOWS[pillarId];
-        const stepTime = 1500 * animationSpeed;
-
-        flow.steps.forEach((_, i) => {
-            const t = setTimeout(() => setCurrentStepIdx(i), i * stepTime);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playPillar('encapsulation'), 1200);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playPillar]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const flow = FLOWS[activePillar];
+            if (currentStepIdx < flow.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 1200 : 1500 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activePillar, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0 });
@@ -377,31 +376,42 @@ classDiagram
             </div>
 
             {/* Tab Controls */}
-            <div className="viz-flow-controls" style={{ alignItems: 'center' }}>
-                {PILLARS.map(p => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="viz-flow-controls" style={{ marginBottom: 0 }}>
+                    {PILLARS.map(p => (
+                        <button
+                            key={p.id}
+                            id={`oop-tab-${p.id}`}
+                            className={`oop-tab-btn ${activePillar === p.id ? 'active' : ''}`}
+                            onClick={() => playPillar(p.id)}
+                        >
+                            {p.icon} {p.name}
+                        </button>
+                    ))}
+                </div>
+                <div className="viz-playback-controls">
                     <button
-                        key={p.id}
-                        id={`oop-tab-${p.id}`}
-                        className={`oop-tab-btn ${activePillar === p.id ? 'active' : ''}`}
-                        onClick={() => playPillar(p.id)}
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
                     >
-                        {p.icon} {p.name}
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
                     </button>
-                ))}
-
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border2)', background: 'var(--surface)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
-                    className="social-btn"
-                    aria-label="Settings"
-                ><Settings size={14} /></button>
-
-                <button
-                    onClick={() => playPillar(activePillar)}
-                    style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border2)', background: 'var(--surface)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all .2s' }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                ><span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span></button>
+                    <button
+                        onClick={() => playPillar(activePillar)}
+                        className="viz-ctrl-btn"
+                        aria-label="Replay Animation"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             {/* Diagram Panel */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Video, BookOpen, ExternalLink, Globe } from 'lucide-react';
+import { Settings, Video, BookOpen, ExternalLink, Globe, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -252,36 +252,30 @@ export function ConsistentHashingGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activePatternKey, setActivePatternKey] = useState('consistent');
     const [currentStepIdx, setCurrentStepIdx] = useState(0);
-
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playPattern = useCallback((patternKey: string) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActivePatternKey(patternKey);
         setCurrentStepIdx(0);
-
-        const pattern = FLOW_PATTERNS[patternKey];
-        const stepTime = 2500 * animationSpeed;
-
-        pattern.steps.forEach((_, i) => {
-            if (i === 0) return; // Skip initial step assignment in timeout
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime);
-            animRef.current.push(t);
-        });
-
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playPattern('consistent'), 500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playPattern]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const pattern = FLOW_PATTERNS[activePatternKey];
+            if (currentStepIdx < pattern.steps.length - 1) {
+                // start with short delay on new pattern, else standard speed
+                const stepTime = 2500 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activePatternKey, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0 });
@@ -389,43 +383,29 @@ export function ConsistentHashingGuide() {
                         </button>
                     ))}
 
-                    <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border2)',
-                            background: 'transparent',
-                            color: 'var(--text-dim)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            marginLeft: '0.5rem'
-                        }}
-                        aria-label="Settings"
-                    >
-                        <Settings size={16} />
-                    </button>
-                    <button
-                        onClick={() => playPattern(activePatternKey)}
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border2)',
-                            background: 'transparent',
-                            color: 'var(--green)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer'
-                        }}
-                        aria-label="Replay Sequence"
-                    >
-                        <span style={{ fontSize: '1.2rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                    </button>
+                    <div className="viz-playback-controls" style={{ marginLeft: '1rem' }}>
+                        <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="viz-ctrl-btn"
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                        >
+                            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                        </button>
+                        <button
+                            onClick={() => playPattern(activePatternKey)}
+                            className="viz-ctrl-btn"
+                            aria-label="Replay Sequence"
+                        >
+                            <RotateCcw size={14} />
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="viz-ctrl-btn"
+                            aria-label="Settings"
+                        >
+                            <Settings size={14} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="ch-flow-diagram">

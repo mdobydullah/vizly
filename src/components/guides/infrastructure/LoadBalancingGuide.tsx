@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-react';
+import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -166,6 +166,7 @@ export function LoadBalancingGuide() {
 
     // Animation State
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
+    const [isPlaying, setIsPlaying] = useState(true);
     const [requestCount, setRequestCount] = useState(0);
     const [lbActive, setLbActive] = useState(false);
 
@@ -173,53 +174,55 @@ export function LoadBalancingGuide() {
     // For simplicity, we'll derive visual state from step index + base data
     // But we need to highlight specific servers based on the step.
 
-    const animRef = useRef<NodeJS.Timeout[]>([]);
-
-    const scheduleStep = useCallback((step: Step, i: number, stepTime: number) => {
-        const t = setTimeout(() => {
-            setLbActive(true);
-            setCurrentStepIdx(i);
-
-            if (step.target !== null && step.target !== undefined && !step.unhealthy) {
-                setRequestCount(prev => prev + 1);
-            }
-
-            // Reset LB active after a short bit for pulse effect
-            const tReset = setTimeout(() => {
-                setLbActive(false);
-            }, 800);
-            if (animRef.current) animRef.current.push(tReset);
-
-        }, i * stepTime);
-        if (animRef.current) animRef.current.push(t);
-    }, []);
 
     const playPattern = useCallback((patternKey: string) => {
         // Clear existing
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
+
+
 
         setActivePatternKey(patternKey);
         setCurrentStepIdx(-1);
         setLbActive(false);
         setRequestCount(0); // Always reset count when starting a pattern
+        setIsPlaying(true);
 
-        const pattern = FLOW_PATTERNS[patternKey];
+    }, []);
+
+    // Core Animation Loop
+    useEffect(() => {
+        if (!isPlaying) return;
+
+        const pattern = FLOW_PATTERNS[activePatternKey];
         const stepTime = 1800 * animationSpeed;
 
-        pattern.steps.forEach((step, i) => {
-            scheduleStep(step, i, stepTime);
-        });
+        if (currentStepIdx < pattern.steps.length - 1) {
+            const nextIdx = currentStepIdx + 1;
+            const delay = currentStepIdx === -1 ? 500 : stepTime;
 
-    }, [animationSpeed, scheduleStep]);
+            const t = setTimeout(() => {
+                const step = pattern.steps[nextIdx];
+                setLbActive(true);
+                setCurrentStepIdx(nextIdx);
+
+                if (step.target !== null && step.target !== undefined && !step.unhealthy) {
+                    setRequestCount(prev => prev + 1);
+                }
+
+                // Reset LB active after a short bit for pulse effect
+                setTimeout(() => {
+                    setLbActive(false);
+                }, 800);
+
+            }, delay);
+
+            return () => clearTimeout(t);
+        } else {
+            setIsPlaying(false);
+        }
+    }, [currentStepIdx, isPlaying, activePatternKey, animationSpeed]);
 
     useEffect(() => {
-        // Auto-play on mount
-        const t = setTimeout(() => playPattern('round-robin'), 500);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
+        playPattern('round-robin');
     }, [replayCount, playPattern]);
 
     const handleReplay = () => {
@@ -335,7 +338,7 @@ export function LoadBalancingGuide() {
             </div>
 
             <div className="lb-flow-section">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                     <div className="lb-flow-controls" style={{ marginBottom: 0 }}>
                         {Object.keys(FLOW_PATTERNS).map(key => (
                             <button
@@ -347,46 +350,32 @@ export function LoadBalancingGuide() {
                             </button>
                         ))}
                     </div>
-                    <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border2)',
-                            background: 'var(--surface)',
-                            color: 'var(--text-dim)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all .2s'
-                        }}
-                        className="social-btn"
-                        aria-label="Settings"
-                    >
-                        <Settings size={14} />
-                    </button>
-                    <button
-                        onClick={() => playPattern(activePatternKey)}
-                        style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border2)',
-                            background: 'var(--surface)',
-                            color: 'var(--text-dim)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all .2s'
-                        }}
-                        className="social-btn"
-                        aria-label="Replay Animation"
-                    >
-                        <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                    </button>
+                    <div className="viz-playback-controls" style={{ marginLeft: '0.5rem' }}>
+                        <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="viz-ctrl-btn"
+                            title={isPlaying ? "Pause" : "Play"}
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                        >
+                            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                        </button>
+                        <button
+                            onClick={() => playPattern(activePatternKey)}
+                            className="viz-ctrl-btn"
+                            title="Replay"
+                            aria-label="Replay Animation"
+                        >
+                            <RotateCcw size={14} />
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="viz-ctrl-btn"
+                            title="Settings"
+                            aria-label="Settings"
+                        >
+                            <Settings size={14} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="lb-flow-diagram">

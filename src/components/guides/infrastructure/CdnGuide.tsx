@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Database, User, RotateCcw } from 'lucide-react';
+import { Settings, Database, User, RotateCcw, Play, Pause } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -72,37 +72,29 @@ export function CdnGuide() {
     const [stepIndex, setStepIndex] = useState(-1);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    // Animation Refs
-    const timerRef = useRef<NodeJS.Timeout[]>([]);
-
     const playSimulation = useCallback(() => {
-        // Reset
         setIsPlaying(true);
         setStepIndex(-1);
-        timerRef.current.forEach(clearTimeout);
-        timerRef.current = [];
-
-        const steps = isCached ? FLOW_STEPS_HIT : FLOW_STEPS;
-        const stepTime = 1500 * animationSpeed;
-
-        steps.forEach((_, index) => {
-            const t = setTimeout(() => {
-                setStepIndex(index);
-                if (index === steps.length - 1) {
-                    setIsPlaying(false);
-                    if (!isCached) setIsCached(true); // Cache it for next time
-                }
-            }, index * stepTime);
-            timerRef.current.push(t);
-        });
-    }, [isCached, animationSpeed]);
-
-    useEffect(() => {
-        return () => timerRef.current.forEach(clearTimeout);
     }, []);
 
+    useEffect(() => {
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const steps = isCached ? FLOW_STEPS_HIT : FLOW_STEPS;
+            if (stepIndex < steps.length - 1) {
+                const stepTime = stepIndex === -1 ? 500 : 1500 * animationSpeed;
+                t = setTimeout(() => {
+                    setStepIndex(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+                if (!isCached) setIsCached(true); // Cache it for next time
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, stepIndex, isCached, animationSpeed]);
+
     const handleReset = () => {
-        timerRef.current.forEach(clearTimeout);
         setIsCached(false);
         setStepIndex(-1);
         setIsPlaying(false);
@@ -144,36 +136,30 @@ export function CdnGuide() {
             <div className="cdn-viz-container">
                 <div className="cdn-map-bg"></div>
 
-                <div className="cdn-controls">
-                    <button
-                        className="cdn-btn primary"
-                        onClick={playSimulation}
-                        disabled={isPlaying}
-                    >
-                        {isPlaying ? 'Playing...' : '▶ Play Request'}
-                    </button>
-                    <button className="cdn-btn" onClick={handleReset}>
-                        <RotateCcw size={14} /> Reset / Clear Cache
-                    </button>
-                    <button
-                        className="social-btn"
-                        onClick={() => setIsSettingsOpen(true)}
-                        style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border2)',
-                            background: 'var(--surface)',
-                            color: 'var(--text-dim)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all .2s'
-                        }}
-                    >
-                        <Settings size={14} />
-                    </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    <div className="viz-playback-controls">
+                        <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="viz-ctrl-btn"
+                            aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                        >
+                            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                        </button>
+                        <button
+                            onClick={playSimulation}
+                            className="viz-ctrl-btn"
+                            aria-label="Replay Animation"
+                        >
+                            <RotateCcw size={14} />
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="viz-ctrl-btn"
+                            aria-label="Settings"
+                        >
+                            <Settings size={14} />
+                        </button>
+                    </div>
                 </div>
 
                 <div style={{ position: 'relative', width: '100%', height: '200px' }}>

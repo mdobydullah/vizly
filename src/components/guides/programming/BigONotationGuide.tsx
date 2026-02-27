@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Youtube, Globe, BookOpen, ExternalLink, Play, RotateCcw, Settings } from 'lucide-react';
+import { Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { guidesData } from "@/data/guides";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import { useSettings } from "@/context/SettingsContext";
@@ -364,49 +364,59 @@ export function BigONotationGuide() {
             {/* ═══════════════ INTERACTIVE VISUALIZATION ═══════════════ */}
             <h2 id="interactive-section" className="section-title" style={{ marginTop: '4rem' }}>Interactive Sandbox (Worst Case)</h2>
 
-            <div className="big-o-tabs">
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(1)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(1)')}
-                >
-                    O(1) Array Access
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(log n)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(log n)')}
-                >
-                    O(log n) Binary Search
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(n)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(n)')}
-                >
-                    O(n) Linear Search
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(n log n)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(n log n)')}
-                >
-                    O(n log n) Merge Sort
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(n^2)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(n^2)')}
-                >
-                    O(n²) Bubble Sort
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(2^n)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(2^n)')}
-                >
-                    O(2ⁿ) Subsets
-                </button>
-                <button
-                    className={`big-o-tab-btn ${mode === 'O(n!)' ? 'active' : ''}`}
-                    onClick={() => setMode('O(n!)')}
-                >
-                    O(n!) Permutations
-                </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="viz-flow-controls" style={{ marginBottom: 0 }}>
+                    <select
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value as AlgorithmMode)}
+                        aria-label="Select Time Complexity"
+                        style={{
+                            background: 'var(--surface)',
+                            color: 'var(--text-hi)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.85rem',
+                            outline: 'none',
+                            fontFamily: 'var(--font-mono)',
+                            cursor: 'pointer',
+                        }}
+                        className="hover:border-var-cyan focus:border-var-cyan transition-colors"
+                    >
+                        <option value="O(1)">O(1) Array Access</option>
+                        <option value="O(log n)">O(log n) Binary Search</option>
+                        <option value="O(n)">O(n) Linear Search</option>
+                        <option value="O(n log n)">O(n log n) Merge Sort</option>
+                        <option value="O(n^2)">O(n²) Bubble Sort</option>
+                        <option value="O(2^n)">O(2ⁿ) Subsets</option>
+                        <option value="O(n!)">O(n!) Permutations</option>
+                    </select>
+                </div>
+
+                <div className="viz-playback-controls">
+                    <button
+                        onClick={isPlaying ? () => { clearTimeouts(); setIsPlaying(false); } : playVisualization}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={() => resetVisualization(mode)}
+                        className="viz-ctrl-btn"
+                        aria-label="Replay Animation"
+                        disabled={isPlaying && operations === 0}
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             <div className="big-o-viz-area">
@@ -446,43 +456,6 @@ export function BigONotationGuide() {
                         <span className="big-o-stat-label">Operations</span>
                         <span className="big-o-stat-value">{operations}</span>
                     </div>
-                </div>
-
-                <div className="big-o-controls">
-                    <button
-                        className="big-o-control-btn primary"
-                        onClick={playVisualization}
-                        disabled={isPlaying}
-                    >
-                        <Play size={18} /> Play Worst Case
-                    </button>
-                    <button
-                        className="big-o-control-btn"
-                        onClick={() => resetVisualization(mode)}
-                        disabled={isPlaying && operations === 0}
-                    >
-                        <RotateCcw size={18} /> Reset
-                    </button>
-                    <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        style={{
-                            width: '42px',
-                            height: '42px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            background: 'var(--bg)',
-                            color: 'var(--text-med)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all .2s'
-                        }}
-                        className="hover:border-var-cyan hover:shadow-[0_0_12px_rgba(0,229,255,0.2)]"
-                        aria-label="Settings"
-                    >
-                        <Settings size={18} />
-                    </button>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Settings, Globe, BookOpen, Youtube, ExternalLink } from 'lucide-react';
+import { Settings, Globe, BookOpen, Youtube, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -333,33 +333,29 @@ export function DatabaseIndexingGuide() {
     const { animationSpeed, setIsSettingsOpen } = useSettings();
     const [activeVariant, setActiveVariant] = useState<string>('btree');
     const [currentStepIdx, setCurrentStepIdx] = useState(-1);
-    const animRef = useRef<NodeJS.Timeout[]>([]);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const playVariant = useCallback((key: string) => {
-        animRef.current.forEach(clearTimeout);
-        animRef.current = [];
-
         setActiveVariant(key);
         setCurrentStepIdx(-1);
-
-        const variant = VARIANTS[key];
-        const stepTime = 1900 * animationSpeed;
-
-        variant.steps.forEach((_, i) => {
-            const t = setTimeout(() => {
-                setCurrentStepIdx(i);
-            }, i * stepTime + 300);
-            animRef.current.push(t);
-        });
-    }, [animationSpeed]);
+        setIsPlaying(true);
+    }, []);
 
     useEffect(() => {
-        const t = setTimeout(() => playVariant('btree'), 1200);
-        return () => {
-            clearTimeout(t);
-            animRef.current.forEach(clearTimeout);
-        };
-    }, [replayCount, playVariant]);
+        let t: NodeJS.Timeout;
+        if (isPlaying) {
+            const variant = VARIANTS[activeVariant];
+            if (currentStepIdx < variant.steps.length - 1) {
+                const stepTime = currentStepIdx === -1 ? 1500 : 1900 * animationSpeed;
+                t = setTimeout(() => {
+                    setCurrentStepIdx(prev => prev + 1);
+                }, stepTime);
+            } else {
+                setIsPlaying(false);
+            }
+        }
+        return () => clearTimeout(t);
+    }, [isPlaying, currentStepIdx, activeVariant, animationSpeed]);
 
     const handleReplay = () => {
         window.scrollTo({ top: 0 });
@@ -448,32 +444,29 @@ export function DatabaseIndexingGuide() {
                         </button>
                     ))}
                 </div>
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    style={{
-                        width: '28px', height: '28px', borderRadius: '6px',
-                        border: '1px solid var(--border2)', background: 'var(--surface)',
-                        color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', cursor: 'pointer', transition: 'all .2s',
-                    }}
-                    className="social-btn"
-                    aria-label="Settings"
-                >
-                    <Settings size={14} />
-                </button>
-                <button
-                    onClick={() => playVariant(activeVariant)}
-                    style={{
-                        width: '28px', height: '28px', borderRadius: '6px',
-                        border: '1px solid var(--border2)', background: 'var(--surface)',
-                        color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', cursor: 'pointer', transition: 'all .2s',
-                    }}
-                    className="social-btn"
-                    aria-label="Replay Animation"
-                >
-                    <span style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: '-2px' }}>↺</span>
-                </button>
+                <div className="viz-playback-controls">
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="viz-ctrl-btn"
+                        aria-label={isPlaying ? "Pause Animation" : "Play Animation"}
+                    >
+                        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                        onClick={() => playVariant(activeVariant)}
+                        className="viz-ctrl-btn"
+                        aria-label="Replay Animation"
+                    >
+                        <RotateCcw size={14} />
+                    </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="viz-ctrl-btn"
+                        aria-label="Settings"
+                    >
+                        <Settings size={14} />
+                    </button>
+                </div>
             </div>
 
             {/* Flow diagram */}
