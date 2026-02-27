@@ -3,6 +3,7 @@ export const config = {
     name: "Vizly",
     fullName: "Vizly — Learn Through Visuals",
     description: "Animated guides to system design, security, and complex engineering concepts.",
+    gtmId: process.env.NEXT_PUBLIC_GTM_ID,
   },
   urls: {
     domain: "vizly.dev",

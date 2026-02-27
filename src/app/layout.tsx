@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { config } from "@/lib/config";
+import { GoogleTagManager } from '@next/third-parties/google';
 
 export const metadata: Metadata = {
   title: config.app.fullName,
@@ -19,6 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {config.app.gtmId && <GoogleTagManager gtmId={config.app.gtmId} />}
       <body style={{
         minHeight: '100vh',
         display: 'flex',
