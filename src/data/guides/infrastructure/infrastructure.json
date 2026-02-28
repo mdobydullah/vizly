@@ -254,6 +254,30 @@
         "contributors": "obydul"
     },
     {
+        "id": "monolithic-architecture",
+        "title": "Monolithic Architecture",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Architecture",
+            "Scalability",
+            "Deployment"
+        ],
+        "description": "A monolithic architecture is a single-unit software architecture where all components of an application are tightly coupled and deployed together as a single unit. All features share the same codebase, database, and infrastructure, making it simple to develop and deploy but potentially difficult to scale and maintain as the application grows.",
+        "icon": "📦",
+        "link": "/guides/monolithic-architecture",
+        "color": "cyan",
+        "colorConfig": {
+            "primary": "#22d3ee",
+            "background": "rgba(34, 211, 238, .08)",
+            "border": "rgba(34, 211, 238, .15)",
+            "hoverShadow": "0 0 32px rgba(34, 211, 238, .4), 0 0 16px rgba(34, 211, 238, .2)"
+        },
+        "createdAt": "2026-02-28T19:33:16Z",
+        "updatedAt": "2026-02-28T19:33:16Z",
+        "contributors": "obydul"
+    },
+    {
         "id": "microservices-architecture",
         "title": "Microservices Architecture",
         "category": "Infrastructure",

@@ -1,0 +1,595 @@
+/* src/styles/guides/infrastructure/monolithic-architecture.css */
+
+/* ════════════════════════════════════════
+   CONCEPTS GRID
+   (Reusing patterns from microservices but with mono- prefix)
+════════════════════════════════════════ */
+
+.mono-concepts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.mono-concept-card {
+    border-radius: 14px;
+    padding: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: all .3s ease;
+}
+
+.mono-concept-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--card-glow, rgba(34, 211, 238, .04)) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+}
+
+.mono-concept-card:hover {
+    transform: translateY(-4px);
+}
+
+.mono-concept-card:hover::before {
+    opacity: 1;
+}
+
+.mono-concept-icon {
+    font-size: 2.2rem;
+    margin-bottom: .8rem;
+    display: block;
+}
+
+.mono-concept-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: .98rem;
+    color: var(--text-hi);
+    margin-bottom: .6rem;
+}
+
+.mono-concept-desc {
+    font-size: .78rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.mono-concept-example {
+    font-size: .72rem;
+    color: var(--text-dim);
+    padding: .6rem .8rem;
+    border-radius: 8px;
+    background: rgba(34, 211, 238, .05);
+    border-left: 2px solid var(--cyan);
+    margin-top: auto;
+}
+
+.mono-concept-example strong {
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+/* ════════════════════════════════════════
+   MERMAID DIAGRAM WRAPPER
+════════════════════════════════════════ */
+
+.mono-mermaid-wrap {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.mono-mermaid-wrap .mermaid {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.mono-mermaid-wrap .mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ════════════════════════════════════════
+   BENEFITS & CHALLENGES SECTION
+════════════════════════════════════════ */
+
+.mono-tradeoffs-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.mono-tradeoff-column {
+    border-radius: 12px;
+    padding: 1.6rem;
+    background: rgba(0, 0, 0, .2);
+    border: 1px solid var(--border);
+}
+
+.mono-tradeoff-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    padding-bottom: .8rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.mono-tradeoff-title.benefits {
+    border-bottom-color: #69f0ae;
+    color: #69f0ae;
+}
+
+.mono-tradeoff-title.challenges {
+    border-bottom-color: #ff9100;
+    color: #ff9100;
+}
+
+.mono-benefit-list,
+.mono-challenge-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mono-benefit-item,
+.mono-challenge-item {
+    display: flex;
+    gap: .8rem;
+    align-items: flex-start;
+    padding: .8rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, .15);
+    transition: all .2s;
+}
+
+.mono-benefit-item:hover,
+.mono-challenge-item:hover {
+    background: rgba(0, 0, 0, .25);
+    transform: translateX(4px);
+}
+
+.mono-benefit-icon,
+.mono-challenge-icon {
+    font-size: 1rem;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mono-benefit-icon {
+    background: rgba(105, 240, 174, .15);
+    color: #69f0ae;
+}
+
+.mono-challenge-icon {
+    background: rgba(255, 145, 0, .15);
+    color: #ff9100;
+}
+
+.mono-benefit-name,
+.mono-challenge-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: .8rem;
+    color: var(--text-hi);
+}
+
+.mono-benefit-desc,
+.mono-challenge-desc {
+    font-size: .72rem;
+    color: var(--text-dim);
+    margin-top: .2rem;
+}
+
+/* ════════════════════════════════════════
+   FLOW SECTION & VISUALIZATION
+════════════════════════════════════════ */
+
+.mono-flow-section {
+    max-width: 1100px;
+    margin: 2rem auto 3rem;
+    position: relative;
+    z-index: 1;
+    padding: 0 1rem;
+}
+
+.mono-flow-controls {
+    display: flex;
+    gap: .6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.mono-flow-btn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    font-size: .75rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all .25s;
+}
+
+.mono-flow-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(34, 211, 238, .05);
+}
+
+.mono-flow-btn.active {
+    background: linear-gradient(135deg, var(--cyan), rgba(34, 211, 238, .8));
+    color: #000;
+    border-color: var(--cyan);
+    font-weight: 700;
+    box-shadow: 0 0 16px rgba(34, 211, 238, .4);
+}
+
+.mono-flow-container {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    background: rgba(18, 22, 31, .5);
+    margin-top: 1.5rem;
+}
+
+.mono-flow-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.mono-flow-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-hi);
+    margin-bottom: .4rem;
+}
+
+.mono-flow-desc {
+    font-size: .8rem;
+    color: var(--text-dim);
+}
+
+/* Flow Diagram */
+.mono-flow-diagram {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 2rem 0;
+    min-height: 200px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mono-node {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.4, 0, .2, 1);
+    position: relative;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.mono-node::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(34, 211, 238, .1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.mono-node:hover {
+    border-color: var(--cyan);
+    background: rgba(34, 211, 238, .05);
+    transform: translateY(-4px);
+}
+
+.mono-node:hover::before {
+    opacity: 1;
+}
+
+.mono-node.active {
+    border-color: var(--cyan);
+    background: rgba(34, 211, 238, .15);
+    box-shadow: 0 0 20px rgba(34, 211, 238, .4), inset 0 0 20px rgba(34, 211, 238, .1);
+    animation: pulse-node-cyan 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-node-cyan {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(34, 211, 238, .4), inset 0 0 20px rgba(34, 211, 238, .1);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(34, 211, 238, .6), inset 0 0 30px rgba(34, 211, 238, .15);
+    }
+}
+
+.mono-node-icon {
+    font-size: 2.2rem;
+    margin-bottom: .6rem;
+    display: block;
+    z-index: 1;
+}
+
+.mono-node-label {
+    font-size: .75rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.3;
+    z-index: 1;
+}
+
+.mono-node.active .mono-node-label {
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+/* Step Indicator */
+.mono-step-indicator {
+    margin-top: 2rem;
+    padding: 1.2rem;
+    border-radius: 10px;
+    background: rgba(34, 211, 238, .05);
+    border: 1px solid rgba(34, 211, 238, .2);
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.mono-step-text {
+    font-size: .85rem;
+    color: var(--text);
+    margin: 0 0 .8rem 0;
+    font-family: var(--font-display);
+    line-height: 1.5;
+    min-height: 1.3em;
+}
+
+.mono-step-progress {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.mono-step-bar {
+    flex-grow: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.mono-step-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), #22d3ee);
+    border-radius: 3px;
+    transition: width .4s ease;
+}
+
+.mono-step-count {
+    font-size: .7rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+/* ════════════════════════════════════════
+   COMPARISON TABLE
+════════════════════════════════════════ */
+
+.mono-comparison-wrap {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+    overflow-x: auto;
+}
+
+.mono-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.mono-comparison-table thead {
+    background: rgba(34, 211, 238, .08);
+    border-bottom: 2px solid var(--border);
+}
+
+.mono-comparison-table th {
+    padding: .8rem;
+    text-align: left;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: .5px;
+}
+
+.mono-comparison-table td {
+    padding: .8rem;
+    border-bottom: 1px solid var(--border2);
+    color: var(--text);
+}
+
+.mono-comparison-table tbody tr:hover {
+    background: rgba(34, 211, 238, .05);
+}
+
+.mono-comparison-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.mono-aspect-cell {
+    font-weight: 600;
+    color: var(--text-hi);
+    font-family: var(--font-display);
+    width: 140px;
+}
+
+.monolith-highlight {
+    background: rgba(34, 211, 238, .08);
+    border-right: 1px solid rgba(34, 211, 238, .2);
+    text-align: center;
+    width: 100px;
+}
+
+.microservices-dim {
+    background: rgba(124, 77, 255, .02);
+    text-align: center;
+    width: 100px;
+}
+
+.score-mono {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+.score-ms {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--purple);
+    opacity: 0.6;
+}
+
+/* ════════════════════════════════════════
+   RESOURCES GRID
+════════════════════════════════════════ */
+
+.mono-resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.mono-resource-card {
+    border-radius: 12px;
+    padding: 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all .3s ease;
+    cursor: pointer;
+}
+
+.mono-resource-card:hover {
+    border-color: var(--cyan);
+    background: rgba(34, 211, 238, .05);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(34, 211, 238, .15);
+}
+
+.mono-resource-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.mono-resource-type {
+    font-size: 1.4rem;
+}
+
+.mono-resource-icon {
+    color: var(--text-dim);
+    transition: all .2s;
+}
+
+.mono-resource-card:hover .mono-resource-icon {
+    color: var(--cyan);
+    transform: translateX(3px) translateY(-3px);
+}
+
+.mono-resource-title {
+    font-family: var(--font-display);
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text-hi);
+    line-height: 1.4;
+}
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .mono-concepts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mono-node {
+        width: 100px;
+        height: 100px;
+    }
+
+    .mono-node-icon {
+        font-size: 1.8rem;
+    }
+
+    .mono-node-label {
+        font-size: .65rem;
+    }
+
+    .mono-comparison-table th,
+    .mono-comparison-table td {
+        padding: .5rem;
+    }
+
+    .mono-aspect-cell {
+        width: auto;
+    }
+
+    .mono-resources-grid {
+        grid-template-columns: 1fr;
+    }
+}

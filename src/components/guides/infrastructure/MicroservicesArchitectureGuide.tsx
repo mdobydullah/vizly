@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, ExternalLink, Play, Pause, RotateCcw } from 'lucide-react';
+import { Settings, ExternalLink, Play, Pause, RotateCcw, Youtube, Globe, BookOpen } from 'lucide-react';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
@@ -524,27 +524,61 @@ export function MicroservicesGuide() {
 
             {/* ═══════════════ RESOURCES ═══════════════ */}
             <h2 className="section-title" style={{ marginTop: '2.5rem' }}>
-                Resources & Further Learning
+                Deep Dives & Resources
             </h2>
-            <div className="ms-resources-grid">
-                {RESOURCES.map((resource) => (
-                    <a
-                        key={resource.title}
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="viz-card ms-resource-card"
-                    >
-                        <div className="ms-resource-header">
-                            <span className="ms-resource-type">{resource.type === 'web' ? '🌐' : '🎬'}</span>
-                            <ExternalLink size={14} className="ms-resource-icon" />
-                        </div>
-                        <h3 className="ms-resource-title">{resource.title}</h3>
-                    </a>
-                ))}
+            <div className="viz-comparison-table-wrap">
+                <table className="viz-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Title</th>
+                            <th style={{ width: '20%' }}>Format</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {RESOURCES.map((res) => (
+                            <tr key={res.title}>
+                                <td style={{ color: 'var(--text-hi)', fontWeight: 600 }}>{res.title}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <ResourceIcon type={res.type} />
+                                        <span style={{ textTransform: 'capitalize' }}>{res.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a
+                                        href={`${res.url}${res.url.includes('?') ? '&' : '?'}ref=vizly.dev`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            color: 'var(--cyan)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        className="hover:underline"
+                                    >
+                                        Open <ExternalLink size={14} />
+                                    </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </GuideLayout>
     );
+}
+
+function ResourceIcon({ type }: { type: string }) {
+    switch (type) {
+        case 'youtube': return <Youtube size={18} color="#FF4444" />;
+        case 'web': return <Globe size={18} color="#4A90E2" />;
+        case 'course': return <BookOpen size={18} color="#F5A623" />;
+        default: return <ExternalLink size={18} />;
+    }
 }
 
 export default MicroservicesGuide;
