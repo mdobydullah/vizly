@@ -252,5 +252,30 @@
         "createdAt": "2026-02-27T17:24:28Z",
         "updatedAt": "2026-02-27T17:24:28Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "microservices-architecture",
+        "title": "Microservices Architecture",
+        "category": "Infrastructure",
+        "tags": [
+            "Infrastructure",
+            "Architecture",
+            "Distributed Systems",
+            "Microservices",
+            "Scalability"
+        ],
+        "description": "Microservices architecture breaks down monolithic applications into small, independent, loosely-coupled services that communicate over networks. Each service is self-contained, owned by a team, and can be deployed independently with its own database and technology stack.",
+        "icon": "🏗️",
+        "link": "/guides/microservices-architecture",
+        "color": "deep-purple",
+        "colorConfig": {
+            "primary": "#7c4dff",
+            "background": "rgba(124, 77, 255, .08)",
+            "border": "rgba(124, 77, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(124, 77, 255, .4), 0 0 16px rgba(124, 77, 255, .2)"
+        },
+        "createdAt": "2026-03-01T11:23:45Z",
+        "updatedAt": "2026-03-01T11:23:45Z",
+        "contributors": "obydul"
     }
 ]
