@@ -118,24 +118,26 @@ export function GuideLayout({
                 textAlign: 'center'
             }}>
                 <div style={{
-                    fontSize: '.7rem',
-                    letterSpacing: '.1em',
+                    fontSize: '.75rem',
+                    letterSpacing: '.2em',
                     textTransform: 'uppercase',
-                    fontFamily: 'var(--font-mono)',
+                    fontFamily: 'var(--font-hero)',
+                    fontWeight: 800,
                     color: primaryColor,
-                    marginBottom: '0.2rem',
-                    opacity: .8
+                    marginBottom: '0.5rem',
                 }}>
                     {category}
                 </div>
-                <h2 style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '1.35rem',
-                    fontWeight: 800,
+                <h1 style={{
+                    fontFamily: 'var(--font-hero)',
+                    fontSize: 'clamp(2rem, 6vw, 2.75rem)',
+                    fontWeight: 900,
                     color: 'var(--text-hi)',
-                    letterSpacing: '-.02em',
-                    marginBottom: '0.2rem'
-                }}>{title}</h2>
+                    letterSpacing: '-.04em',
+                    lineHeight: 1.1,
+                    marginBottom: '1rem',
+                    maxWidth: '800px'
+                }}>{title}</h1>
 
                 {contributors && contributors.length > 0 && (
                     <button
@@ -162,27 +164,21 @@ export function GuideLayout({
                 )}
 
                 {description && (
-                    <div style={{
-                        maxWidth: '860px',
-                        margin: '0 auto 1.5rem',
-                        padding: '1.25rem 1.5rem',
-                        background: `${primaryColor}0D`,
-                        border: '1px solid var(--border)',
-                        borderRadius: '12px',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}>
+                    <>
                         <div
                             ref={descriptionRef}
                             style={{
-                                fontSize: '.88rem',
-                                color: 'var(--text)',
-                                lineHeight: '1.7',
+                                maxWidth: '750px',
+                                margin: '0.5rem auto 1.5rem',
+                                fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
+                                color: 'var(--text-dim)',
+                                lineHeight: '1.6',
                                 textAlign: 'center',
-                                maxHeight: shouldShowExpand && !isExpanded ? '62px' : '1000px',
+                                maxHeight: shouldShowExpand && !isExpanded ? '66px' : '1000px',
                                 transition: 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                 overflow: 'hidden',
-                                position: 'relative'
+                                position: 'relative',
+                                fontFamily: 'var(--font-hero)',
                             }}
                         >
                             {description}
@@ -204,7 +200,7 @@ export function GuideLayout({
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 style={{
                                     display: 'block',
-                                    margin: '0.5rem auto 0',
+                                    margin: '-1rem auto 1.5rem',
                                     background: 'none',
                                     border: 'none',
                                     color: primaryColor,
@@ -225,7 +221,7 @@ export function GuideLayout({
                                 {isExpanded ? '↑ Show less' : '↓ Read full description'}
                             </button>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
 
@@ -446,50 +442,51 @@ export function GuideLayout({
                 }
             `}</style>
 
-            {mounted && createPortal(
-                <button
-                    className={`scroll-to-top-btn ${showScrollTop ? 'visible' : ''}`}
-                    onClick={scrollToTop}
-                    aria-label="Scroll to top"
-                    title="Scroll to top"
-                    style={{
-                        position: 'fixed',
-                        bottom: '2rem',
-                        right: '2rem',
-                        width: '44px',
-                        height: '44px',
-                        borderRadius: '50%',
-                        background: 'var(--surface2)',
-                        border: '1px solid var(--border)',
-                        color: primaryColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        zIndex: 9999, // Ensure it's above everything including footer
-                        opacity: showScrollTop ? 1 : 0,
-                        visibility: showScrollTop ? 'visible' : 'hidden',
-                        transform: showScrollTop ? 'translateY(0)' : 'translateY(10px)',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = `${primaryColor}20`;
-                        e.currentTarget.style.borderColor = primaryColor;
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--surface2)';
-                        e.currentTarget.style.borderColor = 'var(--border)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-                    }}
-                >
-                    <ArrowUp size={20} />
-                </button>,
-                document.body
-            )
+            {
+                mounted && createPortal(
+                    <button
+                        className={`scroll-to-top-btn ${showScrollTop ? 'visible' : ''}`}
+                        onClick={scrollToTop}
+                        aria-label="Scroll to top"
+                        title="Scroll to top"
+                        style={{
+                            position: 'fixed',
+                            bottom: '2rem',
+                            right: '2rem',
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            background: 'var(--surface2)',
+                            border: '1px solid var(--border)',
+                            color: primaryColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 9999, // Ensure it's above everything including footer
+                            opacity: showScrollTop ? 1 : 0,
+                            visibility: showScrollTop ? 'visible' : 'hidden',
+                            transform: showScrollTop ? 'translateY(0)' : 'translateY(10px)',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = `${primaryColor}20`;
+                            e.currentTarget.style.borderColor = primaryColor;
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'var(--surface2)';
+                            e.currentTarget.style.borderColor = 'var(--border)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                        }}
+                    >
+                        <ArrowUp size={20} />
+                    </button>,
+                    document.body
+                )
             }
         </div >
     );

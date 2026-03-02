@@ -209,6 +209,11 @@
 .sl-node .icon {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.sl-node .label {
+    transition: color 0.3s ease;
 }
 
 .sl-node.active {
@@ -218,11 +223,29 @@
     transform: scale(1.05);
 }
 
+.sl-node.active .icon {
+    transform: scale(1.2);
+}
+
+.sl-node.active .label {
+    color: var(--cyan);
+    font-weight: 700;
+}
+
 .sl-node.processing {
     border-color: var(--purple);
     color: var(--text-hi);
     box-shadow: 0 0 15px rgba(224, 64, 251, 0.3);
     animation: slPulse 1s infinite alternate;
+}
+
+.sl-node.processing .icon {
+    transform: scale(1.1);
+}
+
+.sl-node.processing .label {
+    color: var(--purple);
+    font-weight: 700;
 }
 
 .sl-node.success {
@@ -231,10 +254,20 @@
     box-shadow: 0 0 15px rgba(105, 240, 174, 0.3);
 }
 
+.sl-node.success .label {
+    color: var(--green);
+    font-weight: 700;
+}
+
 .sl-node.error {
     border-color: #ff5252;
     color: var(--text-hi);
     box-shadow: 0 0 15px rgba(255, 82, 82, 0.3);
+}
+
+.sl-node.error .label {
+    color: #ff5252;
+    font-weight: 700;
 }
 
 .sl-node-label {
@@ -242,6 +275,46 @@
     color: var(--text-dim);
     margin-top: 0.5rem;
     text-align: center;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+.sl-node-label.active {
+    color: var(--cyan);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(29, 233, 182, 0.4);
+}
+
+.sl-node-label.processing {
+    color: var(--purple);
+    font-weight: 700;
+    animation: labelPulse 1.5s infinite ease-in-out;
+}
+
+.sl-node-label.success {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.sl-node-label.error {
+    color: #ff5252;
+    font-weight: 700;
+}
+
+@keyframes labelPulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
 }
 
 .sl-arrow {
@@ -334,6 +407,7 @@
 .sl-step.active .sl-step-text {
     color: var(--cyan);
     font-weight: 600;
+    text-shadow: 0 0 10px rgba(29, 233, 182, 0.3);
 }
 
 /* Replay Button */

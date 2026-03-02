@@ -348,7 +348,7 @@ export function ServerlessArchitectureGuide() {
                                 <div className={`sl-node \${nodeStates[node.id] || 'idle'}`}>
                                     <div className="icon">{node.icon}</div>
                                     <div className="label">{node.label}</div>
-                                    <div className="sl-node-label">
+                                    <div className={`sl-node-label ${nodeStates[node.id] || 'idle'}`}>
                                         {nodeStates[node.id] === 'processing' ? 'Processing...' :
                                             nodeStates[node.id] === 'active' ? 'Invoked' :
                                                 nodeStates[node.id] === 'success' ? 'Finished' :
