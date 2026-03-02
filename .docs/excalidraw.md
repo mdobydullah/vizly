@@ -10,14 +10,14 @@ To use Excalidraw programmatically with your AI agent, ensure the Excalidraw Can
 The AI agent uses the Excalidraw MCP which communicates with a canvas server. You can check if the docker container is running:
 
 ```bash
-docker ps | grep mcp-excalidraw-canvas-antigravity
+docker ps | grep mcp-excalidraw-canvas
 ```
 
 ### 2. Run the Canvas Server
 If the server is not running, start it using the following command:
 
 ```bash
-docker run -d -p 3100:3000 --name mcp-excalidraw-canvas-antigravity ghcr.io/yctimlin/mcp_excalidraw-canvas:latest
+docker run -d -p 3100:3000 --name mcp-excalidraw-canvas ghcr.io/yctimlin/mcp_excalidraw-canvas:latest
 ```
 
 ## 🎨 Workflow

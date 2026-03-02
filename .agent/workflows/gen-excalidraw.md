@@ -12,17 +12,18 @@ When the user provides a topic or guide name (e.g., "Consistent Hashing"), follo
    - If it's a new topic, research or propose a standard visual representation (e.g., Venn diagram for CAP, Ring for Consistent Hashing, Layers for OSI).
 
 3. **Design the Layout**:
-   - Use the `excalidraw` MCP tools to create a professional diagram.
+   - Use `mcp_excalidraw_batch_create_elements` to create all elements at once.
    - **Mandatory Elements**:
-     - **Title**: A large, clear title at the top center.
-     - **Border**: A subtle dashed or dotted rectangular border framing the entire design (with some padding).
-     - **Watermark**: A "Vizly.dev" text watermark in the bottom-right corner with low opacity.
+     - **Title**: A standalone `text` element at the top center. Use `fontFamily: 1` (Virgil/handwritten), `fontSize: 32`, dark `strokeColor` like `#0f172a`.
+     - **Border**: A `rectangle` with `backgroundColor: "transparent"`, `strokeStyle: "dotted"`, light `strokeColor` like `#cbd5e1`, that wraps all content with ~20px padding.
+     - **Watermark**: A standalone `text` element with `text: "Vizly.dev"`, `fontFamily: 1`, `fontSize: 16`, `strokeColor: "#334155"`, `opacity: 90`. **Position it in the bottom-right corner, well inside the border bounds (not at the edge)**. This ensures it appears both locally and in the shareable excalidraw.com link.
+   - **Text Inside Shapes**: ALWAYS embed text into shapes using the shape's own `text` property (e.g., `{ type: "rectangle", text: "Root: 50", ... }`). Do NOT create separate floating text elements overlaying shapes — they will disappear in the shareable URL export.
    - **Aesthetics**:
-     - Colors: Use Vizly colors: Blue (`#2980b9`), Green (`#27ae60`), Orange (`#f39c12`), Purple (`#8e44ad`).
-     - Styles: Use semi-transparent backgrounds for shapes (`rgba(..., 0.1)`) and appropriate stroke styles.
+     - Colors: Blue (`#2980b9`), Green (`#27ae60`), Orange (`#f39c12`), Purple (`#8e44ad`).
+     - Shape backgrounds: Use solid light tints like `#dbeafe` (blue), `#dcfce7` (green), `#fef9c3` (yellow), `#ede9fe` (purple).
+     - Set `fontFamily: 1` on all shapes and text for the handwritten Excalidraw style.
 
 4. **Verify and Share**:
-   - Group related elements using `mcp_excalidraw_group_elements`.
-   - **Local Verification**: Direct the user to their local Excalidraw canvas at [http://localhost:3100](http://localhost:3100) for real-time verification and manual tweaks.
-   - **Export & Share**: Export the diagram to a shareable `excalidraw.com` URL using `mcp_excalidraw_export_to_excalidraw_url`.
-   - Provide the URL and local link to the user with a brief explanation of the design choices.
+   - **Local Verification**: Direct the user to [http://localhost:3100](http://localhost:3100) to preview in real-time.
+   - **Export & Share**: Call `mcp_excalidraw_export_to_excalidraw_url` to get the shareable link.
+   - Confirm with the user that both the text labels AND the "Vizly.dev" watermark are visible in the shareable URL.
