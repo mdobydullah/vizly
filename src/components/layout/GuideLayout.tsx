@@ -170,7 +170,7 @@ export function GuideLayout({
                             style={{
                                 maxWidth: '750px',
                                 margin: '0.5rem auto 1.5rem',
-                                fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
+                                fontSize: 'clamp(0.9rem, 2vw, 1rem)',
                                 color: 'var(--text-dim)',
                                 lineHeight: '1.6',
                                 textAlign: 'center',

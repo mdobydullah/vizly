@@ -4,18 +4,28 @@
 - **Background**: Deep Dark (`#0a0e14`).
 - **Surface**: Card Dark (`#12161f`).
 - **Typography**: 
-  - `Outfit`: For headings and UI emphasis.
-  - `JetBrains Mono`: For data, code, and technical labels.
+  - `Outfit` (`--font-display`): For visual accents and some UI emphasis.
+  - `Inter` (`--font-hero`): The primary heading font for readability and impact.
+  - `DM Mono` (`--font-body`): For descriptive body text.
+  - `Space Mono` (`--font-mono`): For data, logic flows, and technical labels.
 - **Accents**: Use `--cyan`, `--purple`, `--pink`, `--orange`, and `--green` CSS variables.
 
 ## 2. CSS Guidelines (Vanilla Only)
 - **No Tailwind/SCSS**: Use native Vanilla CSS with nesting.
 - **Variables**: Always use `var(--var-name)`.
-- **Global Utilities**:
+- **Global Utilities — PRIORITIZE THESE**:
+  - `.section-title`: Global heading style for page sections.
+  - `.viz-heading`: Utility class for standard Inter-based headings.
   - `.viz-card`: Standard themed container.
   - `.viz-tag`: Metadata chips.
   - `.viz-action`: Logic/Process blocks in diagrams.
   - `.viz-comparison-table-wrap`: Container for standard tables.
+
+## 3. Styling Strategy: Global First
+- **Check Globals**: Before writing new CSS in a guide-specific file, check `src/app/globals.css` and `src/styles/guides.css` for existing variables and utility classes.
+- **Reuse Before Creating**: Use global variables (`--font-hero`, `--cyan`, etc.) for consistency. 
+- **Topic-Specific Only**: Only create a local `[topic].css` file for styles that are truly unique to that guide (e.g., custom diagram layouts, unique animation keyframes, or specific node shapes).
+- **Avoid Hardcoding**: Never use hardcoded hex codes or font-family strings in local CSS if a variable exists.
 
 
 ## 3. Animation Guidelines

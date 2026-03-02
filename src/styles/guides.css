@@ -123,3 +123,105 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(62, 255, 163, 0.3);
 }
+
+/* ════════════════════════════════════════
+   GLOBAL FLOW UI COMPONENTS
+════════════════════════════════════════ */
+
+/* Standard Tab Buttons */
+.viz-tab-btn {
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.viz-tab-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+.viz-tab-btn.active {
+    background: var(--cyan);
+    color: #000;
+    border-color: var(--cyan);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+}
+
+/* Section Header Utility (Centered title with subtle accent) */
+.viz-section-header {
+    text-align: center;
+    margin: 3.5rem auto 2rem;
+}
+
+.viz-section-title {
+    font-family: var(--font-hero);
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--text-hi);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+}
+
+.viz-section-hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: var(--font-body);
+}
+
+/* Flow Node Utilities */
+.viz-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+}
+
+.viz-node-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 0.4rem;
+}
+
+/* Standard Node States */
+.viz-node.active {
+    border-color: var(--purple);
+    background: rgba(185, 133, 244, 0.1);
+    box-shadow: 0 0 20px rgba(185, 133, 244, 0.25);
+    transform: scale(1.05);
+}
+
+.viz-node-status {
+    font-size: 0.6rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.viz-node-status.processing {
+    color: var(--purple);
+}
+
+.viz-node-status.success {
+    color: var(--green);
+}
+
+.viz-node-status.error {
+    color: var(--pink);
+}

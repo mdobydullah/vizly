@@ -7,9 +7,9 @@ This rule defines the functional requirements for a "Vizly Guide".
 - **Pattern Grid**: 4-6 interactive cards explaining sub-concepts.
 - **Mermaid Diagram**: Static "Architecture-as-Code" diagram before the interactive section.
 - **Animated Flow**: The centerpiece. Must have:
-  - 3-5 switchable tabs (Algorithm variants). For the tab controls, always use a flex wrap layout with rounded, bordered buttons that have hover/active states with themed glowing box-shadows (e.g. `.eda-tab-btn` styles). Do not use an inline pill background for the container.
-  - Visual nodes with state (Idle, Processing, Success, Error).
-  - Step-by-step logic explanation text.
+  - 3-5 switchable tabs (Algorithm variants). For the tab controls, always use a flex wrap layout with the **`.viz-tab-btn`** utility class.
+  - Visual nodes using **`.viz-node`** and **`.viz-node-label`** with state (Active, Processing, Success, Error).
+  - Step-by-step logic explanation text using **`.viz-section-header`** as a header for logic blocks if needed.
   - Replay/Flow control functionality.
 - **Beginner-Friendly Coverage**: Don't miss any important points needed to understand the topic. Think from a beginner's perspective — cover foundational concepts, explain "why" not just "how", and ensure no critical subtopic is skipped.
 
@@ -17,8 +17,9 @@ This rule defines the functional requirements for a "Vizly Guide".
 - Render the Mermaid diagram only. Do NOT include a collapsible `details` block with the raw Mermaid source code.
 - Use `sequenceDiagram` for communication flows.
 - Use `flowchart TD` for structural/logic flows.
-- **Centering — REQUIRED**: Always wrap the Mermaid `<pre className="mermaid">` in a **dedicated topic-scoped CSS class** (e.g. `.[topic]-mermaid-wrap`). Never place it bare inside a generic `viz-card` alone.
-- **The wrapper class must define**:
+- **Centering & Typography — REQUIRED**: Always wrap the Mermaid `<pre className="mermaid">` in a dedicated topic-scoped CSS class (e.g. `.[topic]-mermaid-wrap`). 
+  - Ensure labels use standard typography by specifying **`fontFamily: var(--font-mono)`** or similar in the mermaid config if possible, or maintain high contrast.
+- **The wrapper class MUST define**:
   ```css
   .[topic]-mermaid-wrap {
       max-width: 900px;

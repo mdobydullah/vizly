@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&family=Outfit:wght@400;700;800;900&display=swap');
 @import "../styles/guides.css";
 @import "../styles/cards.css";
 @import "../styles/actions.css";
@@ -30,7 +30,7 @@
     --text-dim: #5a6a7e;
     --text-hi: #eef2f8;
 
-    --font-display: 'Syne', sans-serif;
+    --font-display: 'Outfit', sans-serif;
     --font-mono: 'Space Mono', monospace;
     --font-body: 'DM Mono', monospace;
     --font-hero: 'Inter', sans-serif;
@@ -163,10 +163,20 @@ body::before {
 
 .viz-container .section-title {
     text-align: center;
-    font-size: 1.3rem;
-    color: #fff;
-    margin: 2.5rem 0 1.5rem;
-    font-weight: normal;
+    font-size: clamp(1.4rem, 3.5vw, 1.75rem);
+    color: var(--text-hi);
+    margin: 4.5rem 0 2.5rem;
+    font-weight: 800;
+    font-family: var(--font-hero);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.viz-heading {
+    font-family: var(--font-hero);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-hi);
 }
 
 /* Flow Steps */

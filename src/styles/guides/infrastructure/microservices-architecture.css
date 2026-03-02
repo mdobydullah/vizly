@@ -22,6 +22,8 @@
     position: relative;
     overflow: hidden;
     transition: all .3s ease;
+    animation: slide-in-up .5s ease forwards;
+    opacity: 0;
 }
 
 .ms-concept-card::before {
@@ -50,11 +52,12 @@
 }
 
 .ms-concept-title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .98rem;
+    font-family: var(--font-hero);
+    font-weight: 800;
+    font-size: 1.1rem;
     color: var(--text-hi);
     margin-bottom: .6rem;
+    letter-spacing: -0.02em;
 }
 
 .ms-concept-desc {
@@ -125,12 +128,13 @@
 }
 
 .ms-tradeoff-title {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 700;
+    font-family: var(--font-hero);
+    font-size: 1.15rem;
+    font-weight: 800;
     margin-bottom: 1.2rem;
     padding-bottom: .8rem;
     border-bottom: 2px solid var(--border);
+    letter-spacing: -0.03em;
 }
 
 .ms-tradeoff-title.benefits {
@@ -181,28 +185,37 @@
 }
 
 .ms-benefit-icon {
-    background: rgba(105, 240, 174, .15);
-    color: #69f0ae;
+    background: rgba(105, 240, 174, .25);
+    /* Slightly more opaque */
+    color: #fff;
+    /* White text for clear contrast */
+    text-shadow: 0 0 10px rgba(105, 240, 174, 0.4);
 }
 
 .ms-challenge-icon {
-    background: rgba(255, 145, 0, .15);
-    color: #ff9100;
+    background: rgba(255, 145, 0, .25);
+    /* Slightly more opaque */
+    color: #fff;
+    /* White text for clear contrast */
+    text-shadow: 0 0 10px rgba(255, 145, 0, 0.4);
 }
 
 .ms-benefit-name,
 .ms-challenge-name {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: .8rem;
+    font-family: var(--font-hero);
+    font-weight: 700;
+    font-size: .85rem;
     color: var(--text-hi);
+    letter-spacing: -0.01em;
 }
 
 .ms-benefit-desc,
 .ms-challenge-desc {
     font-size: .72rem;
-    color: var(--text-dim);
-    margin-top: .2rem;
+    color: var(--text);
+    /* Improved contrast from var(--text-dim) */
+    margin-top: .4rem;
+    line-height: 1.5;
 }
 
 /* ════════════════════════════════════════
@@ -264,11 +277,12 @@
 }
 
 .ms-flow-title {
-    font-family: var(--font-display);
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-family: var(--font-hero);
+    font-size: 1.4rem;
+    font-weight: 800;
     color: var(--text-hi);
     margin-bottom: .4rem;
+    letter-spacing: -0.03em;
 }
 
 .ms-flow-desc {
@@ -330,9 +344,12 @@
 }
 
 @keyframes pulse-node {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 20px rgba(124, 77, 255, .4), inset 0 0 20px rgba(124, 77, 255, .1);
     }
+
     50% {
         box-shadow: 0 0 30px rgba(124, 77, 255, .6), inset 0 0 30px rgba(124, 77, 255, .15);
     }
@@ -373,10 +390,11 @@
 }
 
 .ms-step-text {
-    font-size: .85rem;
+    font-size: 0.9rem;
     color: var(--text);
     margin: 0 0 .8rem 0;
-    font-family: var(--font-display);
+    font-family: var(--font-hero);
+    font-weight: 600;
     line-height: 1.5;
     min-height: 1.3em;
 }
@@ -437,10 +455,10 @@
 .ms-comparison-table th {
     padding: .8rem;
     text-align: left;
-    font-family: var(--font-display);
-    font-weight: 700;
+    font-family: var(--font-hero);
+    font-weight: 800;
     color: var(--purple);
-    letter-spacing: .5px;
+    letter-spacing: 0;
 }
 
 .ms-comparison-table td {
@@ -458,9 +476,9 @@
 }
 
 .aspect-cell {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-hi);
-    font-family: var(--font-display);
+    font-family: var(--font-hero);
     width: 140px;
     flex-shrink: 0;
 }
@@ -587,11 +605,12 @@
 }
 
 .ms-resource-title {
-    font-family: var(--font-display);
-    font-size: .9rem;
+    font-family: var(--font-hero);
+    font-size: .95rem;
     font-weight: 700;
     color: var(--text-hi);
     line-height: 1.4;
+    letter-spacing: -0.01em;
 }
 
 /* ════════════════════════════════════════
@@ -603,6 +622,7 @@
         opacity: 0;
         transform: translateY(12px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -613,14 +633,13 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
 }
 
-.ms-concept-card {
-    animation: slide-in-up .5s ease forwards;
-}
+/* animation rules moved to line 17 */
 
 .ms-concept-card:nth-child(2) {
     animation-delay: .1s;
