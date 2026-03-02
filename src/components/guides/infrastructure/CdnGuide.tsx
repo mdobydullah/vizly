@@ -109,6 +109,7 @@ export function CdnGuide() {
             category={guide.category}
             title={guide.title}
             description={guide.description}
+            tags={guide.tags}
             primaryColor={guide.colorConfig.primary}
             onReplay={playSimulation}
             contributors={guide.contributors}

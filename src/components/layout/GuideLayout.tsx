@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import mermaid from 'mermaid';
 import { Contributor } from '@/types/guides';
 import { Github, Twitter, Linkedin, Globe, Mail, ExternalLink, ArrowUp } from 'lucide-react';
@@ -11,6 +12,7 @@ interface GuideLayoutProps {
     category: string;
     title: string;
     description: string;
+    tags?: string[];
     primaryColor?: string;
     onReplay?: () => void;
     children: React.ReactNode;
@@ -22,11 +24,13 @@ export function GuideLayout({
     category,
     title,
     description,
+    tags,
     primaryColor = 'var(--cyan)',
     children,
     contributors,
     githubPath,
 }: Readonly<GuideLayoutProps>) {
+    const router = useRouter();
 
     // Scroll to top and Initialize Visual environment
     useEffect(() => {
@@ -136,7 +140,8 @@ export function GuideLayout({
                     letterSpacing: '-.04em',
                     lineHeight: 1.1,
                     marginBottom: '1rem',
-                    maxWidth: '800px'
+                    maxWidth: '800px',
+                    margin: '0 auto 1rem'
                 }}>{title}</h1>
 
                 {contributors && contributors.length > 0 && (
@@ -161,6 +166,49 @@ export function GuideLayout({
                     >
                         {getContributorString()}
                     </button>
+                )}
+
+                {tags && tags.length > 0 && (
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '1rem',
+                        maxWidth: '800px',
+                        margin: '0 auto 1.5rem'
+                    }}>
+                        {tags.map(tag => (
+                            <span
+                                key={tag}
+                                onClick={() => router.push(`/guides?tag=${encodeURIComponent(tag)}`)}
+                                style={{
+                                    fontSize: '0.6rem',
+                                    fontFamily: 'var(--font-mono)',
+                                    color: primaryColor,
+                                    background: `${primaryColor}15`,
+                                    padding: '0.15rem 0.5rem',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${primaryColor}30`,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    opacity: 0.9,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = `${primaryColor}25`;
+                                    e.currentTarget.style.opacity = '1';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = `${primaryColor}15`;
+                                    e.currentTarget.style.opacity = '0.9';
+                                }}
+                            >
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
                 )}
 
                 {description && (

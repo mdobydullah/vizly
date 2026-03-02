@@ -116,6 +116,7 @@ export function StatefulStatelessGuide() {
             category={guide.category}
             title={guide.title}
             description={guide.description}
+            tags={guide.tags}
             primaryColor={guide.colorConfig.primary}
             onReplay={handleReplay}
             contributors={guide.contributors}

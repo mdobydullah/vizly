@@ -14,6 +14,7 @@ export const SearchableSelect = ({
     options,
     value,
     onChange,
+    placeholder = "Select option",
     className
 }: SearchableSelectProps) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -91,7 +92,7 @@ export const SearchableSelect = ({
                     textOverflow: 'ellipsis',
                     marginRight: '.5rem'
                 }}>
-                    {value === "all" ? "All Categories" : value}
+                    {value === "all" ? placeholder : value}
                 </span>
                 <span style={{
                     fontSize: '.7rem',
@@ -135,7 +136,7 @@ export const SearchableSelect = ({
                                     setIsOpen(false);
                                 }
                             }}
-                            placeholder="Search category..."
+                            placeholder={`Search ${placeholder.toLowerCase()}...`}
                             style={{
                                 width: '100%',
                                 padding: '.5rem .8rem',
@@ -178,7 +179,7 @@ export const SearchableSelect = ({
                             }}
                             className="option-item"
                         >
-                            All Categories
+                            {placeholder}
                         </div>
 
                         {filteredOptions.length > 0 ? (
@@ -216,7 +217,7 @@ export const SearchableSelect = ({
                                 color: 'var(--text-dim)',
                                 fontSize: '.8rem'
                             }}>
-                                No categories found
+                                No results found
                             </div>
                         )}
                     </div>

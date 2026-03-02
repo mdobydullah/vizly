@@ -292,6 +292,7 @@ export function BigONotationGuide() {
             category={guide.category}
             title={guide.title}
             description={guide.description}
+            tags={guide.tags}
             primaryColor={guide.colorConfig.primary}
             contributors={guide.contributors}
         >

@@ -225,6 +225,7 @@ export function RateLimiterGuide({
             category={guideData.category}
             title={guideData.title}
             description={guideData.description}
+            tags={guideData.tags}
             primaryColor={guideData.colorConfig.primary}
             onReplay={handleReplay}
             contributors={guideData.contributors}

@@ -20,6 +20,20 @@ const getUniqueCategories = () => {
   return Array.from(categories).sort((a, b) => a.localeCompare(b));
 };
 
+// Extract unique tags from guides
+const getUniqueTags = () => {
+  const tags = new Set<string>();
+  data.guides.forEach(guide => {
+    if (guide.tags) {
+      guide.tags.forEach(tag => tags.add(tag));
+    }
+  });
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+};
+
+const ALL_CATEGORIES = getUniqueCategories();
+const ALL_TAGS = getUniqueTags();
+
 function GuidesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,10 +44,12 @@ function GuidesContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 18;
 
-  // Get category from URL or default to "all"
+  // Get category/tag from URL or default to "all"
   const selectedCategory = searchParams.get("category") || "all";
+  const selectedTag = searchParams.get("tag") || "all";
 
-  const categories = getUniqueCategories();
+  const categories = ALL_CATEGORIES;
+  const tags = ALL_TAGS;
 
   // Update URL when category changes
   const handleCategoryChange = (val: string) => {
@@ -42,6 +58,17 @@ function GuidesContent() {
       params.delete("category");
     } else {
       params.set("category", val);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  // Update URL when tag changes
+  const handleTagChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "all") {
+      params.delete("tag");
+    } else {
+      params.set("tag", val);
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
@@ -62,6 +89,13 @@ function GuidesContent() {
     if (selectedCategory !== "all") {
       filtered = filtered.filter(guide =>
         guide.category.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
+    }
+
+    // Filter by tag
+    if (selectedTag !== "all") {
+      filtered = filtered.filter(guide =>
+        guide.tags?.some(tag => tag.toLowerCase() === selectedTag.toLowerCase())
       );
     }
 
@@ -93,7 +127,7 @@ function GuidesContent() {
     }
 
     return sorted;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory, selectedTag, sortBy]);
 
   // Reset page when filters change
   const totalPages = Math.ceil(filteredGuides.length / perPage);
@@ -102,6 +136,7 @@ function GuidesContent() {
   const clearFilters = () => {
     setSearchQuery("");
     handleCategoryChange("all");
+    handleTagChange("all");
     setSortBy("newest");
     setCurrentPage(1);
   };
@@ -181,6 +216,14 @@ function GuidesContent() {
             placeholder="All Categories"
           />
 
+          {/* Tag Filter */}
+          <SearchableSelect
+            options={tags}
+            value={selectedTag}
+            onChange={handleTagChange}
+            placeholder="All Tags"
+          />
+
           {/* Sort Dropdown */}
           <select
             value={sortBy}
@@ -208,7 +251,7 @@ function GuidesContent() {
           </select>
 
           {/* Clear Filters Button */}
-          {(searchQuery || selectedCategory !== "all" || sortBy !== "newest") && (
+          {(searchQuery || selectedCategory !== "all" || selectedTag !== "all" || sortBy !== "newest") && (
             <button
               onClick={clearFilters}
               style={{
@@ -240,6 +283,7 @@ function GuidesContent() {
           {' · '}{data.guides.filter(g => g.link === '#').length} upcoming
           {searchQuery && ` matching "${searchQuery}"`}
           {selectedCategory !== "all" && ` in ${selectedCategory}`}
+          {selectedTag !== "all" && ` tagged ${selectedTag}`}
           {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
         </div>
       </div>
