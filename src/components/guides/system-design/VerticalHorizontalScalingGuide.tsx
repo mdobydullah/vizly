@@ -5,7 +5,7 @@ import { ArrowUp, Copy, Youtube, Globe, BookOpen, ExternalLink } from 'lucide-re
 import guidesData from "@/data/guides";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import { useSettings } from "@/context/SettingsContext";
-import '@/styles/guides/infrastructure/vertical-horizontal-scaling.css';
+import '@/styles/guides/system-design/vertical-horizontal-scaling.css';
 
 const guide = guidesData.guides.find(v => v.id === "vertical-horizontal-scaling")!;
 
@@ -29,7 +29,7 @@ export function VerticalHorizontalScalingGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/VerticalHorizontalScalingGuide.tsx"
+            githubPath="src/components/guides/system-design/VerticalHorizontalScalingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

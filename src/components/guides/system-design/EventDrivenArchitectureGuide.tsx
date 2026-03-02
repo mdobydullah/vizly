@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCc
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/async/event-driven-architecture.css';
+import '@/styles/guides/system-design/event-driven-architecture.css';
 
 const guide = guidesData.guides.find(v => v.id === "event-driven-architecture")!;
 
@@ -280,7 +280,7 @@ export function EventDrivenArchitectureGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/async/EventDrivenArchitectureGuide.tsx"
+            githubPath="src/components/guides/system-design/EventDrivenArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

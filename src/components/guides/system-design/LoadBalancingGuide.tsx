@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCc
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/load-balancing.css';
+import '@/styles/guides/system-design/load-balancing.css';
 
 const guide = guidesData.guides.find(v => v.id === "load-balancing")!;
 
@@ -235,7 +235,7 @@ export function LoadBalancingGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/LoadBalancingGuide.tsx"
+            githubPath="src/components/guides/system-design/LoadBalancingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

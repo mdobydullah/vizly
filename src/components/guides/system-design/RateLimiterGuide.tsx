@@ -6,7 +6,7 @@ import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import { config } from '@/lib/config';
-import '@/styles/guides/infrastructure/rate-limiter.css';
+import '@/styles/guides/system-design/rate-limiter.css';
 
 const guide = guidesData.guides.find(v => v.id === "rate-limiter")!;
 

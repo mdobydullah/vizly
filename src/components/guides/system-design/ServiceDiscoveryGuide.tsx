@@ -5,7 +5,7 @@ import { Settings, Video, Globe, ExternalLink, Heart, Radio, Search, Database, P
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/service-discovery.css';
+import '@/styles/guides/system-design/service-discovery.css';
 
 const guide = guidesData.guides.find(v => v.id === "service-discovery")!;
 
@@ -120,7 +120,7 @@ export function ServiceDiscoveryGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/ServiceDiscoveryGuide.tsx"
+            githubPath="src/components/guides/system-design/ServiceDiscoveryGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

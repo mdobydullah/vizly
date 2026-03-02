@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCc
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/async/message-queues.css';
+import '@/styles/guides/system-design/message-queues.css';
 
 const guide = guidesData.guides.find(v => v.id === "message-queues")!;
 
@@ -256,7 +256,7 @@ export function MessageQueuesGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/async/MessageQueuesGuide.tsx"
+            githubPath="src/components/guides/system-design/MessageQueuesGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

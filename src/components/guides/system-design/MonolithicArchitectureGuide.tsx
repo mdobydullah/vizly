@@ -5,7 +5,7 @@ import { Settings, ExternalLink, Play, Pause, RotateCcw, Youtube, Globe, BookOpe
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/monolithic-architecture.css';
+import '@/styles/guides/system-design/monolithic-architecture.css';
 
 const guide = guidesData.guides.find(v => v.id === "monolithic-architecture")!;
 
@@ -233,7 +233,7 @@ export function MonolithicArchitectureGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/MonolithicArchitectureGuide.tsx"
+            githubPath="src/components/guides/system-design/MonolithicArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCc
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/database/cap-theorem.css';
+import '@/styles/guides/system-design/cap-theorem.css';
 
 const guide = guidesData.guides.find(v => v.id === "cap-theorem")!;
 
@@ -303,7 +303,7 @@ export function CapTheoremGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/database/CapTheoremGuide.tsx"
+            githubPath="src/components/guides/system-design/CapTheoremGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

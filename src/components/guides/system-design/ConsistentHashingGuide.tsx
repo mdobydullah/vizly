@@ -5,7 +5,7 @@ import { Settings, Video, BookOpen, ExternalLink, Globe, Play, Pause, RotateCcw 
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/consistent-hashing.css';
+import '@/styles/guides/system-design/consistent-hashing.css';
 
 const guide = guidesData.guides.find(v => v.id === "consistent-hashing")!;
 
@@ -289,7 +289,7 @@ export function ConsistentHashingGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/ConsistentHashingGuide.tsx"
+            githubPath="src/components/guides/system-design/ConsistentHashingGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

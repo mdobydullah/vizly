@@ -5,7 +5,7 @@ import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCcw } from "lucide-react";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/performance/caching-strategies.css';
+import '@/styles/guides/system-design/caching-strategies.css';
 
 const guide = guidesData.guides.find(v => v.id === "caching-strategies")!;
 
@@ -189,7 +189,7 @@ export function CachingStrategiesGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/performance/CachingStrategiesGuide.tsx"
+            githubPath="src/components/guides/system-design/CachingStrategiesGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

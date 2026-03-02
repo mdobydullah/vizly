@@ -6,7 +6,7 @@ import mermaid from 'mermaid';
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/stateful-stateless.css';
+import '@/styles/guides/system-design/stateful-stateless.css';
 
 const guide = guidesData.guides.find(v => v.id === "stateful-stateless-architecture")!;
 
@@ -112,7 +112,7 @@ export function StatefulStatelessGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/StatefulStatelessArchitectureGuide.tsx"
+            githubPath="src/components/guides/system-design/StatefulStatelessArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

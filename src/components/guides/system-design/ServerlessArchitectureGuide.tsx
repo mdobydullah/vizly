@@ -6,7 +6,7 @@ import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
 import mermaid from 'mermaid';
-import '@/styles/guides/infrastructure/serverless-architecture.css';
+import '@/styles/guides/system-design/serverless-architecture.css';
 
 const guide = guidesData.guides.find(v => v.id === "serverless-architecture")!;
 
@@ -217,7 +217,7 @@ export function ServerlessArchitectureGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/ServerlessArchitectureGuide.tsx"
+            githubPath="src/components/guides/system-design/ServerlessArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

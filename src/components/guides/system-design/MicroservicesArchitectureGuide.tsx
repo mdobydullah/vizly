@@ -5,7 +5,7 @@ import { Settings, ExternalLink, Play, Pause, RotateCcw, Youtube, Globe, BookOpe
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/microservices-architecture.css';
+import '@/styles/guides/system-design/microservices-architecture.css';
 
 const guide = guidesData.guides.find(v => v.id === "microservices-architecture")!;
 
@@ -331,7 +331,7 @@ export function MicroservicesGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/MicroservicesArchitectureGuide.tsx"
+            githubPath="src/components/guides/system-design/MicroservicesArchitectureGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

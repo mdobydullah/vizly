@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, ShieldCheck, Zap, Act
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/api-gateway.css';
+import '@/styles/guides/system-design/api-gateway.css';
 
 const guide = guidesData.guides.find(v => v.id === "api-gateway")!;
 
@@ -119,7 +119,7 @@ export function ApiGatewayGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/ApiGatewayGuide.tsx"
+            githubPath="src/components/guides/system-design/ApiGatewayGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}

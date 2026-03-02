@@ -37,13 +37,20 @@ grep -r '"link"' src/data/guides/ --include="*.json"
 
 ## 3. Reference Architecture
 Use these files as the "Gold Standard" for implementation:
-- `src/components/guides/infrastructure/LoadBalancingGuide.tsx` (Complex state & comparisons)
-- `src/components/guides/performance/CachingStrategiesGuide.tsx` (Clean grid implementation)
+- `src/components/guides/system-design/LoadBalancingGuide.tsx` (Complex state & comparisons)
+- `src/components/guides/system-design/CachingStrategiesGuide.tsx` (Clean grid implementation)
 - `src/components/guides/auth/JwtGuide.tsx` (Simple flow structure)
 - `src/components/guides/programming/OopGuide.tsx` (Step-by-step diagram progressions)
 - `src/components/guides/programming/BigONotationGuide.tsx` (Interactive sandbox animations)
 
-## 4. Metadata Best Practices (musr do)
+## 4. Category Definitions (Decide Better Future Categories)
+Follow these guidelines when choosing a category:
+- **System Design**: For distributed systems, scaling, networking, and high-level architectural patterns (e.g., Load Balancers, CAP Theorem, Microservices, Caching, CDNs).
+- **Database**: Strictly for data storage internals, indexing, replication, and sharding.
+- **Auth**: For security, authentication, and authorization protocols (e.g., JWT, OAuth).
+- **Programming**: For core computer science concepts, algorithms, and syntax-based guides (e.g., Big O, OOP).
+
+## 5. Metadata Best Practices (must do)
 - **ID Consistency**: Ensure the `id` used in `find()` matches exactly with the one in metadata JSON.
 - **Timestamps**: When creating or updating metadata, ALWAYS set `createdAt` and `updatedAt` to the current UTC time in ISO 8601 format with full hour and minute precision (e.g., `2026-02-19T09:57:32Z`). Never use midnight (`00:00:00Z`) as a placeholder.
 - **Icons**: Use descriptive emojis for the `icon` field.

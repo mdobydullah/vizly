@@ -2,13 +2,13 @@
     {
         "id": "load-balancing",
         "title": "Load Balancing",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Scaling",
             "Network"
         ],
-        "description": "Load balancing is the strategic distribution of network traffic or application workloads across multiple servers, ensuring high availability, improved responsiveness, and preventing any single server from becoming overloaded. Acting as an intermediary between users and server pools, it optimizes resource usage and provides failover capabilities, enhancing overall system reliability and speed.",
+        "description": "Load balancing is the strategic distribution of network traffic or application workloads across multiple servers, ensuring high availability, improved responsiveness, and preventing any single server from becoming overloaded.",
         "icon": "⚖️",
         "link": "/guides/load-balancing",
         "color": "pink",
@@ -25,9 +25,9 @@
     {
         "id": "cdn",
         "title": "Content Delivery Network (CDN)",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Performance",
             "Network"
         ],
@@ -48,9 +48,9 @@
     {
         "id": "stateful-stateless-architecture",
         "title": "Stateful vs Stateless Architecture",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Architecture",
             "Scaling"
         ],
@@ -71,9 +71,9 @@
     {
         "id": "vertical-horizontal-scaling",
         "title": "Vertical vs Horizontal Scaling",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Scaling",
             "Architecture"
         ],
@@ -94,13 +94,13 @@
     {
         "id": "rate-limiter",
         "title": "Rate Limiter",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "API",
             "Security"
         ],
-        "description": "Rate limiting controls the rate of requests that clients can make to a server. Explore Token Bucket, Leaking Bucket, Fixed Window Counter, and Sliding Window algorithms with interactive animations.",
+        "description": "Rate limiting controls the rate of requests that clients can make to a server.",
         "icon": "🚦",
         "link": "/guides/rate-limiter",
         "color": "cyan",
@@ -117,13 +117,13 @@
     {
         "id": "consistent-hashing",
         "title": "Consistent Hashing",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Distributed Systems",
             "Hashing"
         ],
-        "description": "Consistent hashing is a technique used to distribute data across a cluster of nodes in a way that minimizes the amount of data that needs to be moved when nodes are added or removed. It is widely used in distributed systems such as distributed databases, distributed file systems, and distributed caches.",
+        "description": "Consistent hashing is a technique used to distribute data across a cluster of nodes in a way that minimizes rebalancing.",
         "icon": "💍",
         "link": "/guides/consistent-hashing",
         "color": "green",
@@ -140,13 +140,13 @@
     {
         "id": "api-gateway",
         "title": "API Gateway",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "API",
             "Microservices"
         ],
-        "description": "API Gateway is a single entry point for all client requests. It handles routing, authentication, rate limiting, and request aggregation.",
+        "description": "API Gateway is a single entry point for all client requests Handling routing, auth, and rate limiting.",
         "icon": "🚪",
         "link": "/guides/api-gateway",
         "color": "blue",
@@ -163,13 +163,13 @@
     {
         "id": "circuit-breaker",
         "title": "Circuit Breaker Pattern",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Resilience",
             "Microservices"
         ],
-        "description": "Prevent cascading failures in distributed systems. Visualize closed, open, and half-open states with retry logic.",
+        "description": "Prevent cascading failures in distributed systems with circuit states.",
         "icon": "⚡",
         "link": "/guides/circuit-breaker",
         "color": "pink",
@@ -186,13 +186,13 @@
     {
         "id": "service-discovery",
         "title": "Service Discovery",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Microservices",
             "Networking"
         ],
-        "description": "How services find and communicate with each other. Client-side vs server-side discovery, service registries, and health checks.",
+        "description": "How services find and communicate with each other in dynamic environments.",
         "icon": "🔍",
         "link": "/guides/service-discovery",
         "color": "purple",
@@ -209,13 +209,13 @@
     {
         "id": "proxy-reverse-proxy",
         "title": "Proxy vs Reverse Proxy",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Networking",
             "Security"
         ],
-        "description": "Forward proxies protect clients, reverse proxies protect servers. Visualize traffic flow, caching, and SSL termination.",
+        "description": "Forward proxies protect clients, reverse proxies protect servers.",
         "icon": "🔀",
         "link": "#",
         "color": "yellow",
@@ -232,14 +232,14 @@
     {
         "id": "serverless-architecture",
         "title": "Serverless Architecture",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Cloud",
             "Architecture",
             "Scaling"
         ],
-        "description": "Serverless architecture allows developers to build and run applications without managing infrastructure. Code execution is purely event-driven and dynamically scaled.",
+        "description": "Serverless architecture allows building and running applications without managing infrastructure.",
         "icon": "☁️",
         "link": "/guides/serverless-architecture",
         "color": "teal",
@@ -256,14 +256,14 @@
     {
         "id": "monolithic-architecture",
         "title": "Monolithic Architecture",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Architecture",
             "Scalability",
             "Deployment"
         ],
-        "description": "A monolithic architecture is a single-unit software architecture where all components of an application are tightly coupled and deployed together as a single unit. All features share the same codebase, database, and infrastructure, making it simple to develop and deploy but potentially difficult to scale and maintain as the application grows.",
+        "description": "A single-unit software architecture where all components are tightly coupled.",
         "icon": "📦",
         "link": "/guides/monolithic-architecture",
         "color": "cyan",
@@ -280,15 +280,15 @@
     {
         "id": "microservices-architecture",
         "title": "Microservices Architecture",
-        "category": "Infrastructure",
+        "category": "System Design",
         "tags": [
-            "Infrastructure",
+            "System Design",
             "Architecture",
             "Distributed Systems",
             "Microservices",
             "Scalability"
         ],
-        "description": "Microservices architecture breaks down monolithic applications into small, independent, loosely-coupled services that communicate over networks. Each service is self-contained, owned by a team, and can be deployed independently with its own database and technology stack.",
+        "description": "Breaking down monolithic applications into small, independent, loosely-coupled services.",
         "icon": "🏗️",
         "link": "/guides/microservices-architecture",
         "color": "deep-purple",
@@ -300,6 +300,121 @@
         },
         "createdAt": "2026-03-01T11:23:45Z",
         "updatedAt": "2026-03-01T11:23:45Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "cap-theorem",
+        "title": "CAP Theorem",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Distributed Systems",
+            "Theory"
+        ],
+        "description": "Consistency, Availability, Partition Tolerance — pick two. Fundamental law of distributed systems.",
+        "icon": "🔺",
+        "link": "/guides/cap-theorem",
+        "color": "yellow",
+        "colorConfig": {
+            "primary": "#ffab00",
+            "background": "rgba(255, 171, 0, .08)",
+            "border": "rgba(255, 171, 0, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 171, 0, .4), 0 0 16px rgba(255, 171, 0, .2)"
+        },
+        "createdAt": "2026-02-23T01:01:00Z",
+        "updatedAt": "2026-03-02T05:48:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "message-queues",
+        "title": "Message Queues",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Messaging",
+            "Async"
+        ],
+        "description": "Asynchronous communication pattern enabling decoupled services to exchange messages via queues.",
+        "icon": "📨",
+        "link": "/guides/message-queues",
+        "color": "yellow",
+        "colorConfig": {
+            "primary": "#ffd166",
+            "background": "rgba(255, 209, 102, .08)",
+            "border": "rgba(255, 209, 102, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 209, 102, .4), 0 0 16px rgba(255, 209, 102, .2)"
+        },
+        "createdAt": "2025-02-01T08:30:00Z",
+        "updatedAt": "2025-02-13T10:00:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "event-driven-architecture",
+        "title": "Event-Driven Architecture",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Architecture",
+            "Events"
+        ],
+        "description": "Build loosely coupled systems using events. Explore pub/sub, event sourcing, and CQRS.",
+        "icon": "⚡",
+        "link": "/guides/event-driven-architecture",
+        "color": "purple",
+        "colorConfig": {
+            "primary": "#b985f4",
+            "background": "rgba(185, 133, 244, .08)",
+            "border": "rgba(185, 133, 244, .15)",
+            "hoverShadow": "0 0 32px rgba(185, 133, 244, .4), 0 0 16px rgba(185, 133, 244, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "websockets-long-polling",
+        "title": "WebSockets vs Long Polling",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Real-time",
+            "Networking"
+        ],
+        "description": "Compare real-time communication strategies for system design.",
+        "icon": "🔌",
+        "link": "#",
+        "color": "green",
+        "colorConfig": {
+            "primary": "#1de9b6",
+            "background": "rgba(29, 233, 182, .08)",
+            "border": "rgba(29, 233, 182, .15)",
+            "hoverShadow": "0 0 32px rgba(29, 233, 182, .4), 0 0 16px rgba(29, 233, 182, .2)"
+        },
+        "createdAt": "2026-02-22T18:59:00Z",
+        "updatedAt": "2026-02-22T18:59:00Z",
+        "contributors": "obydul"
+    },
+    {
+        "id": "caching-strategies",
+        "title": "Caching Strategies",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Cache",
+            "Performance"
+        ],
+        "description": "Caching strategies are fundamental to system design for reducing latency and load.",
+        "icon": "⚡",
+        "link": "/guides/caching-strategies",
+        "color": "green",
+        "colorConfig": {
+            "primary": "#3effa3",
+            "background": "rgba(62, 255, 163, .08)",
+            "border": "rgba(62, 255, 163, .15)",
+            "hoverShadow": "0 0 32px rgba(62, 255, 163, .4), 0 0 16px rgba(62, 255, 163, .2)"
+        },
+        "createdAt": "2025-02-05T09:00:00Z",
+        "updatedAt": "2025-02-14T13:20:00Z",
         "contributors": "obydul"
     }
 ]

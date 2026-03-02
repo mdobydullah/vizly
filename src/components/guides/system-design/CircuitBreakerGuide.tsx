@@ -5,7 +5,7 @@ import { Settings, Youtube, Globe, BookOpen, ExternalLink, Play, Pause, RotateCc
 import guidesData from "@/data/guides";
 import { useSettings } from "@/context/SettingsContext";
 import { GuideLayout } from '@/components/layout/GuideLayout';
-import '@/styles/guides/infrastructure/circuit-breaker.css';
+import '@/styles/guides/system-design/circuit-breaker.css';
 
 const guide = guidesData.guides.find(v => v.id === "circuit-breaker")!;
 
@@ -242,7 +242,7 @@ export function CircuitBreakerGuide() {
 
     return (
         <GuideLayout
-            githubPath="src/components/guides/infrastructure/CircuitBreakerGuide.tsx"
+            githubPath="src/components/guides/system-design/CircuitBreakerGuide.tsx"
             category={guide.category}
             title={guide.title}
             description={guide.description}
