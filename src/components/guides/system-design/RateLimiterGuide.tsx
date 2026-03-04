@@ -159,9 +159,11 @@ const COMPARISON = [
 ];
 
 const RESOURCES = [
+    { title: "Rate Limiting Algorithms", type: "web", url: "https://www.geeksforgeeks.org/system-design/rate-limiting-algorithms-system-design/" },
+    { title: "Rate Limiting - Cloudflare", type: "web", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/" },
+    { title: "Know About Rate Limiting for APIs", type: "web", url: "https://medium.com/@bijit211987/everything-you-need-to-know-about-rate-limiting-for-apis-f236d2adcfff" },
+    { title: "A Guide to Rate Limiting Strategies", type: "web", url: "https://blog.bytebytego.com/p/a-guide-to-rate-limiting-strategies" },
     { title: "System Design Interview (Alex Xu)", type: "book", url: "https://www.amazon.com/System-Design-Interview-insiders-Second/dp/B08CMF2CQF" },
-    { title: "Rate Limiting – Cloudflare", type: "web", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/" },
-    { title: "RFC 6585 – 429 Too Many Requests", type: "web", url: "https://datatracker.ietf.org/doc/html/rfc6585" },
 ];
 
 const MERMAID_CODE = `flowchart TD
