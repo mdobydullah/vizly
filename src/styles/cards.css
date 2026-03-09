@@ -305,3 +305,36 @@
 .card-deep-purple:hover::before {
     opacity: 0.03;
 }
+
+/* Cyan Accent Theme */
+.card-cyan-accent {
+    --card-color: #84ffff;
+    --card-glow: rgba(132, 255, 255, 0.04);
+    --card-shadow: rgba(132, 255, 255, 0.15);
+    --card-shadow-hover: rgba(132, 255, 255, 0.4);
+    --card-shadow-soft: rgba(132, 255, 255, 0.2);
+    --card-icon-bg: rgba(132, 255, 255, 0.08);
+    --card-icon-border: rgba(132, 255, 255, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(132, 255, 255, 0.08) 0%, rgba(132, 255, 255, 0.03) 50%, transparent 100%);
+    --tag-color: #84ffff;
+    --tag-bg: rgba(132, 255, 255, 0.05);
+
+    border-color: #84ffff !important;
+    color: #84ffff !important;
+}
+
+.card-cyan-accent .viz-label {
+    background: #051a1a !important;
+    color: #84ffff !important;
+    border: 1px solid #84ffff !important;
+}
+
+.card-cyan-accent:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-cyan-accent:hover::before {
+    opacity: 0.03;
+}

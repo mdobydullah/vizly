@@ -207,26 +207,26 @@
         "contributors": "obydul"
     },
     {
-        "id": "proxy-reverse-proxy",
-        "title": "Proxy vs Reverse Proxy",
+        "id": "proxy-servers",
+        "title": "Proxy Servers",
         "category": "System Design",
         "tags": [
             "System Design",
             "Networking",
             "Security"
         ],
-        "description": "Forward proxies protect clients, reverse proxies protect servers.",
+        "description": "A comprehensive guide to Forward Proxy and Reverse Proxy, their differences, use cases, and how they protect clients and servers.",
         "icon": "🔀",
-        "link": "#",
-        "color": "yellow",
+        "link": "/guides/proxy-servers",
+        "color": "cyan-accent",
         "colorConfig": {
-            "primary": "#ffff00",
-            "background": "rgba(255, 255, 0, .08)",
-            "border": "rgba(255, 255, 0, .15)",
-            "hoverShadow": "0 0 32px rgba(255, 255, 0, .4), 0 0 16px rgba(255, 255, 0, .2)"
+            "primary": "#84ffff",
+            "background": "rgba(132, 255, 255, .08)",
+            "border": "rgba(132, 255, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(132, 255, 255, .4), 0 0 16px rgba(132, 255, 255, .2)"
         },
-        "createdAt": "2026-02-22T18:59:00Z",
-        "updatedAt": "2026-02-22T18:59:00Z",
+        "createdAt": "2026-03-10T00:10:00Z",
+        "updatedAt": "2026-03-10T00:10:00Z",
         "contributors": "obydul"
     },
     {

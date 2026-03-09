@@ -1,0 +1,436 @@
+/* src/styles/guides/system-design/proxy-servers.css */
+
+.proxy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.proxy-card {
+    height: 100%;
+}
+
+.proxy-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.proxy-card-icon {
+    font-size: 1.5rem;
+}
+
+.proxy-card-name {
+    font-family: var(--font-hero);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.proxy-card-desc {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+    flex-grow: 1;
+}
+
+.proxy-card-stats {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.proxy-stat-chip {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+
+.proxy-stat-chip.hi {
+    border-color: var(--card-color);
+    color: var(--card-color);
+    background: var(--card-glow);
+}
+
+.proxy-use-case {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 0.8rem;
+}
+
+/* --- Mermaid Wrap --- */
+.proxy-mermaid-wrap {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.proxy-mermaid-wrap .mermaid {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.proxy-mermaid-wrap .mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* --- Flow Section --- */
+.proxy-flow-section {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.8rem;
+    max-width: 1000px;
+    margin: 2rem auto;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.proxy-flow-controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.proxy-flow-controls {
+    display: flex;
+    gap: 0.8rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.3rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    width: fit-content;
+}
+
+.proxy-flow-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-hero);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.proxy-flow-btn:hover {
+    color: var(--text-hi);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.proxy-flow-btn.active {
+    background: var(--surface);
+    color: var(--cyan);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.proxy-flow-diagram {
+    position: relative;
+    width: 100%;
+    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.proxy-flow-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.proxy-flow-title {
+    font-family: var(--font-hero);
+    font-size: 1.5rem;
+    color: var(--text-hi);
+    margin-bottom: 0.3rem;
+}
+
+.proxy-flow-subtitle {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+/* --- Nodes --- */
+.proxy-nodes-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.proxy-node {
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    font-family: var(--font-hero);
+    font-weight: 700;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 2;
+}
+
+.proxy-node span {
+    margin-top: 0.2rem;
+    color: var(--text-hi);
+}
+
+.proxy-node .viz-label {
+    position: absolute;
+    top: -2.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a2a30;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 0.3rem 0.8rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+    z-index: 20;
+    animation: float-label 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    pointer-events: none;
+}
+
+@keyframes float-label {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.proxy-node.processing .viz-label {
+    background: #1e0a30;
+    border-color: var(--purple);
+    color: var(--purple);
+    box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+}
+
+.proxy-node.active {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    background: rgba(0, 229, 255, 0.05);
+    transform: scale(1.05);
+}
+
+.proxy-node.processing {
+    border-color: var(--purple);
+    box-shadow: 0 0 20px rgba(124, 77, 255, 0.3);
+    background: rgba(124, 77, 255, 0.05);
+}
+
+.proxy-node.internet {
+    width: 120px;
+    height: 70px;
+    border-radius: 35px;
+    background: #1a1f2b;
+    border-style: dashed;
+}
+
+.proxy-node-icon {
+    font-size: 1.5rem;
+}
+
+/* --- Arrows/Connections --- */
+.proxy-connection {
+    flex-grow: 1;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    margin: 0 10px;
+}
+
+.proxy-connection::after {
+    content: '▶';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--border);
+    font-size: 10px;
+}
+
+.proxy-connection.active {
+    background: var(--cyan);
+}
+
+.proxy-connection.active::after {
+    color: var(--cyan);
+}
+
+.proxy-packet {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--cyan);
+    border-radius: 50%;
+    top: -5px;
+    left: 0;
+    box-shadow: 0 0 10px var(--cyan);
+}
+
+.proxy-packet.reverse {
+    background: var(--purple);
+    box-shadow: 0 0 10px var(--purple);
+}
+
+@keyframes move-packet {
+    from {
+        left: 0;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+@keyframes move-packet-back {
+    from {
+        left: 100%;
+    }
+
+    to {
+        left: 0;
+    }
+}
+
+/* --- Steps --- */
+/* --- Active Progress & Steps --- */
+.proxy-progress-container {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+
+.proxy-current-step-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.proxy-step-text-large {
+    font-family: var(--font-hero);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-hi);
+}
+
+.proxy-step-counter {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.proxy-progress-bar-wrap {
+    height: 6px;
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.proxy-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.proxy-flow-steps {
+    display: none;
+    /* Hide old step list */
+}
+
+/* --- Rating --- */
+.proxy-rating {
+    display: flex;
+    gap: 4px;
+}
+
+.proxy-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+}
+
+.proxy-dot.on {
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+/* --- Comparison Section --- */
+.proxy-labels-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.proxy-label-chip {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    border: 1px solid var(--border);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .proxy-nodes-container {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .proxy-connection {
+        width: 2px;
+        height: 40px;
+        margin: 10px 0;
+    }
+
+    .proxy-connection::after {
+        right: auto;
+        bottom: -5px;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%) rotate(90deg);
+    }
+}
