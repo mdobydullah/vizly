@@ -153,7 +153,7 @@ export function ProxyServersGuide() {
             {/* ═══════════════ CONCEPT GRID ═══════════════ */}
             <h2 className="section-title">Core Proxy Concepts</h2>
             <div className="proxy-grid">
-                <div className="viz-card proxy-card card-cyan-accent" onClick={() => playPattern('forward')}>
+                <div className="proxy-card" onClick={() => playPattern('forward')}>
                     <div className="proxy-card-header">
                         <div className="proxy-card-icon">🔜</div>
                         <div className="proxy-card-name">Forward Proxy</div>
@@ -166,7 +166,7 @@ export function ProxyServersGuide() {
                     <div className="proxy-use-case"><strong>Use case:</strong> Corporate web filters, VPNs.</div>
                 </div>
 
-                <div className="viz-card proxy-card card-purple" onClick={() => playPattern('reverse')}>
+                <div className="proxy-card" onClick={() => playPattern('reverse')}>
                     <div className="proxy-card-header">
                         <div className="proxy-card-icon">🔙</div>
                         <div className="proxy-card-name">Reverse Proxy</div>
@@ -179,7 +179,7 @@ export function ProxyServersGuide() {
                     <div className="proxy-use-case"><strong>Use case:</strong> Nginx, HAProxy, Cloudflare.</div>
                 </div>
 
-                <div className="viz-card proxy-card card-orange" onClick={() => playPattern('load-balancing')}>
+                <div className="proxy-card" onClick={() => playPattern('load-balancing')}>
                     <div className="proxy-card-header">
                         <div className="proxy-card-icon">⚖️</div>
                         <div className="proxy-card-name">Load Balancing</div>
@@ -192,7 +192,7 @@ export function ProxyServersGuide() {
                     <div className="proxy-use-case"><strong>Use case:</strong> Scaling high-traffic applications.</div>
                 </div>
 
-                <div className="viz-card proxy-card card-green" onClick={() => playPattern('caching')}>
+                <div className="proxy-card" onClick={() => playPattern('caching')}>
                     <div className="proxy-card-header">
                         <div className="proxy-card-icon">⚡</div>
                         <div className="proxy-card-name">Caching Proxy</div>

@@ -338,3 +338,36 @@
 .card-cyan-accent:hover::before {
     opacity: 0.03;
 }
+
+/* Light Blue Theme */
+.card-light-blue {
+    --card-color: #00b0ff;
+    --card-glow: rgba(0, 176, 255, 0.04);
+    --card-shadow: rgba(0, 176, 255, 0.15);
+    --card-shadow-hover: rgba(0, 176, 255, 0.4);
+    --card-shadow-soft: rgba(0, 176, 255, 0.2);
+    --card-icon-bg: rgba(0, 176, 255, 0.08);
+    --card-icon-border: rgba(0, 176, 255, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(0, 176, 255, 0.08) 0%, rgba(0, 176, 255, 0.03) 50%, transparent 100%);
+    --tag-color: #00b0ff;
+    --tag-bg: rgba(0, 176, 255, 0.05);
+
+    border-color: #00b0ff !important;
+    color: #00b0ff !important;
+}
+
+.card-light-blue .viz-label {
+    background: #051520 !important;
+    color: #00b0ff !important;
+    border: 1px solid #00b0ff !important;
+}
+
+.card-light-blue:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-light-blue:hover::before {
+    opacity: 0.03;
+}

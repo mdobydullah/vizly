@@ -5,12 +5,14 @@ This rule defines the functional requirements for a "Vizly Guide".
 ## 1. Visual Requirements
 - **Hero Section**: Title + Subtitle with gradient text.
 - **Pattern Grid**: 4-6 interactive cards explaining sub-concepts.
+  - **MUST USE Premium Card Styling** (see Rule 02, Section 5): Use `var(--font-outfit)` for card names, proper spacing, stat chips with `text-transform: uppercase`, and subtle hover effects. Reference: `ServerlessArchitectureGuide`, `ClientServerArchitectureGuide`.
 - **Mermaid Diagram**: Static "Architecture-as-Code" diagram before the interactive section.
 - **Animated Flow**: The centerpiece. Must have:
-  - 3-5 switchable tabs (Algorithm variants). For the tab controls, always use a flex wrap layout with the **`.viz-tab-btn`** utility class.
+  - 3-5 switchable tabs (Algorithm variants). For the tab controls, use the **Premium Flow Button Pattern** (Rule 02, Section 5) with proper styling.
   - Visual nodes using **`.viz-node`** and **`.viz-node-label`** with state (Active, Processing, Success, Error).
   - Step-by-step logic explanation text using **`.viz-section-header`** as a header for logic blocks if needed.
-  - Replay/Flow control functionality.
+  - Replay/Flow control functionality in a dedicated playback controls group.
+  - **MUST USE Premium Flow Section Styling** (Rule 02, Section 5): Container with `var(--surface)` background, buttons with 20px border-radius, proper active states.
 - **Beginner-Friendly Coverage**: Don't miss any important points needed to understand the topic. Think from a beginner's perspective — cover foundational concepts, explain "why" not just "how", and ensure no critical subtopic is skipped.
 
 ## 2. Mermaid Standard
@@ -97,6 +99,8 @@ This rule defines the functional requirements for a "Vizly Guide".
 - [ ] Proper attribution (contributors array).
 - [ ] Comparison table with dot ratings (`<Rating dots={n} />`).
 - [ ] Responsive design (Grid stacks on mobile).
+- [ ] Card styling verified: **All concept cards must have visible borders**, proper padding, and hover effects matching the Premium Card Pattern (Rule 02, Section 5).
+- [ ] No mixed card class systems (only one `.guide-card` system per guide, no stacking with `.viz-card` or global color theme classes).
 
 ## 5. Color System
 - **Random Selection**: When creating a new guide, you MUST select a random color configuration from `src/data/guides/guide-colors.json`. Ensure that the `color` property value is a kebab-case version of the color's name (e.g. `Teal` -> `teal`, `Deep Orange` -> `deep-orange`).

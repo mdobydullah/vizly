@@ -11,7 +11,21 @@
 }
 
 .proxy-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    cursor: pointer;
     height: 100%;
+}
+
+.proxy-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(0, 229, 255, 0.1);
 }
 
 .proxy-card-header {
@@ -26,16 +40,16 @@
 }
 
 .proxy-card-name {
-    font-family: var(--font-hero);
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-family: var(--font-outfit);
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .proxy-card-desc {
     color: var(--text-dim);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     line-height: 1.5;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
     flex-grow: 1;
 }
 
@@ -48,11 +62,12 @@
 .proxy-stat-chip {
     font-family: var(--font-mono);
     font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
+    padding: 2px 8px;
     border-radius: 4px;
-    background: var(--surface2);
+    background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text-dim);
+    text-transform: uppercase;
 }
 
 .proxy-stat-chip.hi {
@@ -62,10 +77,14 @@
 }
 
 .proxy-use-case {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-dim);
+    padding-top: 1rem;
     border-top: 1px solid var(--border);
-    padding-top: 0.8rem;
+}
+
+.proxy-use-case strong {
+    color: var(--text-hi);
 }
 
 /* --- Mermaid Wrap --- */
@@ -91,57 +110,54 @@
 
 /* --- Flow Section --- */
 .proxy-flow-section {
-    background: var(--surface2);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.8rem;
-    max-width: 1000px;
-    margin: 2rem auto;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto 3rem;
     position: relative;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .proxy-flow-controls-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
     gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
 .proxy-flow-controls {
     display: flex;
-    gap: 0.8rem;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.3rem;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    width: fit-content;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
 }
 
 .proxy-flow-btn {
-    padding: 0.5rem 1.2rem;
-    border-radius: 9px;
-    border: none;
-    background: transparent;
-    color: var(--text-dim);
-    font-family: var(--font-hero);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
     font-size: 0.85rem;
-    font-weight: 600;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
 }
 
 .proxy-flow-btn:hover {
     color: var(--text-hi);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border2);
 }
 
 .proxy-flow-btn.active {
-    background: var(--surface);
+    background: rgba(0, 229, 255, 0.1);
     color: var(--cyan);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
 }
 
 .proxy-flow-diagram {
@@ -159,10 +175,11 @@
 }
 
 .proxy-flow-title {
-    font-family: var(--font-hero);
-    font-size: 1.5rem;
+    font-family: var(--font-outfit);
+    font-size: 1.3rem;
     color: var(--text-hi);
-    margin-bottom: 0.3rem;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .proxy-flow-subtitle {

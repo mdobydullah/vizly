@@ -416,5 +416,28 @@
         "createdAt": "2025-02-05T09:00:00Z",
         "updatedAt": "2025-02-14T13:20:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "client-server-architecture",
+        "title": "Client-Server Architecture",
+        "category": "System Design",
+        "tags": [
+            "System Design",
+            "Networking",
+            "Web"
+        ],
+        "description": "Client-Server Architecture is the foundational model of modern networked applications — clients send requests, servers process and respond. Understanding this model is the first step to mastering distributed systems, APIs, and scalable web applications.",
+        "icon": "🖥️",
+        "link": "/guides/client-server-architecture",
+        "color": "light-blue",
+        "colorConfig": {
+            "primary": "#00b0ff",
+            "background": "rgba(0, 176, 255, .08)",
+            "border": "rgba(0, 176, 255, .15)",
+            "hoverShadow": "0 0 32px rgba(0, 176, 255, .4), 0 0 16px rgba(0, 176, 255, .2)"
+        },
+        "createdAt": "2026-03-11T10:00:00Z",
+        "updatedAt": "2026-03-11T10:00:00Z",
+        "contributors": "obydul"
     }
 ]
