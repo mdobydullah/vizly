@@ -28,7 +28,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{
+      <body suppressHydrationWarning style={{
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column'

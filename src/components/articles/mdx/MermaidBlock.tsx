@@ -1,42 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId, type ReactNode } from 'react';
 import mermaid from 'mermaid';
 
+let mermaidInitialized = false;
+
 interface MermaidBlockProps {
-  chart: string;
+  chart?: string;
   primaryColor?: string;
+  children?: ReactNode;
 }
 
-export function MermaidBlock({ chart, primaryColor = 'var(--purple)' }: Readonly<MermaidBlockProps>) {
-  const ref = useRef<HTMLDivElement>(null);
+function extractText(node: ReactNode): string {
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (!node) return '';
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (typeof node === 'object' && 'props' in node) {
+    return extractText(node.props.children);
+  }
+  return '';
+}
+
+export function MermaidBlock({ chart, primaryColor = '#b985f4', children }: Readonly<MermaidBlockProps>) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState('');
+  const instanceId = useId().replaceAll(':', '-');
+
+  const chartContent = (chart || extractText(children)).replaceAll(String.raw`\n`, '\n');
 
   useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      securityLevel: 'loose',
-      fontFamily: 'var(--font-mono)',
-      themeVariables: {
-        primaryColor: primaryColor,
-        primaryTextColor: '#fff',
-        primaryBorderColor: primaryColor,
-        lineColor: '#5a6a7e',
-        secondaryColor: '#b985f4',
-        tertiaryColor: '#3effa3',
-      },
-    });
+    if (!mermaidInitialized) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+        fontFamily: 'Space Mono, monospace',
+        themeVariables: {
+          primaryColor: primaryColor,
+          primaryTextColor: '#fff',
+          primaryBorderColor: primaryColor,
+          lineColor: '#5a6a7e',
+          secondaryColor: '#b985f4',
+          tertiaryColor: '#3effa3',
+        },
+      });
+      mermaidInitialized = true;
+    }
 
-    const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
-    mermaid.render(id, chart).then(({ svg }) => {
+    if (!chartContent) return;
+
+    const id = `mermaid${instanceId}`;
+    mermaid.render(id, chartContent.trim()).then(({ svg }) => {
       setSvg(svg);
+    }).catch((err) => {
+      console.error('MermaidBlock render error:', err);
     });
-  }, [chart, primaryColor]);
+  }, [chartContent, primaryColor, instanceId]);
 
   return (
     <div
-      ref={ref}
+      ref={containerRef}
       style={{
         margin: '1.5rem 0',
         display: 'flex',

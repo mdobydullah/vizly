@@ -125,7 +125,7 @@ mermaid: true
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
 | 1 | **What is AI? From Rules to Learning** — AI vs ML vs DL vs GenAI, brief history, why now | Mermaid: AI subset diagram, Excalidraw: timeline | DONE |
-| 2 | **How Machines Learn** — supervised, unsupervised, reinforcement learning, train/test split | Excalidraw: learning types comparison, D3: bias-variance tradeoff chart | TODO |
+| 2 | **How Machines Learn** — supervised, unsupervised, reinforcement learning, train/test split | Excalidraw: learning types comparison, D3: bias-variance tradeoff chart | DONE |
 | 3 | **Neural Networks from Scratch** — perceptron, layers, activation functions, forward pass | Excalidraw: neuron anatomy, Mermaid: network architecture, D3: activation function plots | TODO |
 | 4 | **Backpropagation & Training** — loss functions, gradient descent, learning rate, epochs | Excalidraw: backprop flow, D3: loss curve animation, gradient descent landscape | TODO |
 | 5 | **CNNs & Computer Vision** — convolutions, pooling, feature maps | Excalidraw: convolution operation, filter visualization | TODO |

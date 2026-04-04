@@ -5,7 +5,7 @@ import { Twitter, Github, Linkedin, Heart, Settings } from "lucide-react";
 import { config } from "@/lib/config";
 import { useSettings } from "@/context/SettingsContext";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { guidesData } from "@/data/guides";
 
 const vizlyLinks = [
@@ -18,8 +18,13 @@ const vizlyLinks = [
 export default function Footer() {
     const { setIsSettingsOpen } = useSettings();
 
-    // Pick 4 random guides once on page load — partial Fisher-Yates (O(1), safe for any dataset size)
-    const randomTopics = useMemo(() => {
+    // Pick 4 random guides on client only to avoid hydration mismatch
+    const [randomTopics, setRandomTopics] = useState(() => {
+        const guides = guidesData.guides;
+        return guides.slice(0, 4).map((g) => ({ name: g.title, href: g.link }));
+    });
+
+    useEffect(() => {
         const guides = guidesData.guides;
         const len = guides.length;
         const picked: typeof guides = [];
@@ -31,7 +36,7 @@ export default function Footer() {
                 picked.push(guides[idx]);
             }
         }
-        return picked.map((g) => ({ name: g.title, href: g.link }));
+        setRandomTopics(picked.map((g) => ({ name: g.title, href: g.link })));
     }, []);
 
     return (

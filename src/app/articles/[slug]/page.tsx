@@ -87,6 +87,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             rehypePlugins: [
               [rehypePrettyCode, { theme: 'github-dark-dimmed', keepBackground: false }],
             ],
+            format: 'mdx',
           },
         }}
       />

@@ -38,7 +38,7 @@ src/
 1. **Architecture** — Guides: React components + JSON metadata. Articles: MDX + frontmatter.
 2. **UI Standards** — Dark/light theme via CSS variables, no Tailwind. Use global utility classes first. Light mode updates only (dark mode is stable).
 3. **Guide Spec** — Interactive cards, mermaid diagrams, animated flows, playback controls.
-4. **Article Writing** — Human-friendly, NOT AI-sounding, conversational tone, easy examples, visual-first. Update `.docs/articles-ai-learning-plan.md` status after each article.
+4. **Article Writing** — Human-friendly, NOT AI-sounding, conversational tone, easy examples, visual-first. Update `.docs/plans/articles-ai-learning-plan.md` status after each article.
 5. **Theme System** — Global `[data-theme]` attribute on `<html>`. Use CSS variables, never hardcode colors. Light mode: `#f0eee6` bg, white cards, soft shadows. See Rule 02 §1 and Rule 05.
 
 ## Content Systems

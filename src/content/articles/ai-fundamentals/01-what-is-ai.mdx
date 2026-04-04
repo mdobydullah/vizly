@@ -12,8 +12,8 @@ tags:
 readTime: "10 min"
 icon: "🧠"
 color: purple
-createdAt: "2026-04-04"
-updatedAt: "2026-04-04"
+createdAt: "2026-04-04T09:00:00Z"
+updatedAt: "2026-04-04T09:00:00Z"
 author: obydul
 mermaid: true
 ---
@@ -28,22 +28,20 @@ At its core, AI is just this: **making computers do stuff that normally needs a 
 
 Here's the thing though — AI isn't one technology. It's more like a family.
 
-<MermaidBlock chart={`
+<MermaidBlock>
 graph TB
-    AI["🤖 Artificial Intelligence<br/><i>Machines that act smart</i>"]
-    ML["📊 Machine Learning<br/><i>Learns from examples</i>"]
-    DL["🧠 Deep Learning<br/><i>Learns with brain-like networks</i>"]
-    GenAI["✨ Generative AI<br/><i>Creates new stuff — text, images, code</i>"]
-
+    AI["Artificial Intelligence\nMachines that act smart"]
+    ML["Machine Learning\nLearns from examples"]
+    DL["Deep Learning\nLearns with brain-like networks"]
+    GenAI["Generative AI\nCreates new stuff"]
     AI --> ML
     ML --> DL
     DL --> GenAI
-
-    style AI fill:#b985f420,stroke:#b985f4,color:#fff
-    style ML fill:#60a5fa20,stroke:#60a5fa,color:#fff
-    style DL fill:#00e5ff20,stroke:#00e5ff,color:#fff
-    style GenAI fill:#3effa320,stroke:#3effa3,color:#fff
-`} primaryColor="#b985f4" />
+    style AI fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style ML fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style DL fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style GenAI fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
 
 Think of it like Russian dolls. Each one fits inside the bigger one:
 
@@ -85,17 +83,16 @@ Instead of *you* writing the rules, what if the computer learned them on its own
 
 That's Machine Learning. And the idea is surprisingly simple.
 
-<MermaidBlock chart={`
+<MermaidBlock>
 graph LR
-    A["📧 Show it 10,000<br/>spam + normal emails"] --> B["🤖 ML Algorithm<br/>finds patterns"]
-    B --> C["📐 Trained Model"]
-    C --> D["✅ Can now judge<br/>new emails"]
-
-    style A fill:#b985f420,stroke:#b985f4,color:#fff
-    style B fill:#60a5fa20,stroke:#60a5fa,color:#fff
-    style C fill:#00e5ff20,stroke:#00e5ff,color:#fff
-    style D fill:#3effa320,stroke:#3effa3,color:#fff
-`} primaryColor="#b985f4" />
+    A["Show it 10,000\nspam + normal emails"] --> B["ML Algorithm\nfinds patterns"]
+    B --> C["Trained Model"]
+    C --> D["Can now judge\nnew emails"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
 
 You take 10,000 emails. Half are spam, half are normal. You label them. Then you feed them to an algorithm and say: "figure out the difference."
 
@@ -144,26 +141,28 @@ It's exactly how you'd train a dog. You don't explain the rules of "fetch." The 
 
 **Where you see this:** AlphaGo (the AI that beat the world Go champion), self-driving cars, how ChatGPT gets fine-tuned to give better answers.
 
-<MermaidBlock chart={`
+<MermaidBlock>
 graph TB
     ML["Machine Learning"]
-    SL["📚 Supervised<br/><i>Has the answer key</i>"]
-    UL["🔍 Unsupervised<br/><i>No answers, find patterns</i>"]
-    RL["🎮 Reinforcement<br/><i>Try stuff, get rewards</i>"]
-
+    SL["Supervised\nHas the answer key"]
+    UL["Unsupervised\nNo answers, find patterns"]
+    RL["Reinforcement\nTry stuff, get rewards"]
     ML --> SL
     ML --> UL
     ML --> RL
+    style ML fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style SL fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style UL fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style RL fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
 
-    style ML fill:#b985f420,stroke:#b985f4,color:#fff
-    style SL fill:#60a5fa20,stroke:#60a5fa,color:#fff
-    style UL fill:#00e5ff20,stroke:#00e5ff,color:#fff
-    style RL fill:#3effa320,stroke:#3effa3,color:#fff
-`} primaryColor="#b985f4" />
+<Callout type="info" title="Quick cheat sheet">
+**Supervised** = you give answers, it learns the pattern. **Unsupervised** = no answers, it finds hidden groups. **Reinforcement** = it tries stuff and learns from rewards. Most AI you use daily is supervised.
+</Callout>
 
 ---
 
-## Why now? AI has been around for 70 years.
+## Why now? AI has been around for decades.
 
 This is the question people forget to ask. AI research started in the 1950s. Neural networks were invented in the '50s too. So why did everything explode in the last few years?
 
@@ -197,6 +196,7 @@ Tons of data + fast hardware + a clever new design = the AI boom we're living th
 | 2022 | ChatGPT launches — 100 million users in two months |
 | 2024 | Reasoning models, AI agents, video generation |
 | 2025 | AI coding agents, real-time collaboration with AI |
+| 2026 | Agentic workflows go mainstream, AI reasons through complex tasks |
 
 The field had two "winters" (1970s and late '80s) where progress stalled and funding dried up. Each time, people said AI was overhyped. Then it came roaring back.
 
