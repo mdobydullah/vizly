@@ -16,7 +16,7 @@
 
 .viz-card:hover {
     transform: translateY(-4px);
-    background: #111827;
+    background: var(--surface2);
 }
 
 .viz-card::before {
@@ -54,7 +54,7 @@
 }
 
 .card-cyan .viz-label {
-    background: #0a2a30 !important;
+    background: var(--dim) !important;
     color: var(--cyan) !important;
     border: 1px solid var(--cyan) !important;
 }
@@ -77,7 +77,7 @@
 }
 
 .card-purple .viz-label {
-    background: #1e0a30 !important;
+    background: var(--dim) !important;
     color: var(--purple) !important;
     border: 1px solid var(--purple) !important;
 }
@@ -100,7 +100,7 @@
 }
 
 .card-yellow .viz-label {
-    background: #1e1a00 !important;
+    background: var(--dim) !important;
     color: var(--yellow) !important;
     border: 1px solid var(--yellow) !important;
 }
@@ -123,7 +123,7 @@
 }
 
 .card-green .viz-label {
-    background: #051209 !important;
+    background: var(--dim) !important;
     color: var(--green) !important;
     border: 1px solid var(--green) !important;
 }
@@ -146,7 +146,7 @@
 }
 
 .card-pink .viz-label {
-    background: #1e050f !important;
+    background: var(--dim) !important;
     color: var(--pink) !important;
     border: 1px solid var(--pink) !important;
 }
@@ -169,7 +169,7 @@
 }
 
 .card-blue .viz-label {
-    background: #05101e !important;
+    background: var(--dim) !important;
     color: var(--blue) !important;
     border: 1px solid var(--blue) !important;
 }
@@ -192,7 +192,7 @@
 }
 
 .card-orange .viz-label {
-    background: #1e1005 !important;
+    background: var(--dim) !important;
     color: var(--orange) !important;
     border: 1px solid var(--orange) !important;
 }
@@ -227,7 +227,7 @@
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
     border: 1px solid var(--border);
-    background: rgba(21, 28, 39, 0.5);
+    background: var(--surface2);
     color: var(--text-dim);
     font-weight: 600;
     white-space: nowrap;
@@ -258,7 +258,7 @@
 }
 
 .card-teal .viz-label {
-    background: #051a14 !important;
+    background: var(--dim) !important;
     color: #1de9b6 !important;
     border: 1px solid #1de9b6 !important;
 }
@@ -291,7 +291,7 @@
 }
 
 .card-deep-purple .viz-label {
-    background: #0a051a !important;
+    background: var(--dim) !important;
     color: #7c4dff !important;
     border: 1px solid #7c4dff !important;
 }
@@ -324,7 +324,7 @@
 }
 
 .card-cyan-accent .viz-label {
-    background: #051a1a !important;
+    background: var(--dim) !important;
     color: #84ffff !important;
     border: 1px solid #84ffff !important;
 }
@@ -357,7 +357,7 @@
 }
 
 .card-light-blue .viz-label {
-    background: #051520 !important;
+    background: var(--dim) !important;
     color: #00b0ff !important;
     border: 1px solid #00b0ff !important;
 }
@@ -390,7 +390,7 @@
 }
 
 .card-lime .viz-label {
-    background: #141a00 !important;
+    background: var(--dim) !important;
     color: #c6ff00 !important;
     border: 1px solid #c6ff00 !important;
 }

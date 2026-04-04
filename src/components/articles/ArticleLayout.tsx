@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { ArrowUp, ArrowLeft, ArrowRight, Calendar, Clock, Sun, Moon } from 'lucide-react';
+import { ArrowUp, ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react';
 import { ArticleFrontmatter } from '@/types/articles';
 import { getColorConfig } from '@/lib/article-colors';
+import { useSettings } from '@/context/SettingsContext';
 
 interface ArticleLayoutProps {
   article: ArticleFrontmatter;
@@ -21,15 +22,10 @@ export function ArticleLayout({
   nextArticle,
 }: Readonly<ArticleLayoutProps>) {
   const router = useRouter();
+  const { theme } = useSettings();
   const colorConfig = getColorConfig(article.color);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('article-theme') as 'light' | 'dark') || 'dark';
-    }
-    return 'dark';
-  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -41,10 +37,6 @@ export function ArticleLayout({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('article-theme', theme);
-  }, [theme]);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -236,28 +228,6 @@ export function ArticleLayout({
           gap: '.5rem',
           zIndex: 9999,
         }}>
-          {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: theme === 'light' ? '#1a1f2b' : '#f8f7f4',
-              border: 'none',
-              color: theme === 'light' ? '#f8f7f4' : '#1a1f2b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
-          </button>
-
           {/* Scroll to top */}
           <button
             onClick={scrollToTop}

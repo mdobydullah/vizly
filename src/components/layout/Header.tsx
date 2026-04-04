@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { config } from "@/lib/config";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
+import { useSettings } from "@/context/SettingsContext";
 
 export default function Header() {
+    const { theme, toggleTheme } = useSettings();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Close menu on scroll or resize
@@ -47,7 +49,7 @@ export default function Header() {
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            background: 'rgba(8, 11, 16, .85)',
+            background: 'var(--header-bg)',
             backdropFilter: 'blur(16px)',
             borderBottom: '1px solid var(--border)',
             padding: '0 clamp(1rem, 4vw, 2rem)',
@@ -139,6 +141,27 @@ export default function Header() {
                             Jobs
                         </Link>
                         <button
+                            onClick={toggleTheme}
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border2)',
+                                background: 'var(--surface)',
+                                color: 'var(--text-dim)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all .2s',
+                                flexShrink: 0
+                            }}
+                            className="theme-toggle-btn"
+                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        >
+                            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+                        </button>
+                        <button
                             onClick={() => window.open(config.urls.githubRepo, '_blank')}
                             style={{
                                 background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
@@ -197,6 +220,19 @@ export default function Header() {
                     <Link href="/jobs" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
                         <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Jobs</span>
                     </Link>
+
+                    <button
+                        onClick={() => { toggleTheme(); setIsMenuOpen(false); }}
+                        className="mobile-link"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, width: '100%' }}
+                    >
+                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                        </span>
+                    </button>
+
+                    <hr className="mobile-divider" />
 
                     <button
                         onClick={() => {

@@ -40,7 +40,7 @@ export default function Footer() {
             position: 'relative',
             zIndex: 1,
             borderTop: '1px solid var(--border)',
-            background: 'rgba(8, 11, 16, .9)',
+            background: 'var(--footer-bg)',
             padding: 'clamp(2rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2rem) 1.5rem'
         }}>
             <div style={{

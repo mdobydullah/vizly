@@ -21,6 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       {config.app.gtmId && <GoogleTagManager gtmId={config.app.gtmId} />}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var d='${config.app.defaultTheme}';try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'||t==='dark'?t:d)}catch(e){document.documentElement.setAttribute('data-theme',d)}})();`,
+          }}
+        />
+      </head>
       <body style={{
         minHeight: '100vh',
         display: 'flex',

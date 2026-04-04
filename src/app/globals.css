@@ -38,6 +38,55 @@
     --radius: 14px;
     --glow-cyan: 0 0 24px rgba(0, 229, 255, .18);
     --glow-purple: 0 0 24px rgba(185, 133, 244, .18);
+
+    /* Header / Footer / Overlay backgrounds */
+    --header-bg: rgba(8, 11, 16, .85);
+    --footer-bg: rgba(8, 11, 16, .9);
+    --overlay-bg: rgba(8, 11, 16, 0.98);
+
+    /* Scrollbar */
+    --scrollbar-track: #0a0d12;
+    --scrollbar-thumb: #1e2a3a;
+
+    /* Grid noise */
+    --grid-line: rgba(0, 229, 255, .03);
+}
+
+/* ════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+════════════════════════════════════════ */
+[data-theme="light"] {
+    --bg: #f0eee6;
+    --surface: #e8e5dc;
+    --surface2: #dfdcd3;
+    --border: #d0cdc4;
+    --border2: #c4c1b8;
+
+    --cyan: #0094a8;
+    --purple: #7c3aed;
+    --green: #16a34a;
+    --yellow: #ca8a04;
+    --orange: #d97706;
+    --pink: #db2777;
+    --blue: #2563eb;
+    --dim: #e4e1d9;
+
+    --text: #44403c;
+    --text-dim: #78716c;
+    --text-hi: #1c1917;
+
+    --radius: 14px;
+    --glow-cyan: 0 0 24px rgba(0, 148, 168, .12);
+    --glow-purple: 0 0 24px rgba(124, 58, 237, .12);
+
+    --header-bg: rgba(240, 238, 230, .88);
+    --footer-bg: rgba(240, 238, 230, .92);
+    --overlay-bg: rgba(240, 238, 230, 0.98);
+
+    --scrollbar-track: #e8e5dc;
+    --scrollbar-thumb: #c4c1b8;
+
+    --grid-line: rgba(0, 148, 168, .04);
 }
 
 *,
@@ -68,11 +117,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #0a0d12;
+    background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #1e2a3a;
+    background: var(--scrollbar-thumb);
     border-radius: 3px;
 }
 
@@ -86,8 +135,8 @@ body::before {
     pointer-events: none;
     z-index: 0;
     background-image:
-        linear-gradient(rgba(0, 229, 255, .03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 229, 255, .03) 1px, transparent 1px);
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 40px 40px;
 }
 
@@ -138,7 +187,7 @@ body::before {
 }
 
 .btn-primary:hover {
-    background: #33ecff;
+    background: var(--cyan);
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(0, 229, 255, .3);
 }
@@ -155,7 +204,7 @@ body::before {
 /* Visuals */
 .viz-container {
     background: var(--bg);
-    color: #abb2bf;
+    color: var(--text);
     font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
     padding: 2rem 1rem 4rem;
@@ -233,7 +282,7 @@ body::before {
 }
 
 .step-desc {
-    color: #cdd6f4;
+    color: var(--text-hi);
 }
 
 /* Step Colors Utilities */
@@ -293,7 +342,7 @@ body::before {
 }
 
 .replay-btn:hover {
-    background: #0a2a30;
+    background: var(--dim);
 }
 
 /* Visual Boxes & Grids */
@@ -356,7 +405,7 @@ body::before {
 .viz-arrow-down {
     text-align: center;
     font-size: 1.1rem;
-    color: #3a3a5c;
+    color: var(--text-dim);
     line-height: 1;
     margin: .1rem 0;
     max-width: 860px;
@@ -378,7 +427,7 @@ body::before {
     color: var(--green);
     font-family: var(--font-mono);
     font-size: .9rem;
-    background: #051209;
+    background: var(--dim);
 }
 
 .viz-output-box {
@@ -386,7 +435,7 @@ body::before {
     margin: 1rem auto 0;
     border: 1px solid var(--green);
     border-radius: 10px;
-    background: #051209;
+    background: var(--dim);
     padding: 1rem 1.2rem;
     position: relative;
 }

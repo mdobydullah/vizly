@@ -15,19 +15,19 @@
 .action-cyan {
     border-color: var(--cyan);
     color: var(--cyan);
-    background: #041215;
+    background: var(--dim);
 }
 
 .action-purple {
     border-color: var(--purple);
     color: var(--purple);
-    background: #120415;
+    background: var(--dim);
 }
 
 .action-yellow {
     border-color: var(--yellow);
     color: var(--yellow);
-    background: #15110a;
+    background: var(--dim);
 }
 
 /* --- Pulse Triggering --- */

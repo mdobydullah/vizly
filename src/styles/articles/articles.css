@@ -1,14 +1,13 @@
-/* ─── Reading Panel Base ─── */
 .article-reading-panel {
   border-radius: 16px;
-  padding: clamp(2rem, 5vw, 3rem) clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 3rem);
   margin-bottom: 2rem;
   transition: background 0.35s ease, border-color 0.35s ease;
 }
 
 /* ─── Light Theme (default) ─── */
 .article-theme-light {
-  background: #faf9f7;
+  background: transparent;
 }
 
 .article-theme-light .article-content {
@@ -176,13 +175,13 @@
 
 /* ─── Article Content (shared typography) ─── */
 .article-content {
-  font-family: var(--font-hero);
-  font-size: clamp(1.02rem, 2.2vw, 1.12rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.5vw, 1.2rem);
   font-weight: 400;
-  line-height: 1.82;
-  max-width: 720px;
+  line-height: 1.9;
+  max-width: 800px;
   margin: 0 auto;
-  padding-bottom: 2rem;
+  padding-bottom: 3rem;
   transition: color 0.35s ease;
 }
 
@@ -219,7 +218,11 @@
 }
 
 .article-content p {
-  margin: 0 0 1.3rem;
+  margin: 0 0 1.8rem;
+}
+
+.article-callout p:last-child {
+  margin-bottom: 0;
 }
 
 .article-content a {
@@ -238,12 +241,12 @@
 
 .article-content ul,
 .article-content ol {
-  margin: 0 0 1.4rem;
+  margin: 0 0 1.8rem;
   padding-left: 1.5rem;
 }
 
 .article-content li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .article-content blockquote {
@@ -327,7 +330,7 @@
 /* ─── Navigation Buttons ─── */
 .nav-btn:hover {
   border-color: var(--cyan) !important;
-  background: #141920 !important;
+  background: var(--surface2) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
