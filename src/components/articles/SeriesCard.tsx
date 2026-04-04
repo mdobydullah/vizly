@@ -11,12 +11,10 @@ interface SeriesCardProps {
 
 export function SeriesCard({ series, publishedCount, index }: Readonly<SeriesCardProps>) {
     const total = series.articles.length;
-    // Link to the first article in the series
-    const firstSlug = series.articles[0]?.slug;
 
     return (
         <Link
-            href={firstSlug ? `/articles/${firstSlug}` : '/articles'}
+            href={`/series/${series.slug}`}
             style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',

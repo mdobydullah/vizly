@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { ArticleFrontmatter, Article, ArticleCategory, ArticleSeries } from '@/types/articles';
+import { ArticleFrontmatter, Article, ArticleCategory, ArticleSeries, ArticlePath } from '@/types/articles';
 
 const ARTICLES_DIR = path.join(process.cwd(), 'src/content/articles');
 const CATEGORIES_PATH = path.join(process.cwd(), 'src/data/articles/categories.json');
 const SERIES_DIR = path.join(process.cwd(), 'src/data/articles/series');
+const PATHS_DIR = path.join(process.cwd(), 'src/data/articles/paths');
 
 export function getCategories(): ArticleCategory[] {
   const raw = fs.readFileSync(CATEGORIES_PATH, 'utf-8');
@@ -72,4 +73,15 @@ export function getSeriesBySlug(slug: string): ArticleSeries | null {
   if (!fs.existsSync(filePath)) return null;
   const raw = fs.readFileSync(filePath, 'utf-8');
   return JSON.parse(raw) as ArticleSeries;
+}
+
+export function getAllPaths(): ArticlePath[] {
+  if (!fs.existsSync(PATHS_DIR)) return [];
+
+  return fs.readdirSync(PATHS_DIR)
+    .filter(f => f.endsWith('.json'))
+    .map(f => {
+      const raw = fs.readFileSync(path.join(PATHS_DIR, f), 'utf-8');
+      return JSON.parse(raw) as ArticlePath;
+    });
 }

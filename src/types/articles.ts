@@ -43,3 +43,13 @@ export interface ArticleSeries {
   color: string;
   articles: SeriesArticleEntry[];
 }
+
+export interface ArticlePath {
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  estimatedWeeks: number;
+  series: string[]; // ordered slugs referencing series/*.json
+}

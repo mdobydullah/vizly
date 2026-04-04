@@ -15,15 +15,17 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── guides/             # Interactive visual guides
 │   ├── articles/           # MDX-based blog articles
+│   ├── series/             # Series listing + [slug] detail pages
+│   ├── learning-paths/     # Learning paths listing + [slug] detail pages
 │   └── api/                # API routes
 ├── components/
 │   ├── guides/             # Guide components (one per topic)
-│   ├── articles/           # Article components (layout, card, MDX components)
+│   ├── articles/           # Article components (layout, card, SeriesCard, PathCard, MDX components)
 │   └── layout/             # Header, Footer, GuideLayout
 ├── content/articles/       # MDX article files organized by category slug
 ├── data/
 │   ├── guides/             # Guide metadata JSON files
-│   └── articles/           # categories.json + series/*.json
+│   └── articles/           # categories.json + series/*.json + paths/*.json
 ├── styles/                 # CSS files (global + per-topic + guide-cards.css for shared concept cards)
 ├── types/                  # TypeScript interfaces
 └── lib/                    # Utilities (config, article loading, colors)
@@ -54,3 +56,16 @@ src/
 - Series: `src/data/articles/series/[series-slug].json` (defines article order + planned titles)
 - Rendered via `next-mdx-remote` with custom components (Callout, MermaidBlock, LightboxImage)
 - Series nav auto-shows on articles that have `series` in frontmatter, collapsible if >3 articles
+
+### Series (dedicated routes)
+- Data: `src/data/articles/series/[slug].json` (same files as above)
+- Listing: `/series` — shows all series as cards
+- Detail: `/series/[slug]` — shows series header + ordered article list (published = clickable, upcoming = "Soon")
+- Adding a new series: create a JSON in `series/` — no code changes
+
+### Learning Paths (curated roadmaps)
+- Data: `src/data/articles/paths/[slug].json` — references series slugs in order
+- Listing: `/learning-paths` — shows all paths as cards
+- Detail: `/learning-paths/[slug]` — shows path header + ordered series steps (available = clickable to `/series/[slug]`, future = "Soon")
+- Adding a new path: create a JSON in `paths/` — no code changes
+- Path JSON: `{ slug, title, description, icon, color, estimatedWeeks, series: ["slug1", "slug2"] }`

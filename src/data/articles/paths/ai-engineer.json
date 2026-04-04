@@ -1,0 +1,17 @@
+{
+  "slug": "ai-engineer",
+  "title": "Become an AI Engineer",
+  "description": "A complete learning path from zero to shipping AI in production. Follow these series in order to build both the conceptual foundations and practical skills needed to work as an AI engineer.",
+  "icon": "🤖",
+  "color": "cyan",
+  "estimatedWeeks": 10,
+  "series": [
+    "ai-fundamentals",
+    "transformers-llms",
+    "post-training-alignment",
+    "rag-prompting-apps",
+    "agents-reasoning",
+    "generative-ai",
+    "production-ai-engineering"
+  ]
+}

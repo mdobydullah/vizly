@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!guide) {
         return {
-            title: `Guide Not Found - ${config.app.name}`,
+            title: `Guide Not Found — ${config.app.name}`,
         };
     }
 
     return {
-        title: `${guide.title} Visual Guide - ${config.app.name}`,
+        title: `${guide.title} Visual Guide — ${config.app.name}`,
         description: guide.description,
     };
 }

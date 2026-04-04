@@ -2,13 +2,23 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { config } from "@/lib/config";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
+const NAV_LINKS = [
+    { href: '/guides', label: 'Guides' },
+    { href: '/articles', label: 'Articles' },
+    { href: '/series', label: 'Series' },
+    { href: '/learning-paths', label: 'Paths' },
+    { href: '/jobs', label: 'Jobs' },
+];
+
 export default function Header() {
     const { theme, toggleTheme } = useSettings();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const pathname = usePathname();
 
     // Close menu on scroll or resize
     useEffect(() => {
@@ -110,36 +120,23 @@ export default function Header() {
                         alignItems: 'center',
                         gap: 'clamp(.8rem, 2vw, 1.6rem)'
                     }}>
-                        <Link href="/guides" style={{
-                            color: 'var(--text-dim)',
-                            fontSize: '.8rem',
-                            textDecoration: 'none',
-                            fontFamily: 'var(--font-mono)',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="nav-link">
-                            Guides
-                        </Link>
-                        <Link href="/articles" style={{
-                            color: 'var(--text-dim)',
-                            fontSize: '.8rem',
-                            textDecoration: 'none',
-                            fontFamily: 'var(--font-mono)',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="nav-link">
-                            Articles
-                        </Link>
-                        <Link href="/jobs" style={{
-                            color: 'var(--text-dim)',
-                            fontSize: '.8rem',
-                            textDecoration: 'none',
-                            fontFamily: 'var(--font-mono)',
-                            transition: 'color .2s',
-                            cursor: 'pointer'
-                        }} className="nav-link">
-                            Jobs
-                        </Link>
+                        {NAV_LINKS.map(({ href, label }) => {
+                            const isActive = pathname === href || pathname.startsWith(href + '/');
+                            return (
+                                <Link key={href} href={href} style={{
+                                    color: isActive ? 'var(--text-hi)' : 'var(--text-dim)',
+                                    fontSize: '.8rem',
+                                    textDecoration: 'none',
+                                    fontFamily: 'var(--font-mono)',
+                                    transition: 'color .2s',
+                                    cursor: 'pointer',
+                                    borderBottom: isActive ? '2px solid var(--cyan)' : '2px solid transparent',
+                                    paddingBottom: '2px',
+                                }} className="nav-link">
+                                    {label}
+                                </Link>
+                            );
+                        })}
                         <button
                             onClick={toggleTheme}
                             style={{
@@ -205,21 +202,19 @@ export default function Header() {
             {/* Mobile Menu Overlay */}
             <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
                 <div className="mobile-menu-links">
-                    <Link href="/guides" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Guides</span>
-                    </Link>
-
-                    <hr className="mobile-divider" />
-
-                    <Link href="/articles" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Articles</span>
-                    </Link>
-
-                    <hr className="mobile-divider" />
-
-                    <Link href="/jobs" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Jobs</span>
-                    </Link>
+                    {NAV_LINKS.map(({ href, label }, i) => {
+                        const isActive = pathname === href || pathname.startsWith(href + '/');
+                        return (
+                            <span key={href}>
+                                <Link href={href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
+                                    <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', color: isActive ? 'var(--cyan)' : undefined }}>
+                                        {label}
+                                    </span>
+                                </Link>
+                                {i < NAV_LINKS.length - 1 && <hr className="mobile-divider" />}
+                            </span>
+                        );
+                    })}
 
                     <button
                         onClick={() => { toggleTheme(); setIsMenuOpen(false); }}

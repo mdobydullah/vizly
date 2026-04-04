@@ -2,7 +2,9 @@
 
 ## Overview
 
-A new `/articles` route for markdown-based blog content. The first series: **"How AI Works"** — a ground-up learning journey covering AI, ML, deep learning, and LLMs with rich visuals (mermaid diagrams, excalidraw illustrations, charts via D3).
+A new `/articles` route for markdown-based blog content. The series: **"How AI Works"** — a ground-up learning journey covering AI, ML, deep learning, LLMs, and production AI engineering with rich visuals (mermaid diagrams, excalidraw illustrations, charts via D3).
+
+A developer who completes all 7 series will have both the conceptual foundations and the practical skills to work as an AI engineer — from understanding how neural networks learn, to shipping and evaluating AI systems in production.
 
 Reference: [ByteByteAI Course](https://bytebyteai.com/) curriculum adapted into a self-paced article series.
 
@@ -177,6 +179,21 @@ mermaid: true
 | 26 | **Text-to-Image (Stable Diffusion)** — CLIP, U-Net, latent space, sampling | Excalidraw: full SD architecture, Mermaid: generation pipeline | TODO |
 | 27 | **Text-to-Video & Beyond** — temporal modeling, DiT architecture | Mermaid: video generation pipeline, Excalidraw: frame interpolation | TODO |
 | 28 | **The AI Landscape: What's Next** — scaling laws, emergent abilities, open problems | D3: timeline/trend charts, Excalidraw: AI landscape map | TODO |
+
+### Series 7: Production AI Engineering (Week 9-10)
+
+> Goal: Bridge the gap between understanding AI and building real AI products. A developer who finishes this series will know how to ship, evaluate, and maintain AI systems in production — the core skills of an AI engineer.
+
+| # | Article | Key Visuals | Status |
+|---|---------|-------------|--------|
+| 29 | **Your First AI App with HuggingFace** — loading models, pipelines, tokenizers, inference; practice: run a local text classifier and summarizer | Excalidraw: HuggingFace ecosystem map, Mermaid: inference pipeline | TODO |
+| 30 | **Fine-Tuning in Practice with PyTorch** — training loop, dataloaders, optimizer, saving checkpoints; practice: fine-tune a small model on custom data | Excalidraw: training loop anatomy, D3: loss curve live | TODO |
+| 31 | **LangChain & LlamaIndex: Build with LLMs** — chains, tools, memory, document loaders, indexes; practice: build a Q&A bot over your own docs | Excalidraw: LangChain chain anatomy, Mermaid: LlamaIndex retrieval flow | TODO |
+| 32 | **Serving AI Models: From Notebook to API** — FastAPI, model loading, batching, latency vs throughput; practice: wrap a model in a REST API | Mermaid: serving architecture, Excalidraw: request lifecycle | TODO |
+| 33 | **Cloud AI: AWS, GCP & Azure for AI Engineers** — SageMaker, Vertex AI, Azure OpenAI, managed endpoints, when to use vs self-host | Excalidraw: cloud AI service map, Mermaid: deployment decision tree | TODO |
+| 34 | **MLOps: Shipping AI Like Software** — experiment tracking (MLflow/W&B), model registry, CI/CD for models, versioning datasets | Mermaid: MLOps lifecycle, Excalidraw: pipeline stages | TODO |
+| 35 | **Evaluating LLMs at Scale** — LLM-as-judge, evals frameworks (RAGAS, promptfoo), red-teaming, regression testing; practice: write an eval suite | Excalidraw: eval pipeline, D3: score comparison chart | TODO |
+| 36 | **Cost, Latency & Context Management** — token budgets, caching (semantic cache), streaming, context window strategies, cost calculators; practice: optimize a RAG pipeline | Excalidraw: cost breakdown diagram, Mermaid: caching flow | TODO |
 
 ---
 

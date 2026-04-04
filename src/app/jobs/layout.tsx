@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { config } from "@/lib/config";
 
 export const metadata: Metadata = {
-    title: `Jobs Directory - ${config.app.name}`,
+    title: `Jobs Directory — ${config.app.name}`,
     description: "A curated directory of top job boards, specialized platforms, and company hubs for tech professionals.",
 };
 
