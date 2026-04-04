@@ -1,0 +1,28 @@
+# Vizly — Learn Through Visuals
+# https://vizly.dev
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# AI Crawlers — welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Sitemap
+Sitemap: https://vizly.dev/sitemap.xml
+
+# LLMs
+# See https://vizly.dev/llms.txt for AI-readable site overview

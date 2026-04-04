@@ -1,0 +1,62 @@
+# Vizly — Learn Through Visuals
+
+> Interactive visual guides and articles about system design, security, AI, and engineering concepts. Each guide features animated flows, mermaid diagrams, and step-by-step explanations.
+
+## Learning Paths
+
+- [Become an AI Engineer](/learning-paths/ai-engineer): A complete learning path from zero to shipping AI in production. 7 series, ~10 weeks.
+
+## Series
+
+- [AI Fundamentals](/series/ai-fundamentals): A ground-up journey through AI, ML, deep learning, and neural networks. 6 articles.
+
+## Articles
+
+- [What is AI? From Rules to Learning](/articles/what-is-ai): AI vs ML vs DL vs GenAI, brief history, why now.
+- [How Machines Learn](/articles/how-machines-learn): Supervised, unsupervised, reinforcement learning, train/test split.
+- [Neural Networks from Scratch](/articles/neural-networks-from-scratch): Perceptron, layers, activation functions, forward pass.
+- [Backpropagation & Training](/articles/backpropagation-and-training): Loss functions, gradient descent, learning rate, epochs.
+- [CNNs & Computer Vision](/articles/cnns-and-computer-vision): Convolutions, pooling, feature maps.
+- [RNNs & Sequential Data](/articles/rnns-and-sequential-data): Why sequence matters, vanishing gradients, LSTM/GRU.
+
+## Guides — System Design
+
+- [Load Balancing](/guides/load-balancing): Round-robin, least connections, IP hash, weighted strategies.
+- [Caching Strategies](/guides/caching-strategies): Cache-aside, write-through, write-back, read-through.
+- [CDN](/guides/cdn): Content delivery networks, edge caching, origin servers.
+- [API Gateway](/guides/api-gateway): Routing, rate limiting, authentication, load balancing.
+- [Rate Limiter](/guides/rate-limiter): Token bucket, sliding window, fixed window algorithms.
+- [Circuit Breaker](/guides/circuit-breaker): Closed, open, half-open states for fault tolerance.
+- [Service Discovery](/guides/service-discovery): Client-side vs server-side, service registries.
+- [Message Queues](/guides/message-queues): Point-to-point, pub/sub, message brokers.
+- [Event-Driven Architecture](/guides/event-driven-architecture): Event sourcing, CQRS, event buses.
+- [Consistent Hashing](/guides/consistent-hashing): Hash rings, virtual nodes, rebalancing.
+- [Proxy Servers](/guides/proxy-servers): Forward proxy, reverse proxy, load balancers.
+- [CAP Theorem](/guides/cap-theorem): Consistency, availability, partition tolerance tradeoffs.
+- [Microservices Architecture](/guides/microservices-architecture): Service decomposition, communication patterns.
+- [Monolithic Architecture](/guides/monolithic-architecture): Single deployable unit, when monoliths make sense.
+- [Serverless Architecture](/guides/serverless-architecture): FaaS, BaaS, cold starts, scaling.
+- [Client-Server Architecture](/guides/client-server-architecture): Request-response model, thick vs thin clients.
+- [Stateful vs Stateless](/guides/stateful-stateless-architecture): Session management, horizontal scaling implications.
+- [Vertical vs Horizontal Scaling](/guides/vertical-horizontal-scaling): Scale up vs scale out strategies.
+
+## Guides — Database
+
+- [Database Replication](/guides/database-replication): Leader-follower, multi-leader, leaderless replication.
+- [Database Sharding](/guides/database-sharding): Range, hash, directory-based sharding strategies.
+- [Database Indexing](/guides/database-indexing): B-tree, hash, composite indexes, query optimization.
+
+## Guides — Auth & Security
+
+- [JWT](/guides/jwt): JSON Web Tokens, claims, signing, verification flow.
+- [OAuth 2.0](/guides/oauth): Authorization code, implicit, client credentials flows.
+
+## Guides — Programming
+
+- [OOP](/guides/oop): Encapsulation, inheritance, polymorphism, abstraction.
+- [Big O Notation](/guides/big-onotation): Time and space complexity analysis.
+- [Bloom Filters](/guides/bloom-filters): Probabilistic data structures, false positives, use cases.
+
+## About
+
+Vizly is built by [Md Obydullah](https://github.com/mdobydullah). Source code: [github.com/mdobydullah/vizly](https://github.com/mdobydullah/vizly).
