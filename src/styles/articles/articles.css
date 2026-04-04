@@ -1,8 +1,5 @@
 .article-reading-panel {
-  border-radius: 16px;
-  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 3rem);
   margin-bottom: 2rem;
-  transition: background 0.35s ease, border-color 0.35s ease;
 }
 
 /* ─── Light Theme (default) ─── */
@@ -11,17 +8,17 @@
 }
 
 .article-theme-light .article-content {
-  color: #333;
+  color: #3d3629;
 }
 
 .article-theme-light .article-content h2,
 .article-theme-light .article-content h3,
 .article-theme-light .article-content h4 {
-  color: #1a1a1a;
+  color: #1a1610;
 }
 
 .article-theme-light .article-content strong {
-  color: #1a1a1a;
+  color: #1a1610;
 }
 
 .article-theme-light .article-content a {
@@ -87,8 +84,7 @@
 
 /* ─── Dark Theme ─── */
 .article-theme-dark {
-  background: #111820;
-  border: 1px solid #1e2530;
+  background: transparent;
 }
 
 .article-theme-dark .article-content {
@@ -176,9 +172,9 @@
 /* ─── Article Content (shared typography) ─── */
 .article-content {
   font-family: var(--font-display);
-  font-size: clamp(1.1rem, 2.5vw, 1.2rem);
+  font-size: clamp(1.05rem, 2.2vw, 1.15rem);
   font-weight: 400;
-  line-height: 1.9;
+  line-height: 1.75;
   max-width: 800px;
   margin: 0 auto;
   padding-bottom: 3rem;
@@ -187,11 +183,11 @@
 
 .article-content h2 {
   font-family: var(--font-hero);
-  font-size: clamp(1.35rem, 3.5vw, 1.6rem);
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  margin: 2.5rem 0 1rem;
-  line-height: 1.3;
+  font-size: clamp(1.5rem, 3.5vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 3rem 0 1rem;
+  line-height: 1.25;
 }
 
 .article-content > h2:first-child {
@@ -204,21 +200,22 @@
 
 .article-content h3 {
   font-family: var(--font-hero);
-  font-size: clamp(1.12rem, 2.8vw, 1.25rem);
+  font-size: clamp(1.15rem, 2.8vw, 1.35rem);
   font-weight: 700;
-  margin: 2rem 0 0.75rem;
-  line-height: 1.35;
+  letter-spacing: -0.015em;
+  margin: 2.5rem 0 0.75rem;
+  line-height: 1.3;
 }
 
 .article-content h4 {
   font-family: var(--font-hero);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin: 1.75rem 0 0.5rem;
+  margin: 2rem 0 0.5rem;
 }
 
 .article-content p {
-  margin: 0 0 1.8rem;
+  margin: 0 0 1.5rem;
 }
 
 .article-callout p:last-child {
@@ -232,7 +229,7 @@
 }
 
 .article-content strong {
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .article-content em {
@@ -241,12 +238,12 @@
 
 .article-content ul,
 .article-content ol {
-  margin: 0 0 1.8rem;
+  margin: 0 0 1.5rem;
   padding-left: 1.5rem;
 }
 
 .article-content li {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .article-content blockquote {
@@ -339,14 +336,10 @@
 @media (max-width: 768px) {
   .article-content {
     font-size: 1rem;
-    line-height: 1.75;
+    line-height: 1.7;
   }
 
   .article-header {
     gap: 0.5rem;
-  }
-
-  .article-reading-panel {
-    border-radius: 12px;
   }
 }

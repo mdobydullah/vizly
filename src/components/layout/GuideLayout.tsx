@@ -7,6 +7,7 @@ import mermaid from 'mermaid';
 import { Contributor } from '@/types/guides';
 import { Github, Twitter, Linkedin, Globe, Mail, ExternalLink, ArrowUp } from 'lucide-react';
 import { config } from '@/lib/config';
+import { useSettings } from '@/context/SettingsContext';
 
 interface GuideLayoutProps {
     category: string;
@@ -31,6 +32,11 @@ export function GuideLayout({
     githubPath,
 }: Readonly<GuideLayoutProps>) {
     const router = useRouter();
+    const { theme } = useSettings();
+    const isLight = theme === 'light';
+
+    // In light mode, use a static muted color instead of neon primaryColor
+    const displayColor = isLight ? '#57534e' : primaryColor;
 
     // Scroll to top and Initialize Visual environment
     useEffect(() => {
@@ -127,7 +133,7 @@ export function GuideLayout({
                     textTransform: 'uppercase',
                     fontFamily: 'var(--font-hero)',
                     fontWeight: 800,
-                    color: primaryColor,
+                    color: displayColor,
                     marginBottom: '0.5rem',
                 }}>
                     {category}
@@ -185,11 +191,11 @@ export function GuideLayout({
                                 style={{
                                     fontSize: '0.6rem',
                                     fontFamily: 'var(--font-mono)',
-                                    color: primaryColor,
-                                    background: `${primaryColor}15`,
+                                    color: displayColor,
+                                    background: isLight ? 'rgba(87, 83, 78, 0.08)' : `${primaryColor}15`,
                                     padding: '0.15rem 0.5rem',
                                     borderRadius: '4px',
-                                    border: `1px solid ${primaryColor}30`,
+                                    border: isLight ? '1px solid rgba(87, 83, 78, 0.2)' : `1px solid ${primaryColor}30`,
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.05em',
                                     opacity: 0.9,
@@ -197,11 +203,11 @@ export function GuideLayout({
                                     transition: 'all 0.2s ease'
                                 }}
                                 onMouseOver={(e) => {
-                                    e.currentTarget.style.background = `${primaryColor}25`;
+                                    e.currentTarget.style.background = isLight ? 'rgba(87, 83, 78, 0.14)' : `${primaryColor}25`;
                                     e.currentTarget.style.opacity = '1';
                                 }}
                                 onMouseOut={(e) => {
-                                    e.currentTarget.style.background = `${primaryColor}15`;
+                                    e.currentTarget.style.background = isLight ? 'rgba(87, 83, 78, 0.08)' : `${primaryColor}15`;
                                     e.currentTarget.style.opacity = '0.9';
                                 }}
                             >
@@ -237,7 +243,7 @@ export function GuideLayout({
                                     left: 0,
                                     right: 0,
                                     height: '24px',
-                                    background: `linear-gradient(transparent, ${primaryColor}0D)`,
+                                    background: isLight ? 'linear-gradient(transparent, rgba(87, 83, 78, 0.05))' : `linear-gradient(transparent, ${primaryColor}0D)`,
                                     pointerEvents: 'none'
                                 }} />
                             )}
@@ -251,7 +257,7 @@ export function GuideLayout({
                                     margin: '-1rem auto 1.5rem',
                                     background: 'none',
                                     border: 'none',
-                                    color: primaryColor,
+                                    color: displayColor,
                                     fontSize: '0.7rem',
                                     fontFamily: 'var(--font-mono)',
                                     textTransform: 'uppercase',
@@ -421,7 +427,7 @@ export function GuideLayout({
                         gap: '.5rem',
                         transition: 'color .2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = primaryColor}
+                    onMouseEnter={(e) => e.currentTarget.style.color = displayColor}
                     onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-dim)'}
                 >
                     <span>Found an issue? Edit this page on GitHub</span>
@@ -454,11 +460,11 @@ export function GuideLayout({
                 }
 
                 .contributor-handle:hover {
-                    background: ${primaryColor}20 !important;
-                    border-color: ${primaryColor}80 !important;
+                    background: ${displayColor}20 !important;
+                    border-color: ${displayColor}80 !important;
                     transform: translateY(-3px);
-                    color: ${primaryColor} !important;
-                    box-shadow: 0 4px 12px ${primaryColor}30;
+                    color: ${displayColor} !important;
+                    box-shadow: 0 4px 12px ${displayColor}30;
                 }
 
                 .scroll-to-top-btn {
@@ -470,7 +476,7 @@ export function GuideLayout({
                     border-radius: 50%;
                     background: var(--surface2);
                     border: 1px solid var(--border);
-                    color: ${primaryColor};
+                    color: ${displayColor};
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -506,7 +512,7 @@ export function GuideLayout({
                             borderRadius: '50%',
                             background: 'var(--surface2)',
                             border: '1px solid var(--border)',
-                            color: primaryColor,
+                            color: displayColor,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -516,11 +522,11 @@ export function GuideLayout({
                             visibility: showScrollTop ? 'visible' : 'hidden',
                             transform: showScrollTop ? 'translateY(0)' : 'translateY(10px)',
                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                            boxShadow: isLight ? '0 4px 12px rgba(0, 0, 0, 0.1)' : '0 4px 12px rgba(0, 0, 0, 0.3)'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.background = `${primaryColor}20`;
-                            e.currentTarget.style.borderColor = primaryColor;
+                            e.currentTarget.style.background = isLight ? 'rgba(87, 83, 78, 0.1)' : `${primaryColor}20`;
+                            e.currentTarget.style.borderColor = displayColor;
                             e.currentTarget.style.transform = 'translateY(-2px)';
                             e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
                         }}

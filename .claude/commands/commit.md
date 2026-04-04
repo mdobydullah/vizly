@@ -8,4 +8,5 @@ Generate a one-line git commit message for the current changes.
    - `refactor: move guide styles to guides.css and clean up animation logic`
    - `fix: correct visibility issues in guided flows`
 4. Present the message to the user.
-5. Ask if they want to commit.
+5. Update CLAUDE.md, README.md or memory if needed
+6. Ask if they want to commit.

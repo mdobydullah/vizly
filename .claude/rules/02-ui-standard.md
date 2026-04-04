@@ -1,14 +1,15 @@
 # Rule 02: UI & Design Standards
 
 ## 1. The "Vizly" Design Language
-- **Background**: Deep Dark (`#0a0e14`).
-- **Surface**: Card Dark (`#12161f`).
+- **Dark mode** (default): Background `#0a0e14`, Surface `#12161f`, neon accents.
+- **Light mode**: Background `#f0eee6` (Anthropic-inspired cream), Surface `#fff` for cards, muted accents.
 - **Typography**: 
   - `Outfit` (`--font-display`): For visual accents and some UI emphasis.
   - `Inter` (`--font-hero`): The primary heading font for readability and impact.
   - `DM Mono` (`--font-body`): For descriptive body text.
   - `Space Mono` (`--font-mono`): For data, logic flows, and technical labels.
-- **Accents**: Use `--cyan`, `--purple`, `--pink`, `--orange`, and `--green` CSS variables.
+- **Accents**: Use `--cyan`, `--purple`, `--pink`, `--orange`, and `--green` CSS variables. These automatically adjust between themes.
+- **Theme switching**: Global toggle in header via `useSettings().toggleTheme`. Theme stored in `localStorage('theme')` and applied as `data-theme` attribute on `<html>`. Default theme configurable via `NEXT_PUBLIC_DEFAULT_THEME` env var.
 
 ## 2. CSS Guidelines (Vanilla Only)
 - **No Tailwind/SCSS**: Use native Vanilla CSS with nesting.

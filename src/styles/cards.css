@@ -404,3 +404,98 @@
 .card-lime:hover::before {
     opacity: 0.03;
 }
+
+/* ════════════════════════════════════════
+   LIGHT MODE CARD OVERRIDES
+════════════════════════════════════════ */
+[data-theme="light"] .viz-card {
+    background: #fff;
+    border-color: #e0ddd5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .viz-card:hover {
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Reset all card-color border overrides in light mode */
+[data-theme="light"] .card-cyan,
+[data-theme="light"] .card-purple,
+[data-theme="light"] .card-yellow,
+[data-theme="light"] .card-green,
+[data-theme="light"] .card-pink,
+[data-theme="light"] .card-blue,
+[data-theme="light"] .card-orange,
+[data-theme="light"] .card-teal,
+[data-theme="light"] .card-deep-purple,
+[data-theme="light"] .card-cyan-accent,
+[data-theme="light"] .card-light-blue,
+[data-theme="light"] .card-lime {
+    border-color: #e0ddd5 !important;
+    color: inherit !important;
+}
+
+/* Light mode hover: subtle colored border, soft shadow instead of neon glow */
+[data-theme="light"] .card-cyan:hover,
+[data-theme="light"] .card-purple:hover,
+[data-theme="light"] .card-yellow:hover,
+[data-theme="light"] .card-green:hover,
+[data-theme="light"] .card-pink:hover,
+[data-theme="light"] .card-blue:hover,
+[data-theme="light"] .card-orange:hover,
+[data-theme="light"] .card-teal:hover,
+[data-theme="light"] .card-deep-purple:hover,
+[data-theme="light"] .card-cyan-accent:hover,
+[data-theme="light"] .card-light-blue:hover,
+[data-theme="light"] .card-lime:hover {
+    border-color: color-mix(in srgb, var(--card-color) 40%, #e0ddd5) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    background: #fff !important;
+}
+
+/* viz-label in light mode: white bg with subtle colored border */
+[data-theme="light"] .card-cyan .viz-label,
+[data-theme="light"] .card-purple .viz-label,
+[data-theme="light"] .card-yellow .viz-label,
+[data-theme="light"] .card-green .viz-label,
+[data-theme="light"] .card-pink .viz-label,
+[data-theme="light"] .card-blue .viz-label,
+[data-theme="light"] .card-orange .viz-label,
+[data-theme="light"] .card-teal .viz-label,
+[data-theme="light"] .card-deep-purple .viz-label,
+[data-theme="light"] .card-cyan-accent .viz-label,
+[data-theme="light"] .card-light-blue .viz-label,
+[data-theme="light"] .card-lime .viz-label {
+    background: #fff !important;
+    border-color: #d0cdc4 !important;
+}
+
+/* Tags in light mode */
+[data-theme="light"] .viz-tag {
+    background: #fff;
+    border-color: #d0cdc4;
+}
+
+[data-theme="light"] .viz-tag.hi {
+    background: color-mix(in srgb, var(--tag-color, var(--cyan)) 8%, #fff) !important;
+    border-color: color-mix(in srgb, var(--tag-color, var(--cyan)) 30%, #d0cdc4) !important;
+}
+
+/* Icon container in light mode: stronger tint for visibility */
+[data-theme="light"] .viz-card .card-icon {
+    background: color-mix(in srgb, var(--card-color, var(--cyan)) 12%, #f5f3ed) !important;
+    border-color: color-mix(in srgb, var(--card-color, var(--cyan)) 20%, #e0ddd5) !important;
+}
+
+/* Arrow button in light mode */
+[data-theme="light"] .viz-card .card-arrow {
+    border-color: #d0cdc4 !important;
+    color: var(--text-dim) !important;
+}
+
+[data-theme="light"] .viz-card:hover .card-arrow {
+    border-color: var(--card-color) !important;
+    color: var(--card-color) !important;
+    background: transparent !important;
+}

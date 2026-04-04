@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Guide } from "@/types/guides";
+import { useSettings } from "@/context/SettingsContext";
 
 interface GuideCardProps {
   guide: Guide;
@@ -9,6 +10,8 @@ interface GuideCardProps {
 }
 
 export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
+  const { theme } = useSettings();
+  const isLight = theme === 'light';
   const animationDelay = `.${index + 1}s`;
 
   const isUpcoming = guide.link === '#' || guide.link === null;
@@ -74,7 +77,7 @@ export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
         letterSpacing: '.1em',
         textTransform: 'uppercase' as const,
         fontFamily: 'var(--font-mono)',
-        color: guide.colorConfig.primary,
+        color: isLight ? '#57534e' : guide.colorConfig.primary,
         marginBottom: '.5rem',
         opacity: .8
       }}>
@@ -126,8 +129,8 @@ export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
             width: '26px',
             height: '26px',
             borderRadius: '50%',
-            border: `1px solid ${guide.colorConfig.primary}`,
-            color: guide.colorConfig.primary,
+            border: `1px solid ${isLight ? '#d0cdc4' : guide.colorConfig.primary}`,
+            color: isLight ? '#78716c' : guide.colorConfig.primary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -168,6 +171,12 @@ export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
             transparent 100%
           );
         }
+
+        :global([data-theme="light"]) .viz-card:hover {
+          border-color: color-mix(in srgb, ${guide.colorConfig.primary} 40%, #e0ddd5) !important;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+          background: #fff !important;
+        }
         
         .viz-card:hover::before {
           opacity: 0.03;
@@ -178,7 +187,14 @@ export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
           color: #000;
           transform: scale(1.1);
         }
-        
+
+        :global([data-theme="light"]) .viz-card:hover .card-arrow {
+          background: transparent;
+          color: ${guide.colorConfig.primary};
+          border-color: ${guide.colorConfig.primary};
+          transform: scale(1.1);
+        }
+
         .viz-card:hover :global(.card-icon) {
           background: ${guide.colorConfig.primary}20 !important;
           border-color: ${guide.colorConfig.primary}40 !important;
