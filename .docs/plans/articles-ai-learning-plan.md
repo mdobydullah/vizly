@@ -137,12 +137,12 @@ mermaid: true
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 7 | **Attention Is All You Need** — self-attention, multi-head attention, why it replaced RNNs | Excalidraw: attention mechanism step-by-step, D3: attention heatmap | TODO |
-| 8 | **The Transformer Architecture** — encoder-decoder, positional encoding, layer norm, FFN | Excalidraw: full transformer diagram (detailed), Mermaid: data flow | TODO |
-| 9 | **Tokenization** — BPE, WordPiece, SentencePiece, vocabulary building | Excalidraw: tokenization process, D3: token frequency chart | TODO |
-| 10 | **Pre-Training LLMs** — data collection (Common Crawl, FineWeb), cleaning, next-token prediction | Mermaid: pre-training pipeline, Excalidraw: data funnel, D3: scaling laws chart | TODO |
-| 11 | **GPT, LLaMA & Model Families** — decoder-only vs encoder-decoder, model zoo, parameter counts | Mermaid: model family tree, D3: model size timeline chart | TODO |
-| 12 | **Text Generation Strategies** — greedy, beam search, top-k, top-p, temperature | D3: interactive probability distribution, Excalidraw: search tree | TODO |
+| 7 | **Attention Is All You Need** — self-attention, multi-head attention, why it replaced RNNs | Excalidraw: attention mechanism step-by-step, D3: attention heatmap | DONE |
+| 8 | **The Transformer Architecture** — encoder-decoder, positional encoding, layer norm, FFN | Excalidraw: full transformer diagram (detailed), Mermaid: data flow | DONE |
+| 9 | **Tokenization** — BPE, WordPiece, SentencePiece, vocabulary building | Excalidraw: tokenization process, D3: token frequency chart | DONE |
+| 10 | **Pre-Training LLMs** — data collection (Common Crawl, FineWeb), cleaning, next-token prediction | Mermaid: pre-training pipeline, Excalidraw: data funnel, D3: scaling laws chart | DONE |
+| 11 | **GPT, LLaMA & Model Families** — decoder-only vs encoder-decoder, model zoo, parameter counts | Mermaid: model family tree, D3: model size timeline chart | DONE |
+| 12 | **Text Generation Strategies** — greedy, beam search, top-k, top-p, temperature | D3: interactive probability distribution, Excalidraw: search tree | DONE |
 
 ### Series 3: Post-Training & Alignment (Week 5)
 

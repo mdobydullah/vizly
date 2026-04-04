@@ -9,6 +9,7 @@
 ## Series
 
 - [AI Fundamentals](/series/ai-fundamentals): A ground-up journey through AI, ML, deep learning, and neural networks. 6 articles.
+- [Transformers & LLMs](/series/transformers-llms): From attention mechanisms to text generation — how modern language models actually work under the hood. 6 articles.
 
 ## Articles
 
@@ -18,6 +19,12 @@
 - [Backpropagation & Training](/articles/backpropagation-and-training): Loss functions, gradient descent, learning rate, epochs.
 - [CNNs & Computer Vision](/articles/cnns-and-computer-vision): Convolutions, pooling, feature maps.
 - [RNNs & Sequential Data](/articles/rnns-and-sequential-data): Why sequence matters, vanishing gradients, LSTM/GRU.
+- [Attention Is All You Need](/articles/attention-is-all-you-need): Self-attention, multi-head attention, why it replaced RNNs.
+- [The Transformer Architecture](/articles/the-transformer-architecture): Encoder-decoder, positional encoding, layer norm, feed-forward networks.
+- [Tokenization](/articles/tokenization): BPE, WordPiece, SentencePiece, vocabulary building.
+- [Pre-Training LLMs](/articles/pre-training-llms): Data collection, cleaning, next-token prediction, scaling laws.
+- [GPT, LLaMA & Model Families](/articles/gpt-llama-and-model-families): Decoder-only vs encoder-decoder, model zoo, parameter counts.
+- [Text Generation Strategies](/articles/text-generation-strategies): Greedy, beam search, top-k, top-p, temperature.
 
 ## Guides — System Design
 

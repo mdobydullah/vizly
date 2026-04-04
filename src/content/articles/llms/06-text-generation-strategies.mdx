@@ -1,0 +1,255 @@
+---
+title: "Text Generation Strategies"
+slug: text-generation-strategies
+category: llms
+series: transformers-llms
+seriesOrder: 6
+description: "Greedy, beam search, top-k, top-p, temperature — how language models actually pick the next word, and why controlled randomness makes them better."
+tags:
+  - AI
+  - LLMs
+  - Text Generation
+  - Sampling
+  - Decoding
+readTime: "13 min"
+icon: "🎲"
+color: cyan
+createdAt: "2026-04-04T23:30:00Z"
+updatedAt: "2026-04-04T23:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## The model doesn't output words
+
+After all the layers of attention, feed-forward networks, and normalization, the Transformer produces a vector. That vector gets projected into a probability distribution over the entire vocabulary.
+
+For a vocabulary of 50,000 tokens, the model outputs 50,000 probabilities — one per token. Each probability represents how likely that token is to come next.
+
+```
+"The cat sat on the" → model →
+  "mat"     : 0.15
+  "floor"   : 0.12
+  "bed"     : 0.08
+  "ground"  : 0.07
+  "couch"   : 0.05
+  "table"   : 0.04
+  ... (49,994 more tokens with tiny probabilities)
+```
+
+The question is: which token do you pick?
+
+This choice — the **decoding strategy** — dramatically affects the quality of the generated text.
+
+---
+
+## Greedy decoding: always pick the winner
+
+The simplest approach: at each step, pick the token with the highest probability.
+
+```
+Step 1: "The cat sat on the" → "mat" (0.15)
+Step 2: "The cat sat on the mat" → "." (0.40)
+Step 3: "The cat sat on the mat." → "The" (0.12)
+...
+```
+
+Greedy decoding is fast and deterministic. Same input always produces the same output.
+
+But it has a serious problem: it gets stuck in boring, repetitive loops. The most probable next token at each step doesn't always lead to the best overall sequence. You might choose "the" because it's locally most likely, even though choosing "a" would have opened up a much better continuation three steps later.
+
+It's like driving and always taking the nearest exit. You'll end up somewhere — but probably not somewhere interesting.
+
+<Callout type="warning" title="Greedy decoding is rarely used for generation">
+For open-ended text generation, greedy decoding produces dull, repetitive text. It works fine for tasks where there's one clearly correct answer (like extracting a specific fact), but it's the wrong tool for creative or conversational text.
+</Callout>
+
+---
+
+## Beam search: explore multiple paths
+
+Instead of committing to one token at each step, **beam search** keeps track of the top B sequences (called "beams") at each step. B is typically 4 or 5.
+
+At each step, expand every beam with every possible next token, score them all, and keep only the top B.
+
+```
+Beam width = 3
+
+Step 1: Start with "The cat sat on the"
+  Beam 1: "... the mat"     (score: 0.15)
+  Beam 2: "... the floor"   (score: 0.12)
+  Beam 3: "... the bed"     (score: 0.08)
+
+Step 2: Expand each beam
+  "... the mat ."       (0.15 × 0.40 = 0.060)
+  "... the floor ."     (0.12 × 0.35 = 0.042)
+  "... the mat and"     (0.15 × 0.20 = 0.030)
+  Keep top 3...
+```
+
+Beam search finds better overall sequences than greedy decoding because it considers multiple paths. It's great for machine translation where there's usually one best output.
+
+But for open-ended generation, beam search still tends to produce generic, safe text. It optimizes for high-probability sequences, which means it avoids anything surprising or creative.
+
+---
+
+## Temperature: controlling randomness
+
+Here's where things get interesting. Instead of always picking the most likely token, what if we **sample** from the probability distribution? Let the model roll the dice.
+
+**Temperature** controls how random the sampling is. It's a number that divides the raw scores (logits) before applying softmax.
+
+```
+logits = [2.0, 1.5, 1.0, 0.5]
+
+Temperature = 1.0 (default):
+  softmax → [0.39, 0.29, 0.21, 0.11]
+  (moderate spread)
+
+Temperature = 0.5 (lower — more focused):
+  softmax → [0.54, 0.27, 0.14, 0.05]
+  (top token dominates)
+
+Temperature = 2.0 (higher — more random):
+  softmax → [0.30, 0.27, 0.24, 0.19]
+  (nearly uniform — very random)
+```
+
+<MermaidBlock>
+graph LR
+    A["Low temperature\n0.1 - 0.3"] --> D["Focused and predictable\ngood for factual tasks"]
+    B["Medium temperature\n0.5 - 0.9"] --> E["Balanced creativity\ngood for conversation"]
+    C["High temperature\n1.0 - 2.0"] --> F["Wild and creative\ngood for brainstorming"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#aaa
+    style E fill:#1a1f2b,stroke:#3effa3,color:#aaa
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#aaa
+</MermaidBlock>
+
+Temperature = 0 is equivalent to greedy decoding — always pick the top token. As temperature increases, the distribution flattens and the model becomes more willing to pick unlikely tokens.
+
+---
+
+## Top-k sampling: limit the candidates
+
+Pure sampling from the full distribution has a problem. Even with reasonable temperature, there's always a small chance of picking a completely nonsensical token that has a tiny but non-zero probability. "The cat sat on the **xylophone**" is unlikely but possible.
+
+**Top-k sampling** fixes this by only considering the top k most likely tokens and zeroing out everything else.
+
+```
+Top-k = 5:
+  "mat"     : 0.15  ✓ kept
+  "floor"   : 0.12  ✓ kept
+  "bed"     : 0.08  ✓ kept
+  "ground"  : 0.07  ✓ kept
+  "couch"   : 0.05  ✓ kept
+  "table"   : 0.04  ✗ zeroed
+  ... all others    ✗ zeroed
+
+Renormalize the remaining 5 to sum to 1, then sample.
+```
+
+GPT-2's paper popularized top-k with k=40.
+
+The problem: k is fixed. Sometimes the model is very confident (one token has 90% probability) and you want to just pick that one. Other times the probability is spread across 50 reasonable tokens and k=40 cuts off valid options. A fixed k doesn't adapt to different situations.
+
+---
+
+## Top-p (nucleus) sampling: adaptive filtering
+
+**Top-p** (also called nucleus sampling) solves the fixed-k problem. Instead of keeping a fixed number of tokens, keep the smallest set of tokens whose cumulative probability exceeds p.
+
+```
+Top-p = 0.9:
+  "mat"    : 0.35  → cumulative: 0.35  ✓ kept
+  "floor"  : 0.25  → cumulative: 0.60  ✓ kept
+  "bed"    : 0.15  → cumulative: 0.75  ✓ kept
+  "ground" : 0.10  → cumulative: 0.85  ✓ kept
+  "couch"  : 0.08  → cumulative: 0.93  ✓ kept (crossed 0.9)
+  "table"  : 0.04  ✗ zeroed
+  ...
+```
+
+When the model is confident (one token at 0.95), top-p might keep just one or two tokens. When it's uncertain (probability spread thin), it keeps many. The filtering adapts automatically.
+
+Top-p = 0.9 or 0.95 is a common default. Most API providers (OpenAI, Anthropic, Google) expose this parameter.
+
+<Callout type="tip" title="Temperature + top-p: use together">
+In practice, you usually combine temperature with top-p. Temperature reshapes the distribution (sharper or flatter), then top-p trims the tail. A common recipe: temperature 0.7 with top-p 0.9 gives creative but coherent text.
+</Callout>
+
+---
+
+## Comparing the strategies
+
+| Strategy | How it works | Good for | Problem |
+|----------|-------------|----------|---------|
+| Greedy | Always pick highest probability | Factual extraction | Repetitive, boring |
+| Beam search | Track top B sequences | Translation, fixed tasks | Generic, safe |
+| Temperature sampling | Sample from scaled distribution | Creative text | Can be too random |
+| Top-k | Sample from top k tokens only | General generation | Fixed k doesn't adapt |
+| Top-p (nucleus) | Sample from smallest set above p | General generation | Slower (sort needed) |
+
+Most production systems use temperature + top-p sampling. Beam search is still used for specific tasks like machine translation. Greedy is mainly used when you need deterministic, exact outputs.
+
+---
+
+## Repetition penalty
+
+Even with good sampling, models sometimes get stuck in loops: "I think that I think that I think that..." This happens because once the model generates "I think that," those tokens become part of the context, and the model's learned statistics push it toward generating them again.
+
+**Repetition penalty** reduces the probability of tokens that have already appeared in the generated text. If "think" was already generated, multiply its probability by a penalty factor (e.g., 0.8) before sampling.
+
+**Frequency penalty** is similar but scales with how many times a token has appeared. Say "the" appears 5 times — it gets a stronger penalty than a word that appeared once.
+
+These are heuristic fixes, not elegant. But they work well in practice and most API providers expose them as parameters.
+
+---
+
+## Putting it all together
+
+When you send a prompt to ChatGPT or Claude, here's what happens at each generation step:
+
+<MermaidBlock>
+graph TB
+    A["Input tokens\nyour prompt + generated so far"] --> B["Transformer\nforward pass"]
+    B --> C["Raw logits\n50k numbers"]
+    C --> D["Apply temperature\nreshape distribution"]
+    D --> E["Apply top-p filtering\ntrim unlikely tokens"]
+    E --> F["Apply repetition penalty\nreduce repeated tokens"]
+    F --> G["Sample one token\nfrom final distribution"]
+    G --> H{"End token?"}
+    H -->|No| A
+    H -->|Yes| I["Return complete\ngenerated text"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style G fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style H fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style I fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+This loop runs once per generated token. A response of 500 tokens means 500 forward passes through the entire model. Each pass takes milliseconds on modern hardware, but it adds up — which is why longer responses take longer to stream.
+
+---
+
+## Why randomness is a feature
+
+It might seem counterintuitive. Why would you want your language model to be random? Shouldn't it always give the best answer?
+
+The thing is, language isn't deterministic. There are many good ways to say the same thing. "The cat rested on the mat" and "The cat lay on the mat" and "The cat lounged on the mat" are all perfectly fine. Greedy decoding picks one and always sticks with it. Sampling lets the model vary its outputs naturally.
+
+When you ask a question twice and get slightly different answers, that's not a bug. That's the sampling strategy at work. The model is exploring different valid paths through the probability space.
+
+And for creative tasks — writing, brainstorming, storytelling — you actively want some unpredictability. The best stories have moments that surprise you.
+
+---
+
+## What's next?
+
+We've covered the complete pipeline from raw text to trained model to generated output. The next series dives into what happens **after** pre-training: **Post-Training and Alignment** — how base models get transformed into helpful, safe assistants through supervised fine-tuning, RLHF, and evaluation.

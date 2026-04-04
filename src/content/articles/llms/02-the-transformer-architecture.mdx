@@ -1,0 +1,282 @@
+---
+title: "The Transformer Architecture"
+slug: the-transformer-architecture
+category: llms
+series: transformers-llms
+seriesOrder: 2
+description: "The complete blueprint — encoder, decoder, positional encoding, layer norm, and feed-forward networks. How all the pieces fit together."
+tags:
+  - AI
+  - Transformers
+  - Architecture
+  - LLMs
+  - Deep Learning
+readTime: "15 min"
+icon: "🏗️"
+color: cyan
+createdAt: "2026-04-04T20:00:00Z"
+updatedAt: "2026-04-04T20:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## One mechanism isn't enough
+
+In the previous article, we learned how self-attention lets every word look at every other word. Powerful stuff. But attention alone isn't a complete model. You need a few more ingredients to turn it into something that can actually process language.
+
+The original 2017 "Attention Is All You Need" paper laid out a full architecture called the **Transformer**. It has two main halves — an encoder and a decoder — plus several supporting components that keep everything stable and expressive.
+
+Here's how the pieces fit.
+
+---
+
+## The big picture
+
+At the highest level, the Transformer takes a sequence of tokens in and produces a sequence of tokens out. The original use case was machine translation — English in, French out.
+
+<MermaidBlock>
+graph LR
+    A["Input tokens\nEnglish sentence"] --> B["Encoder\nunderstands the input"]
+    B --> C["Decoder\ngenerates the output"]
+    C --> D["Output tokens\nFrench sentence"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+The **encoder** reads the entire input at once and builds a rich representation of it. The **decoder** generates the output one token at a time, using the encoder's representation as context.
+
+Both the encoder and decoder are built from stacked layers. The original paper used 6 layers for each. Let's look inside a single layer.
+
+---
+
+## Inside an encoder layer
+
+Each encoder layer has two sub-components:
+
+1. **Multi-head self-attention** — every input token attends to every other input token
+2. **Feed-forward network (FFN)** — a simple two-layer neural network applied to each token independently
+
+After each sub-component, there's a **residual connection** (add the input back to the output) and **layer normalization**.
+
+<MermaidBlock>
+graph TB
+    A["Input embeddings"] --> B["Multi-head\nself-attention"]
+    B --> C["Add and normalize\nresidual + LayerNorm"]
+    C --> D["Feed-forward\nnetwork"]
+    D --> E["Add and normalize\nresidual + LayerNorm"]
+    E --> F["To next encoder layer\nor to decoder"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That's the whole encoder layer. Stack six of these and you have the encoder.
+
+---
+
+## The feed-forward network
+
+Attention is like gathering ingredients from the pantry — you've pulled together relevant information from other words. The feed-forward network (FFN) is the actual cooking. It takes those gathered ingredients and transforms them into something meaningful.
+
+The FFN processes each token individually. It's a small two-layer network:
+
+```
+FFN(x) = ReLU(x * W1 + b1) * W2 + b2
+```
+
+The inner dimension is typically 4x the model dimension. So if your model has 512-dimensional embeddings, the FFN expands to 2048 dimensions, applies ReLU, then projects back to 512.
+
+Why does this matter? Attention is great at mixing information across positions. But it's linear — the output is a weighted sum of values. The FFN adds **non-linearity**, letting the model learn more complex transformations for each token.
+
+---
+
+## Residual connections: don't forget the original
+
+Ever edited a document and wished you'd kept the original? Residual connections are basically that — a copy of the input that gets added back to the output.
+
+```
+output = SubLayer(x) + x
+```
+
+Why bother? Deep networks have a problem — as you stack more layers, gradients can vanish and earlier layers stop learning. Residual connections (invented in 2015 for ResNets) create a shortcut for gradients to flow directly backward. They also let the network learn "adjustments" to the input rather than complete transformations from scratch.
+
+Without residuals, training a 6-layer Transformer would be much harder. With them, you can stack dozens or even hundreds of layers.
+
+---
+
+## Layer normalization: keeping numbers sane
+
+Think of a classroom where one student whispers and another shouts. Hard to run a discussion. Layer normalization is like adjusting everyone to the same volume before they speak.
+
+Neural networks are sensitive to the scale of their internal numbers. If values grow too large or too small between layers, training becomes unstable.
+
+Layer normalization fixes this by normalizing the values across the feature dimension for each token. It computes the mean and variance across all features of one token, then rescales.
+
+```
+LayerNorm(x) = gamma * (x - mean) / sqrt(variance + epsilon) + beta
+```
+
+Where gamma and beta are learned parameters. The network can learn what scale and offset works best.
+
+<Callout type="info" title="Layer norm vs batch norm">
+Batch normalization (common in CNNs) normalizes across the batch dimension. Layer normalization normalizes across the feature dimension within a single example. For sequences of varying length, layer norm works much better — you don't want normalization statistics to depend on what other sentences happen to be in the same batch.
+</Callout>
+
+---
+
+## The position problem
+
+Here's something surprising about self-attention: it has no concept of position.
+
+If you scramble the order of words in a sentence, self-attention produces exactly the same outputs (just in a different order). It treats the input as a set, not a sequence.
+
+But word order matters enormously. "Dog bites man" and "Man bites dog" are very different.
+
+The solution: **positional encoding**. Before feeding tokens into the Transformer, add a vector to each token embedding that encodes its position in the sequence.
+
+The original paper used sine and cosine functions at different frequencies:
+
+```
+PE(pos, 2i)   = sin(pos / 10000^(2i/d))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d))
+```
+
+Each dimension of the positional encoding oscillates at a different frequency. The intuition: the model can learn to read these patterns and figure out both absolute position ("I'm the 5th word") and relative position ("these two words are 3 apart").
+
+<MermaidBlock>
+graph LR
+    A["Token\nembedding"] --> C["Combined\nembedding"]
+    B["Positional\nencoding"] --> C
+    C --> D["Into the\nTransformer"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Modern models often use **learned positional embeddings** instead — just a lookup table of position vectors that the model learns during training. Both approaches work.
+
+---
+
+## Inside a decoder layer
+
+The decoder is similar to the encoder but with one critical addition. Each decoder layer has three sub-components:
+
+1. **Masked multi-head self-attention** — tokens can only attend to earlier positions (not future ones)
+2. **Cross-attention** — decoder tokens attend to the encoder's output
+3. **Feed-forward network** — same as in the encoder
+
+<MermaidBlock>
+graph TB
+    A["Previous decoder\noutput"] --> B["Masked self-attention\ncan only look backward"]
+    B --> C["Add and normalize"]
+    C --> D["Cross-attention\nlook at encoder output"]
+    ENC["Encoder\noutput"] --> D
+    D --> E["Add and normalize"]
+    E --> F["Feed-forward\nnetwork"]
+    F --> G["Add and normalize"]
+    G --> H["To next decoder layer\nor final output"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style ENC fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style G fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style H fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Masked attention: no peeking at the future
+
+During training, the decoder sees the entire target sequence at once (for efficiency). But it shouldn't be able to look ahead — when generating the 5th word, it should only know words 1 through 4.
+
+**Masking** enforces this. Before applying softmax, the attention scores for all future positions are set to negative infinity.
+
+After softmax, those positions get a weight of zero.
+
+```
+Position 5 attention scores:
+  word 1: 0.3  ✓ (can see)
+  word 2: 0.5  ✓ (can see)
+  word 3: 0.1  ✓ (can see)
+  word 4: 0.1  ✓ (can see)
+  word 5: -∞   ✗ (masked — this is the current position)
+  word 6: -∞   ✗ (masked — future)
+  word 7: -∞   ✗ (masked — future)
+```
+
+This preserves the autoregressive property — the model generates one token at a time, left to right, never cheating by looking ahead.
+
+---
+
+## Cross-attention: connecting encoder and decoder
+
+This is where the encoder and decoder talk to each other.
+
+In cross-attention, the **queries** come from the decoder and the **keys** and **values** come from the encoder's output. This lets each decoder token ask: "What part of the input is most relevant to the word I'm about to generate?"
+
+When translating "The cat is black" to French, the decoder generating "noir" (black) would attend heavily to "black" in the encoder output.
+
+<Callout type="tip" title="The attention formula is the same">
+Cross-attention uses the exact same math as self-attention — Q * K^T / sqrt(d_k), softmax, multiply by V. The only difference is where Q, K, and V come from. In self-attention, all three come from the same sequence. In cross-attention, Q comes from the decoder and K, V come from the encoder.
+</Callout>
+
+---
+
+## The final output layer
+
+After the last decoder layer, the output passes through a linear layer that projects to vocabulary size, followed by softmax. This gives a probability distribution over every word in the vocabulary for each position.
+
+```
+decoder output → linear (d_model → vocab_size) → softmax → probabilities
+```
+
+During training, you compare these probabilities against the actual next word and compute the loss. During generation, you pick a word from the distribution and feed it back as the next input.
+
+---
+
+## Putting it all together
+
+Here's the complete architecture:
+
+| Component | Purpose |
+|-----------|---------|
+| Token embedding | Convert words to vectors |
+| Positional encoding | Add position information |
+| Encoder (x6 layers) | Build rich representation of input |
+| — Self-attention | Mix information across positions |
+| — FFN | Process each position independently |
+| — Residual + LayerNorm | Stabilize training |
+| Decoder (x6 layers) | Generate output sequence |
+| — Masked self-attention | Look at past output only |
+| — Cross-attention | Look at encoder output |
+| — FFN | Process each position |
+| Linear + Softmax | Produce word probabilities |
+
+The original Transformer had 65 million parameters. That seemed large in 2017. GPT-4 is estimated to have over a trillion. Same architecture, scaled up.
+
+---
+
+## Why this design is so powerful
+
+Three things make the Transformer special:
+
+**Parallelism.** Every position is processed simultaneously. No sequential bottleneck. This means you can throw more hardware at it and it actually speeds up — unlike RNNs.
+
+**Long-range connections.** Any token can attend to any other token in a single step. In an RNN, information from the beginning of a long sequence has to survive hundreds of sequential steps. In a Transformer, it's one attention operation away.
+
+**Modularity.** The architecture is remarkably simple — it's just attention, linear layers, and normalization stacked repeatedly. This simplicity made it easy to scale, modify, and adapt to new tasks.
+
+---
+
+## What's next?
+
+The Transformer processes sequences of tokens. But what exactly is a token? How do you turn raw text into the numbers the model actually works with? Next up: **Tokenization** — BPE, WordPiece, and how models break text into pieces.

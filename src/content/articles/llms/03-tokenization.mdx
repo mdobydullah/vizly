@@ -1,0 +1,232 @@
+---
+title: "Tokenization"
+slug: tokenization
+category: llms
+series: transformers-llms
+seriesOrder: 3
+description: "Before a model can read text, it needs to chop it into pieces. We cover BPE, WordPiece, SentencePiece, and how vocabularies are built."
+tags:
+  - AI
+  - Tokenization
+  - BPE
+  - NLP
+  - LLMs
+readTime: "12 min"
+icon: "✂️"
+color: cyan
+createdAt: "2026-04-04T21:00:00Z"
+updatedAt: "2026-04-04T21:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Models don't read words
+
+Here's something that trips people up: language models don't actually process words. They process numbers. And the bridge between human text and model numbers is **tokenization** — the process of breaking text into smaller pieces called tokens.
+
+You might assume the obvious approach: split on spaces. "The cat sat" becomes ["The", "cat", "sat"]. Three tokens, three words.
+
+But that falls apart fast.
+
+---
+
+## Why word-level tokenization doesn't work
+
+English has a huge vocabulary. A typical dictionary has 170,000+ words. Add names, technical jargon, slang, misspellings, and other languages? You're looking at millions of unique words.
+
+Every token needs its own row in the embedding table. A vocabulary of 1 million words means 1 million embedding vectors. That's a massive table, mostly full of rare words the model barely ever sees during training.
+
+And what happens when the model encounters a word it's never seen? "Tokenization" might not be in the vocabulary. The model has no idea what to do with it.
+
+You need something smarter.
+
+---
+
+## Characters are too small, words are too big
+
+Going the other direction — splitting into individual characters — solves the vocabulary problem. The English alphabet plus punctuation gives you maybe 100 tokens. Tiny vocabulary, no unknown words ever.
+
+But now "cat" is three tokens: ["c", "a", "t"]. The model has to figure out that these three characters form a meaningful unit. For long words and sentences, the sequence becomes extremely long, and the model has to do more work to understand the text.
+
+The sweet spot is somewhere in between.
+
+---
+
+## Subword tokenization: the Goldilocks zone
+
+Modern language models use **subword tokenization**. Common words stay whole. Uncommon words get broken into smaller, meaningful pieces.
+
+"unhappiness" might become: ["un", "happiness"]
+
+Or even: ["un", "happi", "ness"]
+
+The word "cat" stays as one token because it appears frequently. But "tokenization" might split into ["token", "ization"] — both pieces are common enough to be in the vocabulary, and together they reconstruct the original word.
+
+<Callout type="info" title="Why subwords work so well">
+Subword tokenization lets models handle any text — including words they've never seen during training. The model might not know "defragmentation" as one token, but it knows "de", "fragment", and "ation" individually. It can use the meanings of these familiar pieces to make sense of the new word. This is similar to how humans understand unfamiliar words by recognizing familiar roots and prefixes.
+</Callout>
+
+---
+
+## BPE: Byte Pair Encoding
+
+The most popular subword algorithm is **Byte Pair Encoding (BPE)**. GPT models use a variant of it. The idea is similar to how texting culture invented abbreviations — "lol" replaced "laughing out loud" because it appeared so often. BPE does the same thing automatically.
+
+Start with the full training text broken into individual characters. Then, repeatedly:
+
+1. Count every pair of adjacent tokens in the text
+2. Find the most frequent pair
+3. Merge that pair into a new single token
+4. Repeat until your vocabulary reaches the desired size
+
+A walkthrough:
+
+```
+Starting text (as characters):
+  l o w    l o w e r    l o w e s t
+
+Step 1: Most frequent pair is "l o" (appears 3 times)
+  Merge: lo w    lo w e r    lo w e s t
+
+Step 2: Most frequent pair is "lo w" (appears 3 times)
+  Merge: low    low e r    low e s t
+
+Step 3: Most frequent pair is "e r" or "e s" (both appear once)
+  Say we merge "low e": lowe r    lowe s t
+
+...and so on until the vocabulary reaches the target size.
+```
+
+Common words get merged into single tokens early. Rare words stay as smaller pieces. A typical vocabulary size for modern LLMs is 32,000 to 100,000 tokens.
+
+<MermaidBlock>
+graph TB
+    A["Raw text\ncorpus of training data"] --> B["Split into\ncharacters"]
+    B --> C["Count all\nadjacent pairs"]
+    C --> D["Merge most\nfrequent pair"]
+    D --> E{"Vocabulary\nsize reached?"}
+    E -->|No| C
+    E -->|Yes| F["Final vocabulary\nof subword tokens"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+---
+
+## WordPiece: Google's variant
+
+**WordPiece** (used in BERT) is similar to BPE but makes merge decisions differently. Instead of picking the most frequent pair, it picks the pair that maximizes the likelihood of the training data when merged.
+
+In practice, the results are similar. The key difference is the scoring function — WordPiece considers how useful a merge is for the language model, not just how common it is.
+
+WordPiece tokens that appear in the middle of a word are prefixed with `##` to indicate they're continuations:
+
+```
+"tokenization" → ["token", "##ization"]
+"unhappiness"  → ["un", "##happi", "##ness"]
+```
+
+This prefix helps the model distinguish between "play" as a standalone word and "play" as part of "playground."
+
+---
+
+## SentencePiece: language-agnostic
+
+BPE and WordPiece assume you can split text on spaces first, then do subword splitting within words. That works for English. It doesn't work for Chinese, Japanese, or Thai — languages where words aren't separated by spaces.
+
+**SentencePiece** treats the input as a raw stream of characters (including spaces). It doesn't pre-split on whitespace at all. The space character `▁` is treated like any other character and can become part of a token.
+
+```
+"New York" → ["▁New", "▁York"]
+"I love AI" → ["▁I", "▁love", "▁AI"]
+```
+
+This makes SentencePiece truly language-agnostic. LLaMA and many multilingual models use it.
+
+---
+
+## Special tokens
+
+Every tokenizer adds a few special tokens that have specific meanings:
+
+| Token | Purpose |
+|-------|---------|
+| `[BOS]` or `<s>` | Beginning of sequence |
+| `[EOS]` or `</s>` | End of sequence |
+| `[PAD]` | Padding (to make sequences the same length in a batch) |
+| `[UNK]` | Unknown token (fallback for unseen characters) |
+| `[SEP]` | Separator between segments |
+
+These aren't real words — they're control signals. The model learns what they mean during training.
+
+---
+
+## Vocabulary size: a balancing act
+
+Bigger vocabulary → each token carries more information → shorter sequences → faster processing. But the embedding table gets huge and rare tokens get poor representations.
+
+Smaller vocabulary → more tokens per sentence → longer sequences → slower processing and more work for attention. But every token appears frequently during training and gets a good representation.
+
+| Model | Vocabulary size |
+|-------|----------------|
+| GPT-2 | 50,257 |
+| GPT-4 | ~100,000 |
+| BERT | 30,522 |
+| LLaMA | 32,000 |
+| LLaMA 3 | 128,256 |
+
+Most modern models land somewhere between 32,000 and 128,000 tokens.
+
+<Callout type="warning" title="Tokenization affects cost">
+When you use an API like OpenAI's, you pay per token. How text gets tokenized directly affects your bill. The word "indistinguishable" might be 1 token or 4, depending on the tokenizer. Efficient tokenization means cheaper inference.
+</Callout>
+
+---
+
+## What tokenization looks like in practice
+
+Here's how GPT-style tokenization handles different inputs:
+
+```
+"Hello world"     → ["Hello", " world"]           (2 tokens)
+"tokenization"    → ["token", "ization"]           (2 tokens)
+"AI is cool"      → ["AI", " is", " cool"]         (3 tokens)
+"🤖"              → ["🤖"]                          (1 token — emojis have their own tokens)
+"asdfjkl"         → ["as", "df", "j", "kl"]        (4 tokens — nonsense splits more)
+"Python 3.11.0"   → ["Python", " 3", ".", "11", ".0"]  (5 tokens)
+```
+
+Notice how common words and phrases stay whole, while unusual text gets split into more pieces. The tokenizer mirrors the statistical patterns of its training data.
+
+---
+
+## The full pipeline
+
+From raw text to model input:
+
+<MermaidBlock>
+graph LR
+    A["Raw text\nHello world"] --> B["Tokenize\nHello world"]
+    B --> C["Token IDs\n15496 995"]
+    C --> D["Embeddings\nvectors from lookup table"]
+    D --> E["Add positions\npositional encoding"]
+    E --> F["Into the\nTransformer"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+Each token maps to a unique integer ID. That ID indexes into the embedding table to get a vector. Add positional encoding. Feed into the Transformer. That's the complete input pipeline.
+
+---
+
+## What's next?
+
+We know the architecture. We know how text gets converted into tokens. But how does a model actually learn? Next up: **Pre-Training LLMs** — the massive-scale process of training a language model on the internet's text, from data collection to next-token prediction.

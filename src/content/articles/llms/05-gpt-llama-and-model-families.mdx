@@ -1,0 +1,186 @@
+---
+title: "GPT, LLaMA & Model Families"
+slug: gpt-llama-and-model-families
+category: llms
+series: transformers-llms
+seriesOrder: 5
+description: "Decoder-only vs encoder-decoder, the GPT lineage, open-source models, and how the model zoo evolved from one paper into hundreds of variants."
+tags:
+  - AI
+  - GPT
+  - LLaMA
+  - BERT
+  - LLMs
+  - Model Families
+readTime: "14 min"
+icon: "🌳"
+color: cyan
+createdAt: "2026-04-04T23:00:00Z"
+updatedAt: "2026-04-04T23:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## One architecture, many flavors
+
+The original Transformer had an encoder and a decoder. But researchers quickly discovered that you don't always need both halves. Depending on your task, one half might be enough — or even better.
+
+This led to three major families of Transformer models, each with a different approach to the same architecture.
+
+---
+
+## The three families
+
+**Encoder-only** models (like BERT) use just the encoder. Every token can attend to every other token — no masking. Great for understanding text: classification, sentiment analysis, named entity recognition. You feed in a complete sentence and get a rich representation of each token.
+
+**Decoder-only** models (like GPT) use just the decoder. Tokens can only attend to earlier positions — masked attention. Great for generating text: the model produces one token at a time, left to right. This is what powers ChatGPT, Claude, LLaMA, and most modern LLMs.
+
+**Encoder-decoder** models (like T5, the original Transformer) use both. The encoder processes the input, the decoder generates the output. Great for tasks where input and output are different sequences: translation, summarization.
+
+<MermaidBlock>
+graph TB
+    A["Encoder-only\nBERT, RoBERTa"] --> D["Best for understanding\nclassification, NER, search"]
+    B["Decoder-only\nGPT, LLaMA, Claude"] --> E["Best for generation\nchat, code, writing"]
+    C["Encoder-decoder\nT5, BART, Flan"] --> F["Best for transformation\ntranslation, summarization"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#aaa
+    style E fill:#1a1f2b,stroke:#3effa3,color:#aaa
+    style F fill:#1a1f2b,stroke:#ffb347,color:#aaa
+</MermaidBlock>
+
+Today, decoder-only models dominate. It turns out that if you make a decoder-only model big enough and train it on enough data, it can do understanding tasks too — not just generation. That's why GPT-4 can classify sentiment, answer questions, and analyze text despite being "just" a decoder.
+
+---
+
+## BERT: the encoder era (2018)
+
+Google released BERT (Bidirectional Encoder Representations from Transformers) in October 2018. It was a revelation.
+
+BERT's key innovation: **masked language modeling**. Instead of predicting the next token, BERT randomly masks 15% of tokens in the input and tries to predict them. Because there's no masking of future positions, every token can attend to every other token — including ones that come after it.
+
+```
+Input:  "The [MASK] sat on the mat"
+Output: "The cat sat on the mat"
+```
+
+This bidirectional context made BERT incredibly good at understanding language. It dominated NLP benchmarks for two years. Google used it to improve search results.
+
+But BERT can't generate text. It's a fill-in-the-blank model. You can't ask it to write an essay or have a conversation.
+
+---
+
+## GPT: the decoder era begins (2018-present)
+
+OpenAI's GPT (Generative Pre-trained Transformer) went the opposite direction. Decoder-only, autoregressive, left-to-right. Predict the next token.
+
+**GPT-1** (June 2018, 117M parameters) proved the concept. Pre-train on a large text corpus, then fine-tune on specific tasks. It worked surprisingly well.
+
+**GPT-2** (February 2019, 1.5B parameters) showed that scaling up produces dramatically better results. OpenAI initially didn't release the full model, worried it was "too dangerous." The text it generated was unnervingly fluent.
+
+**GPT-3** (June 2020, 175B parameters) changed everything. It could do tasks it was never explicitly trained for — just from a text prompt. Write code, answer questions, translate languages, write poetry. All from "predict the next token" at scale. This was the birth of modern prompt engineering.
+
+**GPT-4** (March 2023) pushed further — multimodal (text and images), better reasoning, fewer hallucinations. The exact architecture and parameter count remain undisclosed.
+
+| Model | Parameters | Training data | Key capability |
+|-------|-----------|---------------|---------------|
+| GPT-1 | 117M | BookCorpus | Proved pre-train then fine-tune works |
+| GPT-2 | 1.5B | WebText (40GB) | Fluent long-form generation |
+| GPT-3 | 175B | 300B tokens | Few-shot learning from prompts |
+| GPT-4 | Undisclosed | Undisclosed | Multimodal, strong reasoning |
+
+---
+
+## The open-source revolution: LLaMA
+
+For a while, the best models were all closed-source. GPT-3 and GPT-4 were only available through OpenAI's API. Researchers couldn't study them, modify them, or build on them.
+
+Then Meta released **LLaMA** (Large Language Model Meta AI) in February 2023.
+
+LLaMA 1 showed that smaller, well-trained models can match or beat much larger ones. LLaMA 13B outperformed GPT-3 (175B) on many benchmarks. The secret? Better data and more training tokens. Following the Chinchilla insight — train smaller models on more data rather than making models bigger.
+
+**LLaMA 2** (July 2023) came with an open license and included chat-tuned versions. Suddenly, anyone could run a capable language model locally.
+
+**LLaMA 3** (April 2024) pushed further with a 405B parameter model trained on 15 trillion tokens — one of the largest open models ever released.
+
+<Callout type="info" title="Why open models matter">
+Open models let researchers study how LLMs work, find and fix safety issues, adapt models to new languages and domains, and build products without depending on a single company's API. The open-source LLM ecosystem grew explosively after LLaMA's release — thousands of fine-tuned variants for specific use cases.
+</Callout>
+
+---
+
+## The broader model zoo
+
+Once LLaMA proved open models could compete, the race was on — and everyone had a different angle.
+
+Anthropic built **Claude** around safety, using a technique called Constitutional AI to make it more helpful and less harmful. Google DeepMind went multimodal with **Gemini**, training a single model that handles text, images, audio, video, and code from day one. Both stayed closed-source.
+
+On the open side, things got interesting fast. **Mistral**, a European startup, released Mistral 7B — a tiny model that punched way above its weight class. **Qwen** from Alibaba pushed multilingual capabilities, especially for Chinese. **DeepSeek** from China matched top-tier models at a fraction of the training cost using a clever mixture-of-experts architecture.
+
+And then there's **Phi** from Microsoft, which challenged the "bigger is better" assumption entirely. By training small models (1.3B to 14B parameters) on carefully curated "textbook-quality" data, they showed that data quality can compensate for model size.
+
+<MermaidBlock>
+graph TB
+    T["Transformer\n2017"] --> B["BERT\n2018 - encoder-only"]
+    T --> G1["GPT-1\n2018 - decoder-only"]
+    G1 --> G2["GPT-2\n2019"]
+    G2 --> G3["GPT-3\n2020"]
+    G3 --> G4["GPT-4\n2023"]
+    T --> T5["T5\n2019 - encoder-decoder"]
+    G3 --> L1["LLaMA 1\n2023 - open source"]
+    L1 --> L2["LLaMA 2\n2023"]
+    L2 --> L3["LLaMA 3\n2024"]
+    L1 --> M["Mistral\n2023"]
+    G3 --> CL["Claude\n2023"]
+    G3 --> GE["Gemini\n2023"]
+    style T fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style G1 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G3 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G4 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style T5 fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style L1 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style L2 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style L3 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style M fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style CL fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style GE fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+---
+
+## What changed since 2017?
+
+All these models are based on the same Transformer architecture. But nearly a decade of engineering has refined the details.
+
+The biggest practical change is **context length** — how many tokens a model can handle at once. GPT-3 could process 4,096 tokens (a few pages). Modern models handle 128,000 to over 1,000,000 tokens (entire books). This required replacing the original sinusoidal positional encodings with **RoPE** (Rotary Position Embedding), which handles relative positions and extends to longer sequences much more gracefully.
+
+Attention got more efficient too. **Grouped-query attention (GQA)** shares key/value heads across multiple query heads, slashing memory usage. LLaMA 2 and 3 both use this — it's a big reason they run well on consumer hardware.
+
+Other tweaks are more subtle. Most modern models use **pre-layer norm** (normalize before attention, not after) or **RMSNorm** (a simpler, faster variant) instead of the original post-layer norm. Activation functions evolved from ReLU to **SwiGLU** or **GeGLU**, which produce slightly better results.
+
+None of these are revolutionary on their own. But stacked together, they make modern Transformers dramatically more efficient than the 2017 original — while the core architecture remains remarkably intact.
+
+---
+
+## Mixture of Experts: not every parameter fires
+
+One more important trend: **Mixture of Experts (MoE)**.
+
+A standard Transformer sends every token through every parameter in every layer. An MoE model has multiple "expert" feed-forward networks in each layer, and a router decides which experts each token gets sent to. Typically, only 2 out of 8 experts activate per token.
+
+This means you can have a model with 400B total parameters but only 50B active for any given token. Faster inference, cheaper to run, competitive quality.
+
+DeepSeek-V3 and Mixtral are notable MoE models. GPT-4 is widely believed to use MoE as well, though OpenAI hasn't confirmed it.
+
+<Callout type="tip" title="Parameters vs active parameters">
+When someone says "this is a 400B model," ask whether that's total parameters or active parameters. An MoE model with 400B total but 50B active is much cheaper to run than a dense 400B model — but can match its quality because it has more total knowledge stored across all experts.
+</Callout>
+
+---
+
+## What's next?
+
+We've seen how the Transformer family evolved from one paper into an entire ecosystem of models. But when these models generate text, how do they actually pick the next word? It's not as simple as always choosing the most likely token. Next up: **Text Generation Strategies** — greedy decoding, beam search, top-k, top-p, temperature, and why randomness is a feature, not a bug.

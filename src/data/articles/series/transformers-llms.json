@@ -1,0 +1,15 @@
+{
+  "slug": "transformers-llms",
+  "title": "Transformers & LLMs",
+  "description": "From attention mechanisms to text generation — how modern language models actually work under the hood.",
+  "icon": "🤖",
+  "color": "cyan",
+  "articles": [
+    { "order": 1, "slug": "attention-is-all-you-need", "title": "Attention Is All You Need" },
+    { "order": 2, "slug": "the-transformer-architecture", "title": "The Transformer Architecture" },
+    { "order": 3, "slug": "tokenization", "title": "Tokenization" },
+    { "order": 4, "slug": "pre-training-llms", "title": "Pre-Training LLMs" },
+    { "order": 5, "slug": "gpt-llama-and-model-families", "title": "GPT, LLaMA & Model Families" },
+    { "order": 6, "slug": "text-generation-strategies", "title": "Text Generation Strategies" }
+  ]
+}

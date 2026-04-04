@@ -1,0 +1,201 @@
+---
+title: "Pre-Training LLMs"
+slug: pre-training-llms
+category: llms
+series: transformers-llms
+seriesOrder: 4
+description: "Trillions of words, thousands of GPUs, and one simple objective — predict the next token. How large language models are built from raw internet text."
+tags:
+  - AI
+  - LLMs
+  - Pre-Training
+  - Scaling
+  - Deep Learning
+readTime: "14 min"
+icon: "🏋️"
+color: cyan
+createdAt: "2026-04-04T22:00:00Z"
+updatedAt: "2026-04-04T22:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The simplest objective that works
+
+Here's something wild: the core training objective behind GPT, LLaMA, Claude, and every other large language model is shockingly simple.
+
+**Predict the next token.**
+
+That's it. Given a sequence of tokens, guess which token comes next. Do this trillions of times across trillions of tokens. Gradually, the model develops an understanding of language, facts, reasoning, code, math, and more.
+
+Nobody explicitly teaches the model grammar, or history, or how to write Python. It learns all of that as a side effect of getting really, really good at predicting what comes next.
+
+---
+
+## Where does the training data come from?
+
+You need a lot of text. A staggering amount of text.
+
+The main source is web crawls — automated bots that download web pages at massive scale. **Common Crawl** is the biggest public dataset, containing petabytes of raw HTML from billions of web pages collected since 2008.
+
+But raw web scrapes are messy. You get spam, duplicates, navigation menus, cookie banners, boilerplate HTML, and a lot of garbage. So before training, the data goes through an extensive cleaning pipeline.
+
+<MermaidBlock>
+graph TB
+    A["Web crawl\nbillions of raw pages"] --> B["HTML extraction\nstrip tags and boilerplate"]
+    B --> C["Language filtering\nkeep target languages"]
+    C --> D["Quality filtering\nremove spam and low-quality"]
+    D --> E["Deduplication\nremove near-duplicates"]
+    E --> F["Safety filtering\nremove toxic content"]
+    F --> G["Clean dataset\ntrillions of tokens ready for training"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style G fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+Web data isn't the only source. Training mixes typically include:
+
+| Source | What it provides |
+|--------|-----------------|
+| Web crawls (Common Crawl, FineWeb) | Broad knowledge, diverse topics |
+| Books | Long-form reasoning, narrative, deep knowledge |
+| Wikipedia | Factual knowledge, structured information |
+| Code repositories (GitHub) | Programming ability |
+| Scientific papers (arXiv) | Technical and mathematical reasoning |
+| Curated datasets | High-quality examples in specific domains |
+
+The exact mix matters a lot. Too much web data and the model picks up low-quality patterns. Too little code and it can't program. Getting the data recipe right is a major part of building a good model.
+
+---
+
+## Data quality > data quantity
+
+Early in the LLM era, the assumption was simple: more data = better model. And that's partly true — scale helps. But research has shown that data quality matters as much as (or more than) raw volume.
+
+**FineWeb**, an open dataset released by Hugging Face, demonstrated this clearly. By applying careful filtering — removing duplicates, low-quality pages, and near-copies — they produced a dataset that trained better models than Common Crawl despite being smaller.
+
+<Callout type="tip" title="The data is the model">
+A model can only learn what its training data contains. If the data is full of errors, the model learns errors. If the data is overwhelmingly English, the model struggles with other languages. The single most impactful thing you can do to improve a model isn't changing the architecture — it's improving the data.
+</Callout>
+
+---
+
+## The training objective: next-token prediction
+
+During pre-training, the model sees sequences of tokens and tries to predict each next token. Here's what that looks like concretely.
+
+Given the training text: "The capital of France is Paris"
+
+The model sees each prefix and predicts the next token:
+
+```
+Input: "The"                    → predict: "capital"
+Input: "The capital"            → predict: "of"
+Input: "The capital of"         → predict: "France"
+Input: "The capital of France"  → predict: "is"
+Input: "The capital of France is" → predict: "Paris"
+```
+
+For each prediction, compute the loss — how wrong was the model? Then use backpropagation to update the weights. One training example, many predictions.
+
+This is called **causal language modeling** (or autoregressive training). The model only looks leftward — it never sees the future tokens. This matches how it will be used at inference time: generating text one token at a time, left to right.
+
+---
+
+## Scale: the numbers are absurd
+
+Pre-training a large model is one of the most compute-intensive tasks in software engineering.
+
+| Model | Parameters | Training tokens | GPUs | Estimated cost |
+|-------|-----------|-----------------|------|----------------|
+| GPT-3 | 175B | 300B | Thousands | Millions of dollars |
+| LLaMA 2 70B | 70B | 2T | 2,000 A100s | Tens of millions |
+| LLaMA 3 405B | 405B | 15T | 16,000 H100s | Hundreds of millions |
+
+Training LLaMA 3 405B took about 30 million GPU hours. The hardware alone costs tens of millions of dollars (a single H100 GPU runs about $30,000). On top of that, electricity for a large run can exceed a million dollars.
+
+And training isn't a one-shot affair. Runs crash, bugs appear, hyperparameters need tuning. Teams often restart training multiple times before getting a successful run.
+
+---
+
+## Scaling laws: predictable improvement
+
+In 2020, researchers at OpenAI discovered something remarkable: model performance improves predictably as you scale up compute, data, and parameters. This relationship follows a mathematical curve called a **power law**.
+
+Double the compute → predictable improvement in loss.
+
+These **scaling laws** let you forecast how good a model will be before training it. You can train small models cheaply, measure their performance, and extrapolate to predict what a much larger model would achieve.
+
+This discovery drove the race to build bigger and bigger models. If performance improves predictably with scale, the obvious strategy is: scale up.
+
+<Callout type="info" title="Chinchilla scaling">
+In 2022, DeepMind's Chinchilla paper showed that many models were undertrained — they had too many parameters for the amount of data they trained on. The optimal balance is roughly 20 tokens per parameter. A 70B parameter model should train on about 1.4 trillion tokens. This shifted the field toward training smaller models on more data, rather than always making models bigger.
+</Callout>
+
+---
+
+## Distributed training: many GPUs working together
+
+No single GPU can hold a 70 billion parameter model, let alone train it. Training is distributed across hundreds or thousands of GPUs using several parallelism strategies. Think of it like a school running an exam.
+
+**Data parallelism** is like giving every classroom the same test but different sets of students. Each GPU gets a copy of the model and a different batch of data. They compute gradients independently, then synchronize. Simple but requires each GPU to hold the full model.
+
+**Tensor parallelism** is like splitting one test question across multiple graders — each one marks part of the answer. Individual layers are split across GPUs. One attention head on GPU 1, another on GPU 2. Requires fast interconnects (like NVLink) because GPUs need to communicate constantly within each layer.
+
+**Pipeline parallelism** is like an assembly line — each station handles one step. Different layers run on different GPUs. Layers 1-10 on GPU group A, layers 11-20 on GPU group B. Less communication needed, but some GPUs sit idle while waiting for others (the "bubble" problem).
+
+<MermaidBlock>
+graph LR
+    A["Training data\nshuffled into batches"] --> B["GPU cluster\nhundreds to thousands"]
+    B --> C["Forward pass\npredict next tokens"]
+    C --> D["Compute loss\nhow wrong was it?"]
+    D --> E["Backward pass\ncompute gradients"]
+    E --> F["Update weights\nacross all GPUs"]
+    F --> B
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Real training runs use all three strategies simultaneously. The engineering challenge is enormous — keeping thousands of GPUs synchronized, handling hardware failures mid-run, and maintaining training stability over weeks or months.
+
+---
+
+## What the model actually learns
+
+After trillions of tokens of next-token prediction, what has the model learned?
+
+It learned language structure — grammar, syntax, idioms. Not because anyone taught it rules, but because predicting "The cat sat on the ___" correctly requires understanding how English sentences work.
+
+It learned facts — "The capital of France is Paris" — because those facts appear in the training data and help predict what comes next in similar contexts.
+
+It learned reasoning patterns — because text that explains step-by-step logic appears in the training data (math textbooks, code with comments, how-to guides).
+
+It learned to write code — because billions of lines of code exist on GitHub, and predicting the next token in code requires understanding programming logic.
+
+All from one objective: predict the next token.
+
+<Callout type="warning" title="It also learned mistakes">
+If the training data contains errors, biases, or misinformation, the model learns those too. A model trained on internet text picks up all the internet's problems — factual errors, stereotypes, toxic language. This is why post-training (RLHF, safety training) is critical. Pre-training gives the model capability. Post-training gives it alignment.
+</Callout>
+
+---
+
+## Pre-training vs fine-tuning
+
+Pre-training produces a **base model** — a model that's incredibly good at predicting text but doesn't know how to be helpful. Ask it a question and it might continue writing the question, or generate a Wikipedia-style article, or produce gibberish. It's a text completion engine, not an assistant.
+
+Turning a base model into something useful (like ChatGPT or Claude) requires additional training stages — fine-tuning, RLHF, and alignment. But those stages work on top of the base model. Pre-training builds the foundation.
+
+---
+
+## What's next?
+
+We've covered how one architecture, one objective, and a mountain of data produce a powerful language model. But not all language models are built the same way. Next up: **GPT, LLaMA and Model Families** — the different flavors of Transformers, why some use only the decoder, and how the model zoo evolved.

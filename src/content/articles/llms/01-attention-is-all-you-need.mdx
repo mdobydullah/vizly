@@ -1,0 +1,225 @@
+---
+title: "Attention Is All You Need"
+slug: attention-is-all-you-need
+category: llms
+series: transformers-llms
+seriesOrder: 1
+description: "The mechanism that replaced recurrence and changed AI forever. We break down self-attention, queries, keys, values, and multi-head attention — step by step."
+tags:
+  - AI
+  - Attention
+  - Transformers
+  - LLMs
+  - Deep Learning
+readTime: "14 min"
+icon: "👁️"
+color: cyan
+createdAt: "2026-04-04T19:00:00Z"
+updatedAt: "2026-04-04T19:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The bottleneck that started it all
+
+Imagine reading a book, but you're only allowed to remember the last sentence. By chapter 3, you've forgotten the main character's name. That's basically the problem RNNs have.
+
+RNNs process sequences one step at a time, passing a hidden state forward. That hidden state is a bottleneck — all the information from the past gets squeezed into a single vector.
+
+Short sentences? Fine. Long ones? Important stuff gets lost along the way.
+
+And there's a second problem: because each step depends on the previous one, you can't parallelize the computation. Training is slow. Really slow.
+
+In 2017, a team at Google published a paper titled "Attention Is All You Need." It proposed a radical idea: throw away recurrence entirely. No RNN cells, no hidden states passed forward step by step. Instead, use a mechanism called **attention** that lets every word in a sequence look directly at every other word.
+
+That paper introduced the **Transformer** — and it changed everything.
+
+---
+
+## So what is attention, really?
+
+Here's the intuition. Read this sentence:
+
+"The cat sat on the mat because **it** was tired."
+
+What does "it" refer to? The cat. Not the mat.
+
+You figured that out instantly because your brain connected "it" back to "cat" — it paid **attention** to the relevant earlier word.
+
+That's what the attention mechanism does. For every word in a sequence, it asks: "Which other words in this sequence are most relevant to understanding me right now?"
+
+Not just the word right before. Any word. The first word, the last word, or one in the middle.
+
+---
+
+## Queries, keys, and values
+
+Attention uses three vectors for each word: a **query**, a **key**, and a **value**.
+
+Think of it like searching a library. The **query** is your search question — "What information do I need?" The **key** is the label on each book — "Here's what I contain." And the **value** is the actual content of the book — "Here's my information."
+
+For each word, the model computes how well its query matches every other word's key. High match = high attention. Then it takes a weighted average of all the values, where the weights come from those match scores.
+
+```
+For word "it":
+  Query: "I need to know what noun I refer to"
+  
+  Compare against all keys:
+    "The"  → low match  (0.02)
+    "cat"  → HIGH match (0.70)
+    "sat"  → low match  (0.05)
+    "on"   → low match  (0.01)
+    "the"  → low match  (0.02)
+    "mat"  → some match  (0.15)
+    "because" → low match (0.03)
+    "it"   → low match  (0.02)
+  
+  Output = weighted average of all values
+         ≈ mostly "cat"'s information
+```
+
+The word "it" ends up carrying information about the cat — because that's where it chose to focus its attention.
+
+---
+
+## The math (kept simple)
+
+Each word starts as an embedding vector. That vector gets multiplied by three different weight matrices to produce Q (query), K (key), and V (value) vectors.
+
+```
+Q = embedding × W_Q
+K = embedding × W_K
+V = embedding × W_V
+```
+
+Then for each word, compute attention scores by taking the dot product of its query with every key. Bigger dot product = more similar = higher attention.
+
+Divide by the square root of the key dimension (this keeps the numbers from getting too large — it's just a scaling trick). Then apply softmax to get probabilities that sum to 1.
+
+Finally, multiply those probabilities by the values and sum up.
+
+```
+Attention(Q, K, V) = softmax(Q * K_transpose / sqrt(d_k)) * V
+```
+
+That's it. One equation. No loops, no recurrence, no sequential dependence.
+
+<Callout type="info" title="Why divide by sqrt(d_k)?">
+When the dimension of the key vectors is large, dot products between random vectors tend to produce very large numbers. Softmax of very large numbers concentrates all the probability on one element — which means the model only pays attention to one word and ignores everything else. Dividing by sqrt(d_k) keeps the scores in a reasonable range where softmax can spread attention across multiple words.
+</Callout>
+
+---
+
+## Self-attention: every word attends to every word
+
+The "self" in self-attention means the sequence is attending to itself. The queries, keys, and values all come from the same input sequence.
+
+Every word produces a query, every word produces a key, every word produces a value. Then every word's query is compared against every word's key. The result is a matrix of attention scores — a full map of "who pays attention to whom."
+
+<MermaidBlock>
+graph TB
+    A["Input sequence\nThe cat sat on the mat"] --> B["Generate Q K V\nfor each word"]
+    B --> C["Compute attention scores\nQ * K_transpose / sqrt(d_k)"]
+    C --> D["Apply softmax\nnormalize to probabilities"]
+    D --> E["Weighted sum of values\neach word gets enriched context"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+This is massively parallel. Every attention score can be computed independently. No waiting for the previous step to finish. You can process the entire sequence at once on a GPU.
+
+That's why Transformers train so much faster than RNNs.
+
+---
+
+## Multi-head attention: looking at things from different angles
+
+One attention head learns one type of relationship. Maybe "which noun does this pronoun refer to?" But language has many types of relationships. Syntactic ("subject-verb agreement"), semantic ("what's the topic?"), positional ("what's nearby?").
+
+So instead of running attention once, the Transformer runs it multiple times in parallel — each with its own Q, K, V weight matrices. These are called **attention heads**.
+
+A typical Transformer might use 8 or 12 heads. Each head independently learns to focus on different types of relationships.
+
+After all heads compute their outputs, the results are concatenated and passed through another linear layer to combine them.
+
+```
+head_1 = Attention(Q_1, K_1, V_1)
+head_2 = Attention(Q_2, K_2, V_2)
+...
+head_8 = Attention(Q_8, K_8, V_8)
+
+MultiHead = Concat(head_1, ..., head_8) × W_output
+```
+
+<MermaidBlock>
+graph LR
+    A["Input\nembeddings"] --> H1["Head 1\nsyntax"]
+    A --> H2["Head 2\nsemantics"]
+    A --> H3["Head 3\nproximity"]
+    A --> H4["Head 4\ncoreference"]
+    H1 --> C["Concat\nand project"]
+    H2 --> C
+    H3 --> C
+    H4 --> C
+    C --> O["Enriched\nrepresentations"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style H1 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style H2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H3 fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style H4 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style O fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+Think of it like reading a sentence from multiple perspectives at the same time. One head notices grammar, another notices meaning, another notices which words are conceptually related. Together, they build a rich understanding.
+
+---
+
+## Why this replaced RNNs
+
+Here's how they stack up.
+
+| | RNN | Self-Attention |
+|---|-----|----------------|
+| Long-range dependencies | Hard — signal fades over distance | Easy — any word can attend to any other |
+| Training speed | Sequential — one step at a time | Parallel — all positions computed at once |
+| Memory bottleneck | Everything squeezed into one hidden state | Each word has direct access to all others |
+| Computational cost per layer | O(n) | O(n squared) — but parallelizable |
+
+The O(n squared) cost is real — for a sequence of 1000 tokens, that's 1 million attention scores. But because it's so parallelizable on modern GPUs, it's still faster in practice than the sequential O(n) of RNNs.
+
+And the quality improvement was dramatic. Transformers immediately beat RNNs on machine translation benchmarks. Then on everything else.
+
+---
+
+## Attention patterns you can actually see
+
+When researchers visualize attention weights, interesting patterns emerge. Some heads learn to attend to the previous word. Others learn to attend to the first word of the sentence. Some heads focus on syntactic structure — verbs attending to their subjects.
+
+One famous finding: in models trained on English text, certain attention heads learn coreference resolution (connecting "it" back to "the cat") without ever being explicitly taught to do so. The model discovered this was useful on its own.
+
+<Callout type="tip" title="Attention as a learned routing mechanism">
+You can think of self-attention as a learned routing system. Each word decides where to send its information and where to receive information from. The model learns these routing patterns purely from data — nobody programs in grammar rules or linguistic knowledge. It emerges from training.
+</Callout>
+
+---
+
+## The pieces we haven't covered yet
+
+Self-attention is the core innovation. But the full Transformer architecture has other important pieces:
+
+- **Positional encoding** — attention has no built-in sense of word order, so position information must be added separately
+- **Layer normalization** — keeps the numbers stable during training
+- **Feed-forward networks** — adds non-linearity after attention
+- **The encoder-decoder structure** — how the original Transformer handled input and output sequences
+
+We'll cover all of these in the next article, where we build the complete Transformer architecture piece by piece.
+
+---
+
+## What's next?
+
+Now that you understand attention — the engine of modern AI — it's time to see the full machine. Next up: **The Transformer Architecture** — encoder, decoder, positional encoding, and how all the pieces fit together into the model that powers GPT, BERT, and every major language model today.
