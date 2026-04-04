@@ -23,7 +23,14 @@
 - **Location**: `src/content/articles/[category-slug]/[order]-[slug].mdx`
 - **Frontmatter**: Must include all fields defined in `src/types/articles.ts` (ArticleFrontmatter).
 - **Category slugs**: Must match entries in `src/data/articles/categories.json`.
+- **Series**: If the article belongs to a series, set `series` and `seriesOrder` in frontmatter. The series must be defined in `src/data/articles/series/[series-slug].json`.
 - **After writing**: Update `.docs/articles-ai-learning-plan.md` — change status from `TODO` to `DONE`.
+
+## 4b. Series System
+- **Definition**: `src/data/articles/series/[slug].json` — contains title, description, icon, color, and ordered list of articles (including planned/unpublished ones).
+- **Adding a new series**: Create a new JSON file in `src/data/articles/series/`. No code changes needed.
+- **SeriesNav component**: Auto-renders at the top of articles that have a `series` field. Shows first 3 articles collapsed, expandable to show all. Current article highlighted, unpublished ones marked "soon".
+- **Frontmatter link**: The article's `series` field must match the series JSON filename (e.g., `series: ai-fundamentals` matches `ai-fundamentals.json`).
 
 ## 5. What to Avoid
 - Jargon without explanation

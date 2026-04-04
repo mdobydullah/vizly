@@ -28,3 +28,18 @@ export interface ArticleCategory {
 }
 
 export type ArticleSortOption = 'newest' | 'oldest' | 'updated' | 'az' | 'za';
+
+export interface SeriesArticleEntry {
+  order: number;
+  slug: string;
+  title: string;
+}
+
+export interface ArticleSeries {
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  articles: SeriesArticleEntry[];
+}

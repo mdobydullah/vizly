@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
-import { getAllArticles, getArticleBySlug } from '@/lib/articles';
+import { getAllArticles, getArticleBySlug, getSeriesBySlug } from '@/lib/articles';
 import { ArticlePageClient } from './ArticlePageClient';
 import '@/styles/articles/articles.css';
 
@@ -46,8 +46,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   let prevArticle = null;
   let nextArticle = null;
 
+  const allArticles = getAllArticles();
+  const publishedSlugs = allArticles.map(a => a.slug);
+
   if (article.series && article.seriesOrder !== undefined) {
-    const allArticles = getAllArticles();
     const seriesArticles = allArticles
       .filter(a => a.series === article.series)
       .sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
@@ -61,6 +63,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     }
   }
 
+  // Load series definition if this article belongs to one
+  const seriesData = article.series ? getSeriesBySlug(article.series) : null;
+
   const { content, ...frontmatter } = article;
 
   return (
@@ -68,6 +73,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       article={frontmatter}
       prevArticle={prevArticle}
       nextArticle={nextArticle}
+      series={seriesData}
+      publishedSlugs={publishedSlugs}
     >
       <MDXRemote
         source={content}

@@ -23,7 +23,7 @@ src/
 ├── content/articles/       # MDX article files organized by category slug
 ├── data/
 │   ├── guides/             # Guide metadata JSON files
-│   └── articles/           # categories.json
+│   └── articles/           # categories.json + series/*.json
 ├── styles/                 # CSS files (global + per-topic + guide-cards.css for shared concept cards)
 ├── types/                  # TypeScript interfaces
 └── lib/                    # Utilities (config, article loading, colors)
@@ -51,4 +51,6 @@ src/
 ### Articles (MDX files)
 - Content: `src/content/articles/[category-slug]/[order]-[slug].mdx`
 - Categories: `src/data/articles/categories.json` (add new topics here, no code changes)
+- Series: `src/data/articles/series/[series-slug].json` (defines article order + planned titles)
 - Rendered via `next-mdx-remote` with custom components (Callout, MermaidBlock)
+- Series nav auto-shows on articles that have `series` in frontmatter, collapsible if >3 articles

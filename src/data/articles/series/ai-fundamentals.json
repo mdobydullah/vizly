@@ -1,0 +1,15 @@
+{
+  "slug": "ai-fundamentals",
+  "title": "AI Fundamentals",
+  "description": "A ground-up journey through AI, ML, deep learning, and neural networks.",
+  "icon": "🧠",
+  "color": "purple",
+  "articles": [
+    { "order": 1, "slug": "what-is-ai", "title": "What is AI? From Rules to Learning" },
+    { "order": 2, "slug": "how-machines-learn", "title": "How Machines Learn" },
+    { "order": 3, "slug": "neural-networks-from-scratch", "title": "Neural Networks from Scratch" },
+    { "order": 4, "slug": "backpropagation-and-training", "title": "Backpropagation & Training" },
+    { "order": 5, "slug": "cnns-and-computer-vision", "title": "CNNs & Computer Vision" },
+    { "order": 6, "slug": "rnns-and-sequential-data", "title": "RNNs & Sequential Data" }
+  ]
+}
