@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getAllArticles } from '@/lib/articles';
+import { getAllArticles, getAllSeries } from '@/lib/articles';
 
 export async function GET() {
   const articles = getAllArticles();
+  const series = getAllSeries();
 
   // Return frontmatter only (no content) for the listing
   const articlesWithoutContent = articles.map(({ content, ...rest }) => rest);
@@ -10,5 +11,6 @@ export async function GET() {
   return NextResponse.json({
     total: articlesWithoutContent.length,
     articles: articlesWithoutContent,
+    series,
   });
 }

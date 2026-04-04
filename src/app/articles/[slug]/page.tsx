@@ -8,10 +8,12 @@ import '@/styles/articles/articles.css';
 
 // MDX components available in articles
 import { Callout, MermaidBlock } from '@/components/articles/mdx';
+import { LightboxImage } from '@/components/common/LightboxImage';
 
 const mdxComponents = {
   Callout,
   MermaidBlock,
+  LightboxImage,
 };
 
 interface ArticlePageProps {

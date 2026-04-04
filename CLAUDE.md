@@ -52,5 +52,5 @@ src/
 - Content: `src/content/articles/[category-slug]/[order]-[slug].mdx`
 - Categories: `src/data/articles/categories.json` (add new topics here, no code changes)
 - Series: `src/data/articles/series/[series-slug].json` (defines article order + planned titles)
-- Rendered via `next-mdx-remote` with custom components (Callout, MermaidBlock)
+- Rendered via `next-mdx-remote` with custom components (Callout, MermaidBlock, LightboxImage)
 - Series nav auto-shows on articles that have `series` in frontmatter, collapsible if >3 articles

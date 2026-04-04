@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LightboxImage } from "@/components/common/LightboxImage";
 
 export const metadata: Metadata = {
     title: "Goodbye, Shouts.dev",
@@ -60,6 +61,27 @@ export default function GoodbyeShoutsdevPage() {
                     Today, I&apos;m closing this chapter. Every visit, every comment, every
                     share meant the world to me. Thank you for reading.
                 </p>
+
+                {/* Old memory */}
+                <div style={{
+                    margin: '0 auto 3rem',
+                    maxWidth: '320px',
+                }}>
+                    <LightboxImage
+                        src="/images/got-50k-clicks-shoutsdev.jpg"
+                        alt="Google Search Impact — Shouts.dev reached 50K clicks from Google Search, Jun 24, 2022"
+                    />
+                    <p style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.65rem',
+                        color: 'var(--text-dim)',
+                        textAlign: 'center',
+                        marginTop: '0.6rem',
+                        opacity: 0.7,
+                    }}>
+                        A small milestone from the journey.
+                    </p>
+                </div>
 
                 <hr style={{
                     border: 'none',

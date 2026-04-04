@@ -3,20 +3,22 @@
 import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArticleCard } from "@/components/articles/ArticleCard";
+import { SeriesCard } from "@/components/articles/SeriesCard";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { ArticleFrontmatter, ArticleSortOption } from "@/types/articles";
 import categoriesData from "@/data/articles/categories.json";
 
-// Import all article frontmatter at build time
-// We'll use a static import approach with a generated index
 import { useArticles } from "@/lib/useArticles";
+
+type ViewTab = "articles" | "series";
 
 function ArticlesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const articles = useArticles();
+  const { articles, series } = useArticles();
 
+  const activeTab = (searchParams.get("view") as ViewTab) || "articles";
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<ArticleSortOption>("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,12 +127,87 @@ function ArticlesContent() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Section Title */}
+      {/* Section Title + Tabs */}
       <div className="viz-section-header">
-        <h2 className="viz-section-title">Articles</h2>
-        <p className="viz-section-hint">Learn concepts through visual, in-depth articles.</p>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.5rem',
+          marginBottom: '0.3rem',
+        }}>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("view");
+              router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-hero)',
+              fontWeight: 800,
+              fontSize: '1.25rem',
+              color: activeTab === 'articles' ? 'var(--text-hi)' : 'var(--text-dim)',
+              letterSpacing: '-0.02em',
+              padding: '0.2rem 0',
+              borderBottom: activeTab === 'articles' ? '2px solid var(--cyan)' : '2px solid transparent',
+              transition: 'all 0.2s',
+            }}
+            className="tab-btn"
+          >
+            Articles
+          </button>
+          <span style={{ color: 'var(--border2)', fontSize: '1.2rem', fontWeight: 300 }}>·</span>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.set("view", "series");
+              router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-hero)',
+              fontWeight: 800,
+              fontSize: '1.25rem',
+              color: activeTab === 'series' ? 'var(--text-hi)' : 'var(--text-dim)',
+              letterSpacing: '-0.02em',
+              padding: '0.2rem 0',
+              borderBottom: activeTab === 'series' ? '2px solid var(--cyan)' : '2px solid transparent',
+              transition: 'all 0.2s',
+            }}
+            className="tab-btn"
+          >
+            Series
+          </button>
+        </div>
+        <p className="viz-section-hint">
+          {activeTab === 'articles'
+            ? 'Learn concepts through visual, in-depth articles.'
+            : 'Follow structured learning paths from start to finish.'}
+        </p>
       </div>
 
+      {/* ═══ SERIES VIEW ═══ */}
+      {activeTab === 'series' && (
+        <div className="viz-grid" style={{ maxWidth: '800px' }}>
+          {series.map((s, i) => {
+            const publishedCount = s.articles.filter(a => articles.some(pub => pub.slug === a.slug)).length;
+            return <SeriesCard key={s.slug} series={s} publishedCount={publishedCount} index={i} />;
+          })}
+          {series.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-dim)', gridColumn: '1 / -1' }}>
+              <p style={{ fontSize: '1.1rem' }}>No series yet</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ ARTICLES VIEW ═══ */}
+      {activeTab === 'articles' && <>
       {/* Filters */}
       <div style={{
         maxWidth: '1100px',
@@ -293,8 +370,12 @@ function ArticlesContent() {
           </button>
         </div>
       )}
+      </>}
 
       <style jsx>{`
+        .tab-btn:hover {
+          color: var(--text-hi) !important;
+        }
         .search-input:focus {
           border-color: var(--cyan);
           box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);

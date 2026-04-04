@@ -29,8 +29,13 @@ export function getAllArticles(): Article[] {
       const raw = fs.readFileSync(filePath, 'utf-8');
       const { data, content } = matter(raw);
 
+      // Auto-calculate read time (~200 words per minute)
+      const wordCount = content.trim().split(/\s+/).length;
+      const minutes = Math.max(1, Math.ceil(wordCount / 200));
+
       articles.push({
         ...(data as ArticleFrontmatter),
+        readTime: `${minutes} min`,
         content,
       });
     }
