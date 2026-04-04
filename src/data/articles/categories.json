@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "ai-fundamentals",
+    "name": "AI Fundamentals",
+    "color": "purple",
+    "icon": "brain"
+  },
+  {
+    "slug": "deep-learning",
+    "name": "Deep Learning",
+    "color": "blue",
+    "icon": "layers"
+  },
+  {
+    "slug": "llms",
+    "name": "LLMs",
+    "color": "cyan",
+    "icon": "message-square"
+  },
+  {
+    "slug": "training-alignment",
+    "name": "Training & Alignment",
+    "color": "green",
+    "icon": "target"
+  },
+  {
+    "slug": "applied-ai",
+    "name": "Applied AI",
+    "color": "yellow",
+    "icon": "wrench"
+  },
+  {
+    "slug": "agents-reasoning",
+    "name": "Agents & Reasoning",
+    "color": "pink",
+    "icon": "bot"
+  },
+  {
+    "slug": "generative-ai",
+    "name": "Generative AI",
+    "color": "orange",
+    "icon": "image"
+  }
+]

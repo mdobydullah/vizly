@@ -23,6 +23,29 @@
         "contributors": "obydul"
     },
     {
+        "id": "bloom-filters",
+        "title": "Bloom Filters",
+        "category": "Programming",
+        "tags": [
+            "Programming",
+            "Data Structures",
+            "Probabilistic"
+        ],
+        "description": "Understand how Bloom Filters use hash functions and bit arrays to answer membership queries with zero false negatives, perfect for space-constrained systems.",
+        "icon": "🌸",
+        "link": "/guides/bloom-filters",
+        "color": "lime",
+        "colorConfig": {
+            "primary": "#c6ff00",
+            "background": "rgba(198, 255, 0, .08)",
+            "border": "rgba(198, 255, 0, .15)",
+            "hoverShadow": "0 0 32px rgba(198, 255, 0, .4), 0 0 16px rgba(198, 255, 0, .2)"
+        },
+        "createdAt": "2026-03-30T10:30:00Z",
+        "updatedAt": "2026-03-30T10:30:00Z",
+        "contributors": "obydul"
+    },
+    {
         "id": "big-onotation",
         "title": "Big O Notation & Complexity",
         "category": "Programming",

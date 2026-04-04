@@ -371,3 +371,36 @@
 .card-light-blue:hover::before {
     opacity: 0.03;
 }
+
+/* Lime Theme */
+.card-lime {
+    --card-color: #c6ff00;
+    --card-glow: rgba(198, 255, 0, 0.04);
+    --card-shadow: rgba(198, 255, 0, 0.15);
+    --card-shadow-hover: rgba(198, 255, 0, 0.4);
+    --card-shadow-soft: rgba(198, 255, 0, 0.2);
+    --card-icon-bg: rgba(198, 255, 0, 0.08);
+    --card-icon-border: rgba(198, 255, 0, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(198, 255, 0, 0.08) 0%, rgba(198, 255, 0, 0.03) 50%, transparent 100%);
+    --tag-color: #c6ff00;
+    --tag-bg: rgba(198, 255, 0, 0.05);
+
+    border-color: #c6ff00 !important;
+    color: #c6ff00 !important;
+}
+
+.card-lime .viz-label {
+    background: #141a00 !important;
+    color: #c6ff00 !important;
+    border: 1px solid #c6ff00 !important;
+}
+
+.card-lime:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-lime:hover::before {
+    opacity: 0.03;
+}

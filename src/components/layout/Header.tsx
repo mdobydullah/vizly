@@ -118,6 +118,16 @@ export default function Header() {
                         }} className="nav-link">
                             Guides
                         </Link>
+                        <Link href="/articles" style={{
+                            color: 'var(--text-dim)',
+                            fontSize: '.8rem',
+                            textDecoration: 'none',
+                            fontFamily: 'var(--font-mono)',
+                            transition: 'color .2s',
+                            cursor: 'pointer'
+                        }} className="nav-link">
+                            Articles
+                        </Link>
                         <Link href="/jobs" style={{
                             color: 'var(--text-dim)',
                             fontSize: '.8rem',
@@ -174,6 +184,12 @@ export default function Header() {
                 <div className="mobile-menu-links">
                     <Link href="/guides" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
                         <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Guides</span>
+                    </Link>
+
+                    <hr className="mobile-divider" />
+
+                    <Link href="/articles" onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
+                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none' }}>Articles</span>
                     </Link>
 
                     <hr className="mobile-divider" />
