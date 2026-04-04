@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { config } from "@/lib/config";
-import { getAllSeries } from '@/lib/articles';
+import { getAllArticles, getAllSeries } from '@/lib/articles';
 import SeriesDetailClient from './SeriesDetailClient';
 
 interface Props {
@@ -34,5 +34,7 @@ export default async function SeriesPage({ params }: Props) {
 
   if (!series) notFound();
 
-  return <SeriesDetailClient series={series} />;
+  const articles = getAllArticles().map(({ content, ...rest }) => rest);
+
+  return <SeriesDetailClient series={series} articles={articles} />;
 }

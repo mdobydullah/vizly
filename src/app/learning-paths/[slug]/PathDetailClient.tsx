@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArticlePath } from "@/types/articles";
-import { useArticles } from "@/lib/useArticles";
+import { ArticlePath, ArticleSeries } from "@/types/articles";
 
 interface Props {
   path: ArticlePath;
+  series: ArticleSeries[];
+  articleSlugs: string[];
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -21,14 +22,12 @@ function slugToTitle(slug: string): string {
   return slug.replaceAll('-', ' ').replaceAll(/\b\w/g, c => c.toUpperCase());
 }
 
-export default function PathDetailClient({ path }: Readonly<Props>) {
-  const { articles, series } = useArticles();
-
+export default function PathDetailClient({ path, series, articleSlugs }: Readonly<Props>) {
   const seriesMap = useMemo(() =>
     Object.fromEntries(series.map(s => [s.slug, s])),
   [series]);
 
-  const publishedSlugs = useMemo(() => new Set(articles.map(a => a.slug)), [articles]);
+  const publishedSlugs = useMemo(() => new Set(articleSlugs), [articleSlugs]);
 
   const resolvedSeries = path.series.map(slug => seriesMap[slug] ?? null);
   const totalArticles = resolvedSeries.reduce((sum, s) => sum + (s?.articles.length ?? 0), 0);

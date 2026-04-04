@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { config } from "@/lib/config";
-import { getAllPaths } from '@/lib/articles';
+import { getAllArticles, getAllSeries, getAllPaths } from '@/lib/articles';
 import PathDetailClient from './PathDetailClient';
 
 interface Props {
@@ -33,5 +33,8 @@ export default async function LearningPathPage({ params }: Props) {
 
   if (!path) notFound();
 
-  return <PathDetailClient path={path} />;
+  const articleSlugs = getAllArticles().map(a => a.slug);
+  const series = getAllSeries();
+
+  return <PathDetailClient path={path} series={series} articleSlugs={articleSlugs} />;
 }

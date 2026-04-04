@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArticleSeries } from "@/types/articles";
-import { useArticles } from "@/lib/useArticles";
+import { ArticleFrontmatter, ArticleSeries } from "@/types/articles";
 
 interface Props {
   series: ArticleSeries;
+  articles: ArticleFrontmatter[];
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -18,8 +18,7 @@ const COLOR_MAP: Record<string, string> = {
   blue: 'var(--cyan)',
 };
 
-export default function SeriesDetailClient({ series }: Readonly<Props>) {
-  const { articles } = useArticles();
+export default function SeriesDetailClient({ series, articles }: Readonly<Props>) {
   const publishedSlugs = useMemo(() => new Set(articles.map(a => a.slug)), [articles]);
   const publishedCount = series.articles.filter(a => publishedSlugs.has(a.slug)).length;
   const accentColor = COLOR_MAP[series.color] ?? 'var(--cyan)';
