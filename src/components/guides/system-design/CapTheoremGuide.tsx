@@ -314,19 +314,19 @@ export function CapTheoremGuide() {
         >
             {/* ═══════════════ PILLAR GRID ═══════════════ */}
             <h2 className="cap-section-title">The Three Pillars</h2>
-            <div className="cap-grid">
+            <div className="guide-concept-grid">
                 {PILLARS.map((p) => (
                     <div
                         key={p.id}
-                        className={`viz-card cap-card ${p.colorClass}`}
+                        className="guide-concept-card"
                         onClick={() => handleCardClick(p.id)}
                     >
-                        <div className="cap-card-header">
-                            <div className="cap-card-icon">{p.icon}</div>
-                            <div className="cap-card-title">{p.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{p.icon}</div>
+                            <div className="guide-concept-name">{p.title}</div>
                         </div>
-                        <div className="cap-card-description">{p.description}</div>
-                        <div className="cap-card-tags">
+                        <div className="guide-concept-desc">{p.description}</div>
+                        <div className="guide-concept-stats">
                             {p.tags.map(tag => (
                                 <span key={tag.text} className={`cap-tag ${tag.highlight}`}>{tag.text}</span>
                             ))}

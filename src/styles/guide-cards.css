@@ -1,0 +1,153 @@
+/* ════════════════════════════════════════
+   GUIDE CONCEPT CARDS — Shared Design
+   Used by all guide "Core Concepts" sections.
+   Single source of truth for card styling.
+════════════════════════════════════════ */
+
+/* ── Grid ── */
+.guide-concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+}
+
+/* ── Card ── */
+.guide-concept-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+}
+
+.guide-concept-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Card Header ── */
+.guide-concept-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+/* ── Card Icon ── */
+.guide-concept-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+/* ── Card Name ── */
+.guide-concept-name {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-hi);
+}
+
+/* ── Card Description ── */
+.guide-concept-desc {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+/* ── Stat Chips ── */
+.guide-concept-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.guide-concept-chip {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.guide-concept-chip.hi {
+    color: var(--cyan);
+    border-color: color-mix(in srgb, var(--cyan) 30%, transparent);
+    background: color-mix(in srgb, var(--cyan) 5%, transparent);
+}
+
+/* ── Use Case ── */
+.guide-concept-usecase {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.guide-concept-usecase strong {
+    color: var(--text-hi);
+}
+
+/* ════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+════════════════════════════════════════ */
+
+[data-theme="light"] .guide-concept-card {
+    background: #fff;
+    border-color: #e0ddd5;
+}
+
+[data-theme="light"] .guide-concept-card:hover {
+    border-color: #c4c1b8;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .guide-concept-icon {
+    background: #f0ede5;
+    border-color: #e0ddd5;
+}
+
+[data-theme="light"] .guide-concept-chip {
+    background: #f5f3ed;
+    border-color: #d0cdc4;
+}
+
+[data-theme="light"] .guide-concept-chip.hi {
+    color: #57534e;
+    border-color: #c4c1b8;
+    background: #ece9e1;
+}
+
+[data-theme="light"] .guide-concept-usecase {
+    border-top-color: #e0ddd5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .guide-concept-grid {
+        grid-template-columns: 1fr;
+        padding: 0 0.5rem;
+    }
+}

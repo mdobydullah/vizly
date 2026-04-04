@@ -274,11 +274,11 @@ export function OopGuide() {
         >
             {/* ═══════════ PILLAR GRID ═══════════ */}
             <h2 className="section-title">The 4 Pillars of OOP</h2>
-            <div className="oop-pillar-grid">
+            <div className="guide-concept-grid">
                 {PILLARS.map(p => (
                     <div
                         key={p.id}
-                        className={`viz-card oop-pillar-card ${p.colorClass} ${activePillar === p.id ? 'active' : ''}`}
+                        className={`guide-concept-card ${activePillar === p.id ? 'active' : ''}`}
                         role="button"
                         tabIndex={0}
                         onClick={() => {
@@ -293,12 +293,12 @@ export function OopGuide() {
                             }
                         }}
                     >
-                        <div className="oop-pillar-icon">{p.icon}</div>
-                        <div className="oop-pillar-name">{p.name}</div>
-                        <div className="oop-pillar-tagline">{p.tagline}</div>
-                        <div className="oop-pillar-tag-row">
+                        <div className="guide-concept-icon">{p.icon}</div>
+                        <div className="guide-concept-name">{p.name}</div>
+                        <div className="guide-concept-desc">{p.tagline}</div>
+                        <div className="guide-concept-stats">
                             {p.tags.map(t => (
-                                <span key={t.text} className={`oop-tag ${t.highlight ? '' : 'oop-tag-dim'}`}>{t.text}</span>
+                                <span key={t.text} className={`guide-concept-chip ${t.highlight ? '' : 'oop-tag-dim'}`}>{t.text}</span>
                             ))}
                         </div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', lineHeight: 1.5, marginTop: '0.2rem' }}>

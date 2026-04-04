@@ -228,57 +228,57 @@ export function ServerlessArchitectureGuide() {
         >
             {/* ═══════════════ PATTERN GRID ═══════════════ */}
             <h2 className="section-title">Core Serverless Building Blocks</h2>
-            <div className="sl-grid">
-                <div className="sl-card" onClick={() => { playPattern('api-request'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
-                    <div className="sl-card-header">
-                        <div className="sl-card-icon">⚡</div>
-                        <div className="sl-card-name">FaaS (Compute)</div>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card" onClick={() => { playPattern('api-request'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚡</div>
+                        <div className="guide-concept-name">FaaS (Compute)</div>
                     </div>
-                    <p className="sl-card-desc">Functions as a Service. Execute code only when triggered by events (HTTP, queues, timers). Scales to zero.</p>
-                    <div className="sl-card-stats">
-                        <span className="sl-stat-chip hi">Execution</span>
-                        <span className="sl-stat-chip">Auto-scaling</span>
+                    <p className="guide-concept-desc">Functions as a Service. Execute code only when triggered by events (HTTP, queues, timers). Scales to zero.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Execution</span>
+                        <span className="guide-concept-chip">Auto-scaling</span>
                     </div>
-                    <div className="sl-use-case"><strong>Use case:</strong> AWS Lambda, Google Cloud Functions</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> AWS Lambda, Google Cloud Functions</div>
                 </div>
 
-                <div className="sl-card" onClick={() => { playPattern('api-request'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
-                    <div className="sl-card-header">
-                        <div className="sl-card-icon">🚪</div>
-                        <div className="sl-card-name">API Gateway</div>
+                <div className="guide-concept-card" onClick={() => { playPattern('api-request'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🚪</div>
+                        <div className="guide-concept-name">API Gateway</div>
                     </div>
-                    <p className="sl-card-desc">The front door. Maps HTTP requests to functions, handles throttling, auth, and payload validation.</p>
-                    <div className="sl-card-stats">
-                        <span className="sl-stat-chip hi">Routing</span>
-                        <span className="sl-stat-chip">Protection</span>
+                    <p className="guide-concept-desc">The front door. Maps HTTP requests to functions, handles throttling, auth, and payload validation.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Routing</span>
+                        <span className="guide-concept-chip">Protection</span>
                     </div>
-                    <div className="sl-use-case"><strong>Use case:</strong> REST APIs, WebSockets frontend</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> REST APIs, WebSockets frontend</div>
                 </div>
 
-                <div className="sl-card" onClick={() => { playPattern('event-driven'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
-                    <div className="sl-card-header">
-                        <div className="sl-card-icon">🚦</div>
-                        <div className="sl-card-name">Event Connectors</div>
+                <div className="guide-concept-card" onClick={() => { playPattern('event-driven'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🚦</div>
+                        <div className="guide-concept-name">Event Connectors</div>
                     </div>
-                    <p className="sl-card-desc">Queues, Pub/Sub, and Event Buses that decouple services. Producers emit, consumers react asynchronously.</p>
-                    <div className="sl-card-stats">
-                        <span className="sl-stat-chip hi">Decoupled</span>
-                        <span className="sl-stat-chip">Async</span>
+                    <p className="guide-concept-desc">Queues, Pub/Sub, and Event Buses that decouple services. Producers emit, consumers react asynchronously.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Decoupled</span>
+                        <span className="guide-concept-chip">Async</span>
                     </div>
-                    <div className="sl-use-case"><strong>Use case:</strong> SQS, SNS, EventBridge, Kafka</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> SQS, SNS, EventBridge, Kafka</div>
                 </div>
 
-                <div className="sl-card" onClick={() => { playPattern('step-functions'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
-                    <div className="sl-card-header">
-                        <div className="sl-card-icon">💾</div>
-                        <div className="sl-card-name">Managed Services</div>
+                <div className="guide-concept-card" onClick={() => { playPattern('step-functions'); document.getElementById('interactive-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">💾</div>
+                        <div className="guide-concept-name">Managed Services</div>
                     </div>
-                    <p className="sl-card-desc">Fully fledged database, storage, and orchestration services that you don't patch or provision.</p>
-                    <div className="sl-card-stats">
-                        <span className="sl-stat-chip hi">State</span>
-                        <span className="sl-stat-chip">Persistent</span>
+                    <p className="guide-concept-desc">Fully fledged database, storage, and orchestration services that you don't patch or provision.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">State</span>
+                        <span className="guide-concept-chip">Persistent</span>
                     </div>
-                    <div className="sl-use-case"><strong>Use case:</strong> DynamoDB, S3, Step Functions</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> DynamoDB, S3, Step Functions</div>
                 </div>
             </div>
 

@@ -1,87 +1,6 @@
 /* src/styles/guides/infrastructure/monolithic-architecture.css */
 
 /* ════════════════════════════════════════
-   CONCEPTS GRID
-   (Reusing patterns from microservices but with mono- prefix)
-════════════════════════════════════════ */
-
-.mono-concepts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.2rem;
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    position: relative;
-    z-index: 1;
-}
-
-.mono-concept-card {
-    border-radius: 14px;
-    padding: 1.6rem;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    transition: all .3s ease;
-}
-
-.mono-concept-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, var(--card-glow, rgba(34, 211, 238, .04)) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-}
-
-.mono-concept-card:hover {
-    transform: translateY(-4px);
-}
-
-.mono-concept-card:hover::before {
-    opacity: 1;
-}
-
-.mono-concept-icon {
-    font-size: 2.2rem;
-    margin-bottom: .8rem;
-    display: block;
-}
-
-.mono-concept-title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .98rem;
-    color: var(--text-hi);
-    margin-bottom: .6rem;
-}
-
-.mono-concept-desc {
-    font-size: .78rem;
-    color: var(--text-dim);
-    line-height: 1.65;
-    margin-bottom: 1rem;
-    flex-grow: 1;
-}
-
-.mono-concept-example {
-    font-size: .72rem;
-    color: var(--text-dim);
-    padding: .6rem .8rem;
-    border-radius: 8px;
-    background: rgba(34, 211, 238, .05);
-    border-left: 2px solid var(--cyan);
-    margin-top: auto;
-}
-
-.mono-concept-example strong {
-    color: var(--cyan);
-    font-weight: 600;
-}
-
-/* ════════════════════════════════════════
    MERMAID DIAGRAM WRAPPER
 ════════════════════════════════════════ */
 
@@ -563,10 +482,6 @@
 ════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-    .mono-concepts-grid {
-        grid-template-columns: 1fr;
-    }
-
     .mono-node {
         width: 100px;
         height: 100px;

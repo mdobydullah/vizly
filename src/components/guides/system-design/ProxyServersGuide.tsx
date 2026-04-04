@@ -152,57 +152,57 @@ export function ProxyServersGuide() {
         >
             {/* ═══════════════ CONCEPT GRID ═══════════════ */}
             <h2 className="section-title">Core Proxy Concepts</h2>
-            <div className="proxy-grid">
-                <div className="proxy-card" onClick={() => playPattern('forward')}>
-                    <div className="proxy-card-header">
-                        <div className="proxy-card-icon">🔜</div>
-                        <div className="proxy-card-name">Forward Proxy</div>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card" onClick={() => playPattern('forward')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔜</div>
+                        <div className="guide-concept-name">Forward Proxy</div>
                     </div>
-                    <p className="proxy-card-desc">Sits on the client side. Requests go through the proxy to reach the public internet. Used to bypass restrictions and stay anonymous.</p>
-                    <div className="proxy-card-stats">
-                        <span className="proxy-stat-chip hi">Client-Side</span>
-                        <span className="proxy-stat-chip">Anonymity</span>
+                    <p className="guide-concept-desc">Sits on the client side. Requests go through the proxy to reach the public internet. Used to bypass restrictions and stay anonymous.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Client-Side</span>
+                        <span className="guide-concept-chip">Anonymity</span>
                     </div>
-                    <div className="proxy-use-case"><strong>Use case:</strong> Corporate web filters, VPNs.</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Corporate web filters, VPNs.</div>
                 </div>
 
-                <div className="proxy-card" onClick={() => playPattern('reverse')}>
-                    <div className="proxy-card-header">
-                        <div className="proxy-card-icon">🔙</div>
-                        <div className="proxy-card-name">Reverse Proxy</div>
+                <div className="guide-concept-card" onClick={() => playPattern('reverse')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔙</div>
+                        <div className="guide-concept-name">Reverse Proxy</div>
                     </div>
-                    <p className="proxy-card-desc">Sits on the server perimeter. Internet traffic hits the proxy first before entering the private server network.</p>
-                    <div className="proxy-card-stats">
-                        <span className="proxy-stat-chip hi">Server-Side</span>
-                        <span className="proxy-stat-chip">Security</span>
+                    <p className="guide-concept-desc">Sits on the server perimeter. Internet traffic hits the proxy first before entering the private server network.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Server-Side</span>
+                        <span className="guide-concept-chip">Security</span>
                     </div>
-                    <div className="proxy-use-case"><strong>Use case:</strong> Nginx, HAProxy, Cloudflare.</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Nginx, HAProxy, Cloudflare.</div>
                 </div>
 
-                <div className="proxy-card" onClick={() => playPattern('load-balancing')}>
-                    <div className="proxy-card-header">
-                        <div className="proxy-card-icon">⚖️</div>
-                        <div className="proxy-card-name">Load Balancing</div>
+                <div className="guide-concept-card" onClick={() => playPattern('load-balancing')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚖️</div>
+                        <div className="guide-concept-name">Load Balancing</div>
                     </div>
-                    <p className="proxy-card-desc">Distributes incoming requests across multiple backend servers to prevent overload and ensure high availability.</p>
-                    <div className="proxy-card-stats">
-                        <span className="proxy-stat-chip hi">Scalability</span>
-                        <span className="proxy-stat-chip">Uptime</span>
+                    <p className="guide-concept-desc">Distributes incoming requests across multiple backend servers to prevent overload and ensure high availability.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Scalability</span>
+                        <span className="guide-concept-chip">Uptime</span>
                     </div>
-                    <div className="proxy-use-case"><strong>Use case:</strong> Scaling high-traffic applications.</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Scaling high-traffic applications.</div>
                 </div>
 
-                <div className="proxy-card" onClick={() => playPattern('caching')}>
-                    <div className="proxy-card-header">
-                        <div className="proxy-card-icon">⚡</div>
-                        <div className="proxy-card-name">Caching Proxy</div>
+                <div className="guide-concept-card" onClick={() => playPattern('caching')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚡</div>
+                        <div className="guide-concept-name">Caching Proxy</div>
                     </div>
-                    <p className="proxy-card-desc">Stores copies of frequent responses. Returns static content without querying the origin server every time.</p>
-                    <div className="proxy-card-stats">
-                        <span className="proxy-stat-chip hi">Performance</span>
-                        <span className="proxy-stat-chip">Efficiency</span>
+                    <p className="guide-concept-desc">Stores copies of frequent responses. Returns static content without querying the origin server every time.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Performance</span>
+                        <span className="guide-concept-chip">Efficiency</span>
                     </div>
-                    <div className="proxy-use-case"><strong>Use case:</strong> CDNs, Static Asset Serving.</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> CDNs, Static Asset Serving.</div>
                 </div>
             </div>
 

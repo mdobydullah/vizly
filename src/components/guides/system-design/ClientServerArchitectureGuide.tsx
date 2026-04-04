@@ -249,98 +249,98 @@ export function ClientServerArchitectureGuide() {
         >
             {/* ═══════════════ CONCEPT GRID ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="csa-grid">
-                <div className="csa-card" onClick={() => handleCardClick('http-request')}>
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">🌐</div>
-                        <div className="csa-card-name">Client-Server Model</div>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card" onClick={() => handleCardClick('http-request')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🌐</div>
+                        <div className="guide-concept-name">Client-Server Model</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         A distributed architecture where <strong>clients</strong> initiate requests and
                         <strong> servers</strong> listen and respond. Every web page load, API call, or app interaction follows this model.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">Foundational</span>
-                        <span className="csa-stat-chip">Request-Response</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Foundational</span>
+                        <span className="guide-concept-chip">Request-Response</span>
                     </div>
                     <div className="csa-use-case"><strong>Examples:</strong> Web browsers, mobile apps, IoT devices.</div>
                 </div>
 
-                <div className="csa-card" onClick={() => handleCardClick('http-request')}>
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">📡</div>
-                        <div className="csa-card-name">HTTP Request-Response</div>
+                <div className="guide-concept-card" onClick={() => handleCardClick('http-request')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">📡</div>
+                        <div className="guide-concept-name">HTTP Request-Response</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         The backbone of the web. A <strong>stateless</strong> protocol where the client sends a method
                         (GET, POST, PUT, DELETE), the server processes it, and returns a status code + body.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">Stateless</span>
-                        <span className="csa-stat-chip">HTTP/HTTPS</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Stateless</span>
+                        <span className="guide-concept-chip">HTTP/HTTPS</span>
                     </div>
                     <div className="csa-use-case"><strong>Standard:</strong> REST APIs, web pages, file downloads.</div>
                 </div>
 
-                <div className="csa-card" onClick={() => handleCardClick('rest-api')}>
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">🔑</div>
-                        <div className="csa-card-name">REST API Design</div>
+                <div className="guide-concept-card" onClick={() => handleCardClick('rest-api')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔑</div>
+                        <div className="guide-concept-name">REST API Design</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         REST (Representational State Transfer) defines a uniform interface for client-server communication.
                         Resources are identified by URLs, actions by HTTP verbs, and responses in JSON/XML.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">JSON</span>
-                        <span className="csa-stat-chip">CRUD</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">JSON</span>
+                        <span className="guide-concept-chip">CRUD</span>
                     </div>
                     <div className="csa-use-case"><strong>Tools:</strong> Express.js, FastAPI, Spring Boot.</div>
                 </div>
 
-                <div className="csa-card" onClick={() => handleCardClick('websocket')}>
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">⚡</div>
-                        <div className="csa-card-name">WebSocket (Real-Time)</div>
+                <div className="guide-concept-card" onClick={() => handleCardClick('websocket')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚡</div>
+                        <div className="guide-concept-name">WebSocket (Real-Time)</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         Upgrades HTTP to a <strong>persistent, bidirectional</strong> connection. The server can push data to the client at any time — no polling required.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">Stateful</span>
-                        <span className="csa-stat-chip">Bidirectional</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Stateful</span>
+                        <span className="guide-concept-chip">Bidirectional</span>
                     </div>
                     <div className="csa-use-case"><strong>Use cases:</strong> Chat apps, live dashboards, multiplayer games.</div>
                 </div>
 
-                <div className="csa-card" onClick={() => handleCardClick('cache')}>
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">🗄️</div>
-                        <div className="csa-card-name">Caching Layer</div>
+                <div className="guide-concept-card" onClick={() => handleCardClick('cache')}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🗄️</div>
+                        <div className="guide-concept-name">Caching Layer</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         A cache sits between client and server to store frequent responses. On a
                         <strong> cache hit</strong>, the origin server is bypassed entirely — slashing latency and cost.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">Performance</span>
-                        <span className="csa-stat-chip">CDN / Redis</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Performance</span>
+                        <span className="guide-concept-chip">CDN / Redis</span>
                     </div>
                     <div className="csa-use-case"><strong>Benefit:</strong> Up to 10x faster responses at scale.</div>
                 </div>
 
-                <div className="csa-card">
-                    <div className="csa-card-header">
-                        <div className="csa-card-icon">🔒</div>
-                        <div className="csa-card-name">Security & HTTPS</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔒</div>
+                        <div className="guide-concept-name">Security & HTTPS</div>
                     </div>
-                    <p className="csa-card-desc">
+                    <p className="guide-concept-desc">
                         All modern client-server communication should use <strong>TLS (HTTPS)</strong> to encrypt data in transit.
                         Authentication (JWTs, sessions) controls who can access server resources.
                     </p>
-                    <div className="csa-card-stats">
-                        <span className="csa-stat-chip hi">TLS/SSL</span>
-                        <span className="csa-stat-chip">Auth</span>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">TLS/SSL</span>
+                        <span className="guide-concept-chip">Auth</span>
                     </div>
                     <div className="csa-use-case"><strong>Key concepts:</strong> HTTPS, CORS, JWT, OAuth 2.0.</div>
                 </div>

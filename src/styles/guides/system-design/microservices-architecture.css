@@ -1,89 +1,6 @@
 /* src/styles/guides/infrastructure/microservices.css */
 
 /* ════════════════════════════════════════
-   CONCEPTS GRID
-════════════════════════════════════════ */
-
-.ms-concepts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.2rem;
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    position: relative;
-    z-index: 1;
-}
-
-.ms-concept-card {
-    border-radius: 14px;
-    padding: 1.6rem;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    transition: all .3s ease;
-    animation: slide-in-up .5s ease forwards;
-    opacity: 0;
-}
-
-.ms-concept-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, var(--card-glow, rgba(124, 77, 255, .04)) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-}
-
-.ms-concept-card:hover {
-    transform: translateY(-4px);
-}
-
-.ms-concept-card:hover::before {
-    opacity: 1;
-}
-
-.ms-concept-icon {
-    font-size: 2.2rem;
-    margin-bottom: .8rem;
-    display: block;
-}
-
-.ms-concept-title {
-    font-family: var(--font-hero);
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--text-hi);
-    margin-bottom: .6rem;
-    letter-spacing: -0.02em;
-}
-
-.ms-concept-desc {
-    font-size: .78rem;
-    color: var(--text-dim);
-    line-height: 1.65;
-    margin-bottom: 1rem;
-    flex-grow: 1;
-}
-
-.ms-concept-example {
-    font-size: .72rem;
-    color: var(--text-dim);
-    padding: .6rem .8rem;
-    border-radius: 8px;
-    background: rgba(124, 77, 255, .05);
-    border-left: 2px solid var(--purple);
-    margin-top: auto;
-}
-
-.ms-concept-example strong {
-    color: var(--purple);
-    font-weight: 600;
-}
-
-/* ════════════════════════════════════════
    MERMAID DIAGRAM WRAPPER
 ════════════════════════════════════════ */
 
@@ -639,38 +556,11 @@
     }
 }
 
-/* animation rules moved to line 17 */
-
-.ms-concept-card:nth-child(2) {
-    animation-delay: .1s;
-}
-
-.ms-concept-card:nth-child(3) {
-    animation-delay: .2s;
-}
-
-.ms-concept-card:nth-child(4) {
-    animation-delay: .3s;
-}
-
-.ms-concept-card:nth-child(5) {
-    animation-delay: .4s;
-}
-
-.ms-concept-card:nth-child(6) {
-    animation-delay: .5s;
-}
-
 /* ════════════════════════════════════════
    RESPONSIVE
 ════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-    .ms-concepts-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
     .ms-flow-diagram {
         grid-template-columns: repeat(2, 1fr);
         gap: .8rem;

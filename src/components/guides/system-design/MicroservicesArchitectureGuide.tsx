@@ -342,12 +342,12 @@ export function MicroservicesGuide() {
         >
             {/* ═══════════════ CONCEPTS GRID ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="ms-concepts-grid">
+            <div className="guide-concept-grid">
                 {CONCEPTS.map((concept) => (
-                    <div key={concept.title} className={`viz-card ms-concept-card ${concept.colorClass}`}>
-                        <div className="ms-concept-icon">{concept.icon}</div>
-                        <h3 className="ms-concept-title">{concept.title}</h3>
-                        <p className="ms-concept-desc">{concept.description}</p>
+                    <div key={concept.title} className="guide-concept-card">
+                        <div className="guide-concept-icon">{concept.icon}</div>
+                        <h3 className="guide-concept-name">{concept.title}</h3>
+                        <p className="guide-concept-desc">{concept.description}</p>
                         <div className="ms-concept-example">
                             <strong>Example:</strong> {concept.example}
                         </div>

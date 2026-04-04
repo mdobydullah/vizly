@@ -384,11 +384,11 @@ export function DatabaseShardingGuide() {
         >
             {/* ═══════════════ STRATEGY CARDS ═══════════════ */}
             <h2 className="shard-section-title">Sharding Strategies</h2>
-            <div className="shard-grid">
+            <div className="guide-concept-grid">
                 {SHARDING_CONCEPTS.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card shard-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         onClick={() => handleCardClick(s.id)}
                         role="button"
                         tabIndex={0}
@@ -399,14 +399,14 @@ export function DatabaseShardingGuide() {
                             }
                         }}
                     >
-                        <div className="shard-card-header">
-                            <div className="shard-card-icon">{s.icon}</div>
-                            <div className="shard-card-title">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <div className="shard-card-description">{s.description}</div>
-                        <div className="shard-card-tags">
+                        <div className="guide-concept-desc">{s.description}</div>
+                        <div className="guide-concept-stats">
                             {s.tags.map(tag => (
-                                <span key={tag.text} className={`shard-tag ${tag.highlight}`}>{tag.text}</span>
+                                <span key={tag.text} className={`guide-concept-chip ${tag.highlight}`}>{tag.text}</span>
                             ))}
                         </div>
                         <div className="shard-info-box">

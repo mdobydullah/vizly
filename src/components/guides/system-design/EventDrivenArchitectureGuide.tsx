@@ -290,19 +290,19 @@ export function EventDrivenArchitectureGuide() {
         >
             {/* ═══════════════ PATTERN GRID ═══════════════ */}
             <h2 className="eda-section-title">Core Patterns</h2>
-            <div className="eda-grid">
+            <div className="guide-concept-grid">
                 {PATTERNS.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card eda-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         onClick={() => handleCardClick(s.id)}
                     >
-                        <div className="eda-card-header">
-                            <div className="eda-card-icon">{s.icon}</div>
-                            <div className="eda-card-title">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <div className="eda-card-description">{s.description}</div>
-                        <div className="eda-card-tags">
+                        <div className="guide-concept-desc">{s.description}</div>
+                        <div className="guide-concept-stats">
                             {s.tags.map(tag => (
                                 <span key={tag.text} className={`eda-tag ${tag.highlight}`}>{tag.text}</span>
                             ))}

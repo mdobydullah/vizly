@@ -40,36 +40,36 @@ export function VerticalHorizontalScalingGuide() {
         >
             {/* ════════════ HERO CONCEPTS ════════════ */}
             <h2 className="section-title">Scaling Strategies</h2>
-            <div className="scaling-grid">
+            <div className="guide-concept-grid">
                 <button
-                    className={`viz-card scaling-card ${mode === 'vertical' ? 'card-pink' : ''} text-left`}
+                    className="guide-concept-card text-left"
                     onClick={() => setMode('vertical')}
                     style={{ cursor: 'pointer', borderColor: mode === 'vertical' ? 'var(--pink)' : undefined }}
                 >
-                    <div className="scaling-card-header">
-                        <div className="scaling-card-icon">⬆️</div>
-                        <div className="scaling-card-name">Vertical Scaling</div>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⬆️</div>
+                        <div className="guide-concept-name">Vertical Scaling</div>
                     </div>
-                    <p className="scaling-card-desc">"Scaling Up". Increasing the power of a single server (CPU, RAM).</p>
-                    <div className="scaling-card-stats">
-                        <span className="scaling-stat-chip hi">Easy Start</span>
-                        <span className="scaling-stat-chip">Hardware Limit</span>
+                    <p className="guide-concept-desc">"Scaling Up". Increasing the power of a single server (CPU, RAM).</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Easy Start</span>
+                        <span className="guide-concept-chip">Hardware Limit</span>
                     </div>
                 </button>
 
                 <button
-                    className={`viz-card scaling-card ${mode === 'horizontal' ? 'card-cyan' : ''} text-left`}
+                    className="guide-concept-card text-left"
                     onClick={() => setMode('horizontal')}
                     style={{ cursor: 'pointer', borderColor: mode === 'horizontal' ? 'var(--cyan)' : undefined }}
                 >
-                    <div className="scaling-card-header">
-                        <div className="scaling-card-icon">↔️</div>
-                        <div className="scaling-card-name">Horizontal Scaling</div>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">↔️</div>
+                        <div className="guide-concept-name">Horizontal Scaling</div>
                     </div>
-                    <p className="scaling-card-desc">"Scaling Out". Adding more servers to a pool to handle load.</p>
-                    <div className="scaling-card-stats">
-                        <span className="scaling-stat-chip hi">Unlimited</span>
-                        <span className="scaling-stat-chip">Complex</span>
+                    <p className="guide-concept-desc">"Scaling Out". Adding more servers to a pool to handle load.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Unlimited</span>
+                        <span className="guide-concept-chip">Complex</span>
                     </div>
                 </button>
             </div>

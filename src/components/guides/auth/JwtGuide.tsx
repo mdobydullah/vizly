@@ -28,10 +28,10 @@ export function JwtGuide() {
             {/* ═══════════════ STRUCTURE ═══════════════ */}
             <h2 className="section-title">Structure of a JWT</h2>
 
-            <div className="viz-card-grid">
+            <div className="guide-concept-grid">
                 {/* Header */}
-                <div className="viz-box viz-reveal card-cyan visible">
-                    <span className="viz-label">Header</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Header</span>
                     <pre className="viz-pre">{`{
   "alg": "HS256",
   "typ": "JWT"
@@ -39,8 +39,8 @@ export function JwtGuide() {
                 </div>
 
                 {/* Payload */}
-                <div className="viz-box viz-reveal card-purple visible">
-                    <span className="viz-label">Payload</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Payload</span>
                     <pre className="viz-pre">{`{
   "sub":  "1234567890",
   "name": "John Doe",
@@ -49,8 +49,8 @@ export function JwtGuide() {
                 </div>
 
                 {/* Signature */}
-                <div className="viz-box viz-reveal card-yellow visible">
-                    <span className="viz-label">Signature</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Signature</span>
                     <pre className="viz-pre">{`HMAC-SHA256(
   base64Url(header) +
   "." +

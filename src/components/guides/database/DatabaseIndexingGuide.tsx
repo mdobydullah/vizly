@@ -384,11 +384,11 @@ export function DatabaseIndexingGuide() {
         >
             {/* ═══════════════ INDEX TYPE CARDS ═══════════════ */}
             <h2 className="idx-section-title">Index Types</h2>
-            <div className="idx-grid">
+            <div className="guide-concept-grid">
                 {INDEX_CONCEPTS.map((c) => (
                     <div
                         key={c.id}
-                        className={`viz-card idx-card ${c.colorClass}`}
+                        className="guide-concept-card"
                         onClick={() => handleCardClick(c.id)}
                         role="button"
                         tabIndex={0}
@@ -399,14 +399,14 @@ export function DatabaseIndexingGuide() {
                             }
                         }}
                     >
-                        <div className="idx-card-header">
-                            <div className="idx-card-icon">{c.icon}</div>
-                            <div className="idx-card-title">{c.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{c.icon}</div>
+                            <div className="guide-concept-name">{c.title}</div>
                         </div>
-                        <div className="idx-card-description">{c.description}</div>
-                        <div className="idx-card-tags">
+                        <div className="guide-concept-desc">{c.description}</div>
+                        <div className="guide-concept-stats">
                             {c.tags.map(tag => (
-                                <span key={tag.text} className={`idx-tag ${tag.highlight}`}>{tag.text}</span>
+                                <span key={tag.text} className={`guide-concept-chip ${tag.highlight}`}>{tag.text}</span>
                             ))}
                         </div>
                         <div className="idx-info-box">

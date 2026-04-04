@@ -1,77 +1,5 @@
 /* src/styles/guides/infrastructure/service-discovery.css */
 
-.sd-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    position: relative;
-    z-index: 1;
-}
-
-.sd-card {
-    border-radius: 14px;
-    padding: 1.4rem;
-}
-
-.sd-card-header {
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-    margin-bottom: 1rem;
-}
-
-.sd-card-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: var(--card-icon-bg, rgba(224, 64, 251, .08));
-    border: 1px solid var(--card-icon-border, rgba(224, 64, 251, .2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-
-.sd-card-name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--text-hi);
-}
-
-.sd-card-desc {
-    font-size: .78rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
-
-.sd-card-stats {
-    display: flex;
-    gap: .8rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.sd-stat-chip {
-    font-size: .68rem;
-    font-family: var(--font-mono);
-    padding: .2em .6em;
-    border-radius: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text-dim);
-}
-
-.sd-stat-chip.hi {
-    border-color: var(--card-color, var(--purple));
-    color: var(--card-color, var(--purple));
-    background: var(--card-glow, rgba(224, 64, 251, .05));
-}
-
 /* Visualization Styles */
 .sd-flow-section {
     max-width: 1100px;
@@ -268,11 +196,6 @@
     color: var(--text-hi);
 }
 
-@media (max-width: 768px) {
-    .sd-grid {
-        grid-template-columns: 1fr;
-    }
-}
 /* ─── Light Mode: Keep visualization dark, soften cards ─── */
 [data-theme="light"] .sd-flow-section {
     --bg: #080b10;

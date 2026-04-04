@@ -24,7 +24,7 @@ src/
 ├── data/
 │   ├── guides/             # Guide metadata JSON files
 │   └── articles/           # categories.json
-├── styles/                 # CSS files (global + per-topic)
+├── styles/                 # CSS files (global + per-topic + guide-cards.css for shared concept cards)
 ├── types/                  # TypeScript interfaces
 └── lib/                    # Utilities (config, article loading, colors)
 ```

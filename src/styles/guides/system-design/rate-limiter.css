@@ -1,97 +1,6 @@
 /* src/styles/guides/infrastructure/rate-limiter.css */
 
 /* ════════════════════════════════════════
-   CONCEPT CARDS GRID
-════════════════════════════════════════ */
-.rl-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.2rem;
-    max-width: 1200px;
-    margin: 0 auto 3rem;
-    position: relative;
-    z-index: 1;
-}
-
-.rl-card {
-    border-radius: 14px;
-    padding: 1.4rem;
-}
-
-.rl-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, var(--card-glow, rgba(29, 233, 182, .04)) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-}
-
-.rl-card:hover::before {
-    opacity: 1;
-}
-
-.rl-card-header {
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-    margin-bottom: 1rem;
-}
-
-.rl-card-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: var(--card-icon-bg, rgba(29, 233, 182, .08));
-    border: 1px solid var(--card-icon-border, rgba(29, 233, 182, .2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-
-.rl-card-name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--text-hi);
-}
-
-.rl-card-desc {
-    font-size: .78rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    flex-grow: 1;
-}
-
-.rl-card-stats {
-    display: flex;
-    gap: .8rem;
-    flex-wrap: wrap;
-}
-
-.rl-stat-chip {
-    font-size: .68rem;
-    font-family: var(--font-mono);
-    padding: .2em .6em;
-    border-radius: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text-dim);
-}
-
-.rl-stat-chip.hi {
-    border-color: var(--card-color, var(--cyan));
-    color: var(--card-color, var(--cyan));
-    background: var(--card-glow, rgba(29, 233, 182, .05));
-}
-
-
-/* ════════════════════════════════════════
    ANIMATED FLOW SECTION
 ════════════════════════════════════════ */
 .rl-flow-section {
@@ -687,10 +596,6 @@
    RESPONSIVE
 ════════════════════════════════════════ */
 @media (max-width: 768px) {
-    .rl-grid {
-        grid-template-columns: 1fr;
-    }
-
     .rl-bucket-area {
         flex-direction: column;
         align-items: center;

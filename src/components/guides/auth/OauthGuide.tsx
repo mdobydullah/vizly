@@ -29,8 +29,8 @@ export function OauthGuide() {
             <h2 className="section-title">Key Players in OAuth 2.0</h2>
 
             <div
+                className="guide-concept-grid"
                 style={{
-                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '1rem',
                     maxWidth: '1000px',
@@ -38,8 +38,8 @@ export function OauthGuide() {
                 }}
             >
                 {/* Resource Owner */}
-                <div className="viz-box viz-reveal card-cyan visible">
-                    <span className="viz-label">Resource Owner</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Resource Owner</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
                             background: 'rgba(0, 229, 255, 0.03)',
@@ -64,8 +64,8 @@ export function OauthGuide() {
                 </div>
 
                 {/* Client */}
-                <div className="viz-box viz-reveal card-purple visible">
-                    <span className="viz-label">Client</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Client</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
                             background: 'rgba(185, 133, 244, 0.03)',
@@ -90,8 +90,8 @@ export function OauthGuide() {
                 </div>
 
                 {/* Authorization Server */}
-                <div className="viz-box viz-reveal card-yellow visible">
-                    <span className="viz-label">Auth Server</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Auth Server</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
                             background: 'rgba(255, 209, 102, 0.03)',
@@ -116,8 +116,8 @@ export function OauthGuide() {
                 </div>
 
                 {/* Resource Server */}
-                <div className="viz-box viz-reveal card-pink visible">
-                    <span className="viz-label">Resource Server</span>
+                <div className="guide-concept-card">
+                    <span className="guide-concept-name">Resource Server</span>
                     <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
                         <div style={{
                             background: 'rgba(255, 107, 157, 0.03)',

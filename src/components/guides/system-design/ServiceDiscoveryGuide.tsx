@@ -131,16 +131,16 @@ export function ServiceDiscoveryGuide() {
         >
             {/* ═══════════════ CORE CONCEPTS ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="sd-grid">
+            <div className="guide-concept-grid">
                 {CONCEPTS.map((concept) => (
-                    <div key={concept.title} className="viz-card sd-card">
-                        <div className="sd-card-header">
-                            <div className="sd-card-icon" style={{ borderColor: guide.colorConfig.primary, color: guide.colorConfig.primary }}>
+                    <div key={concept.title} className="guide-concept-card">
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon" style={{ borderColor: guide.colorConfig.primary, color: guide.colorConfig.primary }}>
                                 {concept.icon}
                             </div>
-                            <div className="sd-card-name">{concept.title}</div>
+                            <div className="guide-concept-name">{concept.title}</div>
                         </div>
-                        <p className="sd-card-desc">{concept.desc}</p>
+                        <p className="guide-concept-desc">{concept.desc}</p>
                     </div>
                 ))}
             </div>
@@ -243,10 +243,10 @@ export function ServiceDiscoveryGuide() {
 
             {/* ═══════════════ PATTERNS COMPARISON ═══════════════ */}
             <h2 className="section-title">Discovery Patterns</h2>
-            <div className="sd-grid">
+            <div className="guide-concept-grid">
                 {DISCOVERY_PATTERNS.map((pattern) => (
-                    <div key={pattern.title} className="viz-card sd-card" style={{ borderTop: `4px solid ${pattern.title.includes('Client') ? 'var(--blue)' : 'var(--green)'}` }}>
-                        <h3 className="sd-card-name" style={{ marginBottom: '1rem' }}>{pattern.title}</h3>
+                    <div key={pattern.title} className="guide-concept-card" style={{ borderTop: `4px solid ${pattern.title.includes('Client') ? 'var(--blue)' : 'var(--green)'}` }}>
+                        <h3 className="guide-concept-name" style={{ marginBottom: '1rem' }}>{pattern.title}</h3>
 
                         <div style={{ marginBottom: '1rem' }}>
                             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--green)', marginBottom: '0.4rem' }}>PROS</div>

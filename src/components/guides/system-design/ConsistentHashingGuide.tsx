@@ -300,37 +300,37 @@ export function ConsistentHashingGuide() {
         >
             {/* ═══════════════ CONCEPTS GRID ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="ch-grid">
-                <div className="viz-card ch-card card-green">
-                    <div className="ch-card-header">
-                        <div className="ch-card-icon">📍</div>
-                        <div className="ch-card-name">Data Hashing</div>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">📍</div>
+                        <div className="guide-concept-name">Data Hashing</div>
                     </div>
-                    <p className="ch-card-desc">Every piece of data (key) is hashed into an integer (e.g., using SHA-256) and mapped to a point on the conceptual ring.</p>
+                    <p className="guide-concept-desc">Every piece of data (key) is hashed into an integer (e.g., using SHA-256) and mapped to a point on the conceptual ring.</p>
                 </div>
 
-                <div className="viz-card ch-card card-cyan">
-                    <div className="ch-card-header">
-                        <div className="ch-card-icon">🖥️</div>
-                        <div className="ch-card-name">Node Hashing</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🖥️</div>
+                        <div className="guide-concept-name">Node Hashing</div>
                     </div>
-                    <p className="ch-card-desc">Servers (nodes) are hashed using their IP or ID onto the exact same conceptual ring alongside the data.</p>
+                    <p className="guide-concept-desc">Servers (nodes) are hashed using their IP or ID onto the exact same conceptual ring alongside the data.</p>
                 </div>
 
-                <div className="viz-card ch-card card-purple">
-                    <div className="ch-card-header">
-                        <div className="ch-card-icon">➡️</div>
-                        <div className="ch-card-name">Clockwise Routing</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">➡️</div>
+                        <div className="guide-concept-name">Clockwise Routing</div>
                     </div>
-                    <p className="ch-card-desc">To find the server for a data key, walk clockwise around the ring from the data's hash value until you hit the first server.</p>
+                    <p className="guide-concept-desc">To find the server for a data key, walk clockwise around the ring from the data's hash value until you hit the first server.</p>
                 </div>
 
-                <div className="viz-card ch-card card-orange">
-                    <div className="ch-card-header">
-                        <div className="ch-card-icon">👻</div>
-                        <div className="ch-card-name">Virtual Nodes</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">👻</div>
+                        <div className="guide-concept-name">Virtual Nodes</div>
                     </div>
-                    <p className="ch-card-desc">To prevent uneven load distribution, each physical server is mapped to multiple 'virtual' points on the ring to balance the segments.</p>
+                    <p className="guide-concept-desc">To prevent uneven load distribution, each physical server is mapped to multiple 'virtual' points on the ring to balance the segments.</p>
                 </div>
             </div>
 

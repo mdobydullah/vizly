@@ -200,11 +200,11 @@ export function CachingStrategiesGuide() {
         >
             {/* ═══════════════ PATTERN GRID ═══════════════ */}
             <h2 className="section-title">The 4 Core Patterns</h2>
-            <div className="caching-grid">
+            <div className="guide-concept-grid">
                 {STRATEGIES.map((s, idx) => (
                     <div
                         key={s.id}
-                        className={`viz-card cache-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         role="button"
                         tabIndex={0}
                         onClick={() => {
@@ -222,12 +222,12 @@ export function CachingStrategiesGuide() {
                         }}
                         style={{ cursor: 'pointer' }}
                     >
-                        <div className="card-header">
-                            <div className="card-icon">{s.icon}</div>
-                            <div className="card-title">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <div className="card-description">{s.description}</div>
-                        <div className="card-tags">
+                        <div className="guide-concept-desc">{s.description}</div>
+                        <div className="guide-concept-stats">
                             {s.tags.map(tag => (
                                 <span key={tag.text} className={`tag ${tag.highlight}`}>{tag.text}</span>
                             ))}

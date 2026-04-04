@@ -234,11 +234,11 @@ export function RateLimiterGuide({
         >
             {/* ═══════════════ CARDS GRID ═══════════════ */}
             <h2 className="section-title">Rate Limiting Algorithms</h2>
-            <div className="rl-grid">
+            <div className="guide-concept-grid">
                 {CONCEPTS.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card rl-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         role="button"
                         tabIndex={0}
                         onClick={() => {
@@ -255,12 +255,12 @@ export function RateLimiterGuide({
                             }
                         }}
                     >
-                        <div className="rl-card-header">
-                            <div className="rl-card-icon" style={{ color: s.color }}>{s.icon}</div>
-                            <div className="rl-card-name">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon" style={{ color: s.color }}>{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <p className="rl-card-desc">{s.description}</p>
-                        <div className="rl-card-stats">
+                        <p className="guide-concept-desc">{s.description}</p>
+                        <div className="guide-concept-stats">
                             {s.stats.map(stat => (
                                 <span key={stat.text} className={`rl-stat-chip ${stat.highlight ? 'hi' : ''}`}>
                                     {stat.text}

@@ -45,7 +45,7 @@ export function SettingsModal() {
                 justifyContent: 'center',
                 padding: '1.5rem',
                 backdropFilter: 'blur(8px)',
-                background: 'rgba(5, 7, 10, 0.75)',
+                background: 'color-mix(in srgb, var(--bg) 75%, transparent)',
                 animation: 'modalFadeIn 0.3s ease-out'
             }}
             onClick={() => setIsSettingsOpen(false)}
@@ -57,11 +57,11 @@ export function SettingsModal() {
                 style={{
                     width: '100%',
                     maxWidth: '420px',
-                    background: '#0d1117',
+                    background: 'var(--surface)',
                     border: '1px solid var(--border)',
                     borderRadius: '24px',
                     padding: '2rem',
-                    boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6), 0 0 32px rgba(0, 229, 255, 0.1)',
+                    boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.25)',
                     position: 'relative',
                     animation: 'modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}
@@ -79,8 +79,8 @@ export function SettingsModal() {
                             width: '40px',
                             height: '40px',
                             borderRadius: '12px',
-                            background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(168, 85, 247, 0.1))',
-                            border: '1px solid rgba(0, 229, 255, 0.2)',
+                            background: 'color-mix(in srgb, var(--cyan) 10%, transparent)',
+                            border: '1px solid color-mix(in srgb, var(--cyan) 20%, transparent)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -131,7 +131,7 @@ export function SettingsModal() {
                             display: 'grid',
                             gridTemplateColumns: '1fr 1fr 1fr',
                             gap: '0.5rem',
-                            background: 'rgba(255, 255, 255, 0.03)',
+                            background: 'color-mix(in srgb, var(--bg) 50%, transparent)',
                             padding: '0.4rem',
                             borderRadius: '14px',
                             border: '1px solid var(--border)'

@@ -229,11 +229,11 @@ export function DatabaseReplicationGuide({
         >
             {/* ═══════════════ CARDS GRID ═══════════════ */}
             <h2 className="section-title">Replication Strategies</h2>
-            <div className="rep-grid">
+            <div className="guide-concept-grid">
                 {REPLICATION_STRATEGIES.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card rep-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         role="button"
                         tabIndex={0}
                         onClick={() => {
@@ -250,14 +250,14 @@ export function DatabaseReplicationGuide({
                             }
                         }}
                     >
-                        <div className="rep-card-header">
-                            <div className="rep-card-icon" style={{ color: s.color }}>{s.icon}</div>
-                            <div className="rep-card-name">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon" style={{ color: s.color }}>{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <p className="rep-card-desc">{s.description}</p>
-                        <div className="rep-card-stats">
+                        <p className="guide-concept-desc">{s.description}</p>
+                        <div className="guide-concept-stats">
                             {s.stats.map(stat => (
-                                <span key={stat.text} className={`rep-stat-chip ${stat.highlight ? 'hi' : ''}`}>
+                                <span key={stat.text} className={`guide-concept-chip ${stat.highlight ? 'hi' : ''}`}>
                                     {stat.text}
                                 </span>
                             ))}

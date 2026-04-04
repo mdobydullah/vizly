@@ -244,12 +244,12 @@ export function MonolithicArchitectureGuide() {
         >
             {/* ═══════════════ CONCEPTS GRID ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="mono-concepts-grid">
+            <div className="guide-concept-grid">
                 {CONCEPTS.map((concept) => (
-                    <div key={concept.title} className={`viz-card mono-concept-card ${concept.colorClass}`}>
-                        <div className="mono-concept-icon">{concept.icon}</div>
-                        <h3 className="mono-concept-title">{concept.title}</h3>
-                        <p className="mono-concept-desc">{concept.description}</p>
+                    <div key={concept.title} className="guide-concept-card">
+                        <div className="guide-concept-icon">{concept.icon}</div>
+                        <h3 className="guide-concept-name">{concept.title}</h3>
+                        <p className="guide-concept-desc">{concept.description}</p>
                         <div className="mono-concept-example">
                             <strong>Example:</strong> {concept.example}
                         </div>

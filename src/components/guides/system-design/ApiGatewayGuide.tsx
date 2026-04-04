@@ -130,16 +130,16 @@ export function ApiGatewayGuide() {
         >
             {/* ═══════════════ CORE CONCEPTS ═══════════════ */}
             <h2 className="section-title">Core Responsibilities</h2>
-            <div className="gw-grid">
+            <div className="guide-concept-grid">
                 {RESPONSIBILITIES.map((resp, i) => (
-                    <div key={i} className="viz-card gw-card">
-                        <div className="gw-card-header">
-                            <div className="gw-card-icon" style={{ borderColor: guide.colorConfig.primary, color: guide.colorConfig.primary }}>
+                    <div key={i} className="guide-concept-card">
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon" style={{ borderColor: guide.colorConfig.primary, color: guide.colorConfig.primary }}>
                                 {resp.icon}
                             </div>
-                            <div className="gw-card-name">{resp.title}</div>
+                            <div className="guide-concept-name">{resp.title}</div>
                         </div>
-                        <p className="gw-card-desc">{resp.desc}</p>
+                        <p className="guide-concept-desc">{resp.desc}</p>
                     </div>
                 ))}
             </div>

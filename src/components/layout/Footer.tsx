@@ -265,7 +265,18 @@ export default function Footer() {
                 .social-btn:hover {
                     border-color: var(--cyan);
                     color: var(--cyan);
-                    background: rgba(0, 229, 255, .06);
+                    background: color-mix(in srgb, var(--cyan) 6%, transparent);
+                }
+
+                :global([data-theme="light"]) .social-btn {
+                    background: #fff !important;
+                    border-color: #e0ddd5 !important;
+                }
+
+                :global([data-theme="light"]) .social-btn:hover {
+                    border-color: #57534e !important;
+                    color: #57534e !important;
+                    background: #f5f3ed !important;
                 }
                 
                 @media (max-width: 640px) {

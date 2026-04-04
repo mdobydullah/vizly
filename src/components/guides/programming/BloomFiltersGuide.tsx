@@ -159,83 +159,83 @@ export function BloomFiltersGuide() {
         >
             {/* ═══════════════ CONCEPTS ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="bf-grid">
-                <div className="bf-card" onClick={scrollToInteractive}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">🔢</div>
-                        <div className="bf-card-name">Hash Functions</div>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card" onClick={scrollToInteractive}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔢</div>
+                        <div className="guide-concept-name">Hash Functions</div>
                     </div>
-                    <p className="bf-card-desc">A Bloom Filter uses k independent hash functions. Each function maps any input element to a specific position in the bit array. More hash functions = fewer false positives, but more bits set per insert.</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">k functions</span>
-                        <span className="bf-stat-chip">Deterministic</span>
+                    <p className="guide-concept-desc">A Bloom Filter uses k independent hash functions. Each function maps any input element to a specific position in the bit array. More hash functions = fewer false positives, but more bits set per insert.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">k functions</span>
+                        <span className="guide-concept-chip">Deterministic</span>
                     </div>
-                    <div className="bf-use-case"><strong>Why k &gt; 1?</strong> Multiple positions mean a random match for ALL positions is exponentially unlikely.</div>
+                    <div className="guide-concept-usecase"><strong>Why k &gt; 1?</strong> Multiple positions mean a random match for ALL positions is exponentially unlikely.</div>
                 </div>
 
-                <div className="bf-card" onClick={scrollToInteractive}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">🗂️</div>
-                        <div className="bf-card-name">Bit Array</div>
+                <div className="guide-concept-card" onClick={scrollToInteractive}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🗂️</div>
+                        <div className="guide-concept-name">Bit Array</div>
                     </div>
-                    <p className="bf-card-desc">The backing data structure is a compact array of m bits, all initialized to 0. Elements are never stored — only their hash positions are recorded. This is what makes Bloom Filters incredibly space-efficient.</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">O(m) space</span>
-                        <span className="bf-stat-chip">No element storage</span>
+                    <p className="guide-concept-desc">The backing data structure is a compact array of m bits, all initialized to 0. Elements are never stored — only their hash positions are recorded. This is what makes Bloom Filters incredibly space-efficient.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">O(m) space</span>
+                        <span className="guide-concept-chip">No element storage</span>
                     </div>
-                    <div className="bf-use-case"><strong>Space saving:</strong> A filter for 1 million URLs can fit in ~1.2 MB vs hundreds of MB for a hash set.</div>
+                    <div className="guide-concept-usecase"><strong>Space saving:</strong> A filter for 1 million URLs can fit in ~1.2 MB vs hundreds of MB for a hash set.</div>
                 </div>
 
-                <div className="bf-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('insert-apple'), 600); }}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">➕</div>
-                        <div className="bf-card-name">Insert Operation</div>
+                <div className="guide-concept-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('insert-apple'), 600); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">➕</div>
+                        <div className="guide-concept-name">Insert Operation</div>
                     </div>
-                    <p className="bf-card-desc">To insert an element, run it through all k hash functions. Each function returns an index in the bit array. Set every one of those bits to 1. The element itself is never stored.</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">O(k) time</span>
-                        <span className="bf-stat-chip">Irreversible</span>
+                    <p className="guide-concept-desc">To insert an element, run it through all k hash functions. Each function returns an index in the bit array. Set every one of those bits to 1. The element itself is never stored.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">O(k) time</span>
+                        <span className="guide-concept-chip">Irreversible</span>
                     </div>
-                    <div className="bf-use-case"><strong>Caveat:</strong> Deletions are not supported. Once a bit is set, you cannot safely unset it without risking false negatives.</div>
+                    <div className="guide-concept-usecase"><strong>Caveat:</strong> Deletions are not supported. Once a bit is set, you cannot safely unset it without risking false negatives.</div>
                 </div>
 
-                <div className="bf-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('lookup-apple'), 600); }}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">🔍</div>
-                        <div className="bf-card-name">Lookup Operation</div>
+                <div className="guide-concept-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('lookup-apple'), 600); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔍</div>
+                        <div className="guide-concept-name">Lookup Operation</div>
                     </div>
-                    <p className="bf-card-desc">To query if an element exists, hash it with all k functions and check each resulting bit. If any bit is 0 → definitely absent. If all are 1 → probably present (could be a false positive).</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">O(k) time</span>
-                        <span className="bf-stat-chip">Probabilistic</span>
+                    <p className="guide-concept-desc">To query if an element exists, hash it with all k functions and check each resulting bit. If any bit is 0 → definitely absent. If all are 1 → probably present (could be a false positive).</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">O(k) time</span>
+                        <span className="guide-concept-chip">Probabilistic</span>
                     </div>
-                    <div className="bf-use-case"><strong>Key insight:</strong> The lookup short-circuits on the first zero bit — early exit is guaranteed.</div>
+                    <div className="guide-concept-usecase"><strong>Key insight:</strong> The lookup short-circuits on the first zero bit — early exit is guaranteed.</div>
                 </div>
 
-                <div className="bf-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('false-positive'), 600); }}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">⚠️</div>
-                        <div className="bf-card-name">False Positives</div>
+                <div className="guide-concept-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('false-positive'), 600); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚠️</div>
+                        <div className="guide-concept-name">False Positives</div>
                     </div>
-                    <p className="bf-card-desc">A false positive occurs when all k bit positions for a queried element happen to be set by different previously-inserted elements. The filter says "probably present" for something never inserted.</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">Can happen</span>
-                        <span className="bf-stat-chip">Rate: (1 - e^(-kn/m))^k</span>
+                    <p className="guide-concept-desc">A false positive occurs when all k bit positions for a queried element happen to be set by different previously-inserted elements. The filter says "probably present" for something never inserted.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Can happen</span>
+                        <span className="guide-concept-chip">Rate: (1 - e^(-kn/m))^k</span>
                     </div>
-                    <div className="bf-use-case"><strong>Tunable:</strong> Increase m (more bits) or adjust k to reduce the false positive rate to an acceptable threshold.</div>
+                    <div className="guide-concept-usecase"><strong>Tunable:</strong> Increase m (more bits) or adjust k to reduce the false positive rate to an acceptable threshold.</div>
                 </div>
 
-                <div className="bf-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('lookup-cherry'), 600); }}>
-                    <div className="bf-card-header">
-                        <div className="bf-card-icon">✅</div>
-                        <div className="bf-card-name">No False Negatives</div>
+                <div className="guide-concept-card" onClick={() => { scrollToInteractive(); setTimeout(() => playTab('lookup-cherry'), 600); }}>
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">✅</div>
+                        <div className="guide-concept-name">No False Negatives</div>
                     </div>
-                    <p className="bf-card-desc">A Bloom Filter NEVER produces a false negative. If an element was inserted, its hash positions are permanently set — the lookup will always find all bits set. "Definitely absent" is an ironclad guarantee.</p>
-                    <div className="bf-card-stats">
-                        <span className="bf-stat-chip hi">Zero false negatives</span>
-                        <span className="bf-stat-chip">Guaranteed</span>
+                    <p className="guide-concept-desc">A Bloom Filter NEVER produces a false negative. If an element was inserted, its hash positions are permanently set — the lookup will always find all bits set. "Definitely absent" is an ironclad guarantee.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Zero false negatives</span>
+                        <span className="guide-concept-chip">Guaranteed</span>
                     </div>
-                    <div className="bf-use-case"><strong>Real-world use:</strong> Google Chrome's Safe Browsing — "this URL is safe" is never wrong.</div>
+                    <div className="guide-concept-usecase"><strong>Real-world use:</strong> Google Chrome's Safe Browsing — "this URL is safe" is never wrong.</div>
                 </div>
             </div>
 

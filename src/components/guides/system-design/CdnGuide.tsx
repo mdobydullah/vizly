@@ -116,14 +116,14 @@ export function CdnGuide() {
         >
             {/* HERO & CONCEPTS */}
             <h2 className="section-title">Core Concepts</h2>
-            <div className="cdn-grid">
+            <div className="guide-concept-grid">
                 {CONCEPTS.map(c => (
-                    <div key={c.title} className="cdn-card">
-                        <div className="cdn-card-header">
-                            <div className="cdn-card-icon">{c.icon}</div>
-                            <div className="cdn-card-title">{c.title}</div>
+                    <div key={c.title} className="guide-concept-card">
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{c.icon}</div>
+                            <div className="guide-concept-name">{c.title}</div>
                         </div>
-                        <div className="cdn-card-desc">{c.desc}</div>
+                        <div className="guide-concept-desc">{c.desc}</div>
                     </div>
                 ))}
             </div>

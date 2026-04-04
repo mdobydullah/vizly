@@ -253,21 +253,21 @@ export function CircuitBreakerGuide() {
         >
             {/* ═══════════════ PATTERN GRID ═══════════════ */}
             <h2 className="section-title">Circuit Breaker States</h2>
-            <div className="cb-grid">
+            <div className="guide-concept-grid">
                 {PATTERNS.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card cb-card ${s.colorClass}`}
+                        className="guide-concept-card"
                         onClick={() => handleCardClick(s.id)}
                     >
-                        <div className="cb-card-header">
-                            <div className="cb-card-icon">{s.icon}</div>
-                            <div className="cb-card-title">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <div className="cb-card-description">{s.description}</div>
-                        <div className="cb-card-tags">
+                        <div className="guide-concept-desc">{s.description}</div>
+                        <div className="guide-concept-stats">
                             {s.tags.map(tag => (
-                                <span key={tag.text} className={`cb-tag ${tag.highlight}`}>{tag.text}</span>
+                                <span key={tag.text} className={`guide-concept-chip ${tag.highlight}`}>{tag.text}</span>
                             ))}
                         </div>
                     </div>

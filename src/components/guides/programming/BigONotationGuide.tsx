@@ -299,31 +299,31 @@ export function BigONotationGuide() {
             {/* ═══════════════ CONCEPTS ═══════════════ */}
             <h2 className="section-title">Core Concepts</h2>
 
-            <div className="viz-card-grid">
-                <div className="viz-box viz-reveal card-cyan visible" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
-                    <span className="viz-label">Time Complexity</span>
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
+            <div className="guide-concept-grid">
+                <div className="guide-concept-card" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
+                    <span className="guide-concept-name">Time Complexity</span>
+                    <p className="guide-concept-desc" style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
                         Measures how the <strong>runtime</strong> of an algorithm increases as the size of the input (n) grows.
                     </p>
                 </div>
 
-                <div className="viz-box viz-reveal card-purple visible" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
-                    <span className="viz-label">Space Complexity</span>
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
+                <div className="guide-concept-card" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
+                    <span className="guide-concept-name">Space Complexity</span>
+                    <p className="guide-concept-desc" style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
                         Measures how much extra <strong>memory</strong> an algorithm requires as the input size (n) grows.
                     </p>
                 </div>
 
-                <div className="viz-box viz-reveal card-pink visible" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
-                    <span className="viz-label">Big O (Worst-Case)</span>
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
+                <div className="guide-concept-card" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
+                    <span className="guide-concept-name">Big O (Worst-Case)</span>
+                    <p className="guide-concept-desc" style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
                         The upper bound of complexity. It answers: <em>"In the worst scenario, how bad can it get?"</em>
                     </p>
                 </div>
 
-                <div className="viz-box viz-reveal card-green visible" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
-                    <span className="viz-label">Big Omega & Theta</span>
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
+                <div className="guide-concept-card" onClick={scrollToInteractive} style={{ cursor: 'pointer' }}>
+                    <span className="guide-concept-name">Big Omega & Theta</span>
+                    <p className="guide-concept-desc" style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-med)' }}>
                         <strong>Ω (Omega):</strong> Best-case scenario (lower bound).<br />
                         <strong>Θ (Theta):</strong> Exact/average bound.
                     </p>

@@ -46,82 +46,41 @@ Animations must feel premium and smooth:
   - **Mermaid diagram wrappers**: `max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center`. The `.mermaid` pre inside must also use `display: flex; justify-content: center`.
   - Always use a **dedicated CSS class** (e.g. `.[topic]-mermaid-wrap`) for Mermaid diagram wrappers — never rely on a bare `viz-card` div alone.
 
-## 5. Premium Card & Flow Styling (Standard Pattern)
+## 5. Shared Concept Card System
 
-### Card Styling Rules
-All guide concept cards should follow this premium pattern:
+### REQUIRED: Use `guide-concept-*` classes for all guide concept cards
+All guide "Core Concepts" sections use a **single shared CSS file**: `src/styles/guide-cards.css`. Do NOT create per-guide card classes.
 
-**Card Container** (e.g., `.csa-card`):
-```css
-.guide-card {
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-    border-radius: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
+**Available classes:**
+- `.guide-concept-grid` — Card grid container
+- `.guide-concept-card` — Card wrapper
+- `.guide-concept-header` — Header row (icon + name)
+- `.guide-concept-icon` — Emoji icon container
+- `.guide-concept-name` — Card title
+- `.guide-concept-desc` — Card description
+- `.guide-concept-stats` — Stat chips container
+- `.guide-concept-chip` — Stat chip (add `.hi` for highlight)
+- `.guide-concept-usecase` — Use case footer
 
-.guide-card:hover {
-    border-color: [guide-primary-color];
-    transform: translateY(-4px);
-    box-shadow: 0 4px 20px rgba([guide-color-rgb], 0.1);
-}
+**Example usage:**
+```tsx
+<div className="guide-concept-grid">
+    <div className="guide-concept-card" onClick={handleClick}>
+        <div className="guide-concept-header">
+            <div className="guide-concept-icon">🔜</div>
+            <div className="guide-concept-name">Forward Proxy</div>
+        </div>
+        <p className="guide-concept-desc">Description text here.</p>
+        <div className="guide-concept-stats">
+            <span className="guide-concept-chip hi">Client-Side</span>
+            <span className="guide-concept-chip">Anonymity</span>
+        </div>
+        <div className="guide-concept-usecase"><strong>Use case:</strong> VPNs.</div>
+    </div>
+</div>
 ```
 
-**Card Typography**:
-```css
-.guide-card-name {
-    font-family: var(--font-outfit);    /* Premium heading font */
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-hi);
-}
-
-.guide-card-desc {
-    font-size: 0.95rem;
-    color: var(--text-dim);
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    flex-grow: 1;
-}
-```
-
-**Stat Chips**:
-```css
-.guide-stat-chip {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    text-transform: uppercase;    /* Key: uppercase for emphasis */
-}
-
-.guide-stat-chip.hi {
-    color: [guide-primary-color];
-    border-color: rgba([guide-color-rgb], 0.3);
-    background: rgba([guide-color-rgb], 0.05);
-}
-```
-
-**Use Case Section**:
-```css
-.guide-use-case {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-}
-
-.guide-use-case strong {
-    color: var(--text-hi);
-}
-```
+Light and dark mode styling is built into `guide-cards.css` — no per-guide overrides needed.
 
 ### Flow Section Styling Rules
 Interactive flow sections should follow this premium pattern:
@@ -199,17 +158,8 @@ Interactive flow sections should follow this premium pattern:
 7. **Shadows**: Use `0 4px 6px rgba(0, 0, 0, 0.1)` for containers, `0 0 12px rgba([color], 0.2)` for active states
 8. **Color theming**: Background should be 10% opacity (`rgba(x, x, x, 0.1)`), chip background 5% opacity (`rgba(x, x, x, 0.05)`)
 
-### Important: Avoid Mixing Card Class Systems
-- **Do NOT combine multiple card class systems** in a single component (e.g., don't use `.viz-card` + `.proxy-card` + color theme classes simultaneously)
-- **Choose ONE card system per guide**:
-  - For new guides: Use guide-specific card classes (e.g., `.guide-card`, `.proxy-card`, `.csa-card`)
-  - Ensure the chosen card class includes ALL necessary styling: border, background, padding, transitions
-  - Apply color theming via inline hover handler or CSS classes, NOT by stacking multiple base classes
-- **Card container MUST define**:
-  - `display: flex; flex-direction: column` for layout
-  - `border: 1px solid var(--border)` for visibility
-  - `padding: 1.5rem` for consistent spacing
-  - `background: var(--surface)` for proper contrast
-  - `transition: all 0.3s ease` for smooth interactions
-  - Hover state with border color, transform, and shadow
+### Important: No Per-Guide Card Classes
+- **Do NOT create per-guide card classes** (e.g., `.bf-card`, `.proxy-card`, `.csa-card`)
+- **Always use** the shared `guide-concept-*` classes from `src/styles/guide-cards.css`
+- Per-guide CSS files should only contain flow section, mermaid, node, and animation styles
 

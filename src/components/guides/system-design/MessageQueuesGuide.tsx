@@ -266,18 +266,18 @@ export function MessageQueuesGuide() {
         >
             {/* ═══════════════ QUEUE SYSTEMS GRID ═══════════════ */}
             <h2 className="section-title">Popular Queue Systems</h2>
-            <div className="mq-grid">
+            <div className="guide-concept-grid">
                 {QUEUE_SYSTEMS.map((s) => (
                     <div
                         key={s.id}
-                        className={`viz-card mq-card ${s.colorClass}`}
+                        className="guide-concept-card"
                     >
-                        <div className="mq-card-header">
-                            <div className="mq-card-icon">{s.icon}</div>
-                            <div className="mq-card-title">{s.title}</div>
+                        <div className="guide-concept-header">
+                            <div className="guide-concept-icon">{s.icon}</div>
+                            <div className="guide-concept-name">{s.title}</div>
                         </div>
-                        <div className="mq-card-description">{s.description}</div>
-                        <div className="mq-card-tags">
+                        <div className="guide-concept-desc">{s.description}</div>
+                        <div className="guide-concept-stats">
                             {s.tags.map(tag => (
                                 <span key={tag.text} className={`mq-tag ${tag.highlight}`}>{tag.text}</span>
                             ))}

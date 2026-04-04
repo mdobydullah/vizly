@@ -246,89 +246,89 @@ export function LoadBalancingGuide() {
         >
             {/* ═══════════════ ALGORITHMS GRID ═══════════════ */}
             <h2 className="section-title">Load Balancing Algorithms</h2>
-            <div className="lb-grid">
+            <div className="guide-concept-grid">
                 {/* Round Robin */}
-                <div className="viz-card lb-card card-pink">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">🔄</div>
-                        <div className="lb-card-name">Round Robin</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔄</div>
+                        <div className="guide-concept-name">Round Robin</div>
                     </div>
-                    <p className="lb-card-desc">Requests distributed in fixed circular order. Perfect for identical backend servers.</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Simplicity</span>
-                        <span className="lb-stat-chip">Stateless</span>
+                    <p className="guide-concept-desc">Requests distributed in fixed circular order. Perfect for identical backend servers.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Simplicity</span>
+                        <span className="guide-concept-chip">Stateless</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Simple APIs, mirrored web servers</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Simple APIs, mirrored web servers</div>
                 </div>
 
                 {/* Least Connections */}
-                <div className="viz-card lb-card card-purple">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">📉</div>
-                        <div className="lb-card-name">Least Connections</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">📉</div>
+                        <div className="guide-concept-name">Least Connections</div>
                     </div>
-                    <p className="lb-card-desc">Routes to the server with fewest active requests. Ideal for long-lived connections.</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Adaptive</span>
-                        <span className="lb-stat-chip">WebSocket</span>
+                    <p className="guide-concept-desc">Routes to the server with fewest active requests. Ideal for long-lived connections.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Adaptive</span>
+                        <span className="guide-concept-chip">WebSocket</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Database pools, long-poll APIs</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Database pools, long-poll APIs</div>
                 </div>
 
                 {/* Weighted RR */}
-                <div className="viz-card lb-card card-cyan">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">⚖️</div>
-                        <div className="lb-card-name">Weighted Round Robin</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚖️</div>
+                        <div className="guide-concept-name">Weighted Round Robin</div>
                     </div>
-                    <p className="lb-card-desc">Assigns more traffic to powerful servers. Distributes by capacity weight index.</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Hybrid Pool</span>
-                        <span className="lb-stat-chip">Capacity</span>
+                    <p className="guide-concept-desc">Assigns more traffic to powerful servers. Distributes by capacity weight index.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Hybrid Pool</span>
+                        <span className="guide-concept-chip">Capacity</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Mixing old and new hardware</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Mixing old and new hardware</div>
                 </div>
 
                 {/* IP Hash */}
-                <div className="viz-card lb-card card-blue">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">🔑</div>
-                        <div className="lb-card-name">IP Hash / Sticky</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🔑</div>
+                        <div className="guide-concept-name">IP Hash / Sticky</div>
                     </div>
-                    <p className="lb-card-desc">Client IP determines server mapping. Ensures same user visits same server (Sticky Session).</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Affinity</span>
-                        <span className="lb-stat-chip">Session</span>
+                    <p className="guide-concept-desc">Client IP determines server mapping. Ensures same user visits same server (Sticky Session).</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Affinity</span>
+                        <span className="guide-concept-chip">Session</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Caching, session-based auth</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Caching, session-based auth</div>
                 </div>
 
                 {/* Least Response Time */}
-                <div className="viz-card lb-card card-green">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">⚡</div>
-                        <div className="lb-card-name">Least Response Time</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">⚡</div>
+                        <div className="guide-concept-name">Least Response Time</div>
                     </div>
-                    <p className="lb-card-desc">Routes to server with lowest latency and fewest connections. Performance-aware.</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Performance</span>
-                        <span className="lb-stat-chip">Latency</span>
+                    <p className="guide-concept-desc">Routes to server with lowest latency and fewest connections. Performance-aware.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Performance</span>
+                        <span className="guide-concept-chip">Latency</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Geo-distributed, latency-sensitive</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Geo-distributed, latency-sensitive</div>
                 </div>
 
                 {/* Consistent Hashing */}
-                <div className="viz-card lb-card card-orange">
-                    <div className="lb-card-header">
-                        <div className="lb-card-icon">🎯</div>
-                        <div className="lb-card-name">Consistent Hashing</div>
+                <div className="guide-concept-card">
+                    <div className="guide-concept-header">
+                        <div className="guide-concept-icon">🎯</div>
+                        <div className="guide-concept-name">Consistent Hashing</div>
                     </div>
-                    <p className="lb-card-desc">Hash ring algorithm. Only affected keys remapped when servers change. Minimal cache invalidation.</p>
-                    <div className="lb-card-stats">
-                        <span className="lb-stat-chip hi">Scalable</span>
-                        <span className="lb-stat-chip">Caching</span>
+                    <p className="guide-concept-desc">Hash ring algorithm. Only affected keys remapped when servers change. Minimal cache invalidation.</p>
+                    <div className="guide-concept-stats">
+                        <span className="guide-concept-chip hi">Scalable</span>
+                        <span className="guide-concept-chip">Caching</span>
                     </div>
-                    <div className="lb-use-case"><strong>Use case:</strong> Distributed caches, CDNs</div>
+                    <div className="guide-concept-usecase"><strong>Use case:</strong> Distributed caches, CDNs</div>
                 </div>
             </div>
 
