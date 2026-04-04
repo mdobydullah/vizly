@@ -127,9 +127,9 @@ mermaid: true
 | 1 | **What is AI? From Rules to Learning** — AI vs ML vs DL vs GenAI, brief history, why now | Mermaid: AI subset diagram, Excalidraw: timeline | DONE |
 | 2 | **How Machines Learn** — supervised, unsupervised, reinforcement learning, train/test split | Excalidraw: learning types comparison, D3: bias-variance tradeoff chart | DONE |
 | 3 | **Neural Networks from Scratch** — perceptron, layers, activation functions, forward pass | Excalidraw: neuron anatomy, Mermaid: network architecture, D3: activation function plots | DONE |
-| 4 | **Backpropagation & Training** — loss functions, gradient descent, learning rate, epochs | Excalidraw: backprop flow, D3: loss curve animation, gradient descent landscape | TODO |
-| 5 | **CNNs & Computer Vision** — convolutions, pooling, feature maps | Excalidraw: convolution operation, filter visualization | TODO |
-| 6 | **RNNs & Sequential Data** — why sequence matters, vanishing gradients, LSTM/GRU | Mermaid: RNN unrolled, Excalidraw: LSTM cell gates | TODO |
+| 4 | **Backpropagation & Training** — loss functions, gradient descent, learning rate, epochs | Excalidraw: backprop flow, D3: loss curve animation, gradient descent landscape | DONE |
+| 5 | **CNNs & Computer Vision** — convolutions, pooling, feature maps | Excalidraw: convolution operation, filter visualization | DONE |
+| 6 | **RNNs & Sequential Data** — why sequence matters, vanishing gradients, LSTM/GRU | Mermaid: RNN unrolled, Excalidraw: LSTM cell gates | DONE |
 
 ### Series 2: Transformers & LLMs (Weeks 3-4)
 

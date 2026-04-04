@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { SeriesCard } from "@/components/articles/SeriesCard";
@@ -422,6 +422,7 @@ function ArticlesContent() {
 }
 
 export default function Articles() {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <Suspense fallback={
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'var(--text-dim)' }}>

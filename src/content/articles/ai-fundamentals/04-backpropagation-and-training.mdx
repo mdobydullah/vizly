@@ -1,0 +1,260 @@
+---
+title: "Backpropagation & Training"
+slug: backpropagation-and-training
+category: ai-fundamentals
+series: ai-fundamentals
+seriesOrder: 4
+description: "How does a neural network actually learn? We walk through loss functions, gradient descent, and backpropagation step by step."
+tags:
+  - AI
+  - Neural Networks
+  - Deep Learning
+  - Training
+readTime: "13 min"
+icon: "📉"
+color: cyan
+createdAt: "2026-04-04T16:00:00Z"
+updatedAt: "2026-04-04T16:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The network made a prediction. Now what?
+
+Last time, we built a neural network and sent data through it. Input goes in, weights multiply things, activations bend things, output comes out.
+
+But we left out the most important part.
+
+The network predicted "0.92 = apple." What if the correct answer was "orange"? What happens next?
+
+This is where learning actually happens.
+
+---
+
+## First, measure how wrong you are
+
+Before you can fix anything, you need to know how bad your current answer is. That's what a **loss function** does.
+
+It compares the network's prediction to the correct answer and gives you a number. A big number means the prediction was way off. A small number means you're close.
+
+Think of it like a thermometer for your mistakes. The hotter (higher) the number, the worse your prediction. Training is just trying to bring that number as close to zero as possible.
+
+**Mean Squared Error (MSE)** — the classic. Take each error (difference between prediction and truth), square it, average everything.
+
+```
+MSE = average of (prediction - truth)²
+
+Predicted: 0.92, Actual: 0.0 (orange)
+Error = (0.92 - 0.0)² = 0.846
+```
+
+Squaring does two things: it makes negative errors positive, and it punishes big mistakes harder than small ones.
+
+**Binary Cross-Entropy** — better for yes/no predictions. Measures how surprised the model is by the correct label. Works really well with sigmoid outputs.
+
+| Loss Function | Used for | Output type |
+|---------------|----------|-------------|
+| **MSE** | Regression (predicting numbers) | Any continuous value |
+| **Binary Cross-Entropy** | Two-class problems | 0 or 1 |
+| **Categorical Cross-Entropy** | Multi-class (10 categories, etc.) | Probabilities per class |
+
+<Callout type="info" title="Loss is your report card">
+During training, you want to watch the loss drop over time. If it's decreasing, the network is learning. If it's stuck, something is wrong. If it goes up, something is very wrong.
+</Callout>
+
+---
+
+## Gradient descent — how we fix the weights
+
+OK so you have a loss number. Now you need to adjust the weights to make that number smaller. But you have thousands (or millions) of weights. Which direction do you nudge each one?
+
+This is where **gradient descent** comes in.
+
+Imagine you're blindfolded on a hilly landscape and you want to reach the lowest valley. You can't see anything, but you can feel the slope under your feet. So you take a small step downhill. Then another. Then another. Eventually, you reach the bottom.
+
+That's gradient descent. The landscape is your loss surface. Every point on it corresponds to a different combination of weights. The valley at the bottom is where the loss is lowest — and that's where you want to be.
+
+<MermaidBlock>
+graph LR
+    A["Current weights\nhigh loss"] --> B["Calculate gradient\nwhich direction is downhill?"]
+    B --> C["Update weights\nstep in that direction"]
+    C --> D["New weights\nlower loss"]
+    D --> E{"Loss low enough?"}
+    E -- "No" --> B
+    E -- "Yes" --> F["Done training"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The **gradient** is just the slope. For each weight, the gradient tells you: "if you increase this weight slightly, does the loss go up or down, and by how much?"
+
+If the gradient is positive, the loss goes up when you increase the weight — so decrease it. Negative? Do the opposite.
+
+You always move against the gradient. That's the "descent" part.
+
+---
+
+## The learning rate — how big a step?
+
+You can't take a giant leap down the hill. You might overshoot the valley and end up on the other side — higher than where you started.
+
+The **learning rate** controls how big each step is.
+
+```
+new_weight = old_weight - (learning_rate × gradient)
+```
+
+Small learning rate → tiny steps → very slow to converge, but precise.
+Large learning rate → big steps → fast, but might bounce around and miss the valley.
+
+<Callout type="warning" title="Learning rate is the trickiest hyperparameter">
+Too high and the model diverges (loss shoots up). Too low and training takes forever. Most people start with 0.001 and adjust from there. Modern optimizers like Adam handle this semi-automatically.
+</Callout>
+
+| Learning rate | Effect |
+|---------------|--------|
+| 0.1 (too high) | Jumps around, might diverge |
+| 0.001 (good) | Steady descent, usually converges |
+| 0.0000001 (too low) | Barely moves, takes ages |
+
+---
+
+## Backpropagation — the math engine
+
+So gradient descent is the *strategy*. Backpropagation is the *calculation* that makes it work.
+
+Here's the problem: you have a network with many layers. You get the loss at the end. But you need gradients for every single weight — including the ones buried in early layers, far from the output.
+
+How do you figure out "how responsible was weight #47 in layer 2 for this final error?"
+
+**Backpropagation** (or "backprop") does this using the chain rule from calculus. It starts at the output (where the loss is), calculates the gradient there, and then propagates the gradient *backwards* through the network — layer by layer — all the way to the first layer.
+
+It's called backpropagation because the error flows *backwards*. Data goes forward (input → output). Gradients go backward (output → input).
+
+<MermaidBlock>
+graph LR
+    subgraph Forward Pass
+        FI["Input"] --> FH1["Layer 1"] --> FH2["Layer 2"] --> FO["Output\nget loss"]
+    end
+    subgraph Backward Pass
+        BO["Loss gradient"] --> BH2["Layer 2\ncompute grad"] --> BH1["Layer 1\ncompute grad"] --> BI["Update weights"]
+    end
+    style FI fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style FH1 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style FH2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style FO fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style BO fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style BH2 fill:#1a1f2b,stroke:#ff6b6b,color:#aaa
+    style BH1 fill:#1a1f2b,stroke:#ff6b6b,color:#aaa
+    style BI fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+You don't need to understand the calculus to use backprop. Every modern deep learning framework (PyTorch, TensorFlow, JAX) does it automatically. You just write the forward pass and the framework figures out the backward pass for you.
+
+But understanding what it's doing — moving error signals backwards to credit or blame each weight — helps you debug things when they go wrong.
+
+---
+
+## Epochs and batches — how training actually runs
+
+You don't just feed the network one example and call it done. You feed it your entire dataset, over and over again.
+
+One full pass through your entire training set is called an **epoch**.
+
+But here's the thing — doing one giant gradient step after seeing all your data is slow. Instead, you split the data into **mini-batches** (usually 32 or 64 examples at a time), compute the gradient for each batch, and update the weights after each one.
+
+This is called **mini-batch gradient descent**, and it's what basically everyone uses.
+
+```
+Training loop:
+  for each epoch:
+    shuffle the dataset
+    for each mini-batch:
+      forward pass → get predictions
+      compute loss
+      backward pass → get gradients
+      update weights
+    print training loss
+```
+
+<Callout type="tip" title="Why shuffle the data?">
+Shuffling between epochs prevents the network from memorizing the order of examples rather than learning the actual patterns. Always shuffle.
+</Callout>
+
+| Term | Meaning |
+|------|---------|
+| **Epoch** | One full pass through the training data |
+| **Batch** | A small chunk of training data |
+| **Iteration** | One forward+backward pass on one batch |
+| **Learning rate** | How big each weight update step is |
+
+---
+
+## Watching the loss curve
+
+As training runs, you track the loss after each epoch. If things are going well, it looks like a curve that starts high and gradually drops down.
+
+If it's dropping steadily, you're fine — keep going. If it drops fast then flattens, you might be stuck in a local minimum or need a lower learning rate. If it goes up, your learning rate is probably too high.
+
+The scary one is when training loss keeps falling but validation loss starts rising. That's **overfitting** — the model memorized the training data instead of learning the actual patterns. It's acing the practice exam but failing the real one.
+
+<MermaidBlock>
+graph TB
+    A["Epoch 1\nLoss: 2.4"] --> B["Epoch 5\nLoss: 1.1"]
+    B --> C["Epoch 10\nLoss: 0.5"]
+    C --> D["Epoch 20\nLoss: 0.2"]
+    D --> E["Epoch 50\nLoss: 0.08"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#aaa
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The validation loss (your model's performance on data it hasn't seen) is what actually matters. That's the real test of whether the model learned something useful.
+
+---
+
+## The full training loop, start to finish
+
+The full training loop is:
+
+1. **Forward pass**: Feed a batch through the network, get predictions
+2. **Compute loss**: Compare predictions to truth using the loss function
+3. **Backward pass (backprop)**: Compute gradients for every weight
+4. **Update weights**: Nudge each weight in the direction that reduces loss
+5. **Repeat** for many epochs until loss is low enough
+
+<MermaidBlock>
+graph TB
+    A["Initialize weights\nrandom small values"] --> B["Forward pass\npredict outputs"]
+    B --> C["Compute loss\nhow wrong are we?"]
+    C --> D["Backward pass\nbackpropagation"]
+    D --> E["Update weights\ngradient descent"]
+    E --> F{"Converged?"}
+    F -- "No" --> B
+    F -- "Yes" --> G["Trained model"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This is the engine behind every neural network you've ever used. ChatGPT went through this loop trillions of times. So did the algorithm that recognizes your face, the model that filters your spam, the system that recommends your next video.
+
+All of it is just: predict, measure error, backprop, update, repeat.
+
+---
+
+## What's next?
+
+But "layers of neurons" isn't enough to understand images. Photos have pixels arranged in space — and there's something special about that spatial structure that a plain network ignores completely.
+
+Next up: **CNNs and Computer Vision**. We'll see how convolutional networks are designed specifically to exploit the structure of images, and how they went from a research curiosity to the backbone of everything from medical imaging to self-driving cars.

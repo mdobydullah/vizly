@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { GuideCard } from "@/components/home/GuideCard";
 import guidesData from "@/data/guides";
@@ -398,6 +398,7 @@ function GuidesContent() {
 }
 
 export default function Guides() {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <Suspense fallback={
       <div style={{

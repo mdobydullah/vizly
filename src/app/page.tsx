@@ -1,14 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { GuideCard } from "@/components/home/GuideCard";
+import { ArticleCard } from "@/components/articles/ArticleCard";
 import guidesData from "@/data/guides";
 import { useRouter } from "next/navigation";
+import { useArticles } from "@/lib/useArticles";
 import { config } from "@/lib/config";
 
 const data = guidesData;
 
 export default function Home() {
     const router = useRouter();
+    const { articles } = useArticles();
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {/* ── HERO SECTION ── */}
@@ -199,11 +203,52 @@ export default function Home() {
                         // Then by date
                         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                     })
-                    .slice(0, 9)
+                    .slice(0, 6)
                     .map((guide, index) => (
                         <GuideCard key={guide.id} guide={guide} index={index} />
                     ))}
             </div>
+
+            {/* Show All Guides link */}
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <Link href="/guides" style={{
+                    color: 'var(--text-dim)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '.8rem',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
+                }} className="show-all-link">
+                    Show All Guides →
+                </Link>
+            </div>
+
+            {/* ── LATEST ARTICLES SECTION ── */}
+            {articles.length > 0 && (
+                <>
+                    <div className="viz-section-header">
+                        <h2 className="viz-section-title">Latest Articles</h2>
+                        <p className="viz-section-hint">In-depth reads on AI, systems, and engineering concepts.</p>
+                    </div>
+
+                    <div className="viz-grid">
+                        {articles.slice(0, 6).map((article, index) => (
+                            <ArticleCard key={article.slug} article={article} index={index} />
+                        ))}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                        <Link href="/articles" style={{
+                            color: 'var(--text-dim)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '.8rem',
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '3px',
+                        }} className="show-all-link">
+                            Show All Articles →
+                        </Link>
+                    </div>
+                </>
+            )}
 
         </div>
     );
