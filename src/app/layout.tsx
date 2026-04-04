@@ -20,7 +20,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {config.app.gtmId && <GoogleTagManager gtmId={config.app.gtmId} />}
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -33,6 +32,7 @@ export default function RootLayout({
         display: 'flex',
         flexDirection: 'column'
       }}>
+        {config.app.gtmId && <GoogleTagManager gtmId={config.app.gtmId} />}
         <SettingsProvider>
           <Header />
           <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
