@@ -148,10 +148,10 @@ mermaid: true
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 13 | **Supervised Fine-Tuning (SFT)** — instruction tuning, data formats, when to fine-tune | Mermaid: SFT pipeline, Excalidraw: before/after comparison | TODO |
-| 14 | **RLHF & Reward Models** — human feedback loop, reward modeling, PPO, DPO | Excalidraw: RLHF loop diagram, Mermaid: training stages | TODO |
-| 15 | **Efficient Fine-Tuning** — LoRA, QLoRA, adapters, PEFT | Excalidraw: LoRA weight injection, D3: parameter efficiency comparison chart | TODO |
-| 16 | **Evaluation & Benchmarks** — perplexity, BLEU, human eval, MMLU, leaderboards | D3: benchmark comparison charts, Mermaid: evaluation pipeline | TODO |
+| 13 | **Supervised Fine-Tuning (SFT)** — instruction tuning, data formats, when to fine-tune | Mermaid: SFT pipeline, Excalidraw: before/after comparison | DONE |
+| 14 | **RLHF & Reward Models** — human feedback loop, reward modeling, PPO, DPO | Excalidraw: RLHF loop diagram, Mermaid: training stages | DONE |
+| 15 | **Efficient Fine-Tuning** — LoRA, QLoRA, adapters, PEFT | Excalidraw: LoRA weight injection, D3: parameter efficiency comparison chart | DONE |
+| 16 | **Evaluation & Benchmarks** — perplexity, BLEU, human eval, MMLU, leaderboards | D3: benchmark comparison charts, Mermaid: evaluation pipeline | DONE |
 
 ### Series 4: RAG, Prompting & Applications (Week 6)
 

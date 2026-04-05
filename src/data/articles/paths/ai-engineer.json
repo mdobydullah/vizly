@@ -4,6 +4,9 @@
   "description": "A complete learning path from zero to shipping AI in production. Follow these series in order to build both the conceptual foundations and practical skills needed to work as an AI engineer.",
   "icon": "🤖",
   "color": "cyan",
+  "tags": ["AI"],
+  "createdAt": "2026-04-04T15:43:21Z",
+  "updatedAt": "2026-04-04T15:43:21Z",
   "estimatedWeeks": 10,
   "series": [
     "ai-fundamentals",

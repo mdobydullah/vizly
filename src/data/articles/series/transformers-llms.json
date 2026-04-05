@@ -4,6 +4,9 @@
   "description": "From attention mechanisms to text generation — how modern language models actually work under the hood.",
   "icon": "🤖",
   "color": "cyan",
+  "tags": ["AI"],
+  "createdAt": "2026-04-04T18:13:00Z",
+  "updatedAt": "2026-04-04T18:13:00Z",
   "articles": [
     { "order": 1, "slug": "attention-is-all-you-need", "title": "Attention Is All You Need" },
     { "order": 2, "slug": "the-transformer-architecture", "title": "The Transformer Architecture" },

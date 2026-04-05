@@ -10,6 +10,7 @@
 
 - [AI Fundamentals](/series/ai-fundamentals): A ground-up journey through AI, ML, deep learning, and neural networks. 6 articles.
 - [Transformers & LLMs](/series/transformers-llms): From attention mechanisms to text generation — how modern language models actually work under the hood. 6 articles.
+- [Post-Training & Alignment](/series/post-training-alignment): How base models become helpful assistants — supervised fine-tuning, RLHF, efficient adapters, and evaluation. 4 articles.
 
 ## Articles
 
@@ -25,6 +26,10 @@
 - [Pre-Training LLMs](/articles/pre-training-llms): Data collection, cleaning, next-token prediction, scaling laws.
 - [GPT, LLaMA & Model Families](/articles/gpt-llama-and-model-families): Decoder-only vs encoder-decoder, model zoo, parameter counts.
 - [Text Generation Strategies](/articles/text-generation-strategies): Greedy, beam search, top-k, top-p, temperature.
+- [Supervised Fine-Tuning (SFT)](/articles/supervised-fine-tuning): Instruction tuning, data formats, when to fine-tune.
+- [RLHF & Reward Models](/articles/rlhf-and-reward-models): Human feedback loop, reward modeling, PPO, DPO.
+- [Efficient Fine-Tuning](/articles/efficient-fine-tuning): LoRA, QLoRA, adapters, PEFT.
+- [Evaluation & Benchmarks](/articles/evaluation-and-benchmarks): Perplexity, BLEU, human eval, MMLU, leaderboards.
 
 ## Guides — System Design
 

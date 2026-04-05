@@ -68,7 +68,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // Load series definition if this article belongs to one
   const seriesData = article.series ? getSeriesBySlug(article.series) : null;
 
-  const { content, ...frontmatter } = article;
+  const { content, githubPath, ...frontmatter } = article;
 
   return (
     <ArticlePageClient
@@ -77,6 +77,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       nextArticle={nextArticle}
       series={seriesData}
       publishedSlugs={publishedSlugs}
+      githubPath={githubPath}
     >
       <MDXRemote
         source={content}

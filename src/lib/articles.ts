@@ -38,6 +38,7 @@ export function getAllArticles(): Article[] {
         ...(data as ArticleFrontmatter),
         readTime: `${minutes} min`,
         content,
+        githubPath: `src/content/articles/${dir.name}/${file}`,
       });
     }
   }

@@ -26,7 +26,7 @@ src/
 ├── data/
 │   ├── guides/             # Guide metadata JSON files
 │   └── articles/           # categories.json + series/*.json + paths/*.json
-├── styles/                 # CSS files (global + per-topic + guide-cards.css for shared concept cards)
+├── styles/                 # CSS files (global + per-topic + guide-cards.css + listing-filters.css for shared listing page filters)
 ├── types/                  # TypeScript interfaces
 └── lib/                    # Utilities (config, article loading, colors)
 ```
@@ -59,13 +59,14 @@ src/
 
 ### Series (dedicated routes)
 - Data: `src/data/articles/series/[slug].json` (same files as above)
-- Listing: `/series` — shows all series as cards
+- Listing: `/series` — shows all series as cards with search, tag filter, and sort
 - Detail: `/series/[slug]` — shows series header + ordered article list (published = clickable, upcoming = "Soon")
 - Adding a new series: create a JSON in `series/` — no code changes
+- Series JSON: `{ slug, title, description, icon, color, tags, createdAt, updatedAt, articles: [...] }`
 
 ### Learning Paths (curated roadmaps)
 - Data: `src/data/articles/paths/[slug].json` — references series slugs in order
-- Listing: `/learning-paths` — shows all paths as cards
+- Listing: `/learning-paths` — shows all paths as cards with search, tag filter, and sort
 - Detail: `/learning-paths/[slug]` — shows path header + ordered series steps (available = clickable to `/series/[slug]`, future = "Soon")
 - Adding a new path: create a JSON in `paths/` — no code changes
-- Path JSON: `{ slug, title, description, icon, color, estimatedWeeks, series: ["slug1", "slug2"] }`
+- Path JSON: `{ slug, title, description, icon, color, tags, createdAt, updatedAt, estimatedWeeks, series: ["slug1", "slug2"] }`

@@ -10,15 +10,17 @@ interface ArticlePageClientProps {
   nextArticle?: { slug: string; title: string } | null;
   series?: ArticleSeries | null;
   publishedSlugs?: string[];
+  githubPath?: string;
   children: React.ReactNode;
 }
 
-export function ArticlePageClient({ article, prevArticle, nextArticle, series, publishedSlugs = [], children }: Readonly<ArticlePageClientProps>) {
+export function ArticlePageClient({ article, prevArticle, nextArticle, series, publishedSlugs = [], githubPath, children }: Readonly<ArticlePageClientProps>) {
   return (
     <ArticleLayout
       article={article}
       prevArticle={prevArticle}
       nextArticle={nextArticle}
+      githubPath={githubPath}
     >
       {series && (
         <SeriesNav

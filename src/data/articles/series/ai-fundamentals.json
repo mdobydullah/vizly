@@ -4,6 +4,9 @@
   "description": "A ground-up journey through AI, ML, deep learning, and neural networks.",
   "icon": "🧠",
   "color": "purple",
+  "tags": ["AI"],
+  "createdAt": "2026-04-04T09:43:21Z",
+  "updatedAt": "2026-04-04T09:43:21Z",
   "articles": [
     { "order": 1, "slug": "what-is-ai", "title": "What is AI? From Rules to Learning" },
     { "order": 2, "slug": "how-machines-learn", "title": "How Machines Learn" },

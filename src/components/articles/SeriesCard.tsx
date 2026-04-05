@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArticleSeries } from "@/types/articles";
+import { getColorConfig } from "@/lib/article-colors";
 
 interface SeriesCardProps {
     series: ArticleSeries;
@@ -11,6 +12,7 @@ interface SeriesCardProps {
 
 export function SeriesCard({ series, publishedCount, index }: Readonly<SeriesCardProps>) {
     const total = series.articles.length;
+    const colorConfig = getColorConfig(series.color);
 
     return (
         <Link
@@ -28,24 +30,28 @@ export function SeriesCard({ series, publishedCount, index }: Readonly<SeriesCar
                 animation: `fadeUp .5s ease .${index + 1}s both`,
                 transition: 'all .3s ease',
             }}
-            className="series-card"
+            className={`series-card card-${series.color}`}
         >
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.2rem',
-                    background: 'var(--surface2)',
-                    border: '1px solid var(--border)',
-                }}>
+                <div
+                    className="series-card-icon"
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem',
+                        background: colorConfig.background,
+                        border: `1px solid ${colorConfig.border}`,
+                        transition: 'all .3s ease',
+                    }}
+                >
                     {series.icon}
                 </div>
                 <span style={{
@@ -89,32 +95,36 @@ export function SeriesCard({ series, publishedCount, index }: Readonly<SeriesCar
                 <div style={{
                     height: '100%',
                     width: `${(publishedCount / total) * 100}%`,
-                    background: 'var(--cyan)',
+                    background: colorConfig.primary,
                     borderRadius: '2px',
                     transition: 'width 0.3s ease',
                 }} />
             </div>
 
-            <style jsx>{`
-                :global(.series-card:hover) {
+            <style jsx global>{`
+                .series-card {
+                    transition: all .3s ease;
+                }
+                .series-card:hover {
                     transform: translateY(-4px);
-                    border-color: var(--border2) !important;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
+                .series-card:hover .series-card-icon {
+                    transform: scale(1.05);
                 }
 
-                :global([data-theme="light"] .series-card) {
+                [data-theme="light"] .series-card {
                     background: #fff;
                     border-color: #e0ddd5;
                 }
 
-                :global([data-theme="light"] .series-card:hover) {
-                    border-color: #c4c1b8 !important;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                }
-
-                :global([data-theme="light"] .series-card) :global(div:first-child > div:first-child) {
+                [data-theme="light"] .series-card .series-card-icon {
                     background: #f0ede5;
                     border-color: #e0ddd5;
+                }
+
+                [data-theme="light"] .series-card:hover .series-card-icon {
+                    background: color-mix(in srgb, ${colorConfig.primary} 12%, #f0ede5) !important;
+                    border-color: color-mix(in srgb, ${colorConfig.primary} 25%, #e0ddd5) !important;
                 }
             `}</style>
         </Link>

@@ -7,12 +7,14 @@ import { ArrowUp, ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react';
 import { ArticleFrontmatter } from '@/types/articles';
 import { getColorConfig } from '@/lib/article-colors';
 import { useSettings } from '@/context/SettingsContext';
+import { config } from '@/lib/config';
 
 interface ArticleLayoutProps {
   article: ArticleFrontmatter;
   children: React.ReactNode;
   prevArticle?: { slug: string; title: string } | null;
   nextArticle?: { slug: string; title: string } | null;
+  githubPath?: string;
 }
 
 export function ArticleLayout({
@@ -20,6 +22,7 @@ export function ArticleLayout({
   children,
   prevArticle,
   nextArticle,
+  githubPath,
 }: Readonly<ArticleLayoutProps>) {
   const router = useRouter();
   const { theme } = useSettings();
@@ -216,6 +219,33 @@ export function ArticleLayout({
           )}
         </div>
       )}
+
+      {/* Contribute Link */}
+      <div style={{
+        textAlign: 'center',
+        marginTop: '1rem',
+        paddingBottom: '2rem',
+      }}>
+        <a
+          href={`${config.urls.githubRepo}/${githubPath ? 'blob/main/' + githubPath : 'tree/main/src/content/articles'}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontSize: '.85rem',
+            color: 'var(--text-dim)',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '.5rem',
+            transition: 'color .2s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = colorConfig.primary}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-dim)'}
+        >
+          <span>Edit this page on GitHub</span>
+          <span style={{ fontSize: '1rem' }}>↗</span>
+        </a>
+      </div>
 
       {/* Floating controls */}
       {mounted && createPortal(

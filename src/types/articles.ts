@@ -18,6 +18,7 @@ export interface ArticleFrontmatter {
 
 export interface Article extends ArticleFrontmatter {
   content: string;
+  githubPath?: string;
 }
 
 export interface ArticleCategory {
@@ -41,6 +42,9 @@ export interface ArticleSeries {
   description: string;
   icon: string;
   color: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
   articles: SeriesArticleEntry[];
 }
 
@@ -50,6 +54,9 @@ export interface ArticlePath {
   description: string;
   icon: string;
   color: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
   estimatedWeeks: number;
   series: string[]; // ordered slugs referencing series/*.json
 }

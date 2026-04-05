@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -140,47 +140,18 @@ function ArticlesContent({ articles }: Readonly<Props>) {
       </div>
 
       {/* Filters */}
-      <div style={{
-        maxWidth: '1100px',
-        margin: '0 auto 1.5rem',
-        padding: '0 clamp(1rem, 4vw, 2rem)',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        position: 'relative',
-        zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="listing-filters">
+        <div className="listing-filters-row">
           {/* Search */}
-          <div style={{ flex: '1 1 280px', minWidth: '200px', position: 'relative' }}>
+          <div className="listing-search-wrap">
             <input
               type="text"
               placeholder="Search articles..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              style={{
-                width: '100%',
-                padding: '.7rem 1rem .7rem 2.5rem',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                color: 'var(--text)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '.85rem',
-                outline: 'none',
-                transition: 'all .2s',
-              }}
-              className="search-input"
+              className="listing-search-input"
             />
-            <span style={{
-              position: 'absolute',
-              left: '.9rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-dim)',
-              fontSize: '1rem',
-            }}>&#128269;</span>
+            <span className="listing-search-icon">&#128269;</span>
           </div>
 
           {/* Category */}
@@ -203,20 +174,7 @@ function ArticlesContent({ articles }: Readonly<Props>) {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as ArticleSortOption)}
-            style={{
-              padding: '.7rem 1rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              color: 'var(--text)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '.85rem',
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: '140px',
-              transition: 'all .2s',
-            }}
-            className="filter-select"
+            className="listing-sort-select"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -227,33 +185,14 @@ function ArticlesContent({ articles }: Readonly<Props>) {
 
           {/* Clear */}
           {(searchQuery || selectedCategory !== "all" || selectedTag !== "all" || sortBy !== "newest") && (
-            <button
-              onClick={clearFilters}
-              style={{
-                padding: '.7rem 1rem',
-                background: 'transparent',
-                border: '1px solid var(--border2)',
-                borderRadius: 'var(--radius)',
-                color: 'var(--text-dim)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '.75rem',
-                cursor: 'pointer',
-                transition: 'all .2s',
-                whiteSpace: 'nowrap',
-              }}
-              className="clear-btn"
-            >
+            <button onClick={clearFilters} className="listing-clear-btn">
               Clear &#10005;
             </button>
           )}
         </div>
 
         {/* Results count */}
-        <div style={{
-          fontSize: '.75rem',
-          color: 'var(--text-dim)',
-          fontFamily: 'var(--font-mono)',
-        }}>
+        <div className="listing-results-count">
           Showing {paginatedArticles.length} of {filteredArticles.length} articles
           {searchQuery && ` matching "${searchQuery}"`}
           {selectedCategory !== "all" && ` in ${selectedCategoryDisplay}`}
@@ -279,71 +218,20 @@ function ArticlesContent({ articles }: Readonly<Props>) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '.5rem',
-          margin: '2rem auto 1rem',
-          maxWidth: '1100px',
-          padding: '0 1rem',
-        }}>
-          <button onClick={() => goToPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="pagination-btn">
+        <div className="listing-pagination">
+          <button onClick={() => goToPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="listing-page-btn">
             ← Prev
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button key={page} onClick={() => goToPage(page)} className={`pagination-btn ${currentPage === page ? 'active' : ''}`}>
+            <button key={page} onClick={() => goToPage(page)} className={`listing-page-btn ${currentPage === page ? 'active' : ''}`}>
               {page}
             </button>
           ))}
-          <button onClick={() => goToPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="pagination-btn">
+          <button onClick={() => goToPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="listing-page-btn">
             Next →
           </button>
         </div>
       )}
-
-      <style jsx>{`
-        .search-input:focus {
-          border-color: var(--cyan);
-          box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
-        }
-        .filter-select:focus {
-          border-color: var(--cyan);
-          box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
-        }
-        .filter-select:hover {
-          border-color: var(--border2);
-        }
-        .clear-btn:hover {
-          border-color: var(--cyan);
-          color: var(--cyan);
-        }
-        .pagination-btn {
-          padding: .5rem .9rem;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          color: var(--text-dim);
-          font-family: var(--font-mono);
-          font-size: .75rem;
-          cursor: pointer;
-          transition: all .2s;
-        }
-        .pagination-btn:hover:not(:disabled) {
-          border-color: var(--cyan);
-          color: var(--cyan);
-        }
-        .pagination-btn.active {
-          background: var(--cyan);
-          color: #000;
-          border-color: var(--cyan);
-          font-weight: 700;
-        }
-        .pagination-btn:disabled {
-          opacity: .3;
-          cursor: not-allowed;
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ArticleSeries, ArticlePath } from "@/types/articles";
+import { ArticleSeries, ArticlePath, ArticleSortOption } from "@/types/articles";
+import { getColorConfig } from "@/lib/article-colors";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 interface Props {
   paths: ArticlePath[];
@@ -10,22 +13,96 @@ interface Props {
   articleSlugs: string[];
 }
 
-const COLOR_MAP: Record<string, string> = {
-  cyan: 'var(--cyan)',
-  purple: 'var(--purple)',
-  green: 'var(--green)',
-  orange: 'var(--orange)',
-  pink: 'var(--pink)',
-};
+function LearningPathsContent({ paths, series, articleSlugs }: Readonly<Props>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-export default function LearningPathsClient({ paths, series, articleSlugs }: Readonly<Props>) {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<ArticleSortOption>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 18;
+
+  const selectedTag = searchParams.get("tag") || "all";
 
   const seriesMap = useMemo(() =>
     Object.fromEntries(series.map(s => [s.slug, s])),
   [series]);
 
   const publishedSlugs = useMemo(() => new Set(articleSlugs), [articleSlugs]);
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    paths.forEach(p => p.tags?.forEach(t => tags.add(t)));
+    return Array.from(tags).sort((a, b) => a.localeCompare(b));
+  }, [paths]);
+
+  const handleTagChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "all") {
+      params.delete("tag");
+    } else {
+      params.set("tag", val);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    setCurrentPage(1);
+  };
+
+  const filteredPaths = useMemo(() => {
+    let filtered = paths;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.title.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query)
+      );
+    }
+
+    if (selectedTag !== "all") {
+      filtered = filtered.filter(p =>
+        p.tags?.some(t => t.toLowerCase() === selectedTag.toLowerCase())
+      );
+    }
+
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "newest":
+        sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case "oldest":
+        sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case "updated":
+        sorted.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        break;
+      case "az":
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "za":
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+    }
+
+    return sorted;
+  }, [paths, searchQuery, selectedTag, sortBy]);
+
+  const totalPages = Math.ceil(filteredPaths.length / perPage);
+  const paginatedPaths = filteredPaths.slice((currentPage - 1) * perPage, currentPage * perPage);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    handleTagChange("all");
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+  };
+
+  const hasActiveFilters = searchQuery || selectedTag !== "all" || sortBy !== "newest";
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -45,21 +122,70 @@ export default function LearningPathsClient({ paths, series, articleSlugs }: Rea
         </p>
       </div>
 
-      <div className="viz-grid" style={{ maxWidth: '800px' }}>
-        {paths.map((p, i) => {
+      {/* Filters */}
+      <div className="listing-filters">
+        <div className="listing-filters-row">
+          <div className="listing-search-wrap">
+            <input
+              type="text"
+              placeholder="Search learning paths..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="listing-search-input"
+            />
+            <span className="listing-search-icon">🔍</span>
+          </div>
+
+          <SearchableSelect
+            options={allTags}
+            value={selectedTag}
+            onChange={handleTagChange}
+            placeholder="All Tags"
+          />
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as ArticleSortOption)}
+            className="listing-sort-select"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="updated">Recently Updated</option>
+            <option value="az">A-Z</option>
+            <option value="za">Z-A</option>
+          </select>
+
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="listing-clear-btn">
+              Clear ✕
+            </button>
+          )}
+        </div>
+
+        <div className="listing-results-count">
+          Showing {paginatedPaths.length} of {filteredPaths.length} learning paths
+          {searchQuery && ` matching "${searchQuery}"`}
+          {selectedTag !== "all" && ` tagged ${selectedTag}`}
+          {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="viz-grid">
+        {paginatedPaths.map((p, i) => {
           const resolved = p.series.map(slug => seriesMap[slug] ?? null);
           const totalArticles = resolved.reduce((sum, s) => sum + (s?.articles.length ?? 0), 0);
           const publishedArticles = resolved.reduce(
             (sum, s) => sum + (s?.articles.filter(a => publishedSlugs.has(a.slug)).length ?? 0),
             0
           );
-          const accentColor = COLOR_MAP[p.color] ?? 'var(--cyan)';
+          const colorConfig = getColorConfig(p.color);
 
           return (
             <Link
               key={p.slug}
               href={`/learning-paths/${p.slug}`}
-              className="path-listing-card"
+              className={`path-listing-card card-${p.color}`}
               style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -79,17 +205,21 @@ export default function LearningPathsClient({ paths, series, articleSlugs }: Rea
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.2rem',
-                  background: `color-mix(in srgb, ${accentColor} 10%, transparent)`,
-                  border: `1px solid color-mix(in srgb, ${accentColor} 25%, transparent)`,
-                }}>
+                <div
+                  className="path-card-icon"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                    background: colorConfig.background,
+                    border: `1px solid ${colorConfig.border}`,
+                    transition: 'all .3s ease',
+                  }}
+                >
                   {p.icon}
                 </div>
                 <span style={{
@@ -133,36 +263,77 @@ export default function LearningPathsClient({ paths, series, articleSlugs }: Rea
                 <div style={{
                   height: '100%',
                   width: totalArticles > 0 ? `${(publishedArticles / totalArticles) * 100}%` : '0%',
-                  background: accentColor,
+                  background: colorConfig.primary,
                   borderRadius: '2px',
                   transition: 'width 0.3s ease',
                 }} />
               </div>
+
+              <style jsx global>{`
+                .path-listing-card {
+                  transition: all .3s ease;
+                }
+                .path-listing-card:hover {
+                  transform: translateY(-4px);
+                }
+                .path-listing-card:hover .path-card-icon {
+                  transform: scale(1.05);
+                }
+                [data-theme="light"] .path-listing-card {
+                  background: #fff;
+                  border-color: #e0ddd5;
+                }
+                [data-theme="light"] .path-listing-card .path-card-icon {
+                  background: #f0ede5;
+                  border-color: #e0ddd5;
+                }
+                [data-theme="light"] .path-listing-card:hover .path-card-icon {
+                  background: color-mix(in srgb, ${colorConfig.primary} 12%, #f0ede5) !important;
+                  border-color: color-mix(in srgb, ${colorConfig.primary} 25%, #e0ddd5) !important;
+                }
+              `}</style>
             </Link>
           );
         })}
-        {paths.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-dim)', gridColumn: '1 / -1' }}>
-            <p style={{ fontSize: '1.1rem' }}>No learning paths yet</p>
-          </div>
-        )}
       </div>
 
-      <style jsx>{`
-        :global(.path-listing-card:hover) {
-          transform: translateY(-4px);
-          border-color: var(--border2) !important;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        :global([data-theme="light"] .path-listing-card) {
-          background: #fff;
-          border-color: #e0ddd5;
-        }
-        :global([data-theme="light"] .path-listing-card:hover) {
-          border-color: #c4c1b8 !important;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-      `}</style>
+      {/* Empty State */}
+      {filteredPaths.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-dim)' }}>
+          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>No learning paths found</p>
+          <p style={{ fontSize: '.85rem' }}>Try adjusting your search or filters</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="listing-pagination">
+          <button onClick={() => goToPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="listing-page-btn">
+            ← Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button key={page} onClick={() => goToPage(page)} className={`listing-page-btn ${currentPage === page ? 'active' : ''}`}>
+              {page}
+            </button>
+          ))}
+          <button onClick={() => goToPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="listing-page-btn">
+            Next →
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function LearningPathsClient({ paths, series, articleSlugs }: Readonly<Props>) {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'var(--text-dim)' }}>
+        Loading learning paths...
+      </div>
+    }>
+      <LearningPathsContent paths={paths} series={series} articleSlugs={articleSlugs} />
+    </Suspense>
   );
 }

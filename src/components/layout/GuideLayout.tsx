@@ -430,7 +430,7 @@ export function GuideLayout({
                     onMouseEnter={(e) => e.currentTarget.style.color = displayColor}
                     onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-dim)'}
                 >
-                    <span>Found an issue? Edit this page on GitHub</span>
+                    <span>Edit this page on GitHub</span>
                     <span style={{ fontSize: '1rem' }}>↗</span>
                 </a>
             </div>

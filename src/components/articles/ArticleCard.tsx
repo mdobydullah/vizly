@@ -125,10 +125,23 @@ export function ArticleCard({ article, index }: Readonly<ArticleCardProps>) {
           box-shadow: ${colorConfig.hoverShadow} !important;
           background: linear-gradient(135deg, ${colorConfig.primary}08 0%, ${colorConfig.primary}03 50%, transparent 100%);
         }
+        :global([data-theme="light"]) .article-card {
+          background: #fff;
+          border-color: #e0ddd5;
+        }
+        :global([data-theme="light"]) .article-card:hover {
+          background: #fff;
+          border-color: color-mix(in srgb, ${colorConfig.primary} 40%, #e0ddd5) !important;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+        }
         .article-card:hover .card-arrow {
           background: ${colorConfig.primary};
           color: #000;
           transform: scale(1.1);
+        }
+        :global([data-theme="light"]) .article-card:hover .card-arrow {
+          background: transparent;
+          color: ${colorConfig.primary};
         }
         .article-card:hover :global(.card-icon) {
           background: ${colorConfig.primary}20 !important;
