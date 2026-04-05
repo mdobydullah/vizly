@@ -61,7 +61,13 @@ graph TB
 - **Avoid time-relative references that age badly**: Don't write "70 years" or "in the last few years." Use "decades" or anchor to a specific date. The article should read correctly a year from now.
 - **Keep timelines current**: If including a year-by-year table, include the current year.
 
-## 6. What to Avoid
+## 6. CSS Rules for Articles
+- **Never write custom CSS for articles.** All article styling (code blocks, tables, callouts, blockquotes, inline code, headings) is handled by `src/styles/articles/articles.css`.
+- **Code blocks** use standard markdown fences (` ``` `). Styled by `.article-content pre` and `.article-content code` — dark background in both themes, proper font, border-radius, and padding.
+- **Inline code** uses single backticks. Styled by `.article-content :not(pre) > code` — theme-aware background and color.
+- If a new element type needs styling, add it to `articles.css` — never to a per-article or per-series CSS file.
+
+## 7. What to Avoid
 - Jargon without explanation
 - Long unbroken walls of text
 - Starting paragraphs with "It is important to note that..."

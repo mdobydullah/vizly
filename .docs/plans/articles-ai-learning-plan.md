@@ -157,28 +157,28 @@ mermaid: true
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 17 | **Prompt Engineering** — zero-shot, few-shot, chain-of-thought, system prompts | Excalidraw: prompt anatomy, Mermaid: CoT reasoning flow | TODO |
-| 18 | **Embeddings & Vector Search** — what are embeddings, similarity, vector databases | Excalidraw: embedding space visualization, D3: cosine similarity | TODO |
-| 19 | **RAG: Retrieval-Augmented Generation** — chunking, indexing, retrieval, generation | Excalidraw: full RAG pipeline, Mermaid: retrieval flow | TODO |
-| 20 | **Building a Chatbot** — system design, conversation memory, context window management | Mermaid: chatbot architecture, Excalidraw: conversation flow | TODO |
+| 17 | **Prompt Engineering** — zero-shot, few-shot, chain-of-thought, system prompts | Excalidraw: prompt anatomy, Mermaid: CoT reasoning flow | DONE |
+| 18 | **Embeddings & Vector Search** — what are embeddings, similarity, vector databases | Excalidraw: embedding space visualization, D3: cosine similarity | DONE |
+| 19 | **RAG: Retrieval-Augmented Generation** — chunking, indexing, retrieval, generation | Excalidraw: full RAG pipeline, Mermaid: retrieval flow | DONE |
+| 20 | **Building a Chatbot** — system design, conversation memory, context window management | Mermaid: chatbot architecture, Excalidraw: conversation flow | DONE |
 
 ### Series 5: Agents & Reasoning (Week 7)
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 21 | **AI Agents: Beyond Chat** — what are agents, agency levels, tool calling | Excalidraw: agent loop, Mermaid: agency levels | TODO |
-| 22 | **Agent Patterns** — chaining, routing, parallelization, reflection | Mermaid: workflow patterns (one per pattern), Excalidraw: routing | TODO |
-| 23 | **ReACT & Multi-Step Agents** — reasoning + acting, Reflexion, tree search | Excalidraw: ReACT loop, Mermaid: tree search | TODO |
-| 24 | **Reasoning Models** — O-series, DeepSeek-R1, chain-of-thought, tree-of-thoughts | Excalidraw: reasoning approaches comparison, D3: accuracy vs compute chart | TODO |
+| 21 | **AI Agents: Beyond Chat** — what are agents, agency levels, tool calling | Excalidraw: agent loop, Mermaid: agency levels | DONE |
+| 22 | **Agent Patterns** — chaining, routing, parallelization, reflection | Mermaid: workflow patterns (one per pattern), Excalidraw: routing | DONE |
+| 23 | **ReACT & Multi-Step Agents** — reasoning + acting, Reflexion, tree search | Excalidraw: ReACT loop, Mermaid: tree search | DONE |
+| 24 | **Reasoning Models** — O-series, DeepSeek-R1, chain-of-thought, tree-of-thoughts | Excalidraw: reasoning approaches comparison, D3: accuracy vs compute chart | DONE |
 
 ### Series 6: Multimodal & Generative AI (Week 8)
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 25 | **How Image Generation Works** — VAE, GANs, diffusion models | Excalidraw: diffusion process step-by-step, D3: noise schedule | TODO |
-| 26 | **Text-to-Image (Stable Diffusion)** — CLIP, U-Net, latent space, sampling | Excalidraw: full SD architecture, Mermaid: generation pipeline | TODO |
-| 27 | **Text-to-Video & Beyond** — temporal modeling, DiT architecture | Mermaid: video generation pipeline, Excalidraw: frame interpolation | TODO |
-| 28 | **The AI Landscape: What's Next** — scaling laws, emergent abilities, open problems | D3: timeline/trend charts, Excalidraw: AI landscape map | TODO |
+| 25 | **How Image Generation Works** — VAE, GANs, diffusion models | Excalidraw: diffusion process step-by-step, D3: noise schedule | DONE |
+| 26 | **Text-to-Image (Stable Diffusion)** — CLIP, U-Net, latent space, sampling | Excalidraw: full SD architecture, Mermaid: generation pipeline | DONE |
+| 27 | **Text-to-Video & Beyond** — temporal modeling, DiT architecture | Mermaid: video generation pipeline, Excalidraw: frame interpolation | DONE |
+| 28 | **The AI Landscape: What's Next** — scaling laws, emergent abilities, open problems | D3: timeline/trend charts, Excalidraw: AI landscape map | DONE |
 
 ### Series 7: Production AI Engineering (Week 9-10)
 
@@ -186,14 +186,14 @@ mermaid: true
 
 | # | Article | Key Visuals | Status |
 |---|---------|-------------|--------|
-| 29 | **Your First AI App with HuggingFace** — loading models, pipelines, tokenizers, inference; practice: run a local text classifier and summarizer | Excalidraw: HuggingFace ecosystem map, Mermaid: inference pipeline | TODO |
-| 30 | **Fine-Tuning in Practice with PyTorch** — training loop, dataloaders, optimizer, saving checkpoints; practice: fine-tune a small model on custom data | Excalidraw: training loop anatomy, D3: loss curve live | TODO |
-| 31 | **LangChain & LlamaIndex: Build with LLMs** — chains, tools, memory, document loaders, indexes; practice: build a Q&A bot over your own docs | Excalidraw: LangChain chain anatomy, Mermaid: LlamaIndex retrieval flow | TODO |
-| 32 | **Serving AI Models: From Notebook to API** — FastAPI, model loading, batching, latency vs throughput; practice: wrap a model in a REST API | Mermaid: serving architecture, Excalidraw: request lifecycle | TODO |
-| 33 | **Cloud AI: AWS, GCP & Azure for AI Engineers** — SageMaker, Vertex AI, Azure OpenAI, managed endpoints, when to use vs self-host | Excalidraw: cloud AI service map, Mermaid: deployment decision tree | TODO |
-| 34 | **MLOps: Shipping AI Like Software** — experiment tracking (MLflow/W&B), model registry, CI/CD for models, versioning datasets | Mermaid: MLOps lifecycle, Excalidraw: pipeline stages | TODO |
-| 35 | **Evaluating LLMs at Scale** — LLM-as-judge, evals frameworks (RAGAS, promptfoo), red-teaming, regression testing; practice: write an eval suite | Excalidraw: eval pipeline, D3: score comparison chart | TODO |
-| 36 | **Cost, Latency & Context Management** — token budgets, caching (semantic cache), streaming, context window strategies, cost calculators; practice: optimize a RAG pipeline | Excalidraw: cost breakdown diagram, Mermaid: caching flow | TODO |
+| 29 | **Your First AI App with HuggingFace** — loading models, pipelines, tokenizers, inference; practice: run a local text classifier and summarizer | Excalidraw: HuggingFace ecosystem map, Mermaid: inference pipeline | DONE |
+| 30 | **Fine-Tuning in Practice with PyTorch** — training loop, dataloaders, optimizer, saving checkpoints; practice: fine-tune a small model on custom data | Excalidraw: training loop anatomy, D3: loss curve live | DONE |
+| 31 | **LangChain & LlamaIndex: Build with LLMs** — chains, tools, memory, document loaders, indexes; practice: build a Q&A bot over your own docs | Excalidraw: LangChain chain anatomy, Mermaid: LlamaIndex retrieval flow | DONE |
+| 32 | **Serving AI Models: From Notebook to API** — FastAPI, model loading, batching, latency vs throughput; practice: wrap a model in a REST API | Mermaid: serving architecture, Excalidraw: request lifecycle | DONE |
+| 33 | **Cloud AI: AWS, GCP & Azure for AI Engineers** — SageMaker, Vertex AI, Azure OpenAI, managed endpoints, when to use vs self-host | Excalidraw: cloud AI service map, Mermaid: deployment decision tree | DONE |
+| 34 | **MLOps: Shipping AI Like Software** — experiment tracking (MLflow/W&B), model registry, CI/CD for models, versioning datasets | Mermaid: MLOps lifecycle, Excalidraw: pipeline stages | DONE |
+| 35 | **Evaluating LLMs at Scale** — LLM-as-judge, evals frameworks (RAGAS, promptfoo), red-teaming, regression testing; practice: write an eval suite | Excalidraw: eval pipeline, D3: score comparison chart | DONE |
+| 36 | **Cost, Latency & Context Management** — token budgets, caching (semantic cache), streaming, context window strategies, cost calculators; practice: optimize a RAG pipeline | Excalidraw: cost breakdown diagram, Mermaid: caching flow | DONE |
 
 ---
 

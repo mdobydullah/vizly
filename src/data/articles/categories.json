@@ -24,10 +24,10 @@
     "icon": "target"
   },
   {
-    "slug": "applied-ai",
-    "name": "Applied AI",
-    "color": "yellow",
-    "icon": "wrench"
+    "slug": "rag-prompting-applications",
+    "name": "RAG, Prompting & Applications",
+    "color": "cyan",
+    "icon": "search"
   },
   {
     "slug": "agents-reasoning",
@@ -40,5 +40,11 @@
     "name": "Generative AI",
     "color": "orange",
     "icon": "image"
+  },
+  {
+    "slug": "production-ai-engineering",
+    "name": "Production AI Engineering",
+    "color": "yellow",
+    "icon": "rocket"
   }
 ]

@@ -1,0 +1,298 @@
+---
+title: "ReACT & Multi-Step Agents"
+slug: react-and-multi-step-agents
+category: agents-reasoning
+series: agents-reasoning
+seriesOrder: 3
+description: "Reasoning plus acting — how ReACT agents think step-by-step, use tools, and solve problems that need multiple moves."
+tags:
+  - AI
+  - Agents
+  - ReACT
+  - Reasoning
+  - Multi-Step
+readTime: "14 min"
+icon: "🧠"
+color: purple
+createdAt: "2026-04-06T12:00:00Z"
+updatedAt: "2026-04-06T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The problem with "just answer it"
+
+Ask an LLM "Who won more Grand Slams — Roger Federer or Rafael Nadal — and by how many?" and you'll probably get the right answer. The model memorized those stats during training.
+
+Now ask: "Which company had a higher stock price yesterday, Apple or Microsoft?"
+
+The model can't answer that. It doesn't have yesterday's data. It needs to *go look it up*. And not just once — it needs to look up Apple's price, look up Microsoft's price, compare them, and report the difference.
+
+That's a multi-step problem. The model needs to reason about what information it needs, take actions to get it, and combine the results.
+
+A single prompt can't do this. The model either hallucinates an answer or says "I don't have that information." Neither is useful.
+
+---
+
+## Enter ReACT: Reasoning + Acting
+
+ReACT is a framework introduced in 2022 that solved this neatly. The name stands for **Re**asoning and **Act**ing — and the core idea is to make the model alternate between thinking and doing.
+
+Instead of just generating an answer, the model produces three things in a loop:
+
+1. **Thought** — The model reasons out loud about what it knows and what it needs to do next.
+2. **Action** — The model calls a tool to get information or take a step.
+3. **Observation** — The tool returns a result, which the model reads.
+
+Then it thinks again, acts again, observes again — until it has enough to produce a final answer.
+
+<MermaidBlock>
+graph TD
+    A["Question from user"] --> B["Thought\nwhat do I need to find out?"]
+    B --> C["Action\ncall a tool"]
+    C --> D["Observation\nread the result"]
+    D --> E{"Have enough info?"}
+    E -->|"No"| B
+    E -->|"Yes"| F["Final answer"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The magic is in the "Thought" step. By forcing the model to reason before acting, it makes better tool choices and avoids jumping to conclusions.
+
+---
+
+## A worked example
+
+Let's trace through a real ReACT execution. The question: "What's the population of the country that won the 2024 Cricket World Cup?"
+
+This requires two pieces of information the model might not have — who won, and their population. Here's how a ReACT agent handles it:
+
+```
+Thought 1: I need to find out which country won the
+2024 Cricket World Cup. Let me search for this.
+
+Action 1: search("2024 Cricket World Cup winner")
+
+Observation 1: India won the 2024 ICC Men's T20
+World Cup, defeating South Africa in the final.
+
+Thought 2: India won. Now I need India's current
+population. Let me search for that.
+
+Action 2: search("India population 2026")
+
+Observation 2: India's estimated population in 2026
+is approximately 1.46 billion.
+
+Thought 3: I now have both pieces of information.
+India won the 2024 Cricket World Cup, and their
+population is about 1.46 billion.
+
+Final Answer: India won the 2024 Cricket World Cup.
+Their population is approximately 1.46 billion.
+```
+
+Notice how each thought explains *why* the next action is needed. The model isn't blindly calling tools — it's reasoning about what information it's missing and how to get it.
+
+This works because the thoughts act as a scratchpad. The model tracks its own progress, keeps the goal in mind, and knows when it has enough to answer.
+
+---
+
+## Why the thinking step matters so much
+
+You might wonder — why not just let the model call tools directly, without the "Thought" step? Models can do tool calling without ReACT.
+
+They can. But they're worse at it.
+
+Without explicit reasoning, models tend to:
+
+- **Call the wrong tool.** They grab the first tool that seems vaguely relevant instead of thinking about which one actually helps.
+- **Miss steps.** They try to answer with incomplete information instead of recognizing what's still missing.
+- **Lose track.** After several tool calls, they forget what they were originally trying to do.
+
+The "Thought" step forces the model to plan before acting. It's the same reason humans solve problems better when they talk through their reasoning. Writing your thoughts down — even if nobody reads them — makes you think more carefully.
+
+<Callout type="info" title="Chain-of-thought in disguise">
+ReACT is basically chain-of-thought prompting applied to tool use. (If you're not familiar with CoT, the short version is: you ask the model to reason step by step before answering.) Instead of "think step by step and give me an answer," it's "think step by step, use tools when you need to, and give me an answer."
+</Callout>
+
+---
+
+## When the first attempt doesn't work
+
+Here's where ReACT gets more interesting. What happens when a tool returns useless results? Or the model's first approach fails?
+
+A good ReACT agent adapts:
+
+```
+Thought 1: I need to find the revenue of Acme Corp
+in Q4 2025. Let me search.
+
+Action 1: search("Acme Corp Q4 2025 revenue")
+
+Observation 1: No relevant results found.
+
+Thought 2: The search didn't find anything directly.
+Maybe the Q4 earnings report has a different name.
+Let me try searching for their earnings report.
+
+Action 2: search("Acme Corp 2025 annual earnings
+report")
+
+Observation 2: Acme Corp reported $2.3 billion in
+revenue for fiscal year 2025, with Q4 contributing
+approximately $680 million.
+
+Thought 3: Found it. Q4 2025 revenue was about
+$680 million.
+```
+
+The model hit a dead end on the first search and adjusted its strategy. This is the observe-think-act loop at work — the observation ("no results") informed the next thought ("try a different search query").
+
+This adaptability is what makes ReACT agents genuinely useful. They don't just follow a script. They react to what happens.
+
+---
+
+## Reflexion: learning from mistakes
+
+ReACT handles errors within a single task. But what about learning across tasks?
+
+**Reflexion** takes it a step further. After the agent finishes a task (successfully or not), it does a self-reflection step: "What went well? What went wrong? What should I do differently next time?"
+
+<MermaidBlock>
+graph TD
+    A["Attempt task"] --> B["Get result"]
+    B --> C["Evaluate\ndid it work?"]
+    C -->|"Failed"| D["Reflect\nwhat went wrong?"]
+    D --> E["Store reflection\nin memory"]
+    E --> F["Retry task\nwith new approach"]
+    F --> B
+    C -->|"Succeeded"| G["Done\nstore what worked"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+**Example:** A coding agent tries to write a function, but the tests fail. Instead of just retrying with the same approach, it reflects: "The function failed because I didn't handle the empty list edge case. Next attempt, I should check for empty inputs first."
+
+That reflection gets added to the agent's context for the next attempt. It's not starting from scratch — it's starting with knowledge of what didn't work.
+
+This mimics something humans do naturally. You fail a recipe, you think about what went wrong ("too much salt, oven was too hot"), and you adjust next time. Reflexion gives agents the same ability.
+
+The catch? Each retry costs more LLM calls. And the model doesn't always reflect accurately — sometimes it identifies the wrong problem and "fixes" something that wasn't broken. But when it works, it's powerful.
+
+---
+
+## Tree search: exploring multiple paths
+
+ReACT is linear — one thought, one action, one observation, repeat. But some problems have branching paths. The first approach might work, or it might not, and there are several alternatives worth trying.
+
+**Tree-of-thoughts** and **Monte Carlo tree search** approaches let agents explore multiple paths simultaneously.
+
+Instead of committing to one plan, the agent generates several possible next steps, evaluates each one (using another LLM call or a heuristic), and pursues the most promising path. If that path dead-ends, it can backtrack and try another branch.
+
+<MermaidBlock>
+graph TD
+    A["Problem"] --> B["Approach A\nscore: 0.7"]
+    A --> C["Approach B\nscore: 0.9"]
+    A --> D["Approach C\nscore: 0.4"]
+    C --> E["Step B1\nscore: 0.85"]
+    C --> F["Step B2\nscore: 0.6"]
+    E --> G["Solution found"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style G fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+This is expensive — you're running many more LLM calls per step. But for hard problems (complex math, multi-step reasoning, code debugging), exploring multiple paths significantly improves success rates.
+
+Most production agents don't use full tree search. It's too slow and costly for real-time applications. But for batch tasks where quality matters more than speed — like solving coding challenges or mathematical proofs — it's a real option.
+
+---
+
+## Multi-step planning
+
+Some tasks need the agent to make a plan upfront, not just stumble forward one step at a time.
+
+**Planning agents** start by outlining all the steps they think they'll need, then execute them one by one. After each step, they can revise the plan if new information changes things.
+
+```
+Task: "Write a blog post about the latest advances
+in renewable energy"
+
+Plan:
+1. Search for recent renewable energy breakthroughs
+2. Search for solar energy developments specifically
+3. Search for wind and battery storage news
+4. Outline the blog post structure
+5. Write the introduction
+6. Write the main sections
+7. Write the conclusion
+8. Review and edit
+
+Executing step 1...
+Executing step 2...
+[After step 3, the agent discovers a major
+breakthrough in fusion energy]
+Revised plan: Add section on fusion energy after
+step 6
+```
+
+Planning upfront is better than one-step-at-a-time for complex tasks because it gives the agent a roadmap. But plans need to be flexible — rigid plans break the moment something unexpected happens.
+
+<Callout type="tip" title="Plan loosely, execute flexibly">
+The best multi-step agents treat their plan as a rough guide, not a contract. They replan after every few steps based on what they've learned. Think of it as having a GPS that recalculates when you take a detour.
+</Callout>
+
+---
+
+## Common failure modes
+
+Multi-step agents fail in predictable ways. Knowing these helps you build better guardrails.
+
+**Overthinking.** The agent generates elaborate reasoning about simple questions. You ask "what's 2 + 2" and it launches a three-step plan with tool calls. Simpler problems should short-circuit the reasoning loop.
+
+**Tool addiction.** The model calls tools even when it already has the answer in its context. It searched for something, got the answer, but searches again "just to make sure." This wastes time and money.
+
+**Cascading errors.** Step 3 builds on a wrong result from step 2. By step 6, the agent is working in a completely fictional version of reality. Each step compounds the original mistake.
+
+**Context window overflow.** After many steps, the conversation gets very long. Tool results, thoughts, observations — they all pile up. Eventually the model starts losing track of earlier context. This is why long-running agents need some form of memory management — summarizing earlier steps, dropping irrelevant details.
+
+**Giving up too early (or too late).** Some agents bail after the first failure. Others keep trying the same failing approach fifty times. Neither is good. The sweet spot: try 2-3 alternative approaches, then report what went wrong.
+
+---
+
+## Real-world multi-step agents
+
+Where are multi-step agents actually working in production?
+
+**Coding assistants.** Claude Code, GitHub Copilot, Cursor — these read your codebase, plan changes across multiple files, write code, run tests, fix failures, and iterate. The coding domain is great for agents because feedback is instant (tests pass or fail) and tools are well-defined (read file, write file, run command).
+
+**Research agents.** Tools like Perplexity and Google's AI Overviews search multiple sources, cross-reference claims, and synthesize answers. Each search result triggers new searches to fill gaps.
+
+**Data analysis agents.** Give an agent a CSV file and a question. It writes SQL or Python to analyze the data, runs the code, looks at the output, and refines its analysis. The whole thing might take 5-10 steps.
+
+**Customer support agents.** Look up the customer's account, check their recent orders, find relevant help articles, draft a response, check it against company policy. Multi-step, multi-tool, but within well-defined guardrails.
+
+The common thread: these all work in structured environments with clear tools and fast feedback loops. Open-ended tasks in unstructured environments ("plan my vacation") are still unreliable.
+
+---
+
+## What's next?
+
+ReACT shows how agents can reason step-by-step. But what if the reasoning itself was built into the model — not just a prompting trick, but something the model does naturally before generating any answer?
+
+That's exactly what **reasoning models** like OpenAI's o-series and DeepSeek-R1 do. They "think" internally before responding, spending extra compute on hard problems. We'll unpack how that works next.

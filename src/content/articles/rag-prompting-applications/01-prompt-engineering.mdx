@@ -1,0 +1,259 @@
+---
+title: "Prompt Engineering"
+slug: prompt-engineering
+category: rag-prompting-applications
+series: rag-prompting-applications
+seriesOrder: 1
+description: "Zero-shot, few-shot, chain-of-thought, system prompts — how to talk to language models so they actually do what you want."
+tags:
+  - AI
+  - LLMs
+  - Prompting
+  - Chain-of-Thought
+  - Few-Shot
+readTime: "13 min"
+icon: "✍️"
+color: cyan
+createdAt: "2026-04-06T09:00:00Z"
+updatedAt: "2026-04-06T09:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Your first AI superpower
+
+You've got access to a powerful language model. You type something in. It types something back.
+
+Sometimes the response is brilliant. Sometimes it's completely wrong. Same model, same topic — wildly different results depending on how you asked.
+
+That's the thing about LLMs. The quality of the output is almost entirely determined by the quality of the input. And "the input" is your prompt.
+
+Prompt engineering is the skill of writing prompts that consistently get good results. It sounds simple. It's surprisingly deep.
+
+---
+
+## Zero-shot prompting: just ask
+
+The most basic approach. You give the model an instruction with no examples.
+
+```
+Classify the sentiment of this review as positive, negative, or neutral:
+"The battery life is amazing but the screen is too dim."
+```
+
+The model figures it out from the instruction alone. No examples, no hand-holding. This is **zero-shot prompting** — zero examples provided.
+
+For simple tasks, this works great. Modern models like GPT-4 and Claude handle zero-shot instructions surprisingly well because they've seen billions of similar patterns during training.
+
+But for anything nuanced or domain-specific? Zero-shot starts to struggle.
+
+---
+
+## Few-shot prompting: show, don't tell
+
+Instead of explaining what you want, you show the model a few examples first.
+
+```
+Classify the sentiment:
+
+Review: "Love the camera quality!" → Positive
+Review: "Worst purchase I ever made." → Negative
+Review: "It works fine, nothing special." → Neutral
+
+Review: "The battery life is amazing but the screen is too dim." →
+```
+
+The model sees the pattern and continues it. This is **few-shot prompting** — you provide a few examples (usually 2-5) and let the model generalize.
+
+It's like teaching someone a new card game. You could explain all the rules (zero-shot). Or you could play a few rounds and let them pick it up by watching (few-shot). Most people learn faster the second way.
+
+<Callout type="tip" title="How many shots?">
+More examples generally helps, but there's a point of diminishing returns. 3-5 examples usually hits the sweet spot. Going beyond 10 rarely improves results and eats into your context window. Pick diverse examples that cover edge cases rather than just adding more of the same.
+</Callout>
+
+---
+
+## System prompts vs user prompts
+
+Most chat-based models have two types of input: a **system prompt** and **user messages**.
+
+The system prompt sets the stage. It defines who the model is, how it should behave, and any rules it should follow. The user message is the actual question or task.
+
+```
+System: You are a senior Python developer. You write clean, well-documented
+code. Always include type hints and docstrings.
+
+User: Write a function that merges two sorted lists.
+```
+
+Think of the system prompt as the job description. The user message is the task for the day. You wouldn't explain the company values in every email — you set them once when the person is hired.
+
+<MermaidBlock>
+graph LR
+    A["System prompt\npersonality and rules"] --> C["LLM\nprocesses both"]
+    B["User message\nactual task"] --> C
+    C --> D["Response\nshaped by both inputs"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+System prompts are powerful because they persist across conversation turns. Every user message is processed in the context of that system prompt. This is how companies build AI products with specific personalities or guardrails — the system prompt does the heavy lifting.
+
+---
+
+## Chain-of-thought: think step by step
+
+Ask a model: "If a store has 23 apples and sells 17, then receives a shipment of 12, how many apples does it have?"
+
+A simple model might just blurt out a number. Sometimes right, sometimes wrong.
+
+But add four words — **"Think step by step"** — and something changes.
+
+```
+Q: If a store has 23 apples, sells 17, then receives 12, how many does it have?
+
+A: Let me think step by step.
+- Start with 23 apples
+- Sell 17: 23 - 17 = 6 apples
+- Receive 12: 6 + 12 = 18 apples
+The store has 18 apples.
+```
+
+This is **chain-of-thought (CoT) prompting**. By asking the model to show its work, you force it to break problems into steps. And breaking problems into steps dramatically improves accuracy on reasoning tasks.
+
+Why does it work? Because LLMs generate tokens one at a time. When the model writes "23 - 17 = 6", those intermediate tokens become part of the context for the next step. The model literally builds a scratchpad as it goes.
+
+<MermaidBlock>
+graph TB
+    A["Complex question"] --> B["Without CoT\ndirect answer\noften wrong"]
+    A --> C["With CoT\nstep-by-step reasoning"]
+    C --> D["Step 1: identify knowns"]
+    D --> E["Step 2: apply operation"]
+    E --> F["Step 3: compute result"]
+    F --> G["Final answer\nmuch more accurate"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+<Callout type="info" title="The Google Brain paper">
+Chain-of-thought prompting was formalized in a 2022 paper by Google Brain researchers. They showed that adding "Let's think step by step" to prompts improved accuracy on math problems from around 18% to 79% on certain benchmarks. Four words. That's all it took.
+</Callout>
+
+---
+
+## Self-consistency: ask multiple times
+
+Chain-of-thought helps, but the model can still make mistakes in its reasoning. One trick: ask the same question multiple times with CoT, and take the most common answer.
+
+This is **self-consistency**. Generate 5 different chain-of-thought responses. If 4 out of 5 arrive at the same answer, that answer is probably right.
+
+It's like asking 5 friends to solve a math problem independently. If most of them get the same answer, you can be pretty confident.
+
+The downside? It costs 5x more tokens. But for high-stakes tasks where accuracy matters more than cost, it's a solid strategy.
+
+---
+
+## Prompt templates: make it repeatable
+
+In practice, you rarely write prompts from scratch every time. You build **templates** — reusable prompts with placeholders.
+
+```
+You are an expert {domain} assistant.
+
+Given the following {input_type}:
+---
+{user_input}
+---
+
+{task_instruction}
+
+Format your response as {output_format}.
+```
+
+This is how production AI systems work. The prompt template is part of the codebase. Variables get filled in at runtime. The user never sees the full prompt — they just provide the input.
+
+Every major AI application — customer support bots, code assistants, content generators — is basically a clever prompt template with some infrastructure around it.
+
+---
+
+## The anatomy of a great prompt
+
+After writing hundreds of prompts, patterns emerge. Good prompts tend to have five ingredients: a role, context, a task, a format, and constraints.
+
+The role focuses the model's knowledge — "You are a database expert" produces different output than no role at all. Context gives the model the background it doesn't have (it doesn't know what project you're working on unless you tell it). The task needs to be specific: "Summarize" is vague, but "Write a 3-sentence summary focusing on the financial impact" gives the model something concrete to work with.
+
+Format is the one people forget most often. If you want JSON, say so. If you want a table, say so. Otherwise the model guesses, and it often guesses wrong. Constraints set boundaries: "Use only information from the provided text." "Keep the response under 200 words." "Do not include code."
+
+```
+Role:     You are a senior data analyst.
+Context:  Here is our Q4 sales data: [data]
+Task:     Identify the top 3 trends and explain why they matter.
+Format:   Return as a numbered list with one paragraph per trend.
+Constraint: Base your analysis only on the provided data.
+```
+
+Not every prompt needs all five. A quick question doesn't need a role or format. But for complex tasks, hitting all five consistently produces better results.
+
+---
+
+## Common prompting mistakes
+
+The most common mistake is being too vague. "Write something about marketing" gives the model nothing to work with. What kind of marketing? For whom? What tone? What length?
+
+The opposite mistake is stuffing too much in. A 2000-word prompt with every possible instruction confuses the model. Focus on what matters most.
+
+People also forget to iterate. Your first prompt is almost never perfect. Treat prompting like code — write, test, refine, repeat. And remember: the model has no idea what you worked on yesterday. Every conversation starts fresh unless you provide context.
+
+<Callout type="warning" title="Prompt injection is real">
+If your app takes user input and inserts it into a prompt, users can override your instructions. Someone could type: "Ignore all previous instructions and..." This is prompt injection. For production systems, you need input sanitization and careful prompt design to mitigate this.
+</Callout>
+
+---
+
+## Advanced techniques worth knowing
+
+Structured output forcing is worth knowing — instead of hoping the model returns valid JSON, you can use tool-calling APIs or JSON mode to guarantee the format.
+
+Prompt chaining is my go-to for anything with more than two steps. Break complex tasks into stages where the output of one prompt feeds into the next. First summarize, then analyze, then generate recommendations. Each step is simpler and more reliable than trying to do everything in one shot.
+
+You can also get surprisingly rich results from role-playing: "You are three experts debating this topic — a physicist, an economist, and an engineer. Each gives their perspective." This generates more nuanced output than a single-voice response.
+
+<MermaidBlock>
+graph LR
+    A["Step 1\nExtract key facts"] --> B["Step 2\nAnalyze patterns"]
+    B --> C["Step 3\nGenerate report"]
+    C --> D["Final output\npolished result"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+Prompt chaining is especially powerful because each step is simpler. A model that struggles with "analyze this data and write a report" might nail "extract the key facts" followed by "analyze these facts" followed by "write a report from this analysis."
+
+---
+
+## When prompting isn't enough
+
+Prompt engineering is powerful. But it has limits.
+
+If you need the model to know about your company's internal docs, prompting alone can't do that. You need **RAG** (retrieval-augmented generation).
+
+If you need consistent, precise behavior on a narrow task, fine-tuning might be more reliable than even the best prompt.
+
+And if you need the model to take actions — search the web, call APIs, run code — you need **tool use** and **agents**.
+
+Prompting is the foundation. Everything else builds on top of it.
+
+---
+
+## What's next?
+
+We've covered how to talk to language models effectively. But what if you need the model to understand meaning — not just follow instructions? What if you want to search through thousands of documents by concept, not keywords? Next up: **Embeddings and Vector Search** — how text gets converted into numbers that capture meaning, and how vector databases let you search by similarity.

@@ -1,0 +1,16 @@
+{
+  "slug": "rag-prompting-applications",
+  "title": "RAG, Prompting & Applications",
+  "description": "From crafting the perfect prompt to building retrieval-augmented systems — everything you need to start building real things with LLMs.",
+  "icon": "🔍",
+  "color": "cyan",
+  "tags": ["AI"],
+  "createdAt": "2026-04-05T09:00:00Z",
+  "updatedAt": "2026-04-05T09:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "prompt-engineering", "title": "Prompt Engineering" },
+    { "order": 2, "slug": "embeddings-and-vector-search", "title": "Embeddings & Vector Search" },
+    { "order": 3, "slug": "rag-retrieval-augmented-generation", "title": "RAG: Retrieval-Augmented Generation" },
+    { "order": 4, "slug": "building-a-chatbot", "title": "Building a Chatbot" }
+  ]
+}

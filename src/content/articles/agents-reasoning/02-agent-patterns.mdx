@@ -1,0 +1,258 @@
+---
+title: "Agent Patterns"
+slug: agent-patterns
+category: agents-reasoning
+series: agents-reasoning
+seriesOrder: 2
+description: "Chaining, routing, parallelization, and reflection — the design patterns that turn a single LLM call into a capable agent system."
+tags:
+  - AI
+  - Agents
+  - Patterns
+  - Chaining
+  - Routing
+readTime: "14 min"
+icon: "🔗"
+color: purple
+createdAt: "2026-04-06T11:30:00Z"
+updatedAt: "2026-04-06T11:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## One LLM call is rarely enough
+
+Agents loop through observe-think-act to accomplish tasks. But "just let the LLM figure it out" is a terrible engineering strategy.
+
+Imagine you hire someone and say "handle all customer support." No process. No guidelines. No escalation rules. They'd be overwhelmed by day two.
+
+Agents need structure. Design patterns. Specific ways to organize LLM calls so the system is reliable, not just clever.
+
+These patterns aren't theoretical. They come from people actually building agent systems and discovering what works. Think of them as recipes — you pick the one that fits your problem.
+
+---
+
+## Pattern 1: Chaining
+
+The simplest pattern. Take a complex task and break it into a sequence of steps. Each step is its own LLM call. The output of one step feeds into the next.
+
+<MermaidBlock>
+graph LR
+    A["Step 1\nExtract key info"] --> B["Step 2\nAnalyze and reason"]
+    B --> C["Step 3\nGenerate output"]
+    C --> D["Step 4\nFormat and validate"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+**Example:** A content writing pipeline. Step 1: research the topic and extract key points. Step 2: create an outline. Step 3: write the draft. Step 4: edit for tone and grammar.
+
+Each step gets a focused prompt. The model isn't trying to do everything at once — it's doing one thing well, then passing the baton.
+
+Why is this better than one big prompt? Because LLMs handle focused tasks much better than sprawling ones. "Write a 2000-word article from scratch" produces worse results than "here's an outline, write section 3." Smaller steps also mean you can inspect and fix things at each stage.
+
+<Callout type="tip" title="When to use chaining">
+Use chaining when your task has natural sequential steps, and each step needs the output of the previous one. If steps don't depend on each other, look at parallelization instead.
+</Callout>
+
+The downside is latency. Four sequential LLM calls take four times as long as one call. And if step 2 misunderstands something from step 1, the error cascades forward. You sometimes need validation gates between steps — "does this output look right before we continue?"
+
+---
+
+## Pattern 2: Routing
+
+Not every input needs the same treatment. A customer support system gets questions about billing, technical issues, product feedback, and random spam. Sending all of them through the same pipeline is wasteful.
+
+Routing uses an LLM (or sometimes simple rules) to classify the input first, then sends it to a specialized handler.
+
+<MermaidBlock>
+graph TD
+    A["User input"] --> B["Router\nclassify input type"]
+    B -->|"Billing"| C["Billing handler\nspecialized prompt"]
+    B -->|"Technical"| D["Tech support\ntools and docs"]
+    B -->|"Feedback"| E["Feedback handler\nlog and respond"]
+    B -->|"Other"| F["General handler\nfallback"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+</MermaidBlock>
+
+Each handler can have its own system prompt, its own tools, even its own model. The billing handler might use a smaller, cheaper model because the answers are straightforward. The tech support handler might need a larger model with access to documentation search.
+
+**Why this works:** Specialized prompts outperform generic ones. A prompt that says "You are a billing support agent. You have access to the customer's account details and billing history" will produce better billing answers than a generic "You are a helpful assistant."
+
+Routing also saves money. Not every request needs your most expensive model. A simple "what are your hours?" doesn't need GPT-4.
+
+The router itself can be an LLM call ("classify this message into one of these categories") or a traditional classifier — sometimes a fine-tuned small model or even keyword matching is enough.
+
+---
+
+## Pattern 3: Parallelization
+
+Some tasks have parts that don't depend on each other. Why run them sequentially when you can run them at the same time?
+
+<MermaidBlock>
+graph TD
+    A["Task: Analyze this document"] --> B["Fan out"]
+    B --> C["Worker 1\nExtract key facts"]
+    B --> D["Worker 2\nIdentify sentiment"]
+    B --> E["Worker 3\nFind action items"]
+    C --> F["Fan in\nCombine results"]
+    D --> F
+    E --> F
+    F --> G["Final summary"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This is the **fan-out/fan-in** pattern. Split the work into independent subtasks (fan out), run them simultaneously, then combine the results (fan in).
+
+**Example:** Analyzing a long document. One call extracts the main arguments. Another identifies the tone. A third pulls out any numbers or statistics. A fourth checks for factual claims. All four run at the same time. Then a final call synthesizes everything into a report.
+
+What would take 30 seconds sequentially takes 8 seconds in parallel.
+
+There's another flavor of parallelization: **voting**. Run the same prompt through the model three times and take the majority answer. This is surprisingly effective for tricky questions where the model sometimes gets it right and sometimes doesn't. Three attempts with majority vote is more reliable than a single attempt.
+
+The limitation is obvious — this only works when subtasks are truly independent. If worker 3 needs the output of worker 1, you're back to chaining.
+
+---
+
+## Pattern 4: Orchestrator-worker
+
+This is where things get more interesting. Instead of hardcoding the workflow, you let an LLM decide what work needs to be done.
+
+An orchestrator model looks at the task, breaks it down into subtasks, dispatches those to worker models (or tools), collects the results, and decides what to do next.
+
+<MermaidBlock>
+graph TD
+    A["User task"] --> B["Orchestrator\nplan and delegate"]
+    B --> C["Worker 1\nresearch"]
+    B --> D["Worker 2\nwrite code"]
+    B --> E["Worker 3\nreview"]
+    C --> B
+    D --> B
+    E --> B
+    B --> F["Orchestrator\nevaluate results"]
+    F -->|"Need more work"| B
+    F -->|"Done"| G["Final result"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+**Example:** A coding agent. You say "add user authentication to this app." The orchestrator decides: "I need to modify the database schema, create auth middleware, update the API routes, and write tests." It dispatches each task, reviews the results, and might send code back for revision if something looks wrong.
+
+This is the pattern behind tools like Claude Code and Devin. The orchestrator doesn't just follow a script — it creates the plan dynamically based on the specific task.
+
+The tradeoff? More LLM calls means more cost and more chances for the orchestrator to make bad decisions. A buggy orchestrator that plans poorly will produce garbage no matter how good the workers are.
+
+---
+
+## Pattern 5: Evaluator-optimizer (reflection)
+
+Here's a pattern that makes agents dramatically better: have the model critique its own work.
+
+After generating an output, you send it to an evaluator (which can be the same model with a different prompt, or a different model entirely). The evaluator scores the output and provides specific feedback. Then the original model revises its work based on that feedback.
+
+<MermaidBlock>
+graph TD
+    A["Generate first draft"] --> B["Evaluator\nscore and critique"]
+    B -->|"Score too low"| C["Revise based on feedback"]
+    C --> B
+    B -->|"Score good enough"| D["Output final result"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Think of it like writing an essay, then having a teacher mark it up with red pen, then rewriting based on their notes. The "teacher" happens to also be an LLM — just one wearing a different hat.
+
+**Example:** Code generation. The model writes a function. The evaluator checks: Does it handle edge cases? Is it efficient? Does it follow the project's coding style? Feedback goes back: "Missing null check on line 3, variable name is unclear, could use a list comprehension instead of the loop." The model revises. The evaluator checks again.
+
+This loop can run 2-3 times and the quality difference is often dramatic. First drafts from LLMs are okay. Third drafts after feedback are significantly better.
+
+<Callout type="info" title="Self-reflection works">
+Studies show that LLMs can effectively critique their own output — sometimes catching errors they made during generation. The key is using a different prompt for evaluation than for generation. When the model switches from "writer mode" to "critic mode," it often spots problems it originally missed.
+</Callout>
+
+---
+
+## Pattern 6: Human-in-the-loop
+
+Sometimes the right design pattern is: stop and ask a human.
+
+Not every decision should be automated. High-stakes actions (sending an email to a client, deploying code to production, making a purchase) deserve a human checkpoint. The agent does the work, presents its plan, and waits for approval before executing.
+
+This isn't a failure of automation — it's good design. The agent handles the tedious parts (research, drafting, analysis) while the human handles the judgment calls (should we actually do this?).
+
+**Common implementation:** The agent runs normally but has certain tools marked as "requires confirmation." When it wants to call one of those tools, it pauses, shows the user what it's about to do, and waits for a thumbs up.
+
+The best agent systems let you configure this. During development, require approval for everything. Once you trust the agent, loosen the reins. Keep approval gates only on irreversible actions.
+
+---
+
+## Choosing the right pattern
+
+No single pattern is best for everything. The choice depends on your problem.
+
+| Pattern | Best for | Watch out for |
+|---------|----------|---------------|
+| Chaining | Tasks with clear sequential steps | Latency adds up, errors cascade |
+| Routing | Diverse inputs needing different treatment | Router misclassification |
+| Parallelization | Independent subtasks, or voting for reliability | Only works when tasks are truly independent |
+| Orchestrator-worker | Complex tasks that need dynamic planning | Expensive, orchestrator can plan badly |
+| Evaluator-optimizer | Quality-critical outputs | Adds 2-3x cost per iteration |
+| Human-in-the-loop | High-stakes or irreversible actions | Slows down the workflow |
+
+Start with the simplest pattern that works. Chaining covers a surprising number of use cases. Add complexity only when you need it.
+
+---
+
+## Combining patterns
+
+Real systems rarely use just one pattern. They compose them.
+
+A customer support agent might use **routing** to classify the request, then **chaining** to handle the multi-step resolution, with **human-in-the-loop** for refund approvals, and **evaluator-optimizer** to check the response quality before sending it.
+
+A coding agent might use **orchestrator-worker** for the overall plan, **parallelization** for running tests across multiple files simultaneously, and **reflection** to review its own code before committing.
+
+The patterns are building blocks. Mix and match.
+
+<Callout type="tip" title="Start simple, add patterns as needed">
+The biggest mistake in agent design is over-engineering from day one. Start with a single LLM call. If that's not good enough, add chaining. Still not enough? Try reflection. Only reach for orchestrator-worker when simpler patterns genuinely can't handle the complexity.
+</Callout>
+
+---
+
+## The prompt engineering angle
+
+These patterns aren't just about code architecture. They're also about prompt engineering.
+
+Each node in a pattern gets its own prompt. And those prompts should be specific to the node's role. The router prompt says "classify this input into one of these categories." The worker prompt says "you are a billing specialist, here's the customer's account." The evaluator prompt says "score this response on accuracy, completeness, and tone."
+
+Generic prompts in a multi-step pipeline produce generic results. The more specific each prompt is, the better the whole system works.
+
+This also means you can iterate on individual prompts without rebuilding the entire pipeline. If the evaluator is too lenient, tighten the evaluation prompt. If the router keeps misclassifying, add more examples to the routing prompt. Each node is independently tunable.
+
+---
+
+## What's next?
+
+Patterns give you structure, but how does an agent actually *reason* through a multi-step problem? How does it decide what to think, what tool to use, and when to try a different approach?
+
+That's the **ReACT** framework — Reasoning plus Acting — and it's the topic of the next article. We'll walk through exactly how agents think step by step and recover when things go wrong.

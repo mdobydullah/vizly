@@ -1,0 +1,16 @@
+{
+  "slug": "multimodal-generative-ai",
+  "title": "Multimodal & Generative AI",
+  "description": "How AI creates images, videos, and more — from diffusion models and Stable Diffusion to the cutting edge of generative AI.",
+  "icon": "🎨",
+  "color": "pink",
+  "tags": ["AI"],
+  "createdAt": "2026-04-05T11:00:00Z",
+  "updatedAt": "2026-04-05T11:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "how-image-generation-works", "title": "How Image Generation Works" },
+    { "order": 2, "slug": "text-to-image-stable-diffusion", "title": "Text-to-Image (Stable Diffusion)" },
+    { "order": 3, "slug": "text-to-video-and-beyond", "title": "Text-to-Video & Beyond" },
+    { "order": 4, "slug": "the-ai-landscape-whats-next", "title": "The AI Landscape: What's Next" }
+  ]
+}

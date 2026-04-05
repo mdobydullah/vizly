@@ -1,0 +1,232 @@
+---
+title: "AI Agents: Beyond Chat"
+slug: ai-agents-beyond-chat
+category: agents-reasoning
+series: agents-reasoning
+seriesOrder: 1
+description: "What makes an AI agent different from a chatbot? Agency levels, tool calling, and why the shift from 'answer questions' to 'do things' changes everything."
+tags:
+  - AI
+  - Agents
+  - Tool Calling
+  - LLMs
+readTime: "13 min"
+icon: "🤖"
+color: purple
+createdAt: "2026-04-06T11:00:00Z"
+updatedAt: "2026-04-06T11:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Chatbots are stuck in a box
+
+You ask ChatGPT "What's the weather in Tokyo?" and it says something like "I don't have real-time data, but here's how you can check..." That's a chatbot. It knows things. It can explain things. But it can't actually *do* things.
+
+It can't open a browser, check the weather API, and come back with "14 degrees, partly cloudy." It's stuck inside a text box, responding to prompts, one question at a time.
+
+That limitation matters. Because a lot of useful work isn't about answering questions — it's about taking actions. Booking a flight. Debugging code. Researching a topic across ten different websites and summarizing what you find.
+
+That's where agents come in.
+
+---
+
+## So what makes something an "agent"?
+
+An agent is an LLM that can do more than just generate text. It can observe its environment, decide what to do, take actions, see the results, and then decide what to do next.
+
+The key word is *loop*. A chatbot does one thing: you ask, it answers. An agent keeps going. It reasons about what step to take, takes that step, looks at what happened, and decides the next move.
+
+Think of it like the difference between asking someone a question and hiring someone to handle a task. A question gets you a single answer. Hiring someone means they figure out the steps, do the work, and come back when it's done.
+
+<MermaidBlock>
+graph LR
+    A["You ask a question"] --> B["Chatbot\ngenerates answer"]
+    B --> C["Done"]
+    D["You give a task"] --> E["Agent\nobserves situation"]
+    E --> F["Agent\ndecides action"]
+    F --> G["Agent\nexecutes action"]
+    G --> H["Agent\nchecks result"]
+    H -->|"Not done yet"| E
+    H -->|"Task complete"| I["Done"]
+    style A fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style C fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style I fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That loop — observe, think, act, repeat — is the fundamental difference between a chatbot and an agent.
+
+---
+
+## Agency has levels
+
+Not every agent is fully autonomous. There's a spectrum, and where you land on it depends on how much control you give the LLM.
+
+**Level 0 — Plain chat.** You type, it responds. No tools, no actions. This is standard ChatGPT or Claude in basic mode.
+
+**Level 1 — Tool-assisted chat.** The model can call specific tools (search the web, run code, check a database) but only when you ask and only in a single turn. It uses the tool, gives you the result, and stops.
+
+**Level 2 — Multi-step tool use.** The model can chain together multiple tool calls in sequence. "Find the latest research paper on X, summarize it, and email the summary to my team." That's three tools in a row, decided by the model.
+
+**Level 3 — Autonomous agents.** The model plans its own approach, executes multiple steps, handles errors, and adjusts its strategy when things go wrong. You give it a goal, and it figures out the rest.
+
+**Level 4 — Multi-agent systems.** Multiple agents working together, each handling a different part of a problem. One agent does research, another writes code, a third reviews the code. They coordinate.
+
+Most production systems today sit at Level 1 or 2. Fully autonomous agents (Level 3+) exist but are still fragile. They work great on demos and fall apart on edge cases. We're getting closer, though.
+
+---
+
+## The agent loop: observe-think-act
+
+Every agent, no matter how simple or complex, follows the same basic pattern.
+
+**Observe.** The agent looks at the current state. What's the user's request? What information do I have? What just happened from my last action?
+
+**Think.** The LLM reasons about what to do next. This is where the "intelligence" lives. It considers its available tools, the current context, and decides on a plan.
+
+**Act.** The agent executes its decision — calls a tool, writes code, sends a request, whatever the plan requires.
+
+Then it checks the result, and the loop starts again. This continues until the task is complete or something goes wrong enough to stop.
+
+<MermaidBlock>
+graph TD
+    A["User gives task"] --> B["Observe\nread current state"]
+    B --> C["Think\nreason about next step"]
+    C --> D["Act\ncall tool or take action"]
+    D --> E["Check result"]
+    E -->|"Need more steps"| B
+    E -->|"Task done"| F["Return result to user"]
+    E -->|"Error or stuck"| G["Handle failure\nadjust strategy"]
+    G --> B
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+This might look simple. And the idea is simple. But the tricky part is making the "Think" step reliable. LLMs can hallucinate, lose track of what they've done, or go off on tangents. Getting the loop to work consistently is the core challenge of agent engineering.
+
+---
+
+## Tool calling: giving LLMs hands
+
+The most important capability that separates agents from chatbots is **tool calling** (also called function calling).
+
+Here's how it works. You define a set of tools — basically, functions the model can invoke. Each tool has a name, a description, and a set of parameters. You send these tool definitions to the LLM along with the user's message.
+
+The model doesn't actually run the tool. Instead, it outputs a structured request saying "I want to call this tool with these arguments." Your code catches that request, runs the actual function, and sends the result back to the model. Then the model continues.
+
+```
+You: "What's the weather in Tokyo?"
+
+Model's internal reasoning:
+  I should use the weather tool.
+
+Model outputs:
+  tool_call: get_weather(city="Tokyo")
+
+Your code runs: get_weather("Tokyo") -> "14C, partly cloudy"
+
+You send back: "The result of get_weather is: 14C, partly cloudy"
+
+Model responds:
+  "It's 14 degrees and partly cloudy in Tokyo right now."
+```
+
+The model never touches the internet directly. It just asks for a tool call, your code handles execution, and the result goes back. This separation is important — it means you control what the agent can and can't do.
+
+---
+
+## What kind of tools do agents use?
+
+Pretty much anything you can wrap in a function. Some common examples:
+
+**Search.** Web search, document search, database queries. "Find me information about X."
+
+**Code execution.** Run Python, JavaScript, SQL. The model writes the code, your system executes it in a sandbox, and the output comes back.
+
+**APIs.** Send emails, create calendar events, post to Slack, make HTTP requests. Any API your system has access to.
+
+**File operations.** Read files, write files, create spreadsheets, generate PDFs.
+
+**Calculator and math.** LLMs are famously bad at arithmetic. Give them a calculator tool and they become much more reliable with numbers.
+
+**Other LLMs.** Sometimes an agent calls another LLM as a tool — maybe a specialized model for code generation or image analysis.
+
+The power of tools is that they turn the LLM's weakness into a strength. The model is bad at math but good at knowing *when* math is needed. Give it a calculator and it handles both parts.
+
+<Callout type="tip" title="Tools are just functions">
+There's no magic to tool calling. A "tool" is just a function with a description that helps the LLM decide when to use it. The model reads the description, figures out which tool fits the situation, and outputs the arguments. Your code does the rest.
+</Callout>
+
+---
+
+## A real example: research agent
+
+Say you ask an agent: "Find the three most popular JavaScript frameworks in 2026 and compare their bundle sizes."
+
+A chatbot would give you an answer based on training data — probably outdated and possibly wrong about specific numbers.
+
+An agent would:
+
+1. **Think:** I need current data. Let me search the web.
+2. **Act:** Call search tool with "most popular JavaScript frameworks 2026."
+3. **Observe:** Got results mentioning React, Vue, Svelte, Angular, and Solid.
+4. **Think:** I need bundle size data for the top three. Let me search for each.
+5. **Act:** Call search tool for "React bundle size 2026."
+6. **Act:** Call search tool for "Vue bundle size 2026."
+7. **Act:** Call search tool for "Svelte bundle size 2026."
+8. **Observe:** Got bundle size data for all three.
+9. **Think:** I have all the data. Let me format a comparison.
+10. **Act:** Return a formatted comparison table to the user.
+
+That's ten steps to answer one question. The agent decided the strategy, chose the tools, handled the results, and compiled the answer. You just asked a question and waited.
+
+---
+
+## When agents go wrong
+
+Agents sound amazing. But they have real problems.
+
+**Hallucinated tool calls.** The model invents tools that don't exist, or passes arguments that make no sense. "Let me call `book_flight(destination='moon')`." If your system isn't defensive, this crashes.
+
+**Infinite loops.** The agent tries something, it fails, it tries the same thing again, it fails again, and this goes on forever. Without a step limit or loop detection, the agent burns through your API budget doing nothing useful.
+
+**Losing the plot.** After many steps, the model forgets what it was originally trying to do. The context window fills up with tool results, and the original task gets buried. The agent starts chasing tangents.
+
+**Overconfidence.** The model takes an action it shouldn't. Deletes a file, sends an email to the wrong person, executes dangerous code. Agents need guardrails — confirmation steps, sandboxes, permission systems.
+
+**Cost explosion.** Every step in the agent loop is an LLM call. A 15-step task means 15 API calls, each with a growing context window. This adds up fast, especially with larger models.
+
+<Callout type="warning" title="Always set a step limit">
+Any agent loop should have a hard cap on the number of steps. Something like 20-30 steps max. If the agent hasn't finished by then, it's probably stuck. Better to return a partial result than burn through hundreds of API calls.
+</Callout>
+
+---
+
+## The current state of agents
+
+Agents today are in a phase that feels a lot like early smartphones. The concept is clearly powerful, the technology mostly works, but the experience is inconsistent.
+
+**What works well:** Coding agents (like Cursor, Claude Code, GitHub Copilot) that can read your codebase, write code, run tests, and fix bugs. These work because the environment is structured and the tools (file read, file write, terminal) are well-defined.
+
+**What mostly works:** Research agents that search the web, read documents, and compile summaries. They get the job done but sometimes miss important sources or misinterpret results.
+
+**What's still rough:** General-purpose agents that navigate websites, fill out forms, or handle multi-day tasks. Browser automation agents like those attempting to book flights or manage your inbox still fail on edge cases that humans handle effortlessly.
+
+The gap between "impressive demo" and "reliable production tool" is closing, but it's still there. The best strategy today is to give agents narrow, well-defined tasks with clear tools and hard guardrails. The broader and more ambiguous the task, the more likely things go sideways.
+
+---
+
+## What's next?
+
+Now you know what agents are and how they work at a high level. But building a good agent isn't just about giving an LLM some tools and hoping for the best. There are design patterns — proven ways to structure agent workflows that make them much more reliable. That's what we'll cover next: **Agent Patterns** — chaining, routing, parallelization, and reflection.

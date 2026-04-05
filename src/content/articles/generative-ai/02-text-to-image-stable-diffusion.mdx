@@ -1,0 +1,241 @@
+---
+title: "Text-to-Image (Stable Diffusion)"
+slug: text-to-image-stable-diffusion
+category: generative-ai
+series: multimodal-generative-ai
+seriesOrder: 2
+description: "CLIP, U-Net, latent space, and sampling — how Stable Diffusion turns a text prompt into a photorealistic image."
+tags:
+  - AI
+  - Stable Diffusion
+  - CLIP
+  - Text-to-Image
+  - Latent Space
+readTime: "15 min"
+icon: "🖼️"
+color: pink
+createdAt: "2026-04-06T13:30:00Z"
+updatedAt: "2026-04-06T13:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## From noise to "a cat wearing a top hat"
+
+Diffusion models generate images by learning to remove noise step by step. But there's a gap in that story. They generate *random* images — whatever the training data looked like. You can't tell them what to make.
+
+The breakthrough that turned diffusion from a research curiosity into a global phenomenon was adding text guidance. Type a description, get a matching image.
+
+Stable Diffusion is the model that brought this to the masses. Open source, runnable on a consumer GPU, and capable of producing stunning images from plain English descriptions.
+
+But how does a sentence become a picture? There are several pieces working together, and each one is worth understanding.
+
+---
+
+## CLIP: teaching computers that cats and "cat" are the same thing
+
+Before you can guide image generation with text, you need a model that understands the relationship between words and images. That model is **CLIP** (Contrastive Language-Image Pre-training), built by OpenAI in 2021.
+
+CLIP was trained on 400 million image-text pairs scraped from the internet. Photo captions, alt text, descriptions. For each pair, it learned to map the image and its caption to nearby points in a shared space.
+
+Think of it like this. Imagine a giant room where every concept has a location. The word "sunset" and a photo of a sunset are both placed near each other. The word "dog" and a picture of a golden retriever end up in the same neighborhood. But "dog" and a photo of a car are far apart.
+
+<MermaidBlock>
+graph TB
+    T["Text: a golden retriever\non a beach"] --> TE["Text encoder\nCLIP"]
+    I["Photo of dog\non beach"] --> IE["Image encoder\nCLIP"]
+    TE --> S["Shared vector space\nboth land nearby"]
+    IE --> S
+    style T fill:#1a1f2b,stroke:#b985f4,color:#fff
+    I2["Photo of a car\nin a garage"] --> IE2["Image encoder\nCLIP"]
+    IE2 --> S2["Different region\nfar from dog text"]
+    style I fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style TE fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style IE fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style S fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style I2 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style IE2 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style S2 fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+</MermaidBlock>
+
+CLIP gives us a way to convert a text prompt into a numerical vector that means the same thing as the corresponding image. This vector becomes the "steering signal" for the diffusion process.
+
+### Why CLIP was a breakthrough on its own
+
+Before CLIP, connecting text and images required task-specific training. You'd build one model for image captioning, another for image search, another for classification. Each needed its own labeled dataset.
+
+CLIP changed that. Because it learned a general-purpose mapping between text and images, you could use it for all sorts of tasks without additional training. Want to classify images? Just compare the image vector to text vectors like "a photo of a dog" and "a photo of a cat" and pick the closest one. Zero-shot classification, no labeled data needed.
+
+This generality is what made CLIP perfect as the text encoder for image generation. It doesn't just understand individual words — it understands complex descriptions, artistic styles, spatial relationships, and abstract concepts. "A melancholy painting of an abandoned lighthouse at sunset" all gets captured in a single vector.
+
+---
+
+## The pixel problem
+
+Here's a practical issue. A 512x512 color image has about 786,000 numbers. Running the diffusion process — predicting and removing noise — on that many numbers, for dozens of steps, is incredibly expensive. Even on beefy GPUs, it's slow.
+
+What if you could run diffusion on a much smaller representation of the image instead?
+
+That's exactly what Stable Diffusion does. And this is arguably its most important innovation.
+
+### Latent space: compressing images before diffusing
+
+Remember the VAE from the previous article? The encoder squishes an image into a compact code, and the decoder rebuilds it. Stable Diffusion uses a pre-trained VAE to compress images into a **latent space** — a much smaller representation.
+
+A 512x512 image becomes a 64x64 latent (with multiple channels). That's 64 times fewer numbers to process at each denoising step.
+
+The diffusion process runs entirely in this compressed latent space. Only at the very end, once denoising is complete, does the VAE decoder expand the final latent back into a full-resolution image.
+
+This is why it's called **Latent Diffusion**. You're doing the expensive iterative work on a small representation, not on raw pixels. The speedup is enormous — it's what made it possible to run on consumer hardware.
+
+---
+
+## The architecture: three models working together
+
+Stable Diffusion isn't one model. It's three:
+
+<MermaidBlock>
+graph TB
+    P["Text prompt"] --> TE["Text encoder\nCLIP"]
+    TE --> UN["U-Net\npredicts noise in latent space"]
+    N["Random noise\n64x64 latent"] --> UN
+    UN -->|repeat 20-50 steps| UN
+    UN --> CL["Clean latent\n64x64"]
+    CL --> VD["VAE decoder\nexpand to pixels"]
+    VD --> IMG["Final image\n512x512"]
+    style P fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style TE fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style UN fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style N fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style CL fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style VD fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style IMG fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The text encoder (CLIP) converts your text prompt into a vector that captures its meaning. The U-Net is the workhorse — this is the denoising network that runs at each step. It takes a noisy latent, the current timestep, and the text vector, and predicts the noise to remove. The text vector is injected via cross-attention layers, so at every step the U-Net "looks at" the text to decide what the image should become. Finally, the VAE decoder converts the final clean latent into a full-resolution image. This runs once, at the end.
+
+The name "U-Net" comes from its architecture shape. It processes the input at multiple resolutions — downsampling, then upsampling — with skip connections that form a U shape. This gives it both big-picture context and fine-grained detail.
+
+---
+
+## The generation process, step by step
+
+Here's what happens when you type "a cat wearing a top hat, oil painting style":
+
+1. CLIP encodes your text into a vector.
+2. A random 64x64 latent (pure noise) is generated.
+3. The U-Net looks at the noisy latent and the text vector, predicts the noise, and subtracts it. The latent gets slightly less noisy.
+4. Repeat step 3 for 20-50 steps. Each step, the image gets clearer.
+5. The VAE decoder converts the clean latent to a 512x512 image.
+
+Early steps establish the rough composition — where the cat is, the general colors. Middle steps add structure — the shape of the hat, the cat's pose. Final steps refine details — fur texture, brushstroke patterns, lighting.
+
+This progressive refinement is actually visible if you save the latent at each step and decode it. The first few steps look like abstract color blobs. By step 10, you can see vague shapes. By step 20, the composition is clear. The final steps are mostly about sharpening textures and fixing small details.
+
+It's a lot like how a painter works. You don't start with individual hairs on a cat's face. You sketch the composition, block in colors, then refine details. The model learned to do the same thing, purely from data.
+
+---
+
+## Classifier-free guidance: turning up the prompt
+
+There's a trick that makes a huge difference in output quality. It's called **classifier-free guidance** (CFG), and it controls how strongly the model follows your text prompt.
+
+At each denoising step, the model actually runs twice. Once with your text prompt, once without (using an empty prompt). Then it compares the two predictions and amplifies the difference.
+
+```
+noise_with_text    = model(noisy_image, "a cat in a top hat")
+noise_without_text = model(noisy_image, "")
+
+final_noise = noise_without_text + scale * (noise_with_text - noise_without_text)
+```
+
+The `scale` (guidance scale) is typically 7-12. Higher values mean "follow the prompt more strictly." Lower values give the model more creative freedom.
+
+Set it too low, and the image might look nice but ignore your prompt. Set it too high, and you get oversaturated, artifact-heavy images that follow the prompt almost too literally.
+
+Most people use 7-8. It's a sweet spot.
+
+---
+
+## Sampling methods: different ways to denoise
+
+Not all denoising paths are equal. The mathematical algorithm you use to step from noise to image matters, and there are several options. These are called **samplers** or **schedulers**.
+
+**DDPM** (the original). Takes 1,000 steps. High quality but painfully slow.
+
+**DDIM**. A shortcut that skips steps — you can go from 1,000 down to 50 with decent quality. The key insight: the denoising process doesn't have to follow every single step.
+
+**Euler and Euler Ancestral**. Fast, good quality, widely used. Euler Ancestral adds a bit of randomness at each step, giving more varied results.
+
+**DPM-Solver**. Treats denoising as a differential equation and solves it more efficiently. Can produce good results in 20 steps.
+
+In practice, most people use Euler or DPM-Solver variants with 20-30 steps. The difference between samplers is real but often subtle — like choosing between slightly different camera lenses.
+
+---
+
+## Beyond basic generation
+
+Once you have the core text-to-image pipeline, you can extend it in interesting ways.
+
+### Image-to-image
+
+Instead of starting from pure noise, start from an existing image with some noise added. The model "denoises" it, but steered toward your text prompt. The result keeps the composition of the original image while changing the style or content. Great for turning sketches into paintings, or changing the season in a landscape.
+
+### Inpainting
+
+Mask part of an image and let the model fill it in based on a text prompt. Want to replace someone's shirt? Mask the shirt area and prompt "blue denim jacket." The model generates new content for just that region, matching the surrounding context.
+
+### ControlNet
+
+A separate network that gives you structural control. Feed it an edge map, a depth map, or a pose skeleton, and the model follows that structure while applying your text prompt. This is huge for practical use — you can control *where* things go in the image, not just *what* they are.
+
+---
+
+## The model landscape
+
+Stable Diffusion isn't the only game in town. Here's how the main players compare:
+
+| Model | Creator | Open source | Key feature |
+|---|---|---|---|
+| Stable Diffusion 1.5/2.1 | Stability AI | Yes | Runs locally, huge community |
+| SDXL | Stability AI | Yes | Higher resolution, better composition |
+| SD 3 and 3.5 | Stability AI | Partially | New MMDiT architecture |
+| DALL-E 3 | OpenAI | No | Excellent prompt following |
+| Midjourney v6 | Midjourney | No | Artistic quality, aesthetics |
+| Imagen 3 | Google | No | Photorealism |
+| Flux | Black Forest Labs | Partially | Former Stability researchers |
+
+The open-source models (Stable Diffusion family, Flux) have a massive advantage: community fine-tuning. Thousands of specialized models exist — trained on anime, architecture, photorealism, pixel art, you name it. The ecosystem around open models is enormous.
+
+Closed models like Midjourney and DALL-E often produce more polished results out of the box, but you can't fine-tune them, can't run them locally, and can't see how they work.
+
+### The fine-tuning ecosystem
+
+One thing that sets Stable Diffusion apart is its fine-tuning community. Techniques like **LoRA** (Low-Rank Adaptation) and **DreamBooth** let anyone train a specialized version of Stable Diffusion with just a handful of images.
+
+Want a model that generates images in your art style? Fine-tune it on 20 of your paintings. Want it to generate your face consistently? DreamBooth can learn your appearance from 10-15 photos. These fine-tuned models can be shared as small files (LoRAs are typically 20-200 MB) and combined with each other.
+
+Platforms like Civitai host thousands of community-created fine-tunes. The result is an ecosystem where the base model is just the starting point — the real magic happens when people customize it for their specific needs.
+
+---
+
+## Why latent diffusion changed everything
+
+The key insight wasn't any single component. It was the combination:
+
+- CLIP for understanding text.
+- Latent space for making diffusion practical.
+- U-Net with cross-attention for text-guided denoising.
+- Classifier-free guidance for controlling prompt adherence.
+
+Each piece existed before Stable Diffusion. CLIP was released in 2021. VAEs and U-Nets were well established. Diffusion models were published in 2020. The breakthrough was putting them together in a way that was fast enough to run on a consumer GPU and open enough for everyone to build on.
+
+That combination — open weights, fast inference, strong quality — is what triggered the explosion of AI art in late 2022. Not because the research was new, but because it was finally accessible.
+
+---
+
+## What's next?
+
+We've covered still images — one frame at a time. But what happens when you want the model to generate 30 frames per second that all look consistent?
+
+In the next article, we'll look at **Text-to-Video and Beyond** — how diffusion models are being extended to video, audio, 3D, and the rise of Diffusion Transformers that are replacing the U-Net entirely.

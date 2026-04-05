@@ -11,6 +11,10 @@
 - [AI Fundamentals](/series/ai-fundamentals): A ground-up journey through AI, ML, deep learning, and neural networks. 6 articles.
 - [Transformers & LLMs](/series/transformers-llms): From attention mechanisms to text generation — how modern language models actually work under the hood. 6 articles.
 - [Post-Training & Alignment](/series/post-training-alignment): How base models become helpful assistants — supervised fine-tuning, RLHF, efficient adapters, and evaluation. 4 articles.
+- [RAG, Prompting & Applications](/series/rag-prompting-applications): From crafting the perfect prompt to building retrieval-augmented systems. 4 articles.
+- [Agents & Reasoning](/series/agents-reasoning): LLMs that think, plan, and act — tool-calling to multi-step reasoning agents. 4 articles.
+- [Multimodal & Generative AI](/series/multimodal-generative-ai): How AI creates images, videos, and more — diffusion models to the cutting edge. 4 articles.
+- [Production AI Engineering](/series/production-ai-engineering): Build, serve, evaluate, and maintain AI systems in production. 8 articles.
 
 ## Articles
 
@@ -30,6 +34,26 @@
 - [RLHF & Reward Models](/articles/rlhf-and-reward-models): Human feedback loop, reward modeling, PPO, DPO.
 - [Efficient Fine-Tuning](/articles/efficient-fine-tuning): LoRA, QLoRA, adapters, PEFT.
 - [Evaluation & Benchmarks](/articles/evaluation-and-benchmarks): Perplexity, BLEU, human eval, MMLU, leaderboards.
+- [Prompt Engineering](/articles/prompt-engineering): Zero-shot, few-shot, chain-of-thought, system prompts.
+- [Embeddings & Vector Search](/articles/embeddings-and-vector-search): What embeddings are, cosine similarity, vector databases, ANN indexing.
+- [RAG: Retrieval-Augmented Generation](/articles/rag-retrieval-augmented-generation): Chunking, indexing, retrieval, generation — giving LLMs your own data.
+- [Building a Chatbot](/articles/building-a-chatbot): Conversation memory, context windows, streaming, tools, guardrails.
+- [AI Agents: Beyond Chat](/articles/ai-agents-beyond-chat): Agency levels, tool calling, the agent loop, chatbots vs agents.
+- [Agent Patterns](/articles/agent-patterns): Chaining, routing, parallelization, orchestrator-worker, reflection.
+- [ReACT & Multi-Step Agents](/articles/react-and-multi-step-agents): Reasoning plus acting, Reflexion, tree search, multi-step planning.
+- [Reasoning Models](/articles/reasoning-models): O-series, DeepSeek-R1, chain-of-thought at scale, test-time compute.
+- [How Image Generation Works](/articles/how-image-generation-works): From GANs to diffusion models — how AI creates images from noise.
+- [Text-to-Image (Stable Diffusion)](/articles/text-to-image-stable-diffusion): CLIP, U-Net, latent space, and sampling — turning text prompts into images.
+- [Text-to-Video and Beyond](/articles/text-to-video-and-beyond): Temporal modeling, DiT architectures, and multimodal AI for video, audio, and 3D.
+- [The AI Landscape: What's Next](/articles/the-ai-landscape-whats-next): Scaling laws, emergent abilities, open problems, and where AI is heading.
+- [Your First AI App with HuggingFace](/articles/your-first-ai-app-with-huggingface): Loading models, running pipelines, understanding tokenizers.
+- [Fine-Tuning in Practice with PyTorch](/articles/fine-tuning-in-practice-with-pytorch): The training loop, dataloaders, optimizers, and checkpoints.
+- [LangChain & LlamaIndex: Build with LLMs](/articles/langchain-and-llamaindex): Chains, tools, memory, document loaders, and indexes for LLM apps.
+- [Serving AI Models: From Notebook to API](/articles/serving-ai-models): FastAPI, model loading, batching, latency vs throughput.
+- [Cloud AI: AWS, GCP & Azure for AI Engineers](/articles/cloud-ai-aws-gcp-azure): SageMaker, Vertex AI, Azure OpenAI — managed endpoints vs self-hosting.
+- [MLOps: Shipping AI Like Software](/articles/mlops-shipping-ai-like-software): Experiment tracking, model registries, CI/CD for models, dataset versioning.
+- [Evaluating LLMs at Scale](/articles/evaluating-llms-at-scale): LLM-as-judge, eval frameworks, red-teaming, regression testing.
+- [Cost, Latency & Context Management](/articles/cost-latency-and-context-management): Token budgets, semantic caching, streaming, context window strategies.
 
 ## Guides — System Design
 

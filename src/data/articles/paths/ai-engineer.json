@@ -12,9 +12,9 @@
     "ai-fundamentals",
     "transformers-llms",
     "post-training-alignment",
-    "rag-prompting-apps",
+    "rag-prompting-applications",
     "agents-reasoning",
-    "generative-ai",
+    "multimodal-generative-ai",
     "production-ai-engineering"
   ]
 }

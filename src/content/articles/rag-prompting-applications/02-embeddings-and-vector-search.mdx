@@ -1,0 +1,254 @@
+---
+title: "Embeddings & Vector Search"
+slug: embeddings-and-vector-search
+category: rag-prompting-applications
+series: rag-prompting-applications
+seriesOrder: 2
+description: "What are embeddings, how do they capture meaning as numbers, and how vector databases let you search by similarity instead of keywords."
+tags:
+  - AI
+  - LLMs
+  - Embeddings
+  - Vector Search
+  - Similarity
+readTime: "14 min"
+icon: "🧭"
+color: cyan
+createdAt: "2026-04-06T09:30:00Z"
+updatedAt: "2026-04-06T09:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## The keyword problem
+
+You search your company docs for "how to request time off." The search engine returns a document titled "PTO Request Procedure."
+
+Good match? Absolutely. But a keyword search engine might miss it entirely. The words "time off" don't appear in "PTO Request Procedure." Traditional search matches exact words. It has no idea that "time off" and "PTO" mean the same thing.
+
+This is the fundamental limitation of keyword search. It matches strings, not meaning.
+
+Embeddings fix this.
+
+---
+
+## What is an embedding?
+
+An embedding is a list of numbers that represents the meaning of a piece of text.
+
+Take the word "king." An embedding model converts it into something like:
+
+```
+"king" → [0.21, -0.55, 0.89, 0.03, ..., -0.41]   (768 numbers)
+```
+
+That list of numbers — that vector — captures what "king" means. Not the letters in the word. The concept.
+
+Here's the magic: words with similar meanings end up with similar numbers. "Queen" lands nearby in this number space. "Banana" lands far away.
+
+And it's not just words. You can embed sentences, paragraphs, entire documents. "How do I request PTO?" and "What's the time-off policy?" would have very similar embeddings — because they mean similar things, even though they share almost no words.
+
+---
+
+## How do embeddings capture meaning?
+
+Think of it like coordinates on a map. Paris and London are close together. Paris and Tokyo are far apart. The coordinates encode geographic relationships.
+
+Embeddings work the same way, but in hundreds of dimensions instead of two. Each dimension captures some aspect of meaning. One dimension might loosely correspond to "is this about royalty?" Another might capture "is this a positive or negative concept?"
+
+No single dimension is human-interpretable. But together, they form a rich representation of meaning.
+
+<MermaidBlock>
+graph TB
+    A["Raw text\nking, queen, car, truck"] --> B["Embedding model\nconverts text to vectors"]
+    B --> C["Vector space\nhigh-dimensional coordinates"]
+    C --> D["king and queen\nclose together"]
+    C --> E["car and truck\nclose together"]
+    C --> F["king and car\nfar apart"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+The classic example: take the vector for "king," subtract "man," add "woman." The result is closest to "queen." The model learned gender relationships just from reading text. Nobody programmed that in.
+
+---
+
+## How are embeddings created?
+
+Embedding models are neural networks trained on massive amounts of text. The training objective is simple: texts that appear in similar contexts should have similar vectors.
+
+There are different approaches:
+
+**Word2Vec (2013).** The original. Trained by predicting a word from its surrounding words (or vice versa). Produced word-level embeddings that captured surprising relationships.
+
+**Sentence transformers.** Models like SBERT that embed entire sentences. Trained on pairs of similar and dissimilar sentences, so the model learns to place related sentences close together.
+
+**Modern embedding models (as of early 2026).** OpenAI's text-embedding-3, Cohere's embed-v3, open-source models like BGE and E5. These are trained on diverse tasks — search, classification, clustering — and produce embeddings that work well across many use cases. The specific model names change fast, but the underlying approach is consistent.
+
+| Model | Dimensions | Strengths |
+|-------|-----------|-----------|
+| Word2Vec | 100-300 | Word-level, fast, lightweight |
+| SBERT | 384-768 | Sentence-level, good for similarity |
+| OpenAI text-embedding-3-small | 1536 | High quality, general purpose |
+| BGE-large | 1024 | Open source, competitive quality |
+
+<Callout type="info" title="Dimensions matter">
+More dimensions means the vector can capture more nuance. But it also means more storage and slower search. A 1536-dimensional embedding uses 6KB per vector. Embed a million documents and you're at 6GB just for the vectors. For many use cases, smaller models (384 dimensions) work nearly as well at a fraction of the cost.
+</Callout>
+
+---
+
+## Measuring similarity: cosine distance
+
+You've got two vectors. How do you measure if they're "close"?
+
+The most common method is **cosine similarity**. It measures the angle between two vectors, ignoring their length. Two vectors pointing in the same direction have a cosine similarity of 1 (identical meaning). Perpendicular vectors score 0 (unrelated). Opposite vectors score -1.
+
+```
+cosine_similarity("How do I take time off?", "PTO request process") = 0.91
+cosine_similarity("How do I take time off?", "Best pizza in NYC")   = 0.12
+```
+
+The first pair scores high because they mean similar things. The second pair scores low because vacation policies and pizza are unrelated.
+
+Other distance metrics exist — Euclidean distance, dot product — but cosine similarity is the go-to for text embeddings because it focuses on direction (meaning) rather than magnitude (length).
+
+---
+
+## From similarity to search
+
+Now it clicks. If you can turn any text into a vector, and you can measure how similar two vectors are, you can build a search engine that understands meaning.
+
+The workflow:
+
+1. Take all your documents and embed each one
+2. Store the vectors in a database
+3. When a user searches, embed their query
+4. Find the stored vectors closest to the query vector
+5. Return those documents
+
+<MermaidBlock>
+graph LR
+    A["User query\nhow do I request PTO"] --> B["Embed query\nquery vector"]
+    B --> C["Search vector DB\nfind nearest neighbors"]
+    C --> D["Return top results\nranked by similarity"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+The user typed "how do I request PTO" and the system returned the document about time-off policies — even though they share zero keywords. That's vector search.
+
+---
+
+## Vector databases
+
+You could store vectors in a regular database and compute similarity against every single one. For 100 documents, that's fine. For 10 million? Way too slow.
+
+Vector databases are purpose-built for this. They use special indexing algorithms that make similarity search fast, even over billions of vectors.
+
+The big names:
+
+**Pinecone.** Fully managed, serverless. You just upload vectors and query. No infrastructure to manage.
+
+**Weaviate.** Open source, supports hybrid search (vectors plus keywords). Self-host or use their cloud.
+
+**ChromaDB.** Lightweight, open source, popular for prototyping. Runs in-memory or with persistent storage.
+
+**pgvector.** A PostgreSQL extension. If you already use Postgres, you can add vector search without a separate database.
+
+**Qdrant.** Open source, Rust-based, fast. Good balance of performance and features.
+
+| Database | Hosting | Best for |
+|----------|---------|----------|
+| Pinecone | Managed cloud | Production apps, zero ops |
+| Weaviate | Self-host or cloud | Hybrid search, flexible schema |
+| ChromaDB | Local or embedded | Prototyping, small projects |
+| pgvector | Your existing Postgres | Adding vectors to existing stack |
+| Qdrant | Self-host or cloud | High performance, large scale |
+
+<Callout type="tip" title="Start simple">
+If you're building your first vector search project, start with ChromaDB or pgvector. You don't need a dedicated vector database until you're dealing with millions of vectors or need sub-millisecond latency. Premature optimization applies here too.
+</Callout>
+
+---
+
+## How vector databases find neighbors fast
+
+The naive approach — compare the query against every stored vector — is called brute force. It's accurate but slow. O(n) for n vectors.
+
+Vector databases use **Approximate Nearest Neighbor (ANN)** algorithms. They trade a tiny bit of accuracy for massive speed improvements.
+
+**HNSW (Hierarchical Navigable Small World).** The most popular. Builds a graph where each vector is connected to its neighbors. Search starts from a random entry point and navigates the graph, jumping between layers from coarse to fine. Think of it like searching a city: first find the right neighborhood, then the right street, then the right house.
+
+**IVF (Inverted File Index).** Clusters vectors into groups first. At search time, only compares against vectors in the nearest clusters. Like dividing a library into sections — you don't search every shelf, just the relevant section.
+
+**Product Quantization (PQ).** Compresses vectors into smaller representations. Loses some precision but dramatically reduces memory usage and speeds up comparison.
+
+<MermaidBlock>
+graph TB
+    A["Query vector"] --> B{"Search strategy"}
+    B --> C["Brute force\ncompare all vectors\nslow but exact"]
+    B --> D["HNSW\ngraph navigation\nfast, high recall"]
+    B --> E["IVF\ncluster-based\nfast, configurable"]
+    B --> F["PQ\ncompressed vectors\nmemory efficient"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style C fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+Most production systems use HNSW. It gives you 95-99% recall (meaning it finds almost all the truly nearest neighbors) while being orders of magnitude faster than brute force.
+
+---
+
+## Hybrid search: best of both worlds
+
+Pure vector search is great at understanding meaning. But sometimes you want exact matches too. If someone searches for "error code ERR_429", you want to match that exact string, not just documents about errors in general.
+
+**Hybrid search** combines vector similarity with traditional keyword matching (usually BM25). The results are merged and reranked.
+
+Most modern vector databases support this. Weaviate and Qdrant have it built in. For others, you can implement it by running both searches and combining scores.
+
+In practice, hybrid search almost always outperforms either approach alone. Vectors catch the semantic matches that keywords miss. Keywords catch the exact matches that vectors might rank lower.
+
+---
+
+## Real-world embedding gotchas
+
+**Chunking matters.** You can't embed a 50-page document as a single vector — too much information gets compressed into one point. You need to split documents into chunks first. How you chunk dramatically affects search quality. We'll cover this in detail in the RAG article.
+
+**Embedding model choice matters.** Different models capture different aspects of meaning. A model trained for search (asymmetric: short query vs long passage) works differently from one trained for similarity (symmetric: comparing two similar-length texts). Pick the right model for your task.
+
+**Embeddings are not magic.** They capture statistical patterns from training data. If the training data doesn't include your domain (say, internal company jargon), the embeddings might not understand your terminology well. Domain-specific fine-tuning of embedding models is a thing.
+
+**Cost scales with volume.** Every time you embed a document, you're making an API call (or running a model). For a million documents, that adds up. Plan for it.
+
+---
+
+## Where embeddings show up
+
+Embeddings aren't just for search. They're everywhere in modern AI:
+
+**Recommendation systems.** Embed products and user preferences. Recommend products whose vectors are close to what the user likes.
+
+**Clustering.** Embed customer support tickets, then cluster the vectors. Similar issues group together automatically.
+
+**Classification.** Embed text, then use a simple classifier on the vectors. Often works surprisingly well with minimal training data.
+
+**Deduplication.** Find near-duplicate documents by checking if their embeddings are suspiciously close.
+
+**RAG (Retrieval-Augmented Generation).** Embed your knowledge base, search it with user questions, feed the results to an LLM. This is the killer app for embeddings, and it's what we'll build next.
+
+---
+
+## What's next?
+
+We now know how to turn text into meaning-preserving numbers and search through them efficiently. The natural next step: what if we combine this search capability with a language model? Feed relevant documents to the LLM alongside the user's question, and the model can answer based on your data — not just its training data. That's **RAG: Retrieval-Augmented Generation**, and it's up next.

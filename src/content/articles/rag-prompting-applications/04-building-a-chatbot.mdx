@@ -1,0 +1,318 @@
+---
+title: "Building a Chatbot"
+slug: building-a-chatbot
+category: rag-prompting-applications
+series: rag-prompting-applications
+seriesOrder: 4
+description: "System design for conversational AI — conversation memory, context window management, and how chatbots actually work under the hood."
+tags:
+  - AI
+  - LLMs
+  - Chatbot
+  - Conversation
+  - Memory
+readTime: "13 min"
+icon: "💬"
+color: cyan
+createdAt: "2026-04-06T10:30:00Z"
+updatedAt: "2026-04-06T10:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## It's not magic
+
+You open ChatGPT. You ask a question. It responds. You ask a follow-up. It remembers what you said before and builds on it.
+
+Feels like a conversation with someone who has a memory. But here's the reality: the model has no memory at all.
+
+Every time you send a message, the entire conversation history gets sent to the model from scratch. The model reads the whole thing — your first message, its first response, your second message, its second response, your latest message — and generates the next response.
+
+There's no internal state. No persistent memory. Just a very long prompt that keeps getting longer.
+
+Understanding this changes how you think about building chatbots.
+
+---
+
+## The conversation loop
+
+Every chatbot follows the same basic loop:
+
+1. User sends a message
+2. System builds a prompt (system prompt + conversation history + new message)
+3. Prompt goes to the LLM
+4. LLM generates a response
+5. Response is shown to the user
+6. Both the user message and assistant response are appended to the history
+7. Go to step 1
+
+<MermaidBlock>
+graph TB
+    A["User sends message"] --> B["Build prompt\nsystem + history + message"]
+    B --> C["Send to LLM"]
+    C --> D["LLM generates response"]
+    D --> E["Show response to user"]
+    E --> F["Append to history\nuser msg + assistant msg"]
+    F --> A
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+That's it. Every chatbot — from a simple customer support bot to ChatGPT — follows this loop. The differences are in the details.
+
+---
+
+## The system prompt: your chatbot's personality
+
+The system prompt defines who your chatbot is. It's the first thing in every request, and it shapes every response.
+
+A customer support bot might have:
+
+```
+You are a support agent for Acme Corp. You help customers with
+billing questions, account issues, and product troubleshooting.
+
+Rules:
+- Always be polite and empathetic
+- If you don't know the answer, say so honestly
+- Never discuss competitor products
+- For billing disputes, direct users to support@acme.com
+```
+
+A coding assistant might have:
+
+```
+You are a senior software engineer. You write clean, well-tested code.
+When asked to fix a bug, explain the root cause before showing the fix.
+Always consider edge cases.
+```
+
+The system prompt is your most powerful lever. It's the difference between a generic chatbot and one that feels purpose-built.
+
+<Callout type="tip" title="Test your system prompt adversarially">
+Before shipping, try to break your chatbot. Ask it to ignore its instructions. Ask about topics it shouldn't discuss. Ask it to pretend to be someone else. A good system prompt is robust to these attempts. A great system prompt handles them gracefully.
+</Callout>
+
+---
+
+## The memory problem
+
+Here's where things get tricky.
+
+A conversation with a support bot might go 5 messages. That's fine. But a long brainstorming session could run to 50 messages. A coding session could go to 200.
+
+Every message gets appended to the history. The history gets sent with every request. LLMs have context window limits — 128k tokens for GPT-4o, 200k for Claude.
+
+That sounds like a lot. But a detailed coding conversation with long code blocks can burn through 128k tokens faster than you'd think. And even before hitting the limit, there's a cost problem: you're paying for every token in the history on every single request.
+
+Message 1: you send 1k tokens. Total: 1k.
+Message 10: you send 10k tokens of history + your message. Total: 10k.
+Message 50: you send 80k tokens of history + your message. Total: 80k.
+
+It adds up fast. You need a strategy for managing conversation memory.
+
+---
+
+## Memory strategy 1: full history
+
+The simplest approach. Keep everything. Send the entire conversation with every request. The model sees all context perfectly, but cost grows linearly — and eventually you hit the context window limit. Performance also degrades on very long conversations (the "lost in the middle" problem, where models pay less attention to content in the middle of large contexts). This works well for short conversations and internal tools where cost isn't a major concern.
+
+---
+
+## Memory strategy 2: sliding window
+
+Keep only the last N messages. Drop everything before that.
+
+```
+Messages 1-50 in history.
+Window size: 20.
+Send only messages 31-50 to the model.
+```
+
+The upside is predictable cost — you never hit the context limit. The downside is obvious: if the user said something important in message 3, it's gone by message 25. This works for casual conversations where early context doesn't matter much.
+
+---
+
+## Memory strategy 3: summarization
+
+Periodically summarize the older parts of the conversation. Keep the summary plus recent messages.
+
+```
+[Summary of messages 1-30: The user is building a REST API
+for a pet adoption service. They chose Node.js with Express.
+Key decisions: PostgreSQL database, JWT auth, rate limiting
+on public endpoints.]
+
+[Full messages 31-50]
+```
+
+This preserves key information from the entire conversation at a bounded cost. The tradeoff: summaries can lose important details, and generating them requires an extra LLM call (which adds latency). This is the best fit for long conversations where early context matters but you can't afford to send everything.
+
+<MermaidBlock>
+graph TB
+    A["Conversation memory strategies"] --> B["Full history\nkeep everything"]
+    A --> C["Sliding window\nlast N messages"]
+    A --> D["Summarization\nsummarize old + keep recent"]
+    B --> E["Perfect context\nhigh cost"]
+    C --> F["Fixed cost\nloses early context"]
+    D --> G["Balanced\nsome detail loss"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+In practice, most production chatbots use a combination. Full history for the first 20-30 messages. Summarization kicks in after that. Some systems use a sliding window with a summary prefix.
+
+---
+
+## The architecture
+
+A production chatbot has more moving parts than just a prompt and an LLM. Here's the typical architecture:
+
+**Frontend.** The chat UI. Handles rendering messages, showing typing indicators, streaming tokens as they arrive. Could be a web app, mobile app, or embedded widget.
+
+**API server.** Receives messages from the frontend. Manages conversation state. Orchestrates the retrieval and generation pipeline. Applies rate limiting and auth.
+
+**Conversation store.** A database that stores conversation history. Could be Redis for speed, PostgreSQL for durability, or both. This is where messages live between requests.
+
+**LLM provider.** The model API. OpenAI, Anthropic, a self-hosted model — wherever you're sending prompts.
+
+**Vector database (optional).** If your chatbot uses RAG, the vector DB holds your indexed documents.
+
+<MermaidBlock>
+graph LR
+    A["User\nfrontend"] --> B["API server\norchestration"]
+    B --> C["Conversation store\nmessage history"]
+    B --> D["LLM provider\ngeneration"]
+    B --> E["Vector DB\nRAG retrieval"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+The API server is the brain. It decides: do I need to retrieve context from the vector DB? How much history should I include? What goes in the system prompt? It builds the complete prompt and sends it to the LLM.
+
+---
+
+## Streaming: don't make users wait
+
+LLMs generate text one token at a time. A full response might take 5-10 seconds. If you wait for the complete response before showing anything, users stare at a loading spinner for an uncomfortable amount of time.
+
+**Streaming** sends tokens to the frontend as they're generated. The user sees the response appear word by word, just like watching someone type. This feels dramatically faster, even though the total generation time is the same.
+
+Most LLM APIs support streaming via Server-Sent Events (SSE). The API sends a stream of small JSON chunks, each containing one or a few tokens. The frontend appends them in real time.
+
+```
+data: {"content": "The"}
+data: {"content": " refund"}
+data: {"content": " policy"}
+data: {"content": " allows"}
+...
+data: [DONE]
+```
+
+Streaming isn't just nice-to-have. For chatbots, it's essential. Users perceive streamed responses as faster, more natural, and more engaging.
+
+---
+
+## Adding tools to your chatbot
+
+A plain chatbot can only talk. A useful chatbot can also do things.
+
+**Tool use** (or function calling) lets the LLM request actions. Instead of generating text, the model generates a structured function call. Your server executes it and feeds the result back.
+
+```
+User: What's the weather in Tokyo?
+
+LLM (internally): I should call get_weather("Tokyo")
+
+Server: [calls weather API, gets result]
+
+LLM: It's currently 22C and sunny in Tokyo.
+```
+
+The model doesn't actually call the API. It says "I want to call this function with these arguments." Your code does the actual calling. The result goes back into the conversation, and the model incorporates it into its response.
+
+Common tools: database queries, API calls, web search, code execution, file operations. This is the bridge between a chatbot that talks and one that acts.
+
+<Callout type="info" title="Tools plus RAG">
+You can combine tool use with RAG. The chatbot can search your knowledge base as a tool, decide what to retrieve based on the conversation, and use the results in its answer. This is more flexible than always retrieving on every message — sometimes the user is just saying "thanks" and no retrieval is needed.
+</Callout>
+
+---
+
+## Guardrails: keeping it safe
+
+A chatbot that can say anything is a liability. Production chatbots need guardrails.
+
+On the input side, filter or flag user messages before they reach the model. Block prompt injection attempts. Detect and handle toxic or abusive input. On the output side, check the model's response before showing it to the user — filter sensitive information (PII, internal data), verify the response stays on-topic, and flag harmful content.
+
+If your chatbot is for customer support, it shouldn't be writing poetry or giving medical advice. Use the system prompt and output filters to keep it in bounds. And when the model isn't confident or the guardrails flag something, have a graceful fallback. "I'm not sure about that. Let me connect you with a human agent" is better than a wrong answer.
+
+Guardrails aren't glamorous. But they're the difference between a demo and a product.
+
+---
+
+## Conversation design tips
+
+Building a chatbot that works technically is one thing. Building one that people actually enjoy using is another.
+
+The first message matters more than most people think. It should set expectations: what can the chatbot do, and what can't it do? "I can help with billing questions and account issues. For technical support, please contact our engineering team." Users who know the boundaries trust the bot more.
+
+The biggest trust-killer is fabricated answers. A chatbot that honestly says "I don't have that information" and suggests an alternative is far more trustworthy than one that confidently makes something up. Keep responses concise — nobody wants a 500-word wall of text in a chat window. Direct answers. Save the detail for when the user asks.
+
+Support follow-ups naturally. Users will say "tell me more about that" or "what about the second option?" Your conversation history management needs to handle these implicit references. And if your chatbot uses RAG, show where the answer came from — a link to the source document builds trust and lets users verify.
+
+---
+
+## The cost equation
+
+Running a chatbot at scale gets expensive. The math:
+
+Assume an average conversation is 20 messages. Each message sends the full history. Average input per request: 4000 tokens. Average output: 500 tokens. Using GPT-4o at roughly $2.50 per million input tokens and $10 per million output tokens.
+
+Per conversation: about 80k input tokens and 10k output tokens. That's roughly 20 cents per conversation.
+
+1000 conversations per day? 200 dollars. 100,000 conversations per day? 20,000 dollars.
+
+Ways to reduce cost: use smaller models for simple queries, implement caching (same question = same answer), use sliding window memory, batch similar requests, or route easy questions to a cheaper model and hard ones to a more capable one.
+
+<Callout type="warning" title="Monitor your costs">
+Set up billing alerts before you launch. A bug that causes infinite conversation loops or a sudden traffic spike can burn through your budget overnight. Every LLM provider has dashboards and alerts — use them.
+</Callout>
+
+---
+
+## Putting it all together
+
+A chatbot is the combination of everything we've covered in this series:
+
+**Prompt engineering** shapes the system prompt and how the model behaves.
+
+**Embeddings and vector search** power the knowledge retrieval.
+
+**RAG** gives the model access to your data.
+
+**Conversation management** handles memory, context, and multi-turn interactions.
+
+Layer in streaming for responsiveness, tools for actions, guardrails for safety, and you've got a real product.
+
+None of these pieces are individually complex. The challenge — and the skill — is in how you combine them.
+
+---
+
+## What's next?
+
+This wraps up the RAG, Prompting, and Applications series. You now have the building blocks for most AI-powered applications: how to write effective prompts, how embeddings capture meaning, how RAG grounds LLMs in your data, and how chatbots orchestrate all of it.
+
+But what if you want the AI to do more than answer questions? What if you want it to plan, use tools, and take actions on its own? That's the world of AI agents — and it's where this journey continues in the next series.

@@ -1,0 +1,291 @@
+---
+title: "RAG: Retrieval-Augmented Generation"
+slug: rag-retrieval-augmented-generation
+category: rag-prompting-applications
+series: rag-prompting-applications
+seriesOrder: 3
+description: "How to give LLMs access to your own data — chunking, indexing, retrieval, and generation in a single pipeline."
+tags:
+  - AI
+  - LLMs
+  - RAG
+  - Retrieval
+  - Vector Search
+readTime: "15 min"
+icon: "🔍"
+color: cyan
+createdAt: "2026-04-06T10:00:00Z"
+updatedAt: "2026-04-06T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The knowledge gap
+
+You ask ChatGPT about your company's refund policy. It doesn't know. You ask it to summarize a PDF you uploaded last week. It can't remember.
+
+This isn't a bug. LLMs only know what they were trained on. Your internal docs, your Notion pages, your Confluence wiki — none of that was in the training data. The model has never seen it.
+
+You could fine-tune the model on your data. But fine-tuning is expensive, slow, and your data changes all the time. Every time someone updates a policy document, you'd need to retrain.
+
+There's a simpler approach: just give the model the relevant documents at query time.
+
+That's RAG.
+
+---
+
+## What is RAG?
+
+**Retrieval-Augmented Generation** is a pattern where you search your knowledge base for relevant information, then pass that information to the LLM along with the user's question.
+
+The model doesn't need to memorize your data. It just needs to read it right before answering.
+
+Think of it like an open-book exam. The student (the LLM) doesn't need to memorize every fact. They just need to know where to look and how to use what they find.
+
+<MermaidBlock>
+graph LR
+    A["User question\nWhat is our refund policy?"] --> B["Retriever\nsearch knowledge base"]
+    B --> C["Relevant chunks\npolicy docs, FAQ entries"]
+    C --> D["LLM\nread chunks and answer"]
+    A --> D
+    D --> E["Answer\ngrounded in your data"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Simple idea. Powerful results. But the details matter a lot.
+
+---
+
+## The full RAG pipeline
+
+RAG has two phases: **indexing** (done once, ahead of time) and **querying** (done every time a user asks something).
+
+### Indexing phase
+
+1. **Load documents.** Pull in your data — PDFs, web pages, database records, Slack messages, whatever you've got.
+2. **Chunk.** Split documents into smaller pieces. A 50-page PDF can't fit in one prompt. You need to break it up.
+3. **Embed.** Convert each chunk into a vector using an embedding model.
+4. **Store.** Save the vectors (and the original text) in a vector database.
+
+### Query phase
+
+1. **Embed the question.** Convert the user's query into a vector.
+2. **Retrieve.** Search the vector database for the most similar chunks.
+3. **Generate.** Pass the question and the retrieved chunks to the LLM. The model reads the chunks and generates an answer.
+
+<MermaidBlock>
+graph TB
+    subgraph Indexing
+        A["Load documents\nPDFs, web, databases"] --> B["Chunk\nsplit into pieces"]
+        B --> C["Embed\ntext to vectors"]
+        C --> D["Store\nvector database"]
+    end
+    subgraph Querying
+        E["User question"] --> F["Embed query"]
+        F --> G["Retrieve\ntop-k similar chunks"]
+        G --> H["Generate\nLLM reads chunks and answers"]
+        E --> H
+    end
+    D -.->|"search"| G
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+Every step in this pipeline affects the final answer quality. Mess up chunking and you'll retrieve irrelevant fragments. Use a weak embedding model and similar documents won't match. Retrieve too few chunks and the model won't have enough context. Retrieve too many and you'll hit the context window limit.
+
+---
+
+## Chunking: the most underrated step
+
+Chunking is where most RAG systems silently fail.
+
+You have a 20-page document. You need to split it into pieces that are small enough to embed meaningfully, but large enough to contain useful information. How?
+
+### Fixed-size chunking
+
+The simplest approach. Split every N characters (or tokens), with some overlap between chunks so you don't cut sentences in half.
+
+```
+Chunk 1: characters 0-500
+Chunk 2: characters 400-900     (100 char overlap)
+Chunk 3: characters 800-1300    (100 char overlap)
+```
+
+Easy to implement. Works okay for uniform text. But it's dumb — it'll happily split a paragraph in the middle of a sentence, or combine the end of one section with the start of an unrelated one.
+
+### Recursive character splitting
+
+A smarter version. Try to split on paragraph breaks first. If a paragraph is too long, split on sentences. If a sentence is too long, split on words. This preserves natural text boundaries.
+
+Most RAG frameworks (LangChain, LlamaIndex) use this as the default.
+
+### Semantic chunking
+
+The fanciest approach. Use an embedding model to detect where the topic changes, and split there. Two consecutive paragraphs about the same topic stay together. A shift to a new topic triggers a split.
+
+More expensive to compute. But produces chunks that are more coherent and meaningful.
+
+| Strategy | Complexity | Quality | Best for |
+|----------|-----------|---------|----------|
+| Fixed-size | Low | Okay | Uniform text, quick prototyping |
+| Recursive | Medium | Good | Most use cases |
+| Semantic | High | Best | Documents with clear topic shifts |
+
+<Callout type="tip" title="Chunk size sweet spot">
+Most practitioners land between 200-500 tokens per chunk. Too small and each chunk lacks context. Too large and the embedding becomes too general — it tries to represent too many ideas in one vector. Start with 300 tokens and adjust based on your retrieval quality.
+</Callout>
+
+---
+
+## Retrieval: finding the right chunks
+
+You've indexed everything. Now a user asks a question. You embed their query and search for the nearest vectors.
+
+But "nearest by cosine similarity" doesn't always mean "most useful for answering the question." There are several strategies to improve retrieval.
+
+### Top-k similarity search
+
+The baseline. Embed the query, find the k most similar chunks, return them. Simple. Usually k is between 3 and 10.
+
+### Hybrid search
+
+Combine vector similarity with keyword matching (BM25). The vector search catches semantic matches ("time off" matches "PTO"). The keyword search catches exact matches ("error ERR_429" matches documents containing that exact code).
+
+Merge the results and rerank. This almost always beats pure vector search.
+
+### Reranking
+
+After retrieving a candidate set (say, top 20 chunks), run them through a **reranker model** that scores each chunk's relevance to the specific query. Return the top 5.
+
+Rerankers are more accurate than embedding similarity because they see the query and the chunk together, not separately. But they're slower, so you use them as a second pass on a smaller candidate set.
+
+<MermaidBlock>
+graph LR
+    A["User query"] --> B["Retrieve top 20\nvector similarity"]
+    B --> C["Rerank\ncross-encoder scoring"]
+    C --> D["Top 5 chunks\nhighly relevant"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+### Metadata filtering
+
+Not every search should look through everything. If a user asks about "Q4 2025 sales," filter chunks to only those tagged with year=2025 and quarter=Q4 before doing similarity search. This is where storing metadata alongside your vectors pays off.
+
+---
+
+## Generation: the final mile
+
+You've retrieved 5 relevant chunks. Now you need the LLM to use them.
+
+The prompt looks something like this:
+
+```
+System: You are a helpful assistant. Answer the user's question based
+ONLY on the provided context. If the context doesn't contain the
+answer, say you don't know.
+
+Context:
+---
+[Chunk 1: Our refund policy allows returns within 30 days...]
+[Chunk 2: Refund requests must be submitted through the support portal...]
+[Chunk 3: Digital products are non-refundable after download...]
+---
+
+User: What's the refund policy for digital products?
+```
+
+The "answer based ONLY on the provided context" instruction is critical. Without it, the model might mix retrieved information with its training data, leading to answers that sound confident but blend real facts with hallucinated ones.
+
+<Callout type="warning" title="Grounding doesn't eliminate hallucination">
+Even with explicit instructions to stick to the provided context, LLMs sometimes fabricate details or subtly distort what the chunks actually say. Always treat RAG outputs as "informed but unverified." For high-stakes applications (medical, legal, financial), add citation mechanisms so users can check the source.
+</Callout>
+
+---
+
+## The context window balancing act
+
+Here's a real tension in RAG design: you want to give the model as much relevant context as possible. But context windows have limits.
+
+A model with a 128k context window sounds huge. But fill it entirely with retrieved chunks and you'll see problems:
+
+**Cost.** More tokens in = more money. Sending 50k tokens of context with every query adds up fast.
+
+**Latency.** Longer prompts take longer to process. Users waiting 10 seconds for an answer will leave.
+
+**Lost in the middle.** Research shows that LLMs pay most attention to the beginning and end of their context. Information buried in the middle of a long context gets ignored more often. Shoving in 50 chunks doesn't help if the model only pays attention to the first 5 and the last 5.
+
+The sweet spot is usually 3-8 high-quality chunks. Enough context to answer well. Not so much that you're paying for noise.
+
+---
+
+## Evaluating your RAG system
+
+How do you know if your RAG system is working well? You need to measure three things:
+
+**Retrieval quality.** Are you finding the right chunks? Metrics: precision (what fraction of retrieved chunks are relevant) and recall (what fraction of relevant chunks did you find).
+
+**Faithfulness.** Does the generated answer actually reflect what the chunks say? Or did the model make stuff up?
+
+**Answer relevance.** Does the answer actually address the user's question? You could retrieve the right chunks and still generate a useless response if the model misunderstands the question.
+
+Frameworks like RAGAS and TruLens automate these evaluations using an LLM to judge the outputs. It's not perfect, but it's much better than manually checking every response.
+
+| Metric | What it measures | How to check |
+|--------|-----------------|--------------|
+| Retrieval precision | Are retrieved chunks relevant? | LLM judge or human review |
+| Retrieval recall | Did you miss relevant chunks? | Compare against known-good results |
+| Faithfulness | Is the answer grounded in chunks? | LLM checks answer vs context |
+| Answer relevance | Does the answer address the query? | LLM or human rating |
+
+---
+
+## Common RAG pitfalls
+
+The most common issue in production RAG builds is bad chunking. Chunks that are too small lose context. Chunks that are too large lose specificity. And chunks that split mid-sentence confuse the embedding model. Closely related: if you split at exactly character 500, the sentence spanning characters 490-510 gets cut in half. Always use overlap.
+
+The wrong embedding model is another frequent problem. General-purpose models work fine for general text, but medical, legal, and scientific domains often need domain-adapted embeddings to get good retrieval.
+
+People also tend to retrieve too much. After 5-8 chunks, you're usually adding noise, not signal. And if your documents have dates, authors, or categories, store that as metadata and use it for filtering — don't rely on the embedding alone to capture everything.
+
+Finally, building RAG without measuring quality is flying blind. Set up eval pipelines early.
+
+---
+
+## RAG vs fine-tuning
+
+People often ask: should I use RAG or fine-tuning?
+
+**Use RAG when** your data changes frequently, you need source attribution, or you want to keep the model general-purpose but knowledgeable about specific documents.
+
+**Use fine-tuning when** you need the model to learn a specific style, format, or behavior pattern that can't be achieved through prompting and context.
+
+**Use both** when you want a model that speaks your domain language (fine-tuning) and has access to current information (RAG).
+
+For most applications, RAG is the right starting point. It's faster to build, easier to update, and provides natural source attribution. Fine-tuning is a heavier tool — save it for when you need it.
+
+---
+
+## The bigger picture
+
+RAG turns a general-purpose LLM into a domain expert, without retraining. Upload your docs. Ask questions. Get answers grounded in your data.
+
+But RAG is just one piece of building a real AI application. The next challenge: what if users want to have a conversation? What if they ask follow-up questions? What if the conversation goes on for 50 messages and you need to manage context across all of them?
+
+---
+
+## What's next?
+
+We've built the knowledge layer — embeddings, vector search, retrieval, generation. Now it's time to wrap it all in a conversation. Next up: **Building a Chatbot** — how conversational AI actually works under the hood, from managing message history to handling context windows to designing the full system architecture.
