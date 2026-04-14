@@ -19,21 +19,29 @@ author: obydul
 mermaid: true
 storySummary:
   en: |
-    You work at a factory. There's a conveyor belt with stations. Each station multiplies the running product of the item moving through it. At the end of the day the manager wants a report, for every station, what would the final number have been if that station had been skipped today.
-    Your first idea is for each station, multiply all the others. That's fine on 6 stations. On 600 it's a lot of wasted multiplications.
-    The slick plan uses two passes and no division. First pass, left to right, compute the running product of everything to the left of each station. Second pass, right to left, compute the running product of everything to the right. Multiply the two at each station and you get the "product except me". O(n) time and you don't need anything fancy. This pattern is called prefix and suffix arrays, and it's everywhere once you know it.
+    You're working at a factory with a long conveyor belt. Each station multiplies the running product of whatever item passes through it. Today, the manager wants a report on what the final product would be for every station if that station had been skipped.
+
+    Multiplying everything from scratch for every station is way too slow. The smart trick is to do one pass from the left and one from the right to get the answer in O(n) time.
+
+    This is the prefix and suffix pattern. Once you know it, you'll see it everywhere in array problems.
   bn: |
-    আপনি একটা factory-তে কাজ করেন। একটা conveyor belt-এ stations আছে। প্রতিটা station বেল্টে থাকা জিনিসের running product-কে গুণ করে। দিন শেষে manager জানতে চায়, প্রতিটা station-এর জন্য, যদি সেই station আজ skip হতো তাহলে final output কত হতো।
-    প্রথম বুদ্ধি, প্রতিটা station-এর জন্য বাকি সবগুলোকে গুণ করা। ৬টা station-এ ঠিক আছে। ৬০০-তে অনেক বেশি গুণ।
-    সহজ plan দুই pass-এ, ভাগ ছাড়াই। প্রথম pass বাঁ থেকে ডানে, প্রতিটা station-এর বাঁ পাশের সবকিছুর running product বের করুন। দ্বিতীয় pass ডান থেকে বাঁয়ে, প্রতিটা station-এর ডান পাশের সবকিছুর running product বের করুন। দুটো গুণ করলে "আমি ছাড়া product" পেয়ে যান। O(n) সময়, কিছু fancy লাগে না। এই pattern-কে বলে prefix আর suffix array, একবার জানলে সব জায়গায় চোখে পড়ে।
+    আপনি একটা ফ্যাক্টরিতে কাজ করেন যেখানে লম্বা একটা কনভেয়ার বেল্ট আছে। বেল্টের প্রতিটা স্টেশন তার ওপর দিয়ে যাওয়া জিনিসের রানিং প্রোডাক্টকে গুণ করে দেয়। আজ ম্যানেজার হঠাৎ জানতে চাইলেন, প্রতিটা স্টেশনের বদলে যদি বাকি সবগুলোর গুণফল বের করতে হতো, তাহলে রেজাল্ট কী হতো?
+
+    সবগুলো আলাদা করে গুণ করা তো অনেক সময়ের ব্যাপার। আসল ট্রিক হলো একবার বাঁ দিক থেকে আর একবার ডান দিক থেকে গুণ করে O(n) সময়ে কাজটা সেরে ফেলা।
+
+    এটাকে বলে 'prefix আর suffix' প্যাটার্ন। একবার শিখে নিলে দেখবেন অ্যারাইয়ের অনেক কঠিন প্রবলেম কত সহজে সমাধান করা যায়।
   hi: |
-    आप एक factory में काम करते हैं। एक conveyor belt है जिस पर stations हैं। हर station belt पर जा रही चीज़ के running product को multiply करता है। दिन के अंत में manager को हर station के लिए यह जानना है कि अगर वो station आज skip हो जाता तो final output क्या होता।
-    पहली सोच, हर station के लिए बाक़ी सारे multiply कर दो। 6 stations पर ठीक है। 600 पर बहुत ज़्यादा multiplications।
-    smart plan दो passes में, बिना division के। पहला pass बाएँ से दाएँ, हर station के बाएँ की सारी चीज़ों का running product निकालो। दूसरा pass दाएँ से बाएँ, हर station के दाएँ की सारी चीज़ों का running product निकालो। दोनों को multiply कर दो तो "मुझे छोड़कर product" मिल जाता है। O(n) time, कुछ fancy नहीं चाहिए। इस pattern को prefix और suffix array कहते हैं, एक बार पता चला तो हर जगह दिखेगा।
+    आप एक फैक्ट्री में काम करते हैं जहाँ एक लंबी कन्वेयर बेल्ट लगी है। बेल्ट का हर स्टेशन अपने ऊपर से गुजरने वाली चीज़ के रनिंग प्रोडक्ट को मल्टीप्लाई कर देता है। आज मैनेजर ने पूछ लिया कि अगर हर स्टेशन को एक-एक करके स्किप कर दिया जाए, तो फाइनल रिजल्ट क्या होगा?
+
+    हर बार नए सिरे से मल्टीप्लाई करना तो बहुत धीमा होगा। इसका स्मार्ट तरीका है कि एक बार बाएँ से और एक बार दाएँ से प्रोडक्ट निकालें और O(n) टाइम में जवाब दे दें।
+
+    इसे 'prefix और suffix' पैटर्न कहते हैं। एक बार समझ आ जाए, तो एरे की बहुत सारी मुश्किलें चुटकियों में आसान हो जाती हैं।
   ar: |
-    تعمل في مصنع. هناك سير ناقل عليه محطات، وكل محطة تضرب حاصل الضرب الجاري للعنصر المارّ فيها. في نهاية اليوم يريد المدير تقريرًا، لكل محطة، ما كان سيكون الرقم النهائي لو تُخطّيت هذه المحطة اليوم.
-    أول فكرة هي عند كل محطة اضرب كل المحطات الأخرى. جيدة على 6 محطات. على 600 فهي عدد هائل من عمليات الضرب الزائدة.
-    الخطة الأنيقة تعمل بمرورين وبلا قسمة. مرور من اليسار إلى اليمين تحسب فيه حاصل ضرب كل ما يسار كل محطة. مرور من اليمين إلى اليسار تحسب فيه حاصل ضرب كل ما يمين كل محطة. ثم تضرب الاثنين عند كل محطة فتحصل على "ناتج بدون هذه المحطة". O(n) من الزمن بلا أي حيل غريبة. هذا النمط يُسمّى مصفوفات البادئة واللاحقة prefix and suffix arrays، وتراه في كل مكان بعد أن تتعلّمه.
+    أنت تعمل في مصنع به سير ناقل طويل، وتضرب كل محطة على السير حاصل الضرب الجاري للعنصر الذي يمر من خلالها. اليوم، طلب منك المدير فجأة معرفة الناتج النهائي لكل محطة لو تم استثناؤها من الحساب.
+
+    بدلاً من إعادة ضرب كل الأرقام لكل محطة يدوياً، هناك خدعة ذكية. كل ما عليك فعله هو المرور مرة من اليسار ومرة من اليمين للحصول على النتيجة بسرعة البرق.
+
+    هذا هو نمط "البادئة واللاحقة" (prefix and suffix). بمجرد أن تفهمه، ستجده الحل الأمثل للكثير من مشاكل المصفوفات.
 ---
 
 ## Boss 6, a curveball

@@ -20,15 +20,18 @@ storySummary:
   en: |
     Laundry day, but worse. Your roommate dumped every clean sock into one pile and now you have to sort them. You want every sock that shares the same pattern to end up in the same drawer.
     The cheating way is to compare each sock to every other sock. On a pile of 200 socks you're doing tens of thousands of comparisons and going insane.
-    The clever way is to give each sock a tiny ID card based on its pattern. Same pattern, same ID card. Then you just drop each sock into the drawer labeled with its ID. One pass through the pile, one hash map where the key is the ID and the value is the drawer. Socks sort themselves. That trick is called a canonical key, and you'll use it more than you'd guess.
-  bn: |
-    laundry-র দিন, কিন্তু আরও খারাপ। roommate সব পরিষ্কার মোজা এক গাদায় ফেলে দিয়েছে, এখন আপনাকে বাছাই করতে হবে। আপনি চান একই design-এর সব মোজা একই drawer-এ যাক।
-    cheating উপায়, প্রতিটা মোজা বাকিগুলোর সাথে মিলিয়ে দেখো। ২০০টা মোজার গাদায় হাজার হাজার তুলনা, মাথা ঘুরে যাবে।
-    বুদ্ধিমান উপায়, প্রতিটা মোজাকে তার pattern অনুযায়ী একটা ছোট ID card দিন। একই pattern হলে একই ID। তারপর প্রতিটা মোজা তার ID-র drawer-এ ফেলে দিন। এক pass-এ পুরো গাদা, hash map-এ key হলো ID আর value হলো drawer। মোজা নিজে নিজেই বাছাই হয়ে যায়। এই trick-কে বলে canonical key, এবং এটা যত ভাবা যায় তার চেয়ে বেশি কাজে আসে।
+    The clever way is to give each sock a tiny ID card based on its pattern. Same pattern, same ID card. Then you just drop each sock into the drawer labeled with its ID. One pass through the pile, one hash map where the key is the ID and the value is the drawer. Socks sort themselves. That trick is called a canonical key, and you'll use it more than you'd   bn: |
+    লন্ড্রির দিন এমনিতেই বিরক্তিকর, তার ওপর রুমমেট সব পরিষ্কার মোজা এক জায়গায় তালগোল পাকিয়ে রেখেছে। আপনার কাজ হলো মোজাগুলো গুছিয়ে রাখা। আপনি চান একই নকশার সব মোজা যেন একই ড্রয়ারে থাকে।
+
+    সহজ কিন্তু ভুল উপায় হলো, প্রতিটি মোজাকে অন্য সবগুলোর সাথে একটি একটি করে মিলিয়ে দেখা। ২০০টি মোজার স্তূপে হাজার হাজার বার তুলনা করতে গিয়ে আপনি পাগল হয়ে যাবেন।
+
+    বুদ্ধিমান উপায় হলো, প্রতিটি মোজার নকশা দেখে তাকে একটি ছোট আইডি কার্ড দেওয়া। একই নকশাকের সব মোজা একই আইডি কার্ড পাবে। এরপর শুধু প্রতিটি আইডি অনুযায়ী নির্দিষ্ট ড্রয়ারে মোজাগুলো রেখে দিন। পুরো স্তূপের ওপর দিয়ে মাত্র একবার গেলেই কাজ শেষ। এখানে hash map-এর key হলো আইডি কার্ড, আর value হলো ড্রয়ারের মোজাগুলো। মোজাগুলো যেন নিজে নিজেই গুছিয়ে যাচ্ছে! এই কৌশলটিকে বলা হয় canonical key, যা আপনার ধারণার চেয়েও বেশি কাজে আসবে।
   hi: |
-    laundry का दिन है, पर और भी बुरा। roommate ने सारे साफ़ मोज़े एक ढेर में गिरा दिए और अब आपको छांटने हैं। आप चाहते हैं कि same pattern वाले सारे मोज़े एक ही drawer में जाएँ।
-    चालाकी का तरीक़ा, हर मोज़े की तुलना बाक़ी सबसे कर लो। 200 मोज़ों पर हज़ारों comparisons, दिमाग़ घूम जाएगा।
-    smart तरीक़ा, हर मोज़े को उसके pattern के आधार पर एक छोटा ID card दो। same pattern, same ID। फिर हर मोज़े को अपने ID वाले drawer में डाल दो। एक pass में पूरा ढेर, hash map में key है ID और value है drawer। मोज़े ख़ुद ही छंट जाते हैं। इस trick को canonical key कहते हैं, और यह जितना लगता है उससे ज़्यादा काम आती है।
+    लॉन्ड्री का दिन वैसे ही उबाऊ होता है, ऊपर से आपके रूममेट ने सारे साफ़ मोज़े एक ढेर में मिला दिए हैं। अब आपको इन्हें छांटकर अलग करना है। आप चाहते हैं कि एक ही डिज़ाइन या पैटर्न वाले सारे मोज़े एक ही Drawer (दराज) में जाएँ।
+
+    इसका एक तरीका यह है कि हर मोज़े को दूसरे मोज़ों से एक-एक करके मिलाएँ। लेकिन 200 मोज़ों के ढेर में हजारों बार तुलना करते-करते आप परेशान हो जाएंगे।
+
+    समझदारी भरा तरीका यह है कि हर मोज़े के पैटर्न के आधार पर उसे एक छोटा 'ID कार्ड' दें। एक ही पैटर्न वाले सभी मोज़ों का ID कार्ड भी एक ही होगा। फिर बस, जिस मोज़े का जो ID है, उसे उसी लेबल वाले Drawer में डाल दें। पूरे ढेर को बस एक बार चेक करना होगा। यहाँ 'hash map' में ID कार्ड आपकी key होगी और Drawer आपकी value। मोज़े अपने आप छंटते चले जाएंगे। इस ट्रिक को 'canonical key' कहते हैं, और यह कोडिंग में आपकी उम्मीद से कहीं ज्यादा इस्तेमाल होती है।
   ar: |
     يوم غسيل، لكن أسوأ. ألقى شريك السكن كل جوربٍ نظيف في كومة واحدة، والآن عليك فرزها. تريد أن تنتهي الجوارب ذات النمط نفسه في نفس الدرج.
     الطريقة البليدة هي مقارنة كل جورب بكل جورب آخر. على كومة من 200 جورب تُجري عشرات الآلاف من المقارنات وتفقد صبرك.
