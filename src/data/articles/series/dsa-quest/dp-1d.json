@@ -1,0 +1,11 @@
+{
+  "slug": "dp-1d",
+  "title": "1-D Dynamic Programming",
+  "description": "Dungeon 12. Remember what you already solved. Climbing stairs, house robber, and the mindset shift that makes DP click.",
+  "icon": "🧮",
+  "color": "orange",
+  "tags": ["DSA", "Dynamic Programming"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

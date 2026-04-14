@@ -1,0 +1,11 @@
+{
+  "slug": "stack",
+  "title": "Stack",
+  "description": "Dungeon 3. LIFO power. Parentheses, histograms, and why some problems only unlock when you remember what came before.",
+  "icon": "📚",
+  "color": "orange",
+  "tags": ["DSA", "Stack"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

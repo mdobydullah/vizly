@@ -1,0 +1,243 @@
+---
+title: "Text-to-Video & Beyond"
+slug: text-to-video-and-beyond
+category: generative-ai
+series: multimodal-generative-ai
+seriesOrder: 3
+description: "From still images to moving pictures — how temporal modeling, DiT architectures, and multimodal AI are pushing generative models into video, audio, and 3D."
+tags:
+  - AI
+  - Video Generation
+  - DiT
+  - Multimodal
+  - Sora
+readTime: "13 min"
+icon: "🎬"
+color: cyan
+createdAt: "2026-04-06T14:00:00Z"
+updatedAt: "2026-04-06T14:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Video is just images, right?
+
+Technically, yes. A video is a sequence of images — frames — played back fast enough that your brain perceives motion. 30 frames per second for most video. 24 for cinema.
+
+So generating a 4-second video at 30 fps means generating 120 images.
+
+Simple, right? Just run Stable Diffusion 120 times and stitch the frames together?
+
+You can try that. The result will be unwatchable. Each frame would be generated independently, with no awareness of the frames before or after it. The cat in frame 1 would look completely different from the cat in frame 2. Colors would shift randomly. Backgrounds would morph between frames. It would look like a fever dream.
+
+The fundamental problem with video generation isn't making pretty frames. It's making pretty frames that are consistent with each other across time.
+
+Think of it like hiring 120 different artists and asking each one to paint one frame of an animation. Without coordination, you'd get 120 beautiful paintings that look nothing alike when played in sequence. Video generation needs all 120 frames to tell a coherent visual story.
+
+---
+
+## The temporal consistency problem
+
+When you watch real video, objects persist. A coffee mug on a table stays the same shape, color, and position from frame to frame (unless someone moves it). Lighting changes gradually. Backgrounds remain stable.
+
+This is called **temporal consistency**, and it's the single hardest challenge in video generation.
+
+A person's face needs to look like the same person in every frame. When they turn their head, the geometry needs to be physically plausible. When they walk, their legs need to move in a way that makes sense.
+
+Our brains are incredibly sensitive to inconsistencies. Even small glitches — a flickering shadow, a shifting hairline, a finger that appears and disappears — are immediately noticeable and deeply unsettling.
+
+---
+
+## Early approaches: bolting time onto images
+
+The first attempts at AI video generation took existing image models and added a time dimension.
+
+The basic idea: instead of processing a single 2D image, process a stack of frames as a 3D volume. Width, height, and time.
+
+<MermaidBlock>
+graph LR
+    A["Image model\nprocesses 2D\nwidth x height"] --> B["Video model\nprocesses 3D\nwidth x height x time"]
+    B --> C["Temporal layers\nlearn relationships\nbetween frames"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Researchers added **temporal attention layers** to existing U-Net architectures. These layers let the model look across frames — "what did this pixel area look like in the previous frame?" — while the spatial layers handle each frame individually.
+
+It worked, sort of. Models like Make-A-Video (Meta) and Imagen Video (Google) could generate short clips. But the results were choppy, low-resolution, and usually only a few seconds long. Temporal consistency was better than independent frames, but still obviously artificial.
+
+The U-Net architecture, which worked brilliantly for single images, was straining under the weight of video. Processing 3D volumes is expensive, and the architecture wasn't designed for it.
+
+Something needed to change.
+
+### Why video is so much harder than images
+
+The numbers make the problem concrete. A single 512x512 image has about 786,000 values. A 4-second video at 30 fps and 512x512 resolution? That's 120 frames, so about 94 million values. And they all need to be consistent with each other.
+
+It's not just the quantity. The model needs to understand motion, physics, and causality. If a ball is thrown in frame 1, it needs to follow a plausible arc over the next 30 frames. If someone is talking, their lip movements need to match in every frame. If a camera is panning left, the entire scene needs to shift smoothly.
+
+Images have spatial consistency problems. Video has spatial *and* temporal consistency problems, all multiplied together.
+
+---
+
+## Diffusion Transformers: replacing the U-Net
+
+The transformer architecture had already taken over language (GPT), vision (ViT), and basically everything else. It was only a matter of time before it came for diffusion models too.
+
+**DiT** — Diffusion Transformer — replaces the U-Net with a transformer. Instead of the U-shaped convolution-based architecture, you get a flat sequence of transformer blocks processing patches of the image (or video).
+
+Why does this matter?
+
+Transformers are naturally good at modeling long-range relationships. In a U-Net, information has to flow through the bottleneck — a narrow point where the representation is most compressed. In a transformer, every patch can attend to every other patch directly. No bottleneck.
+
+For video, this is a game changer. A transformer can attend across both space (different parts of one frame) and time (the same area across multiple frames) in a unified way. The temporal relationships aren't bolted on as an afterthought — they're native.
+
+<MermaidBlock>
+graph TB
+    V["Video frames"] --> P["Split into patches\nspace and time"]
+    P --> T1["Transformer block 1\nattend across all patches"]
+    T1 --> T2["Transformer block 2"]
+    T2 --> T3["...\nmore blocks"]
+    T3 --> O["Output\ndenoised patches"]
+    O --> R["Reconstruct\nvideo frames"]
+    style V fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style P fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style T1 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style T2 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style T3 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style O fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style R fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+DiT also scales better. Transformers have a well-understood scaling curve — more parameters and more data generally means better results. U-Nets don't scale as predictably.
+
+---
+
+## Sora and the leap forward
+
+In early 2024, OpenAI announced Sora. The demos were stunning — minute-long videos with coherent motion, realistic physics, and cinematic quality.
+
+Sora is a DiT-based model, but with a few key design decisions:
+
+**Spacetime patches.** Sora treats video as a grid of spacetime patches — small chunks that span both spatial area and time. A single patch might cover a 16x16 pixel region across 4 frames. The transformer processes all these patches together.
+
+**Variable duration and resolution.** Unlike earlier models that were locked to fixed sizes, Sora can generate videos at different resolutions and lengths. It handles this by adjusting the number of patches — more patches for longer or higher-resolution video.
+
+**Massive scale.** Sora was reportedly trained on a huge dataset of videos (the exact size hasn't been disclosed). Scale matters enormously for video — the model needs to have seen enough real-world motion to understand physics, gravity, fluid dynamics, and how objects interact.
+
+The results were impressive but not perfect. Sora still produced artifacts — objects that morphed unexpectedly, physics that broke in subtle ways, hands that gained or lost fingers. But the gap between AI video and real video narrowed dramatically.
+
+---
+
+## The video generation landscape
+
+Sora got the headlines, but plenty of other players are in the game:
+
+| Model | Creator | Approach | Strength |
+|---|---|---|---|
+| Sora | OpenAI | DiT, spacetime patches | Long-form coherence |
+| Runway Gen-3 | Runway | DiT-based | Creative control, fast iteration |
+| Kling | Kuaishou | DiT-based | Motion quality, open weights |
+| Pika | Pika Labs | Proprietary | Quick edits, lip sync |
+| Veo 2 | Google | DiT-based | Photorealism |
+| HunyuanVideo | Tencent | DiT-based | Open source, strong quality |
+
+The trend is clear: everyone is moving to transformer-based architectures, and quality is improving rapidly. What seemed impossible in 2023 — generating a coherent 10-second clip from a text prompt — became routine by 2026.
+
+### The open-source gap
+
+Unlike image generation, where Stable Diffusion gave the open-source community a strong foundation early on, video generation has been more lopsided. The best results came from closed models (Sora, Runway) for a long time.
+
+That's starting to change. HunyuanVideo from Tencent and Open-Sora from the community are narrowing the gap. But video models are much larger and more expensive to train than image models, so the barrier to entry for open-source contributions is higher.
+
+This matters because open-source models drive most practical applications. Without them, video generation stays locked behind APIs and subscription services. The democratization of video generation is lagging behind image generation by a meaningful gap — but it's closing.
+
+---
+
+## Beyond video: audio, music, and 3D
+
+The diffusion framework isn't limited to pixels. The same "start with noise, learn to denoise" principle applies to other types of data.
+
+### Text-to-audio and music
+
+Sound is a waveform — a sequence of numbers over time. You can represent it as a spectrogram (a 2D image of frequency vs. time) and apply image diffusion techniques directly.
+
+Models like AudioLDM, MusicGen (Meta), and Stable Audio can generate sound effects and music from text descriptions. "A gentle rain with distant thunder" or "upbeat jazz piano, 120 BPM."
+
+The quality is impressive for short clips. Longer compositions still struggle with musical structure — maintaining a melody over minutes is harder than maintaining visual consistency over seconds. Music has a hierarchical structure — notes form phrases, phrases form sections, sections form songs — and current models handle the lower levels well but struggle with the higher ones.
+
+Still, for sound effects and background music, these tools are already usable in production. Game developers are using them for ambient sounds. Video creators are generating royalty-free backing tracks. The quality threshold for "good enough" is lower for audio than for video, so practical applications arrived faster.
+
+### Text-to-3D
+
+Generating 3D models from text is trickier. A 3D object needs to look correct from every angle, not just one viewpoint.
+
+Early approaches (like DreamFusion) used a clever hack: they used a pre-trained 2D image model to optimize a 3D representation. Render the 3D model from a random angle, ask the image model "does this look like [the prompt]?", and update the 3D model based on the feedback.
+
+Newer approaches generate 3D directly — either as point clouds, meshes, or neural radiance fields (NeRFs). Models like Point-E (OpenAI), Shap-E, and various open-source alternatives can produce 3D assets from text, though quality still lags behind 2D image generation.
+
+The practical demand is huge. Game studios, architects, product designers — they all need 3D models, and creating them manually is expensive and slow. Even imperfect AI-generated 3D models can serve as starting points that artists refine, cutting production time dramatically.
+
+---
+
+## Multimodal models: seeing, hearing, and generating
+
+There's a bigger trend happening beyond individual modalities. Models are becoming **multimodal** — they can process and generate multiple types of data.
+
+GPT-4 with vision can look at images and reason about them. Gemini can process text, images, audio, and video together. These models don't just generate — they understand relationships between modalities.
+
+<MermaidBlock>
+graph TB
+    TI["Text input"] --> M["Multimodal model"]
+    II["Image input"] --> M
+    AI["Audio input"] --> M
+    VI["Video input"] --> M
+    M --> TO["Text output"]
+    M --> IO["Image output"]
+    M --> AO["Audio output"]
+    M --> VO["Video output"]
+    style TI fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style II fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style AI fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style VI fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style M fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style TO fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style IO fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style AO fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style VO fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+This convergence is arguably more important than any single modality getting better. When a model can look at a sketch, read your description, and generate a video with matching audio — all from one unified system — that's qualitatively different from having separate image, video, and audio tools.
+
+We're moving toward models that perceive and create across all the senses, simultaneously. Not there yet, but the trajectory is clear.
+
+### Why convergence matters
+
+Think about how you experience the world. You don't process sight, sound, and touch in separate systems. When you see a glass shatter on the floor, you simultaneously hear the crash, predict where the pieces will scatter, and feel the urge to step back. Everything is integrated.
+
+Current AI systems mostly process modalities separately and connect them at a high level. A unified multimodal model processes them together from the start, potentially understanding cross-modal relationships that separate models miss. When a model sees a video of someone speaking and hears the audio simultaneously, it can learn the deep connection between lip movements and sounds — not because someone programmed that rule, but because it observed the pattern millions of times.
+
+---
+
+## The remaining challenges
+
+Video generation has come far, but several hard problems remain.
+
+Length and compute are the most obvious limits. Most models still max out at 10-60 seconds, and generating a high-quality 10-second clip can cost several dollars in compute. A full movie scene with consistent characters and narrative? Not yet.
+
+Physics failures are rarer than they used to be, but they still happen. Models learn statistical patterns of how things move — water might flow uphill, a ball might pass through a table. They've seen enough videos to get it right most of the time, but they don't truly understand the underlying physics.
+
+Fine control is another gap. You can describe what you want in text, but precise direction — "the camera slowly pans left while the character raises their right hand at exactly the 3-second mark" — is hard. Directors need frame-level control, and text prompts are too coarse for that.
+
+Then there's the editing problem. In practice, creators rarely want a fully generated video from scratch. They want to edit existing footage — replace a background, change a character's outfit, add visual effects. Those tools are emerging, but they're less mature than the generation side.
+
+And audio-visual sync — generating video with perfectly matched dialogue, sound effects, and background music in a single pass — remains an open problem. Most workflows still generate video and audio separately.
+
+---
+
+## What's next?
+
+We've now covered the full arc of generative AI — from basic image generation, through text-to-image, to video, audio, 3D, and multimodal models.
+
+In the final article of this series, we zoom out and look at the big picture. **The AI Landscape: What's Next** — scaling laws, emergent abilities, the open problems that remain unsolved, and where all of this is heading.

@@ -1,0 +1,11 @@
+{
+  "slug": "heap-priority-queue",
+  "title": "Heap / Priority Queue",
+  "description": "Dungeon 10. The data structure that always hands you the smallest or largest first. Top-K problems, medians, and schedulers.",
+  "icon": "⛰️",
+  "color": "orange",
+  "tags": ["DSA", "Heap", "Priority Queue"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

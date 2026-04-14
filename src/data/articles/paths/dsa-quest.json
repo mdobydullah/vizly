@@ -1,0 +1,31 @@
+{
+  "slug": "dsa-quest",
+  "title": "DSA Quest",
+  "description": "Learn Data Structures and Algorithms the fun way. Each dungeon teaches one pattern through story-framed problems, not dry LeetCode grinding. Beat the bosses, unlock the weapons, build real intuition. Dungeons follow the NeetCode dependency order.",
+  "icon": "⚔️",
+  "color": "orange",
+  "tags": ["DSA", "Algorithms"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:30:00Z",
+  "estimatedWeeks": 18,
+  "series": [
+    "arrays-hashing",
+    "two-pointers",
+    "stack",
+    "binary-search",
+    "sliding-window",
+    "linked-list",
+    "trees",
+    "tries",
+    "backtracking",
+    "heap-priority-queue",
+    "graphs",
+    "dp-1d",
+    "intervals",
+    "greedy",
+    "advanced-graphs",
+    "dp-2d",
+    "bit-manipulation",
+    "math-geometry"
+  ]
+}

@@ -1,0 +1,312 @@
+---
+title: "Valid Palindrome — The Museum Mirror"
+slug: valid-palindrome-museum-mirror
+category: dsa
+series: two-pointers
+seriesOrder: 1
+description: "Dungeon 2, Boss 1. Learn the Two Pointers pattern by helping a museum curator spot fake mirror artifacts. No dry LeetCode grind."
+tags:
+  - DSA
+  - Two Pointers
+  - Strings
+  - Beginner
+readTime: "9 min"
+icon: "⚔️"
+color: orange
+createdAt: "2026-04-14T12:00:00Z"
+updatedAt: "2026-04-14T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You just got hired at a museum. On day one, your boss points at a room full of 10,000 old mirrors and says "sort these. The real ones are symmetric, the fakes aren't. Ignore the decorative marks and don't worry about capital letters."
+    So you read each engraving forward, then backward. If they match, it's real. If they don't, it's a fake.
+    That's the whole idea behind the Two Pointers pattern. Instead of copying the string and reversing it, you just put one finger at the start and one at the end, then walk them toward the middle. It runs in O(n) time, uses almost no extra memory, and you stop the moment you spot a mismatch.
+  bn: |
+    ভাবুন, আপনি একটা জাদুঘরে নতুন চাকরি পেয়েছেন। প্রথম দিনই বস একটা ঘর দেখিয়ে বলল, "এখানে ১০,০০০ পুরোনো আয়না আছে। আসলগুলো সিমেট্রিক, নকলগুলো না। সাজানোর চিহ্নগুলো ধরবেন না, আর বড়-ছোট হাতের অক্ষর নিয়েও চিন্তা নেই।"
+    তাহলে আপনি প্রতিটা আয়নার লেখা সামনে থেকে পড়েন, তারপর পেছন থেকে পড়েন। মিললে আসল, না মিললে নকল।
+    Two Pointers প্যাটার্নের পুরো আইডিয়াটা এটাই। স্ট্রিং কপি করে উল্টানোর বদলে, এক আঙুল রাখেন শুরুতে আর আরেকটা শেষে, তারপর দুজনকে মাঝের দিকে এগিয়ে আনেন। সময় লাগে O(n), বাড়তি মেমোরি প্রায় লাগেই না, আর মিল না হওয়ামাত্র থেমে যান।
+  hi: |
+    मान लीजिए, आपको अभी एक म्यूज़ियम में नौकरी मिली है। पहले ही दिन बॉस एक कमरा दिखाकर कहता है, "यहाँ 10,000 पुराने आईने रखे हैं। असली वाले symmetric होते हैं, नकली नहीं। सजावट के निशान छोड़ दीजिए, और बड़े-छोटे अक्षर की भी चिंता मत कीजिए।"
+    तो आप हर आईने पर लिखी बात पहले सीधा पढ़ते हैं, फिर उल्टा। दोनों एक जैसे निकले तो असली, नहीं तो नकली।
+    Two Pointers pattern का पूरा आइडिया यही है। string को copy करके उल्टा करने की बजाय, एक उंगली शुरू में रखिए और दूसरी आख़िर में, फिर दोनों को बीच की तरफ़ बढ़ाइए। समय लगता है O(n), extra memory लगभग न के बराबर, और जहाँ mismatch मिला वहीं रुक जाइए।
+  ar: |
+    تخيّل أنك حصلت للتوّ على وظيفة في متحف. في أول يوم، يشير رئيسك إلى غرفة فيها 10,000 مرآة قديمة ويقول "رتّبها. الحقيقية متناظرة، والمزيّفة لا. تجاهل الزخارف ولا تهتمّ بالحروف الكبيرة أو الصغيرة."
+    إذن تقرأ النقش على كل مرآة من البداية إلى النهاية، ثم من النهاية إلى البداية. إذا تطابقا فهي حقيقية، وإذا اختلفا فهي مزيّفة.
+    هذه هي الفكرة كاملةً وراء نمط Two Pointers. بدل أن تنسخ النص وتقلبه، تضع إصبعًا عند البداية وإصبعًا آخر عند النهاية، ثم تقرّبهما نحو المنتصف. الزمن O(n)، والذاكرة الإضافية تكاد تكون صفرًا، وتتوقّف فور رؤية أول اختلاف.
+---
+
+## Welcome to Dungeon 2
+
+If you came through Dungeon 1, you cleared seven bosses and walked out with hashing in your pocket. That's a real weapon. Any time a problem asks "have I seen this?", you know what to do.
+
+This dungeon is shaped differently. It has six bosses, and the thing that ties them together is not memory. It's position. Sometimes you don't need to remember anything. You just need to look at both ends of something and walk inward. When it fits, the code is tiny and the speedup is huge.
+
+Today's boss: **The Museum Mirror**.
+
+---
+
+## The story
+
+You just got hired at the Grand Museum of Ancient Relics. Great job. Dream job.
+
+Day one, your boss hands you a clipboard and points at a dusty room.
+
+"We got 10,000 mirrors in storage. Some are real ancient artifacts. Some are fakes from a tourist shop. I need you to sort them."
+
+You ask the obvious question. "How do I tell which is which?"
+
+She shrugs. "Real ones are **perfectly symmetric**. Read the engraving left to right, then right to left — same thing. Fakes aren't symmetric. Also, ignore the decorative dots and dashes, those don't count. And case doesn't matter, the old stonemasons were inconsistent."
+
+She walks off. You look at the first mirror.
+
+```
+"A man, a plan, a canal: Panama"
+```
+
+Is that symmetric? You squint. If you ignore the spaces, commas, colon... `amanaplanacanalpanama`. Read it backwards... `amanaplanacanalpanama`. Yes! Real one.
+
+You grab the next:
+
+```
+"race a car"
+```
+
+Stripped: `raceacar`. Backwards: `racaecar`. Not the same. Fake.
+
+One down, 9,999 to go. You sit down. You need a method.
+
+---
+
+## The problem, dressed up properly
+
+Here's the real version — what LeetCode would call it:
+
+> Given a string `s`, return `true` if it's a palindrome after converting all uppercase letters to lowercase and removing all non-alphanumeric characters. Otherwise return `false`.
+
+Same problem. Less drama. The story is easier to remember.
+
+---
+
+## The naive way (the way you just did it)
+
+Your first instinct was probably this:
+
+1. Strip the junk characters.
+2. Reverse the whole string.
+3. Compare.
+
+```python
+def is_palindrome(s):
+    cleaned = "".join(c.lower() for c in s if c.isalnum())
+    return cleaned == cleaned[::-1]
+```
+
+Done in three lines. Works. Ship it, right?
+
+Almost. Here's what bugs me about this:
+
+- You walked the string **once** to clean it.
+- You made a **copy** to reverse it.
+- You walked it **again** to compare.
+- You used extra memory the size of the whole string.
+
+On a mirror with 10 letters, nobody cares. On a 10-million-character log file? You're wasting memory you don't need to waste.
+
+There's a trick. A classic one. And it's your first weapon in this dungeon.
+
+---
+
+## Unlocking the weapon: Two Pointers
+
+Here's the idea. Don't copy the string. Don't reverse anything. Just put **one finger on each end** and walk them toward each other.
+
+<MermaidBlock>
+graph LR
+    L["left pointer\nstart of string"] --> M["middle"]
+    R["right pointer\nend of string"] --> M
+    style L fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style R fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style M fill:#0d1117,stroke:#6b7280,color:#aaa
+</MermaidBlock>
+
+At each step you ask one question: **do the two characters match?**
+
+- If yes — move both fingers inward. Keep checking.
+- If no — it's a fake. Done. Return false.
+- If the fingers meet in the middle without ever mismatching — real. Return true.
+
+That's it. That's the pattern.
+
+No copy. No reverse. One walk through the string, and you stop early the second something's wrong.
+
+<Callout type="tip" title="The core move">
+Two pointers means: one index at each end, walking toward the middle. You use it whenever a problem cares about pairs from opposite ends, or when you're comparing front-to-back.
+</Callout>
+
+---
+
+## Watching it work
+
+Let's walk it by hand. Mirror engraving:
+
+```
+"Was it a car or a cat I saw?"
+```
+
+First, in our head, we know the cleaned version is `wasitacaroracatisaw`. But here's the thing — **we're not going to actually clean it**. We're going to skip junk characters as we walk. Same result, no extra memory.
+
+Set left at index 0, right at the last character.
+
+<MermaidBlock>
+graph TB
+    S1["Step 1\nL at W (index 0), R at w (index 26)\nlowercase both, W equals w, match\nmove L right, R left"]
+    S2["Step 2\nL at a, R at a\nmatch, move inward"]
+    S3["Step 3\nL hits a space\nskip L right, R stays"]
+    S4["Step 4\nL at i, R at space\nskip R left"]
+    S5["... pointers keep walking inward\neach real-char pair must match"]
+    S6["Meet in the middle\nno mismatch found\nit's a real mirror"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S4 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S5 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style S6 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Here's the string, index 0 on the left, index 26 on the right:
+
+```
+index:  0  1  2  3  4  5  6  7  8  9 ...                       26
+char:   W  a  s  _  i  t  _  a  _  c ...                        w
+        ^                                                        ^
+        L                                                        R
+```
+
+`_` stands for a space or punctuation — the junk we skip over. Left starts at 0, right starts at 26.
+
+- L=0 (`W`), R=26 (`w`) → lowercase both → match. Move L right, R left.
+- L=1 (`a`), R=25 (`a`) → match. Move.
+- L=2 (`s`), R=24 (`s`) → match. Move.
+- L=3 (` `) → junk. Skip L right without moving R.
+- L=4 (`i`), R=23 (` `) → R is junk. Skip R left.
+- L=4 (`i`), R=22 (`I`) → match. Move.
+- L=5 (`t`), R=21 (` `) → skip R.
+- L=5 (`t`), R=20 (`t`) → match. Move.
+
+...and so on. Every time a pointer lands on junk, we slide past it. Every time both land on real characters, we compare. The moment there's a mismatch, we bail.
+
+In this case, they meet in the middle clean. **Real mirror.**
+
+---
+
+## The code
+
+Here's the two-pointer version:
+
+```python
+def is_palindrome(s: str) -> bool:
+    left, right = 0, len(s) - 1
+
+    while left < right:
+        # skip junk from the left
+        while left < right and not s[left].isalnum():
+            left += 1
+        # skip junk from the right
+        while left < right and not s[right].isalnum():
+            right -= 1
+
+        # compare
+        if s[left].lower() != s[right].lower():
+            return False
+
+        left += 1
+        right -= 1
+
+    return True
+```
+
+Read it slow. There are three loops nested, but each one is doing exactly what the story described:
+
+1. Outer `while` — keep going until the pointers meet.
+2. First inner `while` — skip junk on the left.
+3. Second inner `while` — skip junk on the right.
+4. Compare. Bail on mismatch. Otherwise step inward.
+
+---
+
+## Why is this faster?
+
+Look carefully. At first glance you might think *"hold on, there are nested whiles — isn't that quadratic?"*
+
+No. And this is the part worth understanding.
+
+Each character in the string is visited **at most once**. The left pointer only moves right. The right pointer only moves left. Together they make one pass over the string. Total work: one walk. That's O(n) time.
+
+Memory? You used two integers. `left` and `right`. That's it. **O(1) extra space.**
+
+Compare to the naive version:
+
+| | Naive (copy + reverse) | Two Pointers |
+|---|---|---|
+| Time | O(n) | O(n) |
+| Extra space | O(n) | **O(1)** |
+| Early exit? | No — always walks the full string | **Yes — stops the moment it finds a mismatch** |
+| Allocations | 1-2 new strings | Zero |
+
+Same Big-O time, but the constants and the memory story are very different. On a long string with an early mismatch, two pointers can be dramatically faster in practice because you quit the moment something's off.
+
+<Callout type="info" title="The real prize">
+The Big-O looks the same on paper. The real win is O(1) memory and early exit. When you interview, you mention both. When you're actually shipping code, you'll thank yourself for the small constant memory.
+</Callout>
+
+---
+
+## Gotchas (the stuff that'll trip you up)
+
+**1. Forgetting to skip junk on both sides.**
+If you only skip on the left, the right pointer will still be sitting on a space when you try to compare. Everything breaks.
+
+**2. Forgetting `left < right` inside the inner loops.**
+If the whole string is junk (like `"!?,."`), your pointers will run right past each other and into negative-index territory. That inner check saves you.
+
+**3. Case sensitivity.**
+`'A' != 'a'` in most languages. You need `.lower()` (or whatever your language uses) on both sides before comparing.
+
+**4. Thinking "empty string" should return false.**
+It shouldn't. An empty string is trivially a palindrome. Our loop exits immediately and returns true. Which is correct. Weird, but correct.
+
+---
+
+## You just learned something bigger
+
+Take a step back. You didn't just solve "valid palindrome." You learned a *pattern*. And that pattern works on a surprising number of problems.
+
+Any time a problem asks you to:
+
+- Check something is symmetric
+- Compare elements from opposite ends
+- Find a pair that adds up to something (in a sorted array)
+- Reverse something in place
+- Partition elements around a boundary
+
+...your brain should immediately go: **two pointers**. One at each end. Walk them inward. Or one at the start and one chasing behind. The shape is the same.
+
+This one pattern will solve the next five bosses in this dungeon.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 1. The Museum Mirror no longer scares you.
+
+Here's what you walked away with:
+
+- A pattern (two pointers) that works across a whole family of problems
+- An O(n) time, O(1) space solution you wrote yourself
+- A feel for why "same Big-O" doesn't mean "same performance"
+
+Next up: **Boss 2 — The Heist Loot Split.** A sorted list of stolen goods, two thieves, and a target payout. You'll meet a slightly different flavor of two pointers — one where the pointers don't always march in lockstep, and where the array being *sorted* is the secret that makes the whole thing work.
+
+Bring your clipboard. See you in the vault.

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { config } from "@/lib/config";
-import { getAllArticles, getAllSeries } from '@/lib/articles';
+import { getAllArticles, getAllSeries, getAllPaths } from '@/lib/articles';
 import SeriesDetailClient from './SeriesDetailClient';
 
 interface Props {
@@ -35,6 +35,7 @@ export default async function SeriesPage({ params }: Props) {
   if (!series) notFound();
 
   const articles = getAllArticles().map(({ content, ...rest }) => rest);
+  const parentPath = getAllPaths().find(p => p.series.includes(series.slug)) ?? null;
 
-  return <SeriesDetailClient series={series} articles={articles} />;
+  return <SeriesDetailClient series={series} articles={articles} parentPath={parentPath} />;
 }

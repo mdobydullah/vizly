@@ -37,11 +37,13 @@ src/
 - `npm run lint` — ESLint
 
 ## Key Rules (see `.claude/rules/` for details)
-1. **Architecture** — Guides: React components + JSON metadata. Articles: MDX + frontmatter.
+1. **Architecture** — Guides: React components + JSON metadata. Articles: MDX + frontmatter. Paths/series/articles mirror nested folder layout (`<path-slug>/<series-slug>/...`). One color per path across all its series + articles. `readTime` is auto-calculated — never set manually. See Rule 01 §6–§8.
 2. **UI Standards** — Dark/light theme via CSS variables, no Tailwind. Use global utility classes first. Light mode updates only (dark mode is stable).
 3. **Guide Spec** — Interactive cards, mermaid diagrams, animated flows, playback controls.
 4. **Article Writing** — Human-friendly, NOT AI-sounding, conversational tone, easy examples, visual-first. Update `.docs/plans/articles-ai-learning-plan.md` status after each article.
 5. **Theme System** — Global `[data-theme]` attribute on `<html>`. Use CSS variables, never hardcode colors. Light mode: `#f0eee6` bg, white cards, soft shadows. See Rule 02 §1 and Rule 05.
+6. **SEO & AI Discovery** — Em dash in meta titles, keep `llms.txt` current, sitemap auto-generated. See Rule 06.
+7. **Story Summary Tone** — Story-framed articles (DSA Quest, etc.) include multi-language `storySummary` in frontmatter. Must sound human, NOT AI. **Zero em dashes.** No "let's dive in", no filler, 3–5 sentences per language. See Rule 07 before writing or editing any `storySummary` field.
 
 ## Content Systems
 

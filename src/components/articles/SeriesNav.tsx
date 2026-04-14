@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowUpRight } from "lucide-react";
 import { ArticleSeries } from "@/types/articles";
 
 const VISIBLE_COUNT = 3;
@@ -40,11 +40,18 @@ export function SeriesNav({ series, currentSlug, publishedSlugs }: Readonly<Seri
                 justifyContent: 'space-between',
                 marginBottom: '1rem',
             }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                }}>
+                <Link
+                    href={`/series/${series.slug}`}
+                    className="series-nav-title-link"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        textDecoration: 'none',
+                        color: 'inherit',
+                    }}
+                    title="View full series"
+                >
                     <span style={{ fontSize: '1.1rem' }}>{series.icon}</span>
                     <span style={{
                         fontFamily: 'var(--font-display)',
@@ -54,7 +61,8 @@ export function SeriesNav({ series, currentSlug, publishedSlugs }: Readonly<Seri
                     }}>
                         {series.title}
                     </span>
-                </div>
+                    <ArrowUpRight size={14} style={{ color: 'var(--text-dim)', transition: 'transform 0.2s' }} />
+                </Link>
                 {currentOrder && (
                     <span style={{
                         fontFamily: 'var(--font-mono)',
@@ -168,6 +176,10 @@ export function SeriesNav({ series, currentSlug, publishedSlugs }: Readonly<Seri
                 }
                 :global(.series-expand-btn:hover) {
                     color: var(--text-hi) !important;
+                }
+                :global(.series-nav-title-link:hover svg) {
+                    transform: translate(2px, -2px);
+                    color: var(--cyan) !important;
                 }
             `}</style>
         </div>

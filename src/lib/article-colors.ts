@@ -42,6 +42,12 @@ const COLOR_MAP: Record<string, { primary: string; background: string; border: s
     border: 'rgba(255, 159, 28, 0.2)',
     hoverShadow: '0 8px 24px rgba(255, 159, 28, 0.15)',
   },
+  red: {
+    primary: 'var(--red)',
+    background: 'rgba(255, 84, 112, 0.08)',
+    border: 'rgba(255, 84, 112, 0.2)',
+    hoverShadow: '0 8px 24px rgba(255, 84, 112, 0.15)',
+  },
 };
 
 export function getColorConfig(color: string) {

@@ -1,0 +1,335 @@
+---
+title: "Serving AI Models: From Notebook to API"
+slug: serving-ai-models
+category: production-ai-engineering
+series: production-ai-engineering
+seriesOrder: 4
+description: "FastAPI, model loading, batching, latency vs throughput — how to take a model from a Jupyter notebook to a production REST API."
+tags:
+  - AI
+  - Model Serving
+  - FastAPI
+  - API
+  - Production
+readTime: "14 min"
+icon: "🚀"
+color: cyan
+createdAt: "2026-04-06T16:30:00Z"
+updatedAt: "2026-04-06T16:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## The notebook trap
+
+Your model works great in a Jupyter notebook. You type a prompt, run a cell, get a response. Ship it!
+
+Except you can't. A notebook isn't a server. It doesn't accept HTTP requests. It can't handle 50 users at the same time. It doesn't restart when it crashes. It doesn't have health checks or logging or rate limiting.
+
+The gap between "works in a notebook" and "works in production" is wider than most people expect. Your model is the easy part. Everything around it — the serving infrastructure — is where the real work lives.
+
+---
+
+## Wrap it in FastAPI
+
+FastAPI is the go-to framework for building Python APIs. It's fast, has great documentation, and handles async natively. Most AI serving setups start here.
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+from transformers import pipeline
+
+app = FastAPI()
+classifier = pipeline("sentiment-analysis")
+
+class PredictRequest(BaseModel):
+    text: str
+
+class PredictResponse(BaseModel):
+    label: str
+    score: float
+
+@app.post("/predict", response_model=PredictResponse)
+def predict(request: PredictRequest):
+    result = classifier(request.text)[0]
+    return PredictResponse(label=result["label"], score=result["score"])
+```
+
+Run it with `uvicorn main:app` and you have a REST API. Send a POST request to `/predict` with some text, get back a sentiment label and confidence score.
+
+But this naive version has problems. Big ones.
+
+---
+
+## Load the model once
+
+The most common beginner mistake: loading the model inside the request handler.
+
+```python
+# WRONG - loads model on every request
+@app.post("/predict")
+def predict(request: PredictRequest):
+    classifier = pipeline("sentiment-analysis")  # 3 seconds every time!
+    return classifier(request.text)[0]
+```
+
+Loading a model takes seconds. Sometimes tens of seconds for large models. You need to load it once when the server starts, then reuse it for every request.
+
+<MermaidBlock>
+graph TB
+    Start["Server starts"] --> Load["Load model into memory\none time, 5-30 seconds"]
+    Load --> Ready["Ready to serve"]
+    Ready --> R1["Request 1\n50ms"]
+    Ready --> R2["Request 2\n50ms"]
+    Ready --> R3["Request 3\n50ms"]
+    style Start fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style Load fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style Ready fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style R1 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style R2 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style R3 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+In FastAPI, the cleanest way is with a lifespan handler:
+
+```python
+from contextlib import asynccontextmanager
+
+models = {}
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: load model
+    models["classifier"] = pipeline("sentiment-analysis", device=0)
+    yield
+    # Shutdown: clean up
+    models.clear()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.post("/predict")
+def predict(request: PredictRequest):
+    result = models["classifier"](request.text)[0]
+    return result
+```
+
+The model loads once at startup, lives in memory for the lifetime of the server, and every request uses the same instance. Loading goes from 3 seconds per request to 50 milliseconds.
+
+---
+
+## Request and response design
+
+Think carefully about your API contract. What goes in, what comes out, and what happens when things go wrong.
+
+**Input validation.** Use Pydantic models to validate requests. Set maximum text lengths to prevent someone from sending a 100,000-word document that crashes your GPU.
+
+```python
+class PredictRequest(BaseModel):
+    text: str = Field(..., max_length=5000)
+    model: str = "default"  # Allow model selection
+
+class PredictResponse(BaseModel):
+    label: str
+    score: float
+    model: str
+    processing_time_ms: float
+```
+
+**Include metadata in responses.** Processing time, model version, and request IDs help enormously with debugging.
+
+**Error handling.** Return clear error messages with appropriate HTTP status codes. A 400 for bad input. A 503 when the model isn't ready yet. A 429 when the client is sending too many requests.
+
+```python
+from fastapi import HTTPException
+
+@app.post("/predict")
+def predict(request: PredictRequest):
+    if not models.get("classifier"):
+        raise HTTPException(status_code=503, detail="Model not loaded yet")
+
+    start = time.time()
+    result = models["classifier"](request.text)[0]
+    elapsed = (time.time() - start) * 1000
+
+    return PredictResponse(
+        label=result["label"],
+        score=result["score"],
+        model="distilbert-sentiment",
+        processing_time_ms=round(elapsed, 2),
+    )
+```
+
+---
+
+## Batching: the throughput multiplier
+
+GPUs are massively parallel processors. Running one prediction at a time wastes most of that power. Batching multiple requests together and processing them simultaneously can multiply your throughput.
+
+<MermaidBlock>
+graph LR
+    R1["Request 1"] --> Batch["Batch Collector\nwait up to 50ms"]
+    R2["Request 2"] --> Batch
+    R3["Request 3"] --> Batch
+    Batch --> GPU["GPU\nprocess all at once"]
+    GPU --> Resp["Return individual responses"]
+    style R1 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style R2 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style R3 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style Batch fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style GPU fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style Resp fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Without batching: 3 requests, each takes 50ms = 150ms total.
+
+With batching: 3 requests processed together in 60ms = 60ms total.
+
+The simplest approach: accept a list of inputs in a single API call.
+
+```python
+class BatchRequest(BaseModel):
+    texts: list[str] = Field(..., max_length=32)
+
+@app.post("/predict/batch")
+def predict_batch(request: BatchRequest):
+    results = models["classifier"](request.texts)
+    return [{"label": r["label"], "score": r["score"]} for r in results]
+```
+
+More sophisticated: a server-side batching system that collects individual requests, groups them, and processes them together. Frameworks like TorchServe and Triton handle this automatically.
+
+---
+
+## Latency vs throughput
+
+These two goals pull in opposite directions.
+
+**Latency** is how fast a single request gets answered. Users care about this. If your chatbot takes 5 seconds to respond, people leave.
+
+**Throughput** is how many requests you can handle per second. Your infrastructure budget cares about this. Processing more requests per GPU means fewer GPUs.
+
+Batching improves throughput but can hurt latency (you wait to collect a batch). Smaller models improve latency but reduce quality. Caching helps both but adds complexity.
+
+| Strategy | Latency Impact | Throughput Impact |
+|----------|---------------|-------------------|
+| Batching | Slight increase | Major increase |
+| Smaller model | Decrease | Increase |
+| GPU upgrade | Decrease | Increase |
+| Model quantization | Slight decrease | Increase |
+| Response caching | Major decrease (cache hits) | Major increase |
+| Multiple workers | No change | Increase |
+
+For real-time applications (chatbots, autocomplete), optimize for latency. For offline processing (document classification, batch analysis), optimize for throughput.
+
+---
+
+## GPU memory management
+
+GPU memory is your scarcest resource. Running out crashes the server with a cryptic `CUDA out of memory` error.
+
+Some practical rules:
+
+**Know your model's footprint.** Rough formula: parameters times bytes per parameter. A 7B parameter model in float16 uses about 14GB. In 4-bit quantization, about 4GB.
+
+**Don't load multiple large models on the same GPU.** Either use one GPU per model or pick models small enough to share.
+
+**Monitor memory usage.** Add an endpoint that reports GPU stats so you can catch problems before they crash your server. Use `torch.cuda.memory_allocated()` and `torch.cuda.memory_reserved()` to track what's in use.
+
+**Clear the cache when needed.** `torch.cuda.empty_cache()` releases unused memory back to the GPU. Useful when switching between workloads.
+
+---
+
+## Health checks and monitoring
+
+Production services need health checks. Your load balancer needs to know if the server is alive. Your orchestrator needs to know if it should restart a container.
+
+```python
+@app.get("/health")
+def health():
+    return {"status": "healthy", "model_loaded": "classifier" in models}
+
+@app.get("/ready")
+def ready():
+    if "classifier" not in models:
+        raise HTTPException(status_code=503, detail="Model not ready")
+    return {"status": "ready"}
+```
+
+Two endpoints. `/health` tells you the server is running. `/ready` tells you the model is loaded and the server can handle predictions. Kubernetes uses these for liveness and readiness probes.
+
+Beyond health checks, track request latency (p50, p95, p99), throughput, error rate, and GPU utilization. Prometheus and Grafana are the standard monitoring stack, and FastAPI integrates easily with `prometheus-fastapi-instrumentator`.
+
+---
+
+## Containerization with Docker
+
+Your API works on your machine. Now it needs to work everywhere. Docker solves this.
+
+The key trick: download the model during the Docker build, not at startup. Add a `RUN python -c "from transformers import pipeline; pipeline('sentiment-analysis')"` step that bakes the model weights into the image. Without this, every container startup downloads gigabytes over the network, which is slow and fragile.
+
+For GPU support, use NVIDIA's CUDA base images instead of standard Python images. Everything else (installing dependencies, copying your app code, running uvicorn) stays the same.
+
+---
+
+## Scaling up
+
+A single server handles maybe 10-50 requests per second, depending on model size and hardware. When you need more, you scale.
+
+<MermaidBlock>
+graph TB
+    LB["Load Balancer"] --> W1["Worker 1\nGPU"]
+    LB --> W2["Worker 2\nGPU"]
+    LB --> W3["Worker 3\nGPU"]
+    Client["Clients"] --> LB
+    style Client fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style LB fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style W1 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style W2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style W3 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+**Horizontal scaling** means running multiple server instances behind a load balancer. Each loads its own model copy. Be careful with multiple Uvicorn workers on GPU — each worker loads its own copy into GPU memory, so one worker per GPU is usually right.
+
+**Auto-scaling** on cloud platforms automatically spins up instances when load increases and shuts them down when it drops. Costs stay proportional to actual usage.
+
+---
+
+## Dedicated serving frameworks
+
+FastAPI is a great starting point, but purpose-built model serving frameworks handle the hard stuff for you.
+
+| Framework | Best For | Complexity |
+|-----------|----------|------------|
+| FastAPI | Prototyping, simple models | Low |
+| vLLM | Serving LLMs (PagedAttention, continuous batching) | Medium |
+| TGI | HuggingFace models, easy deploy | Medium |
+| TorchServe | PyTorch models, A/B testing | Medium-High |
+| Triton | Multi-model, multi-framework, max GPU utilization | High |
+
+If you're serving an LLM specifically, **vLLM** is probably what you want. It handles the GPU memory management and batching that we discussed earlier, optimized specifically for text generation workloads.
+
+---
+
+## Self-host vs use an API
+
+Here's the honest question: do you even need to serve your own model?
+
+**Use an API** (OpenAI, Anthropic, Google) when you want frontier models without managing infrastructure, your volume is moderate, and you're prototyping or in early stages.
+
+**Self-host** when you need data privacy, have high volume with predictable costs, need very low latency, or have regulatory requirements.
+
+Many production systems use a hybrid: self-host a fast, small model for common cases, fall back to a frontier API for the hard ones.
+
+<Callout type="info" title="The cost crossover">
+At low volume, APIs are cheaper. You pay per token and there's no infrastructure to maintain. At high volume, self-hosting becomes cheaper because GPU costs are fixed while API costs scale linearly with usage. The crossover point depends on your model and usage patterns, but it's typically around tens of thousands of requests per day.
+</Callout>
+
+---
+
+## What's next?
+
+You can now take a model from a notebook cell to a running API server, containerize it, and reason about scaling it up. That's a real production skill.
+
+But where does that server run? On your laptop? A rented GPU? A managed cloud service? Each cloud provider (AWS, GCP, Azure) offers its own AI-specific tools — managed endpoints, GPU instances, and model hosting services that handle much of what we just built manually.
+
+In the next article, we'll explore **Cloud AI services** — SageMaker, Vertex AI, Azure OpenAI — and figure out when to use managed infrastructure versus rolling your own.

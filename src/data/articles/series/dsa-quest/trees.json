@@ -1,0 +1,11 @@
+{
+  "slug": "trees",
+  "title": "Trees",
+  "description": "Dungeon 7. Recursion meets hierarchy. Binary trees, BSTs, traversals, and the moment everything clicks.",
+  "icon": "🌳",
+  "color": "orange",
+  "tags": ["DSA", "Trees", "Recursion"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

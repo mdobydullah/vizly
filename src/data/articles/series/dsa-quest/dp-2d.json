@@ -1,0 +1,11 @@
+{
+  "slug": "dp-2d",
+  "title": "2-D Dynamic Programming",
+  "description": "Dungeon 16. DP on grids and two-dimensional state. Edit distance, knapsack, longest common subsequence. Where DP grows up.",
+  "icon": "🧊",
+  "color": "orange",
+  "tags": ["DSA", "Dynamic Programming"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

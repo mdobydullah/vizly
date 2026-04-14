@@ -1,0 +1,11 @@
+{
+  "slug": "linked-list",
+  "title": "Linked List",
+  "description": "Dungeon 6. Nodes and pointers. Reversing, cycle detection, merging. The classic gateway to pointer thinking.",
+  "icon": "🔗",
+  "color": "orange",
+  "tags": ["DSA", "Linked List"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

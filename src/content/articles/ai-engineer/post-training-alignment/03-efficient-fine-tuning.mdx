@@ -1,0 +1,243 @@
+---
+title: "Efficient Fine-Tuning"
+slug: efficient-fine-tuning
+category: training-alignment
+series: post-training-alignment
+seriesOrder: 3
+description: "Full fine-tuning a 70B model needs a cluster of GPUs. LoRA, QLoRA, and adapters let you do it on a single card by updating less than 1% of the parameters."
+tags:
+  - AI
+  - LLMs
+  - LoRA
+  - QLoRA
+  - PEFT
+  - Fine-Tuning
+readTime: "13 min"
+icon: "⚡"
+color: cyan
+createdAt: "2026-04-05T12:00:00Z"
+updatedAt: "2026-04-05T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The cost problem
+
+Fine-tuning a large language model means updating every single parameter. For a 7B model, that's 7 billion floating-point numbers. For a 70B model, it's 70 billion.
+
+Each parameter needs to be stored in memory — not just the parameter itself, but also its gradient and optimizer states (like momentum and variance for Adam). A rough rule: full fine-tuning needs about 4x the model size in GPU memory.
+
+| Model size | Model memory | Full fine-tuning memory |
+|-----------|-------------|----------------------|
+| 7B | 14 GB (FP16) | ~56 GB |
+| 13B | 26 GB (FP16) | ~104 GB |
+| 70B | 140 GB (FP16) | ~560 GB |
+
+A 70B model needs over 500 GB of GPU memory for full fine-tuning. That's 7 or 8 A100 GPUs (80 GB each) — like needing eight top-of-the-line gaming PCs just to teach one model a new trick. Most people don't have that lying around.
+
+This is where efficient fine-tuning methods come in. The core question: can we get most of the benefits of fine-tuning while updating far fewer parameters?
+
+---
+
+## The key insight: low-rank updates
+
+When you fine-tune a model, you're computing a weight change for every parameter. Researchers noticed something interesting about these weight changes: they tend to be **low-rank**.
+
+What does that mean? Imagine a weight matrix with 4,096 rows and 4,096 columns — that's about 16 million parameters. The change to this matrix during fine-tuning can be closely approximated by the product of two much smaller matrices.
+
+Instead of storing a 4096 x 4096 change matrix (16M parameters), you can store a 4096 x 16 matrix and a 16 x 4096 matrix (about 131K parameters total). That's 99% fewer parameters, with nearly the same effect.
+
+This is the foundation of LoRA.
+
+---
+
+## LoRA: Low-Rank Adaptation
+
+**LoRA** (Low-Rank Adaptation of Large Language Models) is the most popular efficient fine-tuning method. Published in 2021, it's become the default approach for most fine-tuning work.
+
+The idea is simple. For each weight matrix W in the model:
+- Freeze W entirely (no updates)
+- Add two small matrices A and B next to it
+- The effective weight becomes W + BA
+- Only train A and B
+
+<MermaidBlock>
+graph LR
+    A["Input x"] --> B["Frozen weights W\noriginal model"]
+    A --> C["LoRA branch\nsmall matrices A and B"]
+    B --> D["Add outputs"]
+    C --> D
+    D --> E["Output"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Matrix A has shape (d x r) and matrix B has shape (r x d), where d is the original dimension and r is the **rank** — a small number, typically 8, 16, or 32. The product BA has the same shape as the original weight matrix, but is parameterized by far fewer numbers.
+
+For a 4096 x 4096 weight matrix with rank 16:
+- Original: 16,777,216 parameters
+- LoRA: (4096 x 16) + (16 x 4096) = 131,072 parameters
+- Compression: **128x fewer parameters**
+
+The original weights stay frozen. You only train the tiny LoRA matrices. This slashes memory requirements dramatically.
+
+<Callout type="tip" title="LoRA adapters are portable">
+Since the original model weights don't change, you can save just the LoRA matrices (often just a few megabytes). Want to share your fine-tuned model? Share the adapter file, not the entire model. Want to switch between different fine-tunes? Swap out the adapter. One base model, many personalities.
+</Callout>
+
+---
+
+## Choosing the rank
+
+The rank r controls the tradeoff between adapter size and expressiveness.
+
+| Rank | Adapter size (7B model) | Quality |
+|------|------------------------|---------|
+| 4 | ~8 MB | Good for simple tasks |
+| 8 | ~16 MB | Solid general-purpose |
+| 16 | ~33 MB | Strong for complex tasks |
+| 32 | ~67 MB | Near full fine-tuning quality |
+| 64 | ~134 MB | Diminishing returns |
+
+Most practitioners start with rank 16 or 32. Going higher rarely helps much — the weight updates really are low-rank in practice.
+
+You also choose which layers to apply LoRA to. Attention layers (Q, K, V, and output projections) are the most common targets. Some people also apply LoRA to the feed-forward layers. More LoRA layers = more parameters = better quality but more memory.
+
+---
+
+## QLoRA: quantize then adapt
+
+**QLoRA** (Quantized LoRA) pushes efficiency even further. The insight: if you're not updating the base model weights, why store them in full precision?
+
+QLoRA quantizes the frozen base model to **4-bit precision** (NF4 — a special 4-bit format designed for normally distributed weights), then applies LoRA adapters on top in 16-bit precision.
+
+<MermaidBlock>
+graph TB
+    A["Base model\nFP16, 14 GB for 7B"] --> B["Quantize to 4-bit NF4\n~3.5 GB for 7B"]
+    B --> C["Add LoRA adapters\nFP16, ~33 MB"]
+    C --> D["Train only LoRA\ntotal memory ~6 GB"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+The numbers are dramatic:
+
+| Method | Memory for 7B model | Memory for 70B model |
+|--------|--------------------|--------------------|
+| Full fine-tuning | ~56 GB | ~560 GB |
+| LoRA (FP16 base) | ~16 GB | ~160 GB |
+| QLoRA (4-bit base) | ~6 GB | ~48 GB |
+
+QLoRA makes it possible to fine-tune a 7B model on a single consumer GPU (like an RTX 3090 with 24 GB). A 70B model fits on a single A100 80 GB. That's a game-changer for accessibility.
+
+<Callout type="info" title="4-bit doesn't mean bad quality">
+You might worry that crushing the model to 4 bits would wreck performance. Turns out, for inference and as a base for LoRA training, the quality loss is surprisingly small. The key is using NF4 (Normal Float 4-bit) instead of naive rounding, and keeping the LoRA adapters themselves in higher precision. The paper showed QLoRA matches full 16-bit fine-tuning quality on most benchmarks.
+</Callout>
+
+---
+
+## Adapters: the original approach
+
+Before LoRA, there were **adapter layers** — small neural network modules inserted between the existing layers of the model. The idea came from a 2019 paper on adapting BERT.
+
+Instead of modifying existing weights, you add new tiny layers:
+
+<MermaidBlock>
+graph TB
+    A["Input"] --> B["Frozen attention layer"]
+    B --> C["Adapter module\ndown-project then up-project"]
+    C --> D["Frozen feed-forward layer"]
+    D --> E["Adapter module\ndown-project then up-project"]
+    E --> F["Output"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Each adapter compresses the representation down to a small bottleneck dimension and then projects it back up. Only the adapter parameters are trained.
+
+Adapters work well, but they add latency during inference — every forward pass goes through extra layers. LoRA avoids this: at inference time, you can merge the LoRA matrices into the base weights (W_new = W + BA) and get exactly the same speed as the original model. No extra layers, no extra latency.
+
+This merge-at-inference advantage is why LoRA won.
+
+---
+
+## Prefix tuning and prompt tuning
+
+There are other efficient fine-tuning approaches worth knowing about, even though LoRA dominates in practice.
+
+**Prompt tuning** adds a small number of trainable "soft prompt" tokens to the input. These tokens don't correspond to any real words — they're continuous vectors that the model learns to use as task-specific context. The rest of the model stays frozen.
+
+**Prefix tuning** is similar but adds trainable vectors to every layer's key and value representations, not just the input.
+
+Both methods use very few parameters (sometimes under 0.1% of the model). But they tend to underperform LoRA, especially on complex tasks. And they can't be merged away at inference time, so they add a small amount of overhead.
+
+| Method | Params trained | Inference overhead | Quality |
+|--------|---------------|-------------------|---------|
+| Full fine-tuning | 100% | None | Best |
+| LoRA | 0.1-1% | None (merged) | Near-best |
+| QLoRA | 0.1-1% | None (merged) | Near-best |
+| Adapters | 1-5% | Small (extra layers) | Good |
+| Prefix tuning | less than 0.1% | Small (extra tokens) | Moderate |
+| Prompt tuning | less than 0.01% | Tiny | Lower |
+
+---
+
+## PEFT: the unified framework
+
+Hugging Face's **PEFT** (Parameter-Efficient Fine-Tuning) library wraps all these methods into a single, consistent API. You pick a base model, choose your method (LoRA, QLoRA, prefix tuning, etc.), configure the hyperparameters, and train.
+
+The practical workflow for most people looks like:
+
+1. Load a pre-trained model from Hugging Face
+2. Quantize to 4-bit with bitsandbytes (for QLoRA)
+3. Attach LoRA adapters using PEFT
+4. Fine-tune on your dataset using the Transformers Trainer
+5. Save the adapter (a few MB)
+6. Share or deploy
+
+The whole thing can run on a single GPU, finish in a few hours, and produce a genuinely useful model.
+
+<Callout type="tip" title="The democratization effect">
+Before LoRA and QLoRA, fine-tuning was something only well-funded labs could do. These methods opened the door for individual researchers, small companies, and hobbyists to customize models for their specific needs. A lot of the innovation in the open-source LLM ecosystem happened because efficient fine-tuning made experimentation cheap.
+</Callout>
+
+---
+
+## When to use what
+
+**Full fine-tuning** when you have the compute, need maximum quality, and are building a foundation model or doing major capability improvements.
+
+**LoRA** when you want strong results with much less memory. Good default for most fine-tuning tasks. Use rank 16-32, apply to attention layers.
+
+**QLoRA** when you're memory-constrained — single GPU, consumer hardware, or very large models. The go-to choice for the open-source community.
+
+**Adapters** mostly for historical interest at this point. LoRA has largely replaced them.
+
+**Prompt/prefix tuning** when you need extremely lightweight customization and can tolerate some quality loss. Useful for multi-tenant scenarios where hundreds of users each need a tiny customization.
+
+---
+
+## Merging and stacking
+
+One cool property of LoRA: you can merge multiple adapters or combine them in creative ways.
+
+**Merging** bakes the LoRA weights permanently into the base model: W_final = W + BA. The result is a standard model with no adapter overhead.
+
+**Stacking** applies multiple LoRA adapters simultaneously — maybe one for coding ability and another for a specific persona. The math works out to adding multiple BA products to the base weights.
+
+There are also techniques like **TIES-Merging** and **DARE** that merge multiple fine-tuned models (not just adapters) into a single model, combining strengths from different training runs. The model merging community has produced some surprisingly capable models by creatively combining specialists.
+
+---
+
+## What's next?
+
+We've covered how to train models efficiently. But how do you know if your fine-tuned model is actually good? Next up: **Evaluation and Benchmarks** — perplexity, BLEU, human evaluation, MMLU, leaderboards, and the surprisingly difficult question of measuring whether a language model is doing its job.

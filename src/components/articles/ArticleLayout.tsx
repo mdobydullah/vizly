@@ -8,6 +8,7 @@ import { ArticleFrontmatter } from '@/types/articles';
 import { getColorConfig } from '@/lib/article-colors';
 import { useSettings } from '@/context/SettingsContext';
 import { config } from '@/lib/config';
+import { StorySummary } from './StorySummary';
 
 interface ArticleLayoutProps {
   article: ArticleFrontmatter;
@@ -157,6 +158,9 @@ export function ArticleLayout({
       {/* Reading Panel */}
       <div className={`article-reading-panel article-theme-${theme}`}>
         <article className="article-content">
+          {article.storySummary && Object.keys(article.storySummary).length > 0 && (
+            <StorySummary summary={article.storySummary} primaryColor={colorConfig.primary} />
+          )}
           {children}
         </article>
       </div>

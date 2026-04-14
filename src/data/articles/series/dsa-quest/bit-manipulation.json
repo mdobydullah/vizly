@@ -1,0 +1,11 @@
+{
+  "slug": "bit-manipulation",
+  "title": "Bit Manipulation",
+  "description": "Dungeon 17. Play with bits directly. XOR tricks, bit masks, counting ones. Low-level magic that turns 50 lines into 2.",
+  "icon": "⚡",
+  "color": "orange",
+  "tags": ["DSA", "Bit Manipulation"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

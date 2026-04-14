@@ -46,5 +46,11 @@
     "name": "Production AI Engineering",
     "color": "yellow",
     "icon": "rocket"
+  },
+  {
+    "slug": "dsa",
+    "name": "DSA Quest",
+    "color": "orange",
+    "icon": "swords"
   }
 ]

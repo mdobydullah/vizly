@@ -1,0 +1,252 @@
+---
+title: "MLOps: Shipping AI Like Software"
+slug: mlops-shipping-ai-like-software
+category: production-ai-engineering
+series: production-ai-engineering
+seriesOrder: 6
+description: "Experiment tracking, model registries, CI/CD for models, dataset versioning — treating ML systems with the same rigor as software engineering."
+tags:
+  - AI
+  - MLOps
+  - CI/CD
+  - MLflow
+  - Experiment Tracking
+readTime: "14 min"
+icon: "⚙️"
+color: cyan
+createdAt: "2026-04-06T17:30:00Z"
+updatedAt: "2026-04-06T17:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## The messy reality of ML
+
+Software engineering figured out its process decades ago. Write code. Run tests. Review. Deploy. Monitor. Repeat. There are tools for every step and most teams agree on the basics.
+
+ML? Not so much.
+
+You train a model. It looks good in your notebook. You hand it to the engineering team. They ask: "Which version of the data did you use? What hyperparameters? Can you reproduce this?" You stare at them. You can't remember. That experiment was 47 Jupyter notebooks ago.
+
+This is why MLOps exists. It's the practice of applying software engineering discipline to machine learning systems. And honestly, it's the difference between ML that works on your laptop and ML that works in production.
+
+---
+
+## What even is MLOps?
+
+Think of MLOps as DevOps for machine learning. Same idea — automate the boring stuff, make deployments reliable, catch problems early. But ML adds a few twists that regular software doesn't have.
+
+In regular software, the code is the product. You test the code, deploy the code, monitor the code.
+
+In ML, the product is code *plus data plus model weights*. Change any one of those three and the output changes. That's three dimensions of change instead of one.
+
+<MermaidBlock>
+flowchart LR
+    A["Code"] --> D["Model"]
+    B["Data"] --> D
+    C["Config\nHyperparameters"] --> D
+    D --> E["Predictions"]
+    E --> F["Monitoring"]
+    F -->|"Drift detected"| B
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ff9800,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#0d1117,stroke:#3effa3,color:#ccc
+    style F fill:#0d1117,stroke:#ff9800,color:#ccc
+</MermaidBlock>
+
+MLOps gives you tools and practices to manage all three dimensions. Let's walk through the pieces.
+
+---
+
+## Experiment tracking: remember what you did
+
+You're tuning a model. You try learning rate 0.001. Then 0.0005. Then 0.001 again but with a different batch size. Then you change the data preprocessing. Then you go back to the first config but with more epochs.
+
+After 30 experiments, which one was best?
+
+If you're keeping track in your head or in a spreadsheet, good luck. This is where experiment tracking tools come in.
+
+**MLflow** is the most popular open-source option. You add a few lines to your training script, and it logs everything automatically — hyperparameters, metrics, artifacts (model files, plots), even the git commit hash of your code.
+
+```python
+import mlflow
+
+with mlflow.start_run():
+    mlflow.log_param("learning_rate", 0.001)
+    mlflow.log_param("batch_size", 32)
+    # ... train your model ...
+    mlflow.log_metric("accuracy", 0.94)
+    mlflow.log_metric("loss", 0.12)
+    mlflow.log_artifact("model.pt")
+```
+
+**Weights and Biases** (W and B) is the SaaS alternative. Slicker UI, real-time dashboards, team collaboration. More features, but it costs money.
+
+What to track? Everything that affects the output:
+- Hyperparameters (learning rate, batch size, architecture choices)
+- Metrics over time (loss, accuracy, F1 — per epoch)
+- Dataset version or hash
+- Git commit of the training code
+- Environment details (Python version, CUDA version, library versions)
+- The model artifacts themselves
+
+The point isn't just record-keeping. It's that when a model works great, you can reproduce it. When it breaks, you can trace what changed.
+
+---
+
+## Model registries: version your models like code
+
+You've trained a model. It passed evaluation. Now what?
+
+In software, the artifact goes to a package registry (npm, PyPI, Docker Hub). In ML, it goes to a **model registry**.
+
+A model registry is a centralized store for trained model versions. Each entry has the model weights, metadata (who trained it, what data, what metrics), and a lifecycle stage — like "staging," "production," or "archived."
+
+<MermaidBlock>
+flowchart TB
+    A["Training Complete"] --> B["Register Model\nv1.2.0"]
+    B --> C{"Evaluation\nPassed?"}
+    C -->|"Yes"| D["Promote to\nStaging"]
+    C -->|"No"| E["Archive"]
+    D --> F{"A/B Test\nPassed?"}
+    F -->|"Yes"| G["Promote to\nProduction"]
+    F -->|"No"| E
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ff9800,color:#fff
+    style D fill:#0d1117,stroke:#3effa3,color:#ccc
+    style E fill:#0d1117,stroke:#ff5252,color:#ccc
+    style F fill:#1a1f2b,stroke:#ff9800,color:#fff
+    style G fill:#0d1117,stroke:#3effa3,color:#ccc
+</MermaidBlock>
+
+MLflow has a built-in model registry. SageMaker has one. Vertex AI has one. They all work similarly — you push a model version, tag it, and promote it through stages.
+
+The key insight: your serving infrastructure should pull from the registry, not from someone's laptop. When you promote model v1.3 to production, the serving endpoint automatically picks it up. No manual file copying. No "hey can you upload the new weights to the server?"
+
+---
+
+## Dataset versioning: the forgotten piece
+
+You version your code with git. You version your models with a registry. But what about your data?
+
+Most teams forget this. And then they can't reproduce a model because the training data has been overwritten, cleaned differently, or supplemented with new records.
+
+**DVC** (Data Version Control) is the standard tool here. It works alongside git. Your data files stay in cloud storage (S3, GCS, Azure Blob), but DVC tracks their versions using small metadata files that you commit to git.
+
+```bash
+dvc add data/training_set.parquet
+git add data/training_set.parquet.dvc
+git commit -m "Add v2 training data with cleaned labels"
+```
+
+Now you can check out any git commit and `dvc pull` will fetch the exact dataset that was used at that point in time. Full reproducibility.
+
+Other options: **LakeFS** (git-like branching for data lakes), **Delta Lake** (versioned tables), or even just naming your dataset files with timestamps and never overwriting them. The approach matters less than the habit.
+
+---
+
+## CI/CD for models: the deployment pipeline
+
+In software, CI/CD means: push code, run tests, deploy automatically. In ML, the pipeline is similar but has extra steps.
+
+<MermaidBlock>
+flowchart LR
+    A["Code Push"] --> B["Unit Tests\nData Validation"]
+    B --> C["Train Model"]
+    C --> D["Evaluate\nMetrics Check"]
+    D --> E["Register\nModel"]
+    E --> F["Deploy to\nStaging"]
+    F --> G["Integration\nTests"]
+    G --> H["Deploy to\nProduction"]
+    style A fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style B fill:#0d1117,stroke:#00e5ff,color:#ccc
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#0d1117,stroke:#ff9800,color:#ccc
+    style E fill:#0d1117,stroke:#3effa3,color:#ccc
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#0d1117,stroke:#ff9800,color:#ccc
+    style H fill:#0d1117,stroke:#3effa3,color:#ccc
+</MermaidBlock>
+
+Here's what each step actually does:
+
+**Data validation**: Before training, check that the input data looks right. Schema matches? No missing columns? Distribution hasn't shifted dramatically? Tools like **Great Expectations** or **Pandera** handle this.
+
+**Training**: Run the training job on cloud infrastructure. This might take minutes or hours depending on the model.
+
+**Evaluation gate**: Automatically check if the new model beats the current production model on held-out test data. If accuracy drops, the pipeline stops. No bad model reaches production.
+
+**Shadow deployment**: Deploy the new model alongside the production one. Both receive live traffic, but only the production model's responses go to users. Compare them. If the new model performs well on real data, promote it.
+
+**Canary rollout**: Route 5% of traffic to the new model. Monitor for errors, latency spikes, or degraded quality. Gradually increase to 100%.
+
+You don't need all of these on day one. But you should have at least: automated training, evaluation gating, and one-click deployment.
+
+---
+
+## Monitoring in production: catching drift
+
+Your model works great at launch. Three months later, accuracy has silently dropped 15%. Nobody noticed until a customer complained.
+
+This happens all the time. It's called **model drift**, and it has two flavors.
+
+**Data drift** means the input data has changed. Maybe your e-commerce model was trained on summer shopping patterns, and now it's winter. The model has never seen these kinds of purchases before.
+
+**Concept drift** means the relationship between inputs and outputs has changed. Maybe you're predicting house prices, and a new government policy just changed how mortgages work. The old patterns no longer apply.
+
+How to catch drift:
+
+- **Statistical monitoring**: Compare the distribution of incoming data against the training data. If they diverge significantly, flag it.
+- **Performance monitoring**: Track prediction metrics (accuracy, latency, error rates) over time. Set alerts for degradation.
+- **Feedback loops**: Collect ground truth when possible. If users correct the model's output, feed that back into monitoring.
+
+Tools for this: **Evidently AI** (open source, great dashboards), **WhyLabs**, **Arize**, or cloud-native options like SageMaker Model Monitor.
+
+---
+
+## The MLOps maturity model
+
+Not every team needs a fully automated pipeline from day one. MLOps maturity is a spectrum.
+
+**Level 0 — Manual**: Everything done by hand. Training in notebooks. Deployment via SSH. No versioning. This is where most teams start, and it's fine for prototyping.
+
+**Level 1 — Pipeline automation**: Automated training pipeline triggered by code or data changes. Experiment tracking in place. Model registry for versioning. Most of the deployment is still manual.
+
+**Level 2 — CI/CD for ML**: Full pipeline automation. Automated evaluation gates. Canary deployments. Monitoring and alerting in production. Retraining triggered by drift detection.
+
+**Level 3 — Continuous training**: The system automatically detects when models need retraining, pulls fresh data, trains, evaluates, and deploys — with minimal human intervention. Few teams get here. Fewer need to.
+
+Most teams should aim for Level 1 quickly and Level 2 over time. Level 3 is a nice goal but isn't worth the investment unless you have many models running simultaneously.
+
+---
+
+## Feature stores: a quick mention
+
+A **feature store** is a centralized repository for computed features. Instead of every model computing "user's average spend in last 30 days" independently, you compute it once and serve it from the store.
+
+**Feast** is the main open-source option. Cloud providers have their own (SageMaker Feature Store, Vertex AI Feature Store).
+
+Honestly, you don't need a feature store until you have multiple models sharing the same features. For a single model, it's overkill. But as your team grows and you have 10 models all needing the same user signals, a feature store saves massive duplication.
+
+---
+
+## A practical starting setup
+
+If you're building your first MLOps pipeline, start with MLflow for experiment tracking — it's free, self-hosted, and well-documented. Log every training run. For dataset versioning, DVC works well, or even just immutable dataset files in S3 with timestamps. Keep it simple early on.
+
+Use MLflow's built-in model registry to tag models as staging or production. Hook up GitHub Actions or GitLab CI to trigger training on data changes or code pushes, and add an evaluation gate before deployment. For monitoring, start with Prometheus and Grafana for basic metrics, then add Evidently AI when you need distribution monitoring.
+
+Don't over-engineer it. The goal is reproducibility first, automation second.
+
+---
+
+## What's next?
+
+You can track experiments, version models, and deploy with CI/CD. But there's one piece we've been hand-waving over: how do you actually know if your model is good?
+
+For traditional ML, you have accuracy and F1 scores. But what about LLMs? How do you evaluate a chatbot? How do you test whether a RAG pipeline returns accurate answers? How do you catch when your LLM starts saying dangerous things?
+
+Next up: **Evaluating LLMs at Scale** — LLM-as-judge, eval frameworks, red-teaming, and regression testing for AI systems that generate text.

@@ -1,0 +1,11 @@
+{
+  "slug": "greedy",
+  "title": "Greedy",
+  "description": "Dungeon 14. Pick the best choice right now and hope it works out. When it does, the code is shorter than DP and just as fast.",
+  "icon": "💰",
+  "color": "orange",
+  "tags": ["DSA", "Greedy"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

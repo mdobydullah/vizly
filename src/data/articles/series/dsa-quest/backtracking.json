@@ -1,0 +1,11 @@
+{
+  "slug": "backtracking",
+  "title": "Backtracking",
+  "description": "Dungeon 9. Try, undo, try again. Permutations, subsets, N-queens. The art of exploring all paths without drowning.",
+  "icon": "🔁",
+  "color": "orange",
+  "tags": ["DSA", "Backtracking", "Recursion"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

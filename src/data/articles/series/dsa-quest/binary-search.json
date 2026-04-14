@@ -1,0 +1,11 @@
+{
+  "slug": "binary-search",
+  "title": "Binary Search",
+  "description": "Dungeon 4. Half the search space every step. The O(log n) weapon hiding in plain sight, applied beyond sorted arrays.",
+  "icon": "🎯",
+  "color": "orange",
+  "tags": ["DSA", "Binary Search"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

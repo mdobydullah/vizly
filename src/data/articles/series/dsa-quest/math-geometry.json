@@ -1,0 +1,11 @@
+{
+  "slug": "math-geometry",
+  "title": "Math & Geometry",
+  "description": "Dungeon 18. The final dungeon. Rotating matrices, spiral order, prime sieves. Where math problems wear coding problem clothes.",
+  "icon": "📐",
+  "color": "orange",
+  "tags": ["DSA", "Math", "Geometry"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

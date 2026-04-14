@@ -14,6 +14,7 @@ export interface ArticleFrontmatter {
   author: string;
   excalidraw?: boolean;
   mermaid?: boolean;
+  storySummary?: Record<string, string>;
 }
 
 export interface Article extends ArticleFrontmatter {

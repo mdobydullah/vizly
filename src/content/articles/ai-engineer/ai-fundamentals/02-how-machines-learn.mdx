@@ -1,0 +1,264 @@
+---
+title: "How Machines Learn"
+slug: how-machines-learn
+category: ai-fundamentals
+series: ai-fundamentals
+seriesOrder: 2
+description: "What does 'training' actually mean? We'll walk through the simplest ML model step by step — no math, just intuition."
+tags:
+  - AI
+  - Machine Learning
+  - Training
+icon: "📊"
+color: cyan
+createdAt: "2026-04-04T12:00:00Z"
+updatedAt: "2026-04-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## What does "learning" even mean here?
+
+When someone says "the model learned to recognize cats," what actually happened? There's no brain. No understanding. No little light bulb going off.
+
+Here's what really happens: the machine adjusted a bunch of numbers until its guesses got less wrong.
+
+That's it. That's the whole trick.
+
+It sounds underwhelming, but this simple idea powers everything from spam filters to self-driving cars. Here's how it actually works.
+
+---
+
+## Start with the simplest possible model
+
+Forget neural networks for now. Forget deep learning. We'll start with something so simple it almost feels silly.
+
+Imagine you're trying to predict house prices. You have one piece of information: the size of the house in square feet.
+
+You draw a line through your data points. Houses on the left (small) are cheap. Houses on the right (big) are expensive. The line roughly captures the trend.
+
+That line? That's your model. It's just a straight line with two numbers controlling it:
+
+- **Weight** — how steep the line is (how much price changes per square foot)
+- **Bias** — where the line starts (the base price)
+
+```
+predicted_price = weight × size + bias
+```
+
+The entire "learning" process is just finding the best values for weight and bias. That's it.
+
+<MermaidBlock>
+graph LR
+    A["Input\nHouse size 1500 sqft"] --> B["Model\nweight x size + bias"]
+    B --> C["Prediction\n285k"]
+    C --> D["Compare to\nactual 300k"]
+    D --> E["Adjust\nweight and bias"]
+    E --> B
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Training: guess, check, adjust, repeat
+
+Here's how the machine "learns." It follows a loop — over and over, thousands of times.
+
+**Step 1: Make a guess.**
+The model starts with random weight and bias values. Its first prediction will be terrible. That's expected.
+
+**Step 2: Measure how wrong it was.**
+You compare the prediction to the actual answer. The gap between them is called the **loss**. A bigger loss means a worse guess.
+
+Think of it like a game of "warmer/colder." The loss tells you how cold you are.
+
+**Step 3: Adjust the numbers.**
+Here's the clever part. The model doesn't adjust randomly — it figures out *which direction* to nudge each number to make the loss smaller. Nudge the weight up a bit? Did the loss go down? Good, keep going that way.
+
+This directional adjustment is called **gradient descent**. Fancy name, simple idea: always move downhill.
+
+**Step 4: Repeat.**
+Do this thousands of times. One full pass through all the training data is called an **epoch**. Most models train for dozens or hundreds of epochs before the guesses get close to the real answers.
+
+<Callout type="tip" title="The core loop">
+Guess → measure error → adjust → repeat. Every ML model, from the simplest to GPT, follows this same basic loop. The models get fancier, but the loop stays the same.
+</Callout>
+
+---
+
+## What's the "loss" exactly?
+
+Loss is just a number that tells you how bad your model is right now. Higher = worse.
+
+The most common one for prediction tasks: take each prediction, subtract the actual answer, square it (so negatives don't cancel out positives), and average them all up.
+
+This is called **mean squared error**.
+
+You don't need to remember the name. Just remember: the model's entire goal is to make this number as small as possible.
+
+Think of it like a golf score. You're trying to get as close to zero as you can.
+
+<MermaidBlock>
+graph TB
+    A["Perfect model\nLoss = 0"]
+    B["Good model\nLoss = 12"]
+    C["Okay model\nLoss = 150"]
+    D["Terrible model\nLoss = 5000"]
+    D --> C
+    C --> B
+    B --> A
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+---
+
+## Gradient descent — just walking downhill
+
+Imagine you're blindfolded on a hilly landscape. You can't see the lowest point, but you can feel which way the ground slopes under your feet. So you take a small step downhill. Then another. And another.
+
+That's gradient descent.
+
+The "landscape" is your loss function — every combination of weight and bias values gives you a different loss. Some combinations are good (low loss = valley). Some are bad (high loss = peak). The model feels the slope and steps toward the valley.
+
+**Learning rate** is how big each step is:
+
+- Too big? You overshoot the valley and bounce around wildly.
+- Too small? You'll get there eventually, but it takes forever.
+- Just right? Smooth, steady progress toward the bottom.
+
+<MermaidBlock>
+graph LR
+    A["Start\nRandom weights\nHigh loss"] --> B["Step 1\nAdjust weights\nLoss drops"]
+    B --> C["Step 2\nKeep adjusting\nLoss drops more"]
+    C --> D["Converged\nBest weights found\nLow loss"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+<Callout type="warning" title="Watch out">
+If the learning rate is too big, the model can actually get *worse* over time — bouncing over the valley instead of settling into it. Most ML bugs come from getting this number wrong.
+</Callout>
+
+---
+
+## Training data vs test data — why you need both
+
+Here's a mistake beginners make: they train the model on all their data, get amazing results, and think they're done.
+
+Then the model sees new data and falls apart.
+
+Why? Because the model memorized the training data instead of learning the actual pattern. It's like a student who memorizes every answer in the textbook but can't solve a problem they haven't seen before.
+
+This is called **overfitting**, and it's one of the biggest problems in ML.
+
+The fix is simple: split your data.
+
+| Set | What it's for | Typical size |
+|-----|---------------|-------------|
+| **Training set** | The model learns from this | ~80% of your data |
+| **Test set** | Check if learning actually worked (never seen during training) | ~20% of your data |
+
+The test set is your reality check. If the model does well on training data but poorly on test data, it memorized instead of learned.
+
+<Callout type="info" title="The exam analogy">
+Training data = practice problems. Test data = the actual exam. If you only do well on practice but bomb the exam, you didn't really learn the material.
+</Callout>
+
+---
+
+## Underfitting and overfitting — the Goldilocks problem
+
+Your model can fail in two opposite ways:
+
+**Underfitting** — the model is too simple. It can't even capture the pattern in the training data. Like trying to draw a curve with a straight line. The model basically shrugs and gives mediocre predictions for everything.
+
+**Overfitting** — the model is too complex. It memorizes every quirk and noise in the training data. It performs perfectly on training data and terribly on new data. Like an outfit tailored so precisely to one person that nobody else can wear it.
+
+You want the sweet spot in the middle. Complex enough to capture the real pattern, simple enough to generalize to new data.
+
+<MermaidBlock>
+graph LR
+    A["Underfitting\nToo simple\nmisses the pattern"] --> B["Good Fit\nJust right\ncaptures the trend"]
+    B --> C["Overfitting\nToo complex\nmemorizes noise"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+| Problem | Training performance | Test performance | What to do |
+|---------|---------------------|------------------|------------|
+| Underfitting | Bad | Bad | Use a more complex model, train longer |
+| Good fit | Good | Good | Ship it |
+| Overfitting | Great | Bad | Simplify model, get more data, add regularization |
+
+---
+
+## Features — what the model actually looks at
+
+Going back to our house price example. We only used square footage. But house prices depend on a lot more than size.
+
+Each piece of information you give the model is called a **feature**:
+
+- Square footage
+- Number of bedrooms
+- Distance to city center
+- Year built
+- Neighborhood crime rate
+
+More relevant features usually means better predictions. But there's a catch — irrelevant features (like the color of the front door) can confuse the model and actually make it worse.
+
+Picking the right features is called **feature engineering**, and experienced ML engineers will tell you it matters more than which fancy algorithm you use.
+
+---
+
+## Putting it all together
+
+Here's the full picture of how a machine learns:
+
+<MermaidBlock>
+graph TB
+    A["Collect Data"] --> B["Split into\nTrain + Test"]
+    B --> C["Initialize model\nwith random weights"]
+    C --> D["Training Loop"]
+    D --> E["Make predictions\non training data"]
+    E --> F["Calculate loss"]
+    F --> G["Gradient descent\nadjust weights"]
+    G --> D
+    D --> H["Evaluate on\ntest data"]
+    H --> I{"Good enough?"}
+    I -->|No| J["Tweak and retrain"]
+    J --> C
+    I -->|Yes| K["Deploy model"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style I fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style J fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style K fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That's the whole process. The models get more complex and the data gets bigger, but this core workflow never changes.
+
+---
+
+## What's next?
+
+You now know what "training" actually means. A model guesses, checks how wrong it was, adjusts, and repeats — thousands of times until it gets good.
+
+But we've been talking about a single straight line. Real-world problems are way more complex than that. How do you model something that isn't a straight line at all?
+
+Next up: **neural networks**. We'll build one from scratch — starting with a single artificial neuron and stacking them into layers. You'll see exactly how a pile of simple math operations can learn to do surprisingly complex things.

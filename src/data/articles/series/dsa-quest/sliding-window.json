@@ -1,0 +1,11 @@
+{
+  "slug": "sliding-window",
+  "title": "Sliding Window",
+  "description": "Dungeon 5. A window that grows, shrinks, and slides across the data. When Two Pointers isn't enough, this is what you reach for.",
+  "icon": "🪟",
+  "color": "orange",
+  "tags": ["DSA", "Sliding Window"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

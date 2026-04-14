@@ -1,0 +1,310 @@
+---
+title: "Neural Networks from Scratch"
+slug: neural-networks-from-scratch
+category: ai-fundamentals
+series: ai-fundamentals
+seriesOrder: 3
+description: "What is a neuron? What are layers? We'll build a neural network piece by piece — starting from one tiny node."
+tags:
+  - AI
+  - Neural Networks
+  - Deep Learning
+readTime: "12 min"
+icon: "🧬"
+color: cyan
+createdAt: "2026-04-04T14:30:00Z"
+updatedAt: "2026-04-04T14:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## Where we left off
+
+Last time, we trained a model that was just a straight line. Weight times input, plus bias. Adjust until the loss goes down. Simple.
+
+But here's the thing — most problems in the real world aren't straight lines. Is a photo a cat or a dog? Is this sentence positive or negative? Should the car turn left or right?
+
+No single straight line can solve those. You need something more powerful.
+
+Enter: neural networks.
+
+---
+
+## One neuron — that's where it starts
+
+A neural network is made of **neurons**. Not biological ones — artificial ones. And an artificial neuron is way simpler than the squishy thing in your head.
+
+Here's everything a single neuron does:
+
+1. Take in some numbers (inputs)
+2. Multiply each input by a weight
+3. Add them all up (plus a bias)
+4. Pass the result through a function
+
+That's it. Four steps. Let's walk through them.
+
+Say you have a neuron with two inputs — maybe "hours studied" and "hours slept" — and you want to predict whether a student passes an exam.
+
+```
+sum = (hours_studied x weight1) + (hours_slept x weight2) + bias
+output = activation(sum)
+```
+
+The weights decide how much each input matters. The bias shifts things up or down. And the activation function... we'll get to that in a second.
+
+<MermaidBlock>
+graph LR
+    X1["Input 1\nhours studied"] --> N["Neuron\nsum + activation"]
+    X2["Input 2\nhours slept"] --> N
+    W1["weight 1"] -.-> N
+    W2["weight 2"] -.-> N
+    B["bias"] -.-> N
+    N --> O["Output\npass or fail?"]
+    style X1 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style X2 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style N fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style W1 fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style W2 fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style B fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style O fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Look familiar? It should. This is basically the same "weight times input plus bias" formula from the last article. A single neuron *is* a tiny linear model.
+
+So if one neuron is just a line... what's the big deal?
+
+---
+
+## The magic ingredient: activation functions
+
+Here's the problem with "multiply and add." No matter how many times you multiply and add, the result is always a straight line. Stack ten linear equations together and you still get... a line.
+
+That's useless for complex problems.
+
+Activation functions fix this. They take the neuron's sum and bend it. Squish it. Curve it. They introduce **non-linearity** — which is a fancy way of saying "now we can model curves, not just lines."
+
+Think of it like this. Without activation functions, your network is a bunch of rulers stacked on top of each other. Still straight. With activation functions, each ruler becomes a bendy piece of wire. Now you can shape them into any curve you want.
+
+### The popular ones
+
+**ReLU (Rectified Linear Unit)** — the workhorse. If the number is positive, keep it. If it's negative, make it zero. Dead simple, works great.
+
+```
+ReLU(x) = max(0, x)
+
+ReLU(5)  = 5
+ReLU(-3) = 0
+```
+
+**Sigmoid** — squishes any number into a range between 0 and 1. Useful when you want a probability (like "70% chance this is spam").
+
+```
+sigmoid(big positive)  ≈ 1.0
+sigmoid(0)             = 0.5
+sigmoid(big negative)  ≈ 0.0
+```
+
+**Tanh** — like sigmoid but squishes between -1 and 1. Centers the output around zero, which often helps training go faster.
+
+| Function | Output range | When to use it |
+|----------|-------------|----------------|
+| **ReLU** | 0 to infinity | Default choice for hidden layers |
+| **Sigmoid** | 0 to 1 | Final layer for yes/no predictions |
+| **Tanh** | -1 to 1 | When you need centered outputs |
+
+<Callout type="tip" title="When in doubt, use ReLU">
+ReLU is the default activation function for almost everything. It's fast, it works, and it avoids most common training problems. Start with ReLU. Switch only if you have a reason to.
+</Callout>
+
+---
+
+## Stacking neurons into layers
+
+One neuron can't do much. But connect a bunch of them together and something interesting happens.
+
+A neural network organizes neurons into **layers**:
+
+**Input layer** — not really neurons. Just your raw data coming in. If you have 3 features (like height, weight, age), you have 3 input nodes.
+
+**Hidden layers** — this is where the thinking happens. Each neuron takes inputs from the previous layer, does its multiply-add-activate thing, and passes the result forward. Called "hidden" because you don't directly see what they compute.
+
+**Output layer** — the final answer. One neuron for a yes/no question. Ten neurons if you're classifying into ten categories (like recognizing digits 0-9).
+
+<MermaidBlock>
+graph LR
+    subgraph Input
+        I1["x1"]
+        I2["x2"]
+        I3["x3"]
+    end
+    subgraph Hidden Layer 1
+        H1["n1"]
+        H2["n2"]
+        H3["n3"]
+        H4["n4"]
+    end
+    subgraph Hidden Layer 2
+        H5["n5"]
+        H6["n6"]
+        H7["n7"]
+    end
+    subgraph Output
+        O1["result"]
+    end
+    I1 --> H1
+    I1 --> H2
+    I1 --> H3
+    I1 --> H4
+    I2 --> H1
+    I2 --> H2
+    I2 --> H3
+    I2 --> H4
+    I3 --> H1
+    I3 --> H2
+    I3 --> H3
+    I3 --> H4
+    H1 --> H5
+    H1 --> H6
+    H1 --> H7
+    H2 --> H5
+    H2 --> H6
+    H2 --> H7
+    H3 --> H5
+    H3 --> H6
+    H3 --> H7
+    H4 --> H5
+    H4 --> H6
+    H4 --> H7
+    H5 --> O1
+    H6 --> O1
+    H7 --> O1
+    style I1 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style I2 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style I3 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style H1 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H4 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H5 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style H6 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style H7 fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style O1 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Every arrow in that diagram is a weight. Every node does the same multiply-add-activate routine. That's all a neural network is — layers of neurons passing numbers forward.
+
+The word "deep" in Deep Learning? It just means "lots of hidden layers." Two layers? Shallow. Twenty layers? Deep. A hundred layers? Very deep. That's the whole mystery behind the term.
+
+<Callout type="info" title="Why 'deep' matters">
+A network with one hidden layer can theoretically approximate any continuous function — but it might need an absurdly huge layer to do it. Adding more layers lets the network learn in stages, building complex ideas from simpler ones. Depth is efficiency.
+</Callout>
+
+---
+
+## The forward pass — data flowing through
+
+When you feed data into a network, it travels from left to right, layer by layer. This is called the **forward pass**. Nothing fancy — just data going forward.
+
+Let's trace through a tiny example. Imagine a network that decides if a fruit is an apple or an orange based on two features: weight (grams) and color (redness on a 0-1 scale).
+
+**Step 1: Input layer receives the data.**
+Your fruit weighs 150g and has redness 0.8. Those two numbers enter the network.
+
+**Step 2: Hidden layer does its math.**
+Each hidden neuron multiplies the inputs by its weights, adds its bias, and applies ReLU. Some neurons fire (output a positive number), others output zero.
+
+**Step 3: Output layer combines everything.**
+The output neuron takes all the hidden layer's results, does one final weighted sum, applies sigmoid, and gives you a number between 0 and 1.
+
+Output of 0.92? Probably an apple. Output of 0.15? Probably an orange.
+
+<MermaidBlock>
+graph LR
+    A["Input\nweight: 150g\nredness: 0.8"] --> B["Hidden Layer\neach neuron:\nsum then ReLU"]
+    B --> C["Output\nsigmoid\n0.92 = apple"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That's the forward pass. Data in, prediction out. No learning happened — just computation. The network used whatever weights it currently has and produced an answer.
+
+Learning is what happens *after* the forward pass, when you check how wrong the answer was and adjust the weights. But that's the next article.
+
+---
+
+## What each layer actually learns
+
+Here's something beautiful about deep networks. Each layer learns something different — and the deeper you go, the more abstract the concepts get.
+
+Take an image recognition network:
+
+| Layer | What it learns | Example |
+|-------|---------------|---------|
+| Layer 1 | Edges and lines | Horizontal line, vertical line, diagonal |
+| Layer 2 | Simple shapes | Circles, corners, curves |
+| Layer 3 | Parts of objects | Eyes, wheels, petals |
+| Layer 4 | Whole objects | Faces, cars, flowers |
+
+The first layer sees pixels and finds edges. The second layer combines edges into shapes. The third combines shapes into parts. The fourth combines parts into things you'd actually recognize.
+
+Nobody told the network to learn edges first. It figured out on its own that edges are useful building blocks for everything else. This is why deep networks are so powerful — they automatically discover the right way to break a problem into pieces.
+
+<Callout type="tip" title="Like building with LEGO">
+Layer 1 makes individual bricks. Layer 2 snaps them into small structures. Layer 3 builds recognizable sections. Layer 4 assembles the final thing. Each layer builds on the previous one.
+</Callout>
+
+---
+
+## How big should the network be?
+
+This is one of the first questions you'll face. More neurons and more layers means the network can learn more complex patterns. But it also means:
+
+- More weights to train (slower)
+- More data needed (or it overfits)
+- Harder to understand what it's doing
+
+There's no formula. It depends on your problem.
+
+| Problem | Typical size |
+|---------|-------------|
+| Spam filter | 2-3 layers, hundreds of neurons |
+| Image classification | 10-50 layers, millions of parameters |
+| Language model like GPT | 100+ layers, billions of parameters |
+
+For years, the dominant trend in AI has been: bigger is better. That's starting to shift with more efficient approaches — but scale still matters a lot. And "bigger" only works if you have enough data and compute to match. A massive network trained on tiny data will just memorize everything (overfitting — remember that from last time?).
+
+---
+
+## Putting it all together
+
+Let's recap what a neural network actually is:
+
+<MermaidBlock>
+graph TB
+    A["1. Take inputs\nraw data or features"] --> B["2. Multiply by weights\neach connection has a weight"]
+    B --> C["3. Add bias\nshift the result"]
+    C --> D["4. Apply activation\nbend it with ReLU or sigmoid"]
+    D --> E["5. Pass to next layer\nrepeat steps 2-4"]
+    E --> F["6. Output layer\nfinal prediction"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+A neuron is just multiply-add-activate. A layer is a bunch of neurons. A network is a bunch of layers. Deep learning is just networks with many layers.
+
+No magic. Just a lot of simple math, repeated many times, arranged in a clever structure.
+
+---
+
+## What's next?
+
+We've built the network. We know how data flows through it (forward pass). We know each neuron multiplies, adds, and activates.
+
+But we skipped the hard part — how does the network actually *learn*? How do you figure out what all those thousands of weights should be?
+
+Next up: **backpropagation and training**. We'll trace the error backwards through the network, layer by layer, and see how each weight gets nudged in the right direction. It's the engine that makes everything we just built actually work.

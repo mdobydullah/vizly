@@ -1,0 +1,11 @@
+{
+  "slug": "intervals",
+  "title": "Intervals",
+  "description": "Dungeon 13. Start and end times. Merging, overlapping, scheduling. Calendar apps and meeting rooms run on this.",
+  "icon": "📅",
+  "color": "orange",
+  "tags": ["DSA", "Intervals"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

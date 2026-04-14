@@ -5,6 +5,7 @@
 ## Learning Paths
 
 - [Become an AI Engineer](/learning-paths/ai-engineer): A complete learning path from zero to shipping AI in production. 7 series, ~10 weeks.
+- [DSA Quest](/learning-paths/dsa-quest): Learn DSA the fun way. Story-framed problems, boss fights, one pattern per dungeon. Two Pointers available now, more coming.
 
 ## Series
 
@@ -15,6 +16,8 @@
 - [Agents & Reasoning](/series/agents-reasoning): LLMs that think, plan, and act — tool-calling to multi-step reasoning agents. 4 articles.
 - [Multimodal & Generative AI](/series/multimodal-generative-ai): How AI creates images, videos, and more — diffusion models to the cutting edge. 4 articles.
 - [Production AI Engineering](/series/production-ai-engineering): Build, serve, evaluate, and maintain AI systems in production. 8 articles.
+- [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
+- [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Two Pointers pattern without the dry LeetCode grind. 6 articles.
 
 ## Articles
 
@@ -54,6 +57,8 @@
 - [MLOps: Shipping AI Like Software](/articles/mlops-shipping-ai-like-software): Experiment tracking, model registries, CI/CD for models, dataset versioning.
 - [Evaluating LLMs at Scale](/articles/evaluating-llms-at-scale): LLM-as-judge, eval frameworks, red-teaming, regression testing.
 - [Cost, Latency & Context Management](/articles/cost-latency-and-context-management): Token budgets, semantic caching, streaming, context window strategies.
+- [Contains Duplicate — The Coat Check](/articles/contains-duplicate-coat-check): Hash set pattern, O(n²) → O(n) speedup, story-framed.
+- [Valid Palindrome — The Museum Mirror](/articles/valid-palindrome-museum-mirror): Two Pointers pattern, O(1) space, early exit, story-framed.
 
 ## Guides — System Design
 

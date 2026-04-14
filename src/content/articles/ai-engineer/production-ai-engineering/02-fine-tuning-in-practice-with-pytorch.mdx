@@ -1,0 +1,311 @@
+---
+title: "Fine-Tuning in Practice with PyTorch"
+slug: fine-tuning-in-practice-with-pytorch
+category: production-ai-engineering
+series: production-ai-engineering
+seriesOrder: 2
+description: "The training loop, dataloaders, optimizers, and checkpoints — a practical guide to fine-tuning models with PyTorch."
+tags:
+  - AI
+  - PyTorch
+  - Fine-Tuning
+  - Training
+  - Practice
+readTime: "15 min"
+icon: "🔥"
+color: cyan
+createdAt: "2026-04-06T15:30:00Z"
+updatedAt: "2026-04-06T15:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## The "almost good enough" problem
+
+You loaded a pre-trained model from HuggingFace. It works. Sort of. The sentiment classifier gets most reviews right, but it thinks "this product is sick" is negative. The text generator writes decent prose, but it doesn't know your company's terminology.
+
+Pre-trained models are generalists. They've seen billions of tokens of internet text and learned broad patterns. But your task is specific. Your data has quirks. Your domain has jargon.
+
+Fine-tuning bridges that gap. You take a model that already understands language and teach it the specifics of your problem. It's faster, cheaper, and more effective than training from scratch.
+
+---
+
+## PyTorch in 60 seconds
+
+PyTorch is the most popular framework for training neural networks. If HuggingFace is where models live, PyTorch is where they learn.
+
+The core concept is the **tensor** — a multi-dimensional array, like a NumPy array but with GPU support and automatic differentiation.
+
+```python
+import torch
+
+# Create a tensor
+x = torch.tensor([1.0, 2.0, 3.0])
+
+# Tensors can track gradients
+w = torch.tensor([0.5], requires_grad=True)
+y = (x * w).sum()
+y.backward()  # Compute gradients
+print(w.grad)  # How much y changes when w changes
+```
+
+That `backward()` call is the magic. PyTorch automatically computes gradients — the derivatives that tell the optimizer which direction to adjust parameters. You define the forward computation, and PyTorch figures out the backward pass for you.
+
+This is called **autograd**, and it's the foundation of all training in PyTorch.
+
+---
+
+## The training loop
+
+Every fine-tuning job follows the same pattern. It's a loop. You repeat it for every batch of data, for multiple passes over the full dataset (epochs).
+
+<MermaidBlock>
+graph TB
+    A["Load batch of data"] --> B["Forward pass\nmodel makes predictions"]
+    B --> C["Compute loss\nhow wrong was it?"]
+    C --> D["Backward pass\ncalculate gradients"]
+    D --> E["Optimizer step\nupdate weights"]
+    E --> F["Next batch"]
+    F --> A
+    style A fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#aaa
+</MermaidBlock>
+
+The idea is straightforward: you feed input through the model (forward pass), compare its predictions to the correct answers using a loss function, then PyTorch computes gradients to figure out how much each parameter contributed to the error (backward pass). The optimizer adjusts parameters to reduce the loss, and you repeat the whole thing thousands of times with different batches.
+
+In code:
+
+```python
+model.train()
+
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        inputs, labels = batch
+
+        # Forward pass
+        outputs = model(inputs)
+        loss = loss_fn(outputs, labels)
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+```
+
+The `optimizer.zero_grad()` call clears old gradients before computing new ones. Without it, gradients accumulate across batches, which is usually not what you want.
+
+---
+
+## Datasets and DataLoaders
+
+You can't feed your entire dataset to the model at once. You'd run out of memory. Instead, you split it into small chunks called **batches**.
+
+PyTorch's `DataLoader` handles this automatically:
+
+```python
+from torch.utils.data import DataLoader, Dataset
+
+class ReviewDataset(Dataset):
+    def __init__(self, texts, labels, tokenizer):
+        self.encodings = tokenizer(texts, truncation=True,
+                                   padding=True, return_tensors="pt")
+        self.labels = torch.tensor(labels)
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        item = {k: v[idx] for k, v in self.encodings.items()}
+        item["labels"] = self.labels[idx]
+        return item
+
+dataset = ReviewDataset(texts, labels, tokenizer)
+dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
+```
+
+The `DataLoader` shuffles your data each epoch (so the model doesn't memorize the order), groups it into batches of 16, and handles all the indexing. You just iterate over it.
+
+**Batch size** matters more than you'd think. Larger batches train faster (more parallel computation) but use more memory. Smaller batches add noise to training, which can actually help the model generalize. A batch size of 16 or 32 is a safe starting point.
+
+---
+
+## Preparing your data
+
+This is the part that takes the most time in practice. Not the model code. Not the training loop. The data prep.
+
+For text classification, you need pairs of (text, label):
+
+```python
+texts = [
+    "Great product, works perfectly",
+    "Terrible quality, broke after one day",
+    "Decent for the price, nothing special",
+]
+labels = [2, 0, 1]  # positive, negative, neutral
+```
+
+For fine-tuning a language model on your own domain, you need text samples from that domain:
+
+```python
+domain_texts = [
+    "The patient presented with acute lymphoblastic leukemia...",
+    "CBC showed elevated WBC count with 80% blasts...",
+]
+```
+
+The golden rule: your fine-tuning data should look like what the model will see in production. If you're building a customer support classifier, train on real customer support messages. Not product reviews. Not Wikipedia articles.
+
+<Callout type="warning" title="Data quality beats data quantity">
+100 carefully labeled examples often beat 10,000 noisy ones. Spend time cleaning your data — remove duplicates, fix mislabeled examples, make sure edge cases are represented. This matters more than any hyperparameter tuning.
+</Callout>
+
+---
+
+## The HuggingFace Trainer shortcut
+
+Writing a training loop from scratch is educational, but in practice most people use the HuggingFace `Trainer` class. It wraps the whole loop, adds logging, handles evaluation, saves checkpoints, and supports distributed training — all in a few lines.
+
+```python
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    "distilbert-base-uncased", num_labels=3
+)
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    num_train_epochs=3,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=64,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=2e-5,
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+)
+
+trainer.train()
+```
+
+That's a complete fine-tuning setup. The `Trainer` handles gradient accumulation, mixed precision, multi-GPU training, early stopping — all configurable through `TrainingArguments`.
+
+Think of it this way: the raw PyTorch loop teaches you how training works. The `Trainer` is what you use when you want to get things done quickly.
+
+---
+
+## Monitoring training
+
+How do you know if training is going well?
+
+**Watch the loss curve.** It should go down over time. If it plateaus early, your learning rate might be too low. If it oscillates wildly, your learning rate is too high. If it drops to nearly zero on training data but the validation loss rises — that's overfitting.
+
+<MermaidBlock>
+graph LR
+    A["Epoch 1\nloss 2.3"] --> B["Epoch 2\nloss 1.1"]
+    B --> C["Epoch 3\nloss 0.6"]
+    C --> D["Epoch 4\nloss 0.3"]
+    D --> E["Epoch 5\nloss 0.29"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+**Check validation metrics.** Loss on training data tells you the model is learning. Loss on validation data tells you if it's learning things that generalize. Always set aside 10-20% of your data for validation.
+
+**Log everything.** Tools like Weights and Biases or TensorBoard let you visualize training curves in real time. When you're running multiple experiments, you need to compare them.
+
+---
+
+## Saving and loading checkpoints
+
+Training can take hours. If it crashes midway, you don't want to start over. Save checkpoints periodically.
+
+```python
+# Save manually
+model.save_pretrained("./my-finetuned-model")
+tokenizer.save_pretrained("./my-finetuned-model")
+
+# Load later
+from transformers import AutoModelForSequenceClassification
+model = AutoModelForSequenceClassification.from_pretrained("./my-finetuned-model")
+```
+
+If using the `Trainer`, checkpoints are saved automatically based on your `save_strategy`. Each checkpoint includes the model weights, optimizer state, and training progress — so you can resume exactly where you left off.
+
+Keep at least the best checkpoint (lowest validation loss) and the final checkpoint. Delete the rest to save disk space.
+
+---
+
+## Common issues and how to fix them
+
+**Overfitting.** The model memorizes training data instead of learning patterns. Signs: training loss drops, validation loss rises. Fixes: more data, data augmentation, dropout, fewer epochs, early stopping.
+
+**Learning rate too high.** Training loss jumps around instead of decreasing. Try 2e-5 or 5e-5 as starting points for fine-tuning transformer models. This is much lower than training from scratch, because the pre-trained weights are already close to good values.
+
+**Out of memory.** Reduce batch size. Use gradient accumulation (small effective batches that add up to a larger logical batch). Use mixed precision (`fp16=True` in TrainingArguments) to halve memory usage.
+
+**Catastrophic forgetting.** The model gets good at your task but forgets its general knowledge. Use a small learning rate and few epochs. Fine-tuning should be gentle — nudging the model, not overhauling it.
+
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| Overfitting | Val loss rises while train loss drops | More data, early stopping, dropout |
+| Learning rate too high | Loss jumps around | Lower to 2e-5 or 5e-5 |
+| Out of memory | CUDA OOM error | Smaller batch, fp16, gradient accumulation |
+| Catastrophic forgetting | Good at task, bad at everything else | Lower LR, fewer epochs |
+
+---
+
+## Full fine-tuning vs LoRA
+
+So far we've talked about **full fine-tuning** — updating all model parameters. This works great for smaller models (under 1B parameters) when you have enough data and a decent GPU.
+
+But for large models (7B, 13B, 70B parameters), full fine-tuning is expensive. You need multiple GPUs, lots of memory, and significant compute time.
+
+**LoRA** (Low-Rank Adaptation) is the most popular alternative. Instead of updating all parameters, it freezes the original weights and adds small trainable matrices alongside them. The result: you train less than 1% of the parameters while getting comparable results.
+
+<MermaidBlock>
+graph TB
+    A["Full Fine-Tuning\nupdate ALL parameters"] --> A2["Needs: lots of memory\nResult: slightly better"]
+    B["LoRA Fine-Tuning\nupdate 0.1-1% of parameters"] --> B2["Needs: much less memory\nResult: nearly as good"]
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style A2 fill:#1a1f2b,stroke:#ff6b6b,color:#aaa
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B2 fill:#1a1f2b,stroke:#3effa3,color:#aaa
+</MermaidBlock>
+
+**QLoRA** goes further by quantizing the base model to 4-bit precision, so a 7B parameter model fits in about 6GB of GPU memory. You can fine-tune LLaMA-7B on a single consumer GPU.
+
+When to use what:
+
+- **Full fine-tuning:** Small models (under 1B), plenty of data, good hardware.
+- **LoRA:** Larger models, limited GPU memory, want good results without massive compute.
+- **QLoRA:** Very large models (7B+), single GPU, prototyping.
+
+---
+
+## What's next?
+
+You know how to take a pre-trained model and make it yours. That's a major capability — most AI applications are built on fine-tuned models, not trained from scratch.
+
+But what about applications that need to work with your documents, connect to databases, or chain multiple AI steps together? Writing all that plumbing from scratch gets painful fast.
+
+In the next article, we'll look at **LangChain and LlamaIndex** — frameworks that handle the messy parts of building LLM applications, from document loading to conversation memory to tool calling.

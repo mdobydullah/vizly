@@ -1,0 +1,11 @@
+{
+  "slug": "graphs",
+  "title": "Graphs",
+  "description": "Dungeon 11. Nodes connected by edges. BFS, DFS, islands, and the structure behind maps, networks, and dependency trees.",
+  "icon": "🕸️",
+  "color": "orange",
+  "tags": ["DSA", "Graphs", "BFS", "DFS"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

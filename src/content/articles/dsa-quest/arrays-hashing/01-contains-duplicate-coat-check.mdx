@@ -1,0 +1,214 @@
+---
+title: "Contains Duplicate — The Coat Check"
+slug: contains-duplicate-coat-check
+category: dsa
+series: arrays-hashing
+seriesOrder: 1
+description: "Dungeon 1, Boss 1. Your very first DSA Quest boss. Learn the hash set pattern by helping a panicked coat-check clerk spot duplicate ticket stubs before the gala starts."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+readTime: "8 min"
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T15:00:00Z"
+updatedAt: "2026-04-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    It's the opening night of a huge gala and you're the new coat-check clerk. A stack of 5,000 numbered ticket stubs lands in your hands and the manager says "tell me right now if any number appears twice, or we'll have two people fighting over one coat later."
+    Your first idea is to compare every stub with every other one. That works on 10 stubs. On 5,000 it's 25 million comparisons and you'd be there all night.
+    So you grab a bowl, toss each stub in, and before dropping one in you peek to see if the same number is already there. One pass, done. That bowl is a hash set. Lookups are O(1), the whole thing runs in O(n) time, and you go home on time.
+  bn: |
+    বড় একটা গালার উদ্বোধনী রাত, আর আপনি নতুন কোট-চেক ক্লার্ক। হাতে ধরিয়ে দেওয়া হলো ৫,০০০ নাম্বারযুক্ত টিকিট স্টাব, ম্যানেজার বলল "এক্ষুনি বলো কোনো নাম্বার দুবার এসেছে কি না, নইলে পরে এক কোট নিয়ে দুজনের মারামারি লাগবে।"
+    প্রথম বুদ্ধি আসে, প্রতিটা স্টাব বাকি সবার সাথে মিলিয়ে দেখি। ১০টার জন্য ঠিক আছে। কিন্তু ৫,০০০ মানে ২ কোটি ৫ লাখ তুলনা, সারারাত লেগে যাবে।
+    তাই আপনি একটা বাটি নিয়ে প্রতিটা স্টাব তাতে ফেলেন। ফেলার আগে এক ঝলকে দেখে নেন, এই নাম্বার আগে থেকেই আছে কি না। একবার ঘুরলেই কাজ শেষ। এই বাটিটাই hash set। lookup হয় O(1) সময়ে, পুরো কাজ O(n), আর আপনি সময়মতো বাড়ি ফেরেন।
+  hi: |
+    एक बड़े gala की opening night है और आप नए coat-check clerk हैं। हाथ में आ गिरते हैं 5,000 नंबर वाले ticket stub, और manager कहता है "अभी बताओ कोई नंबर दो बार तो नहीं आया, वरना बाद में एक ही coat के लिए दो लोग लड़ेंगे।"
+    पहला idea आता है, हर stub को बाक़ी सबसे मिलाकर देखो। 10 stub पर ठीक है। 5,000 पर ढाई करोड़ comparisons, पूरी रात लग जाएगी।
+    तो आप एक कटोरा उठाते हैं और एक-एक करके stub उसमें डालते हैं। डालने से पहले एक झलक देख लेते हैं, यह नंबर पहले से तो नहीं है। एक बार घूमे, काम ख़त्म। यही कटोरा hash set है। lookup O(1), पूरा काम O(n), और आप time पर घर।
+  ar: |
+    إنها ليلة افتتاح حفل كبير وأنت الموظف الجديد في خزانة المعاطف. تُسلَّم إليك كومة من 5,000 تذكرة مرقّمة ويقول المدير "أخبرني الآن إن تكرّر أي رقم، وإلا فسيتقاتل شخصان لاحقًا على معطف واحد."
+    أول فكرة تخطر لك هي مقارنة كل تذكرة بكل البقية. تنجح مع 10 تذاكر. لكن مع 5,000 فذلك 25 مليون مقارنة، وستبقى طوال الليل.
+    فتُحضِر وعاءً، وتُلقي فيه التذاكر واحدةً تلو الأخرى. قبل كل إلقاء، تلقي نظرة سريعة لترى إن كان الرقم موجودًا سلفًا. دورة واحدة وانتهى الأمر. هذا الوعاء هو hash set. البحث فيه O(1)، والعمل كله O(n)، وتعود إلى بيتك في الموعد.
+---
+
+## Welcome to Dungeon 1
+
+You just walked into the very first dungeon of DSA Quest. Before we fight anything: Arrays and Hashing is the foundation for everything else. Almost every problem you'll ever solve starts here.
+
+Today's boss: **The Coat Check**. Your weapon to unlock: **the hash set**.
+
+---
+
+## The story
+
+Tonight is the biggest gala of the year. Thousand-dollar-a-plate kind of night. And you just got hired as the new coat-check clerk.
+
+You show up early. The manager hands you a stack of 5,000 numbered ticket stubs and says something that makes your stomach drop.
+
+"One of our printers had a glitch last week. Some of these tickets might be duplicates. If two guests get the same number, they'll fight over the same coat at midnight and I'll lose my job. Before doors open in ten minutes, tell me — is there a duplicate anywhere in this stack?"
+
+Ten minutes. Five thousand stubs. You need a plan.
+
+---
+
+## The naive way (please don't)
+
+Your first instinct is to compare every stub with every other stub. You pick up stub #1 and check it against stubs #2, #3, #4... all the way to #5000. Then you pick up stub #2 and check it against #3, #4... and so on.
+
+```python
+def has_duplicate_slow(tickets):
+    for i in range(len(tickets)):
+        for j in range(i + 1, len(tickets)):
+            if tickets[i] == tickets[j]:
+                return True
+    return False
+```
+
+Let's count the damage.
+
+With 5,000 stubs, that's roughly `5000 × 5000 / 2 = 12.5 million` comparisons. If each comparison takes one microsecond, you're done in 12 seconds. Okay, survivable.
+
+But what if the club is doing a mega-event next month with 100,000 tickets? Now it's `100,000 × 100,000 / 2 = 5 billion` comparisons. That's not ten minutes. That's an hour and a half.
+
+This is O(n²). It works. But it scales like garbage. We can do better.
+
+---
+
+## The weapon: hash set
+
+Here's the idea. Grab a bowl. Any bowl.
+
+Walk through the stubs one at a time. Before you drop each stub in the bowl, peek inside and ask: **is this number already here?**
+
+- If yes — duplicate. Alert the manager. Done.
+- If no — drop the stub in and move to the next one.
+
+If you make it all the way through the stack without finding a match, there are no duplicates.
+
+That's it. That's the whole pattern.
+
+<MermaidBlock>
+graph LR
+    A["Next stub\n#1847"] --> B{"Already in bowl?"}
+    B -->|yes| C["Duplicate found!\nreturn true"]
+    B -->|no| D["Drop in bowl\ncontinue"]
+    D --> A
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The bowl in this story is a **hash set**. In Python it's `set()`, in JavaScript it's `new Set()`, in Java it's `HashSet`. The rules across languages are the same: you can add items, you can check if an item exists, and both operations run in roughly **constant time**.
+
+<Callout type="tip" title="Why 'constant time' matters">
+A hash set doesn't scan through its contents when you ask "do you have this?". It jumps directly to the spot where that item would live and checks just that spot. Whether the set has 10 items or 10 million, the check takes about the same time. That is the magic.
+</Callout>
+
+---
+
+## The code
+
+Here's the two-line version in Python:
+
+```python
+def contains_duplicate(tickets: list[int]) -> bool:
+    return len(set(tickets)) != len(tickets)
+```
+
+Read it like English. "If the set of tickets is smaller than the list of tickets, some of them collapsed into one — duplicates exist."
+
+This is cute and it works, but it walks the entire list no matter what. Let's write the early-exit version, which is what you'd actually want on the job:
+
+```python
+def contains_duplicate(tickets: list[int]) -> bool:
+    seen = set()
+    for t in tickets:
+        if t in seen:
+            return True
+        seen.add(t)
+    return False
+```
+
+Four lines that do the work. Walk the list once, check before adding, bail the instant you find a repeat.
+
+---
+
+## Why is this so much faster?
+
+Look at what changed.
+
+| | Naive (compare all) | Hash Set |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Extra space | O(1) | O(n) |
+| Scales to 100k items? | Painfully | Instantly |
+| Early exit? | Yes | **Yes** |
+
+Yeah, you used more memory. The set grows as you walk. For 5,000 tickets, that's a few hundred kilobytes. On any computer built in the last 20 years, you don't care.
+
+But the time savings are wild. For 100,000 tickets:
+
+- Naive: ~5 billion operations
+- Hash set: ~100,000 operations
+
+That's a **50,000× speedup**. Same problem. Same computer. Just a smarter approach.
+
+<Callout type="info" title="The tradeoff you just learned">
+Most DSA improvements come down to this: spend a little memory to save a lot of time. The hash set is usually the first place you reach for that trade.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the early exit.**
+If you loop through the whole list even after finding a duplicate, you're wasting the speed advantage. Return as soon as you spot it.
+
+**2. Adding before checking.**
+If you add `t` to the set *before* you check, the set will always "contain" `t` when you look for it. You'll flag every single ticket as a duplicate of itself. Check first, add second.
+
+**3. Trying to use this on non-hashable items.**
+Hash sets work because the items have a stable hash. Numbers, strings, tuples — fine. Lists and dicts — not hashable in Python. If your items are complex objects, you need to hash them into something stable first.
+
+**4. Assuming "constant time" means "instant".**
+O(1) means "doesn't grow with input size". It doesn't mean "zero cost". A hash lookup is still slower than comparing two numbers. For 5 items, a nested loop might actually be faster in practice. For 5,000 or more, the hash set wins every time.
+
+---
+
+## The bigger lesson
+
+You didn't just solve one problem. You learned the single most useful pattern in coding interviews:
+
+**When a problem asks "have I seen this before?", reach for a hash set.**
+
+That shows up in a surprising number of problems:
+
+- Finding duplicates (this one)
+- Checking if two lists share any element
+- Detecting cycles in a linked list (spoiler: Dungeon 6)
+- Counting unique things
+- Sliding window problems that track "what's in my window right now"
+
+Your brain should now have a new reflex. See "duplicate", "seen", "unique", "exists" — think hash set.
+
+---
+
+## Boss down. XP gained.
+
+Ten minutes later, doors open. You found the duplicate on ticket #1847, swapped it with a fresh one from the back, and the manager gives you a nod. Night saved.
+
+Here's what you walked away with:
+
+- A pattern (hash set) that shows up in more problems than almost anything else
+- The O(n²) → O(n) jump, which is usually the biggest speedup you'll make in your life
+- A feel for when memory-for-speed is worth it (almost always, at interview scale)
+
+Next up: **Boss 2 — The Scrabble Swap**. Two words land on the table, and you need to know if one is just a rearrangement of the other. You'll meet the hash set's slightly smarter cousin: the **hash map**. Same bowl, but now each item has a counter stuck to it.
+
+Grab your bowl. See you at the Scrabble board.

@@ -1,0 +1,295 @@
+---
+title: "RLHF & Reward Models"
+slug: rlhf-and-reward-models
+category: training-alignment
+series: post-training-alignment
+seriesOrder: 2
+description: "SFT teaches a model to follow instructions. RLHF teaches it which responses humans actually prefer — using a reward model and reinforcement learning."
+tags:
+  - AI
+  - LLMs
+  - RLHF
+  - Reward Models
+  - Alignment
+  - PPO
+  - DPO
+readTime: "14 min"
+icon: "🏆"
+color: cyan
+createdAt: "2026-04-05T11:00:00Z"
+updatedAt: "2026-04-05T11:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The problem SFT can't solve
+
+After supervised fine-tuning, your model follows instructions. Ask it to write a poem, it writes a poem. Ask it to explain quantum physics, it gives an explanation.
+
+But here's the thing: there are many possible responses to any instruction, and some are clearly better than others. An explanation can be accurate but confusing. A poem can follow the rules but feel lifeless. A coding answer can work but be poorly structured.
+
+SFT shows the model what a good response looks like. But it doesn't teach the model to distinguish between "okay" and "great." It doesn't capture the subtle preferences that make one response feel helpful and another feel off.
+
+That's where reinforcement learning from human feedback comes in.
+
+---
+
+## The big idea behind RLHF
+
+RLHF works in three stages. Each one builds on the previous.
+
+<MermaidBlock>
+graph TB
+    A["Stage 1\nSupervised Fine-Tuning"] --> B["Stage 2\nTrain a Reward Model"]
+    B --> C["Stage 3\nRL Optimization with PPO"]
+    A2["Human demonstrations\nwrite ideal responses"] --> A
+    B2["Human comparisons\nwhich response is better?"] --> B
+    C2["Reward signal\nautomatic scoring"] --> C
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style A2 fill:#1a1f2b,stroke:#b985f4,color:#aaa
+    style B2 fill:#1a1f2b,stroke:#3effa3,color:#aaa
+    style C2 fill:#1a1f2b,stroke:#00e5ff,color:#aaa
+</MermaidBlock>
+
+**Stage 1** is the SFT we covered in the previous article. Take a base model, fine-tune it on instruction-response pairs. Now you have a model that can follow instructions.
+
+**Stage 2** trains a separate model — the **reward model** — that scores how good a response is. This model learns human preferences by looking at thousands of side-by-side comparisons.
+
+**Stage 3** uses reinforcement learning to optimize the SFT model against the reward model. Generate responses, score them, update the model to produce higher-scoring responses. Repeat.
+
+Here's how each one works.
+
+---
+
+## Stage 2: training the reward model
+
+The reward model is the secret sauce. It's a model that takes a prompt and a response as input and outputs a single number — a score representing how good that response is.
+
+But how do you train it? You can't just assign scores to responses — that's too subjective and inconsistent. Instead, you use **comparisons**.
+
+Human annotators see a prompt and two different model responses (A and B). They pick which one they prefer. That's it. No scoring from 1-10. No detailed rubrics. Just "I prefer this one."
+
+```
+Prompt: "Explain gravity to a 5-year-old"
+
+Response A: "Gravity is the force that pulls objects with
+mass toward each other, proportional to their masses and
+inversely proportional to the square of the distance..."
+
+Response B: "You know how when you throw a ball up, it
+always comes back down? That's gravity! The Earth is
+really big and heavy, so it pulls everything toward it.
+That's why you don't float away."
+
+Human preference: B ✓
+```
+
+Response A is technically accurate. But for a five-year-old? B is clearly better.
+
+Collect thousands of these comparisons. Then train the reward model to assign higher scores to preferred responses and lower scores to rejected ones. The loss function pushes the reward model to agree with the human rankings.
+
+<Callout type="info" title="Why comparisons instead of ratings?">
+Asking someone "rate this response from 1-10" produces noisy, inconsistent data. Different annotators calibrate differently — one person's 7 is another's 5. But asking "which is better, A or B?" is much more consistent across annotators. Humans are better at relative judgments than absolute ones.
+</Callout>
+
+---
+
+## What makes a good reward model?
+
+The reward model is usually built from the same architecture as the language model itself. Take a pre-trained model, replace the text generation head with a single scalar output (the reward score), and fine-tune it on comparison data.
+
+The training objective uses a **pairwise ranking loss**:
+
+For each comparison where response A is preferred over response B:
+- Compute reward(A) and reward(B)
+- Push reward(A) to be higher than reward(B)
+- The loss is based on the gap between the two scores
+
+After training, the reward model can score any prompt-response pair — even ones it has never seen before. It generalizes from the comparison data to capture a broad sense of what humans consider "good."
+
+<MermaidBlock>
+graph TB
+    A["Prompt + Response A"] --> C["Reward Model"]
+    B["Prompt + Response B"] --> C
+    C --> D["Score A: 0.82"]
+    C --> E["Score B: 0.34"]
+    D --> F["A preferred\nhigher score wins"]
+    E --> F
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#aaa
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#aaa
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+What does the reward model capture? All sorts of things: helpfulness, clarity, safety, honesty, appropriate level of detail, good formatting, avoiding harmful content. It learns these implicitly from the comparison data — annotators don't need to break down their preferences into categories. They just pick the better response, and the model figures out what "better" means.
+
+---
+
+## Stage 3: reinforcement learning with PPO
+
+Now you have an SFT model that follows instructions and a reward model that scores responses. Time to connect them.
+
+The idea: generate a response from the SFT model, score it with the reward model, and update the SFT model to produce higher-scoring responses.
+
+This is a reinforcement learning problem. The "agent" is the language model. The "action" is generating each token. The "reward" comes from the reward model after the full response is generated.
+
+The algorithm used is usually **PPO** (Proximal Policy Optimization) — a reinforcement learning algorithm designed to make stable, conservative updates. It's popular because it avoids the wild swings that other RL algorithms can produce.
+
+<MermaidBlock>
+graph TB
+    A["Sample prompt\nfrom dataset"] --> B["Generate response\nwith current policy"]
+    B --> C["Score response\nwith reward model"]
+    C --> D["Compute KL penalty\nhow far from SFT model?"]
+    D --> E["Compute PPO loss\nreward minus KL penalty"]
+    E --> F["Update policy weights\nsmall gradient step"]
+    F --> A
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Notice that step about **KL penalty**. This is crucial. Without it, the model would find shortcuts to maximize the reward score — like generating weirdly repetitive text that happens to score high, or exploiting quirks in the reward model. The KL penalty keeps the model close to the original SFT model, preventing it from going off the rails.
+
+Think of it as a leash. The reward model pulls the model toward higher-quality responses. The KL penalty prevents it from straying too far from sensible behavior.
+
+---
+
+## The reward hacking problem
+
+Here's a real risk with RLHF: the model learns to game the reward model instead of genuinely improving.
+
+The reward model is an imperfect proxy for human preferences. It has blind spots. If the model discovers that longer responses consistently score higher (because annotators tended to prefer detailed answers), it might start generating unnecessarily verbose text. Not because longer is better, but because the reward model thinks it is.
+
+This is called **reward hacking** — optimizing the proxy instead of the real objective.
+
+```
+Early training: "Paris is the capital of France."
+  Reward: 0.6
+
+Late training: "Great question! The capital of France is
+Paris, which is a beautiful city located in the northern
+part of France along the Seine River. Paris has been the
+capital since the 10th century and is known for the Eiffel
+Tower, the Louvre Museum, and its rich cultural heritage.
+I hope this helps! Let me know if you have more questions!"
+  Reward: 0.9 (but is it actually better?)
+```
+
+Teams combat this with careful reward model training, diverse annotator pools, and that KL penalty we mentioned. But it's an ongoing challenge.
+
+<Callout type="warning" title="The alignment tax">
+RLHF can sometimes make models worse at certain tasks. A model optimized for helpfulness and safety might become less willing to engage with nuanced topics, or hedge too much, or refuse reasonable requests. This tradeoff — capability lost in exchange for alignment — is sometimes called the "alignment tax." Getting the balance right is one of the hardest problems in the field.
+</Callout>
+
+---
+
+## DPO: skipping the reward model entirely
+
+Training a reward model and running PPO is complex. You need four models in memory at once (the policy, the reference policy, the reward model, and the value model). The training is unstable. Hyperparameter tuning is painful.
+
+In 2023, a simpler alternative emerged: **Direct Preference Optimization (DPO)**.
+
+DPO's insight is elegant. Instead of training a separate reward model and then optimizing against it, you can directly optimize the language model using the comparison data. The math works out so that you get the same result as RLHF — but with a simple classification-style loss function.
+
+<MermaidBlock>
+graph LR
+    A["RLHF pipeline\n3 stages, 4 models"] --> C["Same result\naligned model"]
+    B["DPO pipeline\n1 stage, 2 models"] --> C
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+For each comparison pair (preferred response A, rejected response B):
+- Compute the probability of A under the current model
+- Compute the probability of B under the current model
+- Push the model to increase P(A) relative to P(B)
+
+No reward model. No RL training loop. No PPO hyperparameters. Just a straightforward loss function that you can optimize with standard gradient descent.
+
+DPO has become extremely popular, especially in the open-source community. It's simpler to implement, more stable to train, and produces competitive results. LLaMA 3, Zephyr, and many other models use DPO or DPO variants.
+
+---
+
+## RLHF vs DPO: the tradeoffs
+
+| Aspect | RLHF (PPO) | DPO |
+|--------|-----------|-----|
+| Complexity | High (4 models, RL loop) | Low (2 models, standard training) |
+| Stability | Can be unstable | More stable |
+| Memory | Very high | Moderate |
+| Reward model | Required (separate training) | Not needed |
+| Online data | Can generate new data during training | Uses fixed dataset |
+| Flexibility | Reward model reusable for experiments | Tied to specific dataset |
+| Industry use | OpenAI, Anthropic (originally) | Meta, Mistral, open-source |
+
+Neither approach is strictly better. RLHF with PPO gives you a reusable reward model and can generate new training data during optimization (online learning). DPO is simpler but limited to the comparison data you collected upfront (offline learning).
+
+In practice, many teams use DPO first (it's faster to iterate with) and switch to PPO-based methods when they need the extra flexibility.
+
+---
+
+## The human feedback pipeline
+
+Behind all this math is a very human process. Thousands of annotators — real people — spend their days reading AI-generated text and judging which response is better.
+
+This work is harder than it sounds. Annotators need clear guidelines: What counts as "helpful"? When should the model refuse? Is a concise answer better than a detailed one? How do you weigh accuracy against tone?
+
+Different annotators disagree. Sometimes both responses are bad. Sometimes both are good but in different ways. Companies invest heavily in annotator training, inter-rater agreement metrics, and quality control.
+
+<Callout type="info" title="The scale of human feedback">
+OpenAI's InstructGPT paper used about 40 annotators who produced roughly 50,000 comparisons. Anthropic's Constitutional AI research involved even more. LLaMA 2's alignment used over a million human annotations. The quality and scale of this human feedback is one of the biggest competitive advantages in the industry — and one of the hardest to replicate.
+</Callout>
+
+---
+
+## Constitutional AI: less human labeling
+
+Anthropic introduced **Constitutional AI (CAI)** as a way to reduce the reliance on human comparisons for safety-related training.
+
+The idea: instead of having humans judge every potentially harmful interaction, give the model a set of principles (a "constitution") and have it judge its own outputs. The model generates a response, critiques it against the principles, and revises it. These self-critiques and revisions become training data.
+
+This doesn't eliminate human feedback entirely — humans still set the principles and validate the approach. But it dramatically reduces the number of human annotations needed for safety alignment, and makes the alignment criteria explicit and auditable.
+
+---
+
+## The full post-training pipeline
+
+Putting it all together, here's what building a modern chat model looks like:
+
+<MermaidBlock>
+graph TB
+    A["Pre-trained base model\ntext completion only"] --> B["SFT\nlearn instruction following"]
+    B --> C["Preference data collection\nhuman comparisons"]
+    C --> D{"Training method"}
+    D -->|RLHF| E["Train reward model\nthen PPO optimization"]
+    D -->|DPO| F["Direct preference\noptimization"]
+    E --> G["Aligned model\nhelpful and safe"]
+    F --> G
+    G --> H["Safety testing\nred-teaming"]
+    H --> I["Deployment"]
+    style A fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#5a6a7e,color:#aaa
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style I fill:#1a1f2b,stroke:#00e5ff,color:#fff
+</MermaidBlock>
+
+Most production models go through multiple rounds of this pipeline — collecting more feedback, retraining, collecting more feedback, retraining again. Each iteration improves alignment.
+
+---
+
+## What's next?
+
+RLHF and DPO work great — but they require full fine-tuning of every parameter in the model. For a 70B parameter model, that means enormous GPU memory and compute costs. Next up: **Efficient Fine-Tuning** — how techniques like LoRA and QLoRA make it possible to fine-tune massive models on a single GPU by updating only a tiny fraction of the parameters.

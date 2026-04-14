@@ -1,0 +1,19 @@
+{
+  "slug": "arrays-hashing",
+  "title": "Arrays & Hashing",
+  "description": "Dungeon 1. The foundation of every DSA quest. Learn how arrays and hash maps power most real-world code through story-framed problems.",
+  "icon": "🗃️",
+  "color": "orange",
+  "tags": ["DSA", "Arrays", "Hashing"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "contains-duplicate-coat-check", "title": "Contains Duplicate — The Coat Check" },
+    { "order": 2, "slug": "valid-anagram-scrabble-swap", "title": "Valid Anagram — The Scrabble Swap" },
+    { "order": 3, "slug": "two-sum-lunch-bill", "title": "Two Sum — The Lunch Bill Split" },
+    { "order": 4, "slug": "group-anagrams-sock-drawer", "title": "Group Anagrams — The Sock Drawer" },
+    { "order": 5, "slug": "top-k-frequent-jukebox", "title": "Top K Frequent — The Jukebox Charts" },
+    { "order": 6, "slug": "product-except-self-factory-line", "title": "Product Except Self — The Factory Line" },
+    { "order": 7, "slug": "longest-consecutive-yearbook", "title": "Longest Consecutive — The Yearbook Chain" }
+  ]
+}

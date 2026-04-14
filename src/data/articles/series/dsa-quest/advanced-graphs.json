@@ -1,0 +1,11 @@
+{
+  "slug": "advanced-graphs",
+  "title": "Advanced Graphs",
+  "description": "Dungeon 15. Dijkstra, Bellman-Ford, Union-Find, topological sort. The algorithms that power routing, scheduling, and infrastructure.",
+  "icon": "🛰️",
+  "color": "orange",
+  "tags": ["DSA", "Graphs", "Dijkstra", "Union-Find"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

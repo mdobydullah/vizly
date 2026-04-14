@@ -137,7 +137,7 @@ export default function PathDetailClient({ path, series, articleSlugs }: Readonl
       }}>
         {path.series.map((slug, i) => {
           const s = seriesMap[slug];
-          const isAvailable = !!s;
+          const isAvailable = !!s && s.articles.length > 0;
           const stepPublished = s?.articles.filter(a => publishedSlugs.has(a.slug)).length ?? 0;
           const stepTotal = s?.articles.length ?? 0;
           const isFirst = i === 0 && isAvailable;

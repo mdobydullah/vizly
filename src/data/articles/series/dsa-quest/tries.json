@@ -1,0 +1,11 @@
+{
+  "slug": "tries",
+  "title": "Tries",
+  "description": "Dungeon 8. Prefix trees. Autocomplete, word dictionaries, and the data structure autocomplete engines rely on.",
+  "icon": "🌲",
+  "color": "orange",
+  "tags": ["DSA", "Tries"],
+  "createdAt": "2026-04-14T14:00:00Z",
+  "updatedAt": "2026-04-14T14:00:00Z",
+  "articles": []
+}

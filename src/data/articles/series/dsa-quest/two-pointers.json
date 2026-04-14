@@ -1,0 +1,18 @@
+{
+  "slug": "two-pointers",
+  "title": "Two Pointers",
+  "description": "Dungeon 2 of DSA Quest. Story-framed problems that teach the Two Pointers pattern without the dry LeetCode grind.",
+  "icon": "👉",
+  "color": "orange",
+  "tags": ["DSA", "Algorithms", "Two Pointers"],
+  "createdAt": "2026-04-14T12:00:00Z",
+  "updatedAt": "2026-04-14T14:30:00Z",
+  "articles": [
+    { "order": 1, "slug": "valid-palindrome-museum-mirror", "title": "Valid Palindrome — The Museum Mirror" },
+    { "order": 2, "slug": "two-sum-heist-loot", "title": "Two Sum II — The Heist Loot Split" },
+    { "order": 3, "slug": "three-sum-party-table", "title": "3Sum — The Party Table Seating" },
+    { "order": 4, "slug": "container-most-water-rain-barrel", "title": "Container With Most Water — The Rain Barrel" },
+    { "order": 5, "slug": "trapping-rain-water-rooftop", "title": "Trapping Rain Water — The Rooftop Puddles" },
+    { "order": 6, "slug": "remove-duplicates-guest-list", "title": "Remove Duplicates — The Guest List Cleanup" }
+  ]
+}

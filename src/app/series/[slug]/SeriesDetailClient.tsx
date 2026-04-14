@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArticleFrontmatter, ArticleSeries } from "@/types/articles";
+import { ArrowUpRight } from "lucide-react";
+import { ArticleFrontmatter, ArticleSeries, ArticlePath } from "@/types/articles";
 
 interface Props {
   series: ArticleSeries;
   articles: ArticleFrontmatter[];
+  parentPath?: ArticlePath | null;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -18,7 +20,7 @@ const COLOR_MAP: Record<string, string> = {
   blue: 'var(--cyan)',
 };
 
-export default function SeriesDetailClient({ series, articles }: Readonly<Props>) {
+export default function SeriesDetailClient({ series, articles, parentPath }: Readonly<Props>) {
   const publishedSlugs = useMemo(() => new Set(articles.map(a => a.slug)), [articles]);
   const publishedCount = series.articles.filter(a => publishedSlugs.has(a.slug)).length;
   const accentColor = COLOR_MAP[series.color] ?? 'var(--cyan)';
@@ -49,6 +51,34 @@ export default function SeriesDetailClient({ series, articles }: Readonly<Props>
         }}>
           {series.icon}
         </div>
+        {parentPath && (
+          <Link
+            href={`/learning-paths/${parentPath.slug}`}
+            className="series-parent-path-link"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.65rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: accentColor,
+              padding: '0.35rem 0.7rem',
+              borderRadius: '999px',
+              border: `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)`,
+              background: `color-mix(in srgb, ${accentColor} 8%, transparent)`,
+              marginBottom: '0.9rem',
+              transition: 'all 0.2s',
+            }}
+            title={`View full path: ${parentPath.title}`}
+          >
+            <span>{parentPath.icon}</span>
+            <span>Path · {parentPath.title}</span>
+            <ArrowUpRight size={12} style={{ transition: 'transform 0.2s' }} />
+          </Link>
+        )}
         <h1 style={{
           fontFamily: 'var(--font-hero)',
           fontWeight: 800,
@@ -223,6 +253,12 @@ export default function SeriesDetailClient({ series, articles }: Readonly<Props>
         :global([data-theme="light"] .series-article-row:hover) {
           border-color: #c4c1b8 !important;
           background: #f8f6f1 !important;
+        }
+        :global(.series-parent-path-link:hover svg) {
+          transform: translate(2px, -2px);
+        }
+        :global(.series-parent-path-link:hover) {
+          filter: brightness(1.1);
         }
       `}</style>
     </div>
