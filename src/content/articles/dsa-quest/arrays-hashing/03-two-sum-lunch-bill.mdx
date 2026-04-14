@@ -19,7 +19,9 @@ mermaid: true
 storySummary:
   en: |
     You close out the diner's register and it's off by exactly $23. The kitchen print-out has every individual meal price from the night. The manager says "if two of those meals add up to exactly $23, we'll just write it off as a combo deal that didn't get rung in."
+    
     Your first instinct is to check every pair. That works on 30 meals. On 3,000 it's nine million checks. Slow.
+    
     So instead, you walk the list once. At each meal, you ask one question. "Have I already seen a meal that, added to this one, makes $23?" If yes, those two are the answer. If no, jot this meal's price in your hash map and move on. One pass, O(n), and the register closes on time.
   bn: |
     দিনের শেষে আপনি রেস্তোরাঁর ক্যাশ মেলাতে গিয়ে দেখলেন ঠিক ২৩ ডলার কম পড়ছে। রান্নাঘরের লিস্টে আজকের সব খাবারের আলাদা আলাদা দাম দেওয়া আছে। ম্যানেজার বললেন, 'যদি এই দামগুলোর মধ্যে যেকোনো দুটি খাবার যোগ করে ঠিক ২৩ ডলার হয়, তবে আমরা ধরে নেব যে ওটা একটা কম্বো ডিল ছিল যা হিসেবে ওঠানো হয়নি।'

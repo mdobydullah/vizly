@@ -19,7 +19,9 @@ mermaid: true
 storySummary:
   en: |
     The diner keeps a dusty alumni binder with the graduation year of every teenager who ever worked there. The years are in no particular order and a lot of years have gaps where nobody worked that summer. The owner wants the longest unbroken streak of consecutive years.
+    
     The obvious move is to sort the list and walk it. Works, runs in O(n log n). But the problem says no sorting.
+    
     The trick is to dump all the years into a hash set for O(1) lookups. Then, for each year, ask "is this the start of a streak?". A year is the start only if the year before it isn't in the set. If yes, walk forward as long as the next year is in the set, counting as you go. Each number gets touched at most twice across the whole algorithm, so the total work is O(n). Clever and tight.
   bn: |
     রেস্তোরাঁটিতে একটি পুরনো ডায়েরি আছে যেখানে কাজ করা সব কিশোর-কিশোরীদের গ্র্যাজুয়েশনের সাল লিখে রাখা হয়েছে। কিন্তু সালগুলো একদমই এলোমেলোভাবে লেখা আর মাঝে মাঝে অনেক বছরের গ্যাপ আছে যে সময়ে কেউ কাজ করেনি। রেস্তোরাঁর মালিক চান পরপর বছরের সবচেয়ে দীর্ঘ ধারাবাহিকতা (longest unbroken streak) বের করতে।

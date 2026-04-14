@@ -20,7 +20,9 @@ mermaid: true
 storySummary:
   en: |
     The diner's jukebox spit out a log of every song played this week. Thousands of plays, dozens of songs. The owner wants to know the top 3 most played. She'll put them on a poster.
+    
     The obvious plan is count every song's plays, then sort the whole list. That works but you're doing more work than you need to. Sorting the entire list costs O(n log n) just to grab the top of it.
+    
     The smarter plan is a little weird. You count plays with a hash map like before. Then you build an array of "buckets" indexed by play count. A song played 47 times goes into bucket 47. At the end, you walk the buckets from the highest count down and pick the first three songs you find. That's bucket sort, it's O(n), and it works because the play count can't exceed the total number of plays.
   bn: |
     রেস্তোরাঁর জুকবক্স থেকে এই সপ্তাহে বাজানো সব গানের একটা লম্বা লিস্ট বের করা হয়েছে। যেখানে হাজার হাজার বার গান বাজানো হয়েছে এবং গানের সংখ্যাও কম নয়। রেস্তোরাঁর মালিক জানতে চান সব থেকে বেশি বাজানো সেরা ৩টি গান কোনটি, যাতে তিনি সেগুলো একটা পোস্টারে লিখে রাখতে পারেন।
