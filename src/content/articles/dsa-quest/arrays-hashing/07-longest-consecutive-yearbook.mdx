@@ -1,0 +1,246 @@
+---
+title: "Longest Consecutive — The Yearbook Chain"
+slug: longest-consecutive-yearbook
+category: dsa
+series: arrays-hashing
+seriesOrder: 7
+description: "Dungeon 1, Final Boss. The diner's alumni binder lists graduation years in random order. Find the longest unbroken streak of years. No sorting allowed. Pure hash set magic."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T18:30:00Z"
+updatedAt: "2026-04-14T18:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The diner keeps a dusty alumni binder with the graduation year of every teenager who ever worked there. The years are in no particular order and a lot of years have gaps where nobody worked that summer. The owner wants the longest unbroken streak of consecutive years.
+    The obvious move is to sort the list and walk it. Works, runs in O(n log n). But the problem says no sorting.
+    The trick is to dump all the years into a hash set for O(1) lookups. Then, for each year, ask "is this the start of a streak?". A year is the start only if the year before it isn't in the set. If yes, walk forward as long as the next year is in the set, counting as you go. Each number gets touched at most twice across the whole algorithm, so the total work is O(n). Clever and tight.
+  bn: |
+    diner-এ একটা পুরনো alumni binder আছে যেখানে প্রতিটা teenager যারা সেখানে কাজ করেছিল তাদের graduation year লেখা। বছরগুলো এলোমেলো আর অনেক বছরে কেউ কাজ করেনি বলে gap রয়েছে। মালিক চান consecutive বছরগুলোর সবচেয়ে বড় unbroken streak।
+    সহজ চাল হলো list sort করে walk করা। কাজ হয়, O(n log n)। কিন্তু problem-এ বলা, sort করা যাবে না।
+    trick হলো সব বছর একটা hash set-এ ফেলে দিন, O(1) lookup-এর জন্য। তারপর প্রতিটা বছরের জন্য জিজ্ঞাসা করুন, "এটা কি একটা streak-এর শুরু?"। বছরটা শুরু তখনই যদি তার আগের বছর set-এ না থাকে। হ্যাঁ হলে সামনের দিকে যতদূর পরবর্তী বছর set-এ আছে ততদূর হাঁটুন, গুণতে গুণতে। পুরো algorithm-এ প্রতিটা সংখ্যা সর্বোচ্চ দুবার ছোঁয়া হয়, তাই মোট কাজ O(n)। চতুর এবং tight।
+  hi: |
+    diner में एक पुरानी alumni binder रखी है जिसमें हर उस teenager का graduation year है जिसने वहाँ काम किया था। years random order में हैं और कई साल ऐसे हैं जब कोई काम नहीं करता था इसलिए gaps हैं। मालिक को consecutive years की सबसे लंबी unbroken streak चाहिए।
+    सीधा तरीक़ा, list को sort करके walk कर लो। काम हो जाता है, O(n log n)। पर problem कहता है sort मत करो।
+    trick यह है कि सारे years एक hash set में डाल दो, O(1) lookup के लिए। फिर हर year के लिए पूछो, "क्या यह किसी streak की शुरुआत है?"। year शुरुआत तभी होगा जब उससे पहले वाला year set में न हो। हाँ है तो आगे तब तक चलो जब तक अगला year set में है, गिनते हुए। पूरे algorithm में हर number अधिकतम दो बार touch होता है, इसलिए कुल काम O(n)। चालाक और कसा हुआ।
+  ar: |
+    في المطعم دفتر خرّيجين قديم مكتوب فيه سنة التخرج لكل مراهق عمل هناك. السنوات غير مرتبة، وفيها فجوات لأعوام لم يعمل فيها أحد. تريد المالكة أطول سلسلة متتالية من السنوات دون انقطاع.
+    الخطوة الواضحة هي ترتيب القائمة والسير عليها. تنجح بزمن O(n log n). لكن المسألة تمنع الترتيب.
+    الحيلة أن تضع كل السنوات في hash set للبحث بزمن O(1). ثم عند كل سنة تسأل "هل هذه بداية سلسلة؟". السنة تُعدّ بداية إن لم تكن السنة التي قبلها موجودة في الـ set. إن نعم، فسر إلى الأمام ما دامت السنة التالية موجودة، عادًّا طولها. كل عدد يُلمس كحدٍّ أقصى مرتين في كامل الخوارزمية، فيكون مجموع العمل O(n). ذكي ومضبوط.
+---
+
+## Final Boss of Dungeon 1
+
+You've fought six bosses and they've all bent the hash map in interesting ways. For the finale, we're going back to the hash set, the simplest tool in the whole dungeon. We're going to use it to do something that *feels* like it should need sorting.
+
+The fact that it doesn't is the kind of trick that makes hash sets beautiful.
+
+---
+
+## The story
+
+You're cleaning out the supply closet at the diner and you find an old, dusty binder labeled "ALUMNI". Inside, on one of the pages, is a list of graduation years for every teenager who has ever worked at the diner.
+
+```
+[1991, 2004, 1988, 1992, 1989, 2005, 1990, 1987]
+```
+
+The years are in no particular order. Some years had no teenagers working (so they're missing from the list). The owner sees the binder and says: "I want to know the longest *unbroken* streak of years where we had at least one alumnus. Like, X years straight. That's the number I want on the wall."
+
+You look at the list. Let me sort it mentally: `1987, 1988, 1989, 1990, 1991, 1992, 2004, 2005`. There's a streak from 1987 to 1992, six years in a row. Then a gap, then two years. Longest streak: **6**.
+
+But wait. You solved it by sorting. The problem says you're not allowed to sort. The years are in the wrong order and you have to find the longest streak in better than O(n log n) time.
+
+---
+
+## The naive way (sort)
+
+```python
+def longest_consecutive_slow(nums):
+    if not nums:
+        return 0
+    nums = sorted(set(nums))
+    longest = current = 1
+    for i in range(1, len(nums)):
+        if nums[i] == nums[i-1] + 1:
+            current += 1
+            longest = max(longest, current)
+        else:
+            current = 1
+    return longest
+```
+
+Works. Runs in O(n log n) because of the sort. Reads naturally. If you're solving this in real life with no constraints, ship it.
+
+But the classic interview version of this problem asks for O(n). Sorting is banned. So we need something else.
+
+---
+
+## The weapon: hash set with a "start of streak" check
+
+Here's the key insight. If you're in the middle of a streak, you don't need to recompute the whole streak's length. The streak has one *start*, and only the start needs to do the counting work.
+
+So the plan is:
+
+1. Dump every year into a hash set. O(n) time, O(n) space.
+2. For each year, ask: **"am I the start of a streak?"**
+3. You're the start of a streak if and only if the year *before* you is not in the set. If `year - 1` is in the set, somebody else's streak already includes you. Skip.
+4. If you are the start, walk forward: `year`, `year + 1`, `year + 2`, ... as long as each is in the set. Count the length.
+5. Track the longest count you see.
+
+That's it. Every non-start year is skipped instantly. Only the starts do real work, and they each do it exactly once for their streak. Total work across all years is O(n), because every year is either "skipped in O(1)" or "counted once as part of exactly one streak".
+
+<MermaidBlock>
+graph TB
+    A["years [1991, 2004, 1988, 1992, 1989, 2005, 1990, 1987]"] --> B["Dump into hash set\nO(1) lookups"]
+    B --> C["For each year in set"]
+    C --> D{"Is year-1 in set?"}
+    D -->|yes, not a start| C
+    D -->|no, this is a start| E["Walk forward\ncount consecutive in set"]
+    E --> F["Update longest\nif bigger"]
+    F --> C
+    C --> G["Return longest"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## The code
+
+```python
+def longest_consecutive(nums: list[int]) -> int:
+    year_set = set(nums)
+    longest = 0
+
+    for year in year_set:
+        # Only start counting if this is the start of a streak
+        if year - 1 not in year_set:
+            current = year
+            streak = 1
+            while current + 1 in year_set:
+                current += 1
+                streak += 1
+            longest = max(longest, streak)
+
+    return longest
+```
+
+Trace it on our input `[1991, 2004, 1988, 1992, 1989, 2005, 1990, 1987]`:
+
+First, dump into a set: `{1987, 1988, 1989, 1990, 1991, 1992, 2004, 2005}`.
+
+Now walk. At each year, check "is `year - 1` in the set?":
+
+- **1991**: is 1990 in set? Yes. Skip.
+- **2004**: is 2003 in set? No. **Start of streak.** Walk: 2004, 2005. Length 2.
+- **1988**: is 1987 in set? Yes. Skip.
+- **1992**: is 1991 in set? Yes. Skip.
+- **1989**: is 1988 in set? Yes. Skip.
+- **2005**: is 2004 in set? Yes. Skip.
+- **1990**: is 1989 in set? Yes. Skip.
+- **1987**: is 1986 in set? No. **Start of streak.** Walk: 1987, 1988, 1989, 1990, 1991, 1992. Length 6.
+
+Longest: **6**. 
+
+Notice how many years got skipped instantly. That's the efficiency. The six years from 1987 through 1992 are only walked once, by 1987. The other five skip themselves out after a single O(1) check.
+
+---
+
+## Why is this O(n)?
+
+This is the subtle, beautiful part.
+
+At first glance, you see a nested loop (`for year` with a `while` inside) and your brain screams O(n²). But look at the actual work:
+
+- The outer loop runs n times.
+- The inner `while` loop only runs inside **streak starts**.
+- Across *all* streak starts in the entire list, the `while` loops touch each year at most once total.
+
+So the total work is:
+
+- `n` iterations of the outer loop
+- each doing one O(1) set lookup for `year - 1`
+- plus, across the entire run, at most `n` more set lookups inside the `while` loops
+
+That's O(n) + O(n) = **O(n)** in total. It *looks* like O(n²), but if you count carefully, every single year gets visited at most twice. That's amortized analysis in action.
+
+<Callout type="tip" title="The 'start of streak' check is everything">
+Without the `if year - 1 not in year_set` guard, every single year would try to walk its own streak, and the algorithm becomes O(n²) for real. That one line is the whole optimization. It's the difference between "naive nested loops" and "actually O(n)". Learn it, love it, use it.
+</Callout>
+
+---
+
+## Complexity
+
+| | Sort + scan | Hash set with start check |
+|---|---|---|
+| Time | O(n log n) | **O(n)** |
+| Extra space | O(1) or O(n) depending on sort | O(n) |
+| Allowed to sort? | Yes | **Even when sorting is forbidden** |
+
+---
+
+## Gotchas
+
+**1. Not deduping first.**
+Passing `nums` directly into a set dedupes for free (set construction drops duplicates). If you were iterating over the raw list, you'd check duplicate years multiple times. Minor efficiency hit, not a correctness one, but use the set as your iteration target.
+
+**2. Skipping the start check.**
+As mentioned above. Without it, the algorithm is O(n²) and slower than the sort version. Always check.
+
+**3. Handling empty input.**
+`longest_consecutive([])` should return 0, not crash. The code above handles this correctly because the loop body never runs.
+
+**4. Tricky input types.**
+This pattern works for any numeric type where "the one before" is well-defined and hashable. Integers, yes. Floats, probably not (because of precision). Characters, yes (ordinal arithmetic). Tuples, usually not.
+
+---
+
+## What you really learned
+
+This problem is one of the best examples of **hash set magic**. You took a problem that seemed to require sorting and you solved it with:
+
+- A hash set for O(1) lookups
+- A clever "am I the start?" filter so you don't do redundant work
+- Amortized analysis to prove linearity
+
+The pattern you learned is bigger than this one problem. Whenever you have a problem that asks about "sequences" or "runs" or "streaks" in unsorted data, think:
+
+1. Throw it in a hash set
+2. Find the starts
+3. Walk forward from each start
+4. Skip non-starts in O(1)
+
+It's a reusable blueprint.
+
+---
+
+## Dungeon 1 cleared
+
+You beat seven bosses. You picked up seven weapons:
+
+1. **Hash set** (Coat Check)
+2. **Hash map counter** (Scrabble Swap)
+3. **Complement lookup** (Lunch Bill)
+4. **Canonical key grouping** (Sock Drawer)
+5. **Bucket sort** (Jukebox Charts)
+6. **Prefix and suffix arrays** (Factory Line)
+7. **Hash set streak walking** (Yearbook Chain)
+
+That's a serious toolkit. Almost every problem in later dungeons builds on one or more of these. When you get stuck in Dungeon 3 or Dungeon 9, come back and reread this list. You'll be surprised how often the answer is hiding here.
+
+Next dungeon you're already familiar with: **Two Pointers**, where you'll put down the hash map for a while and learn to work with position instead of memory. Boss 1 of that dungeon is **The Museum Mirror**, which you may have already fought. Rest up, then head through to Dungeon 2.
+
+Well done.

@@ -96,15 +96,15 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Rule 07 — story summary tone standards
 - [x] Stubs for all 18 dungeons so path page renders full roadmap
 
-### Dungeon 1 — Arrays & Hashing (TODO, next)
-- [ ] Series JSON with real article list
-- [ ] Boss 1: Contains Duplicate
-- [ ] Boss 2: Valid Anagram
-- [ ] Boss 3: Two Sum
-- [ ] Boss 4: Group Anagrams
-- [ ] Boss 5: Top K Frequent Elements
-- [ ] Boss 6: Product of Array Except Self
-- [ ] Boss 7: Longest Consecutive Sequence
+### Dungeon 1 — Arrays & Hashing (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Contains Duplicate — Coat Check (hash set)
+- [x] Boss 2: Valid Anagram — Scrabble Swap (hash map counter)
+- [x] Boss 3: Two Sum — Lunch Bill Split (complement lookup)
+- [x] Boss 4: Group Anagrams — Sock Drawer (canonical key)
+- [x] Boss 5: Top K Frequent — Jukebox Charts (bucket sort)
+- [x] Boss 6: Product Except Self — Factory Line (prefix/suffix)
+- [x] Boss 7: Longest Consecutive — Yearbook Chain (hash set streak walking)
 
 ### Dungeon 2 — Two Pointers (in progress)
 - [x] Series JSON created

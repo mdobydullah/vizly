@@ -1,0 +1,252 @@
+---
+title: "Product Except Self — The Factory Line"
+slug: product-except-self-factory-line
+category: dsa
+series: arrays-hashing
+seriesOrder: 6
+description: "Dungeon 1, Boss 6. A factory conveyor belt where every station multiplies the product. The manager wants to know the final output if each station had been skipped. Learn the prefix/suffix pattern."
+tags:
+  - DSA
+  - Arrays
+  - Prefix
+  - Suffix
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T18:00:00Z"
+updatedAt: "2026-04-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You work at a factory. There's a conveyor belt with stations. Each station multiplies the running product of the item moving through it. At the end of the day the manager wants a report, for every station, what would the final number have been if that station had been skipped today.
+    Your first idea is for each station, multiply all the others. That's fine on 6 stations. On 600 it's a lot of wasted multiplications.
+    The slick plan uses two passes and no division. First pass, left to right, compute the running product of everything to the left of each station. Second pass, right to left, compute the running product of everything to the right. Multiply the two at each station and you get the "product except me". O(n) time and you don't need anything fancy. This pattern is called prefix and suffix arrays, and it's everywhere once you know it.
+  bn: |
+    আপনি একটা factory-তে কাজ করেন। একটা conveyor belt-এ stations আছে। প্রতিটা station বেল্টে থাকা জিনিসের running product-কে গুণ করে। দিন শেষে manager জানতে চায়, প্রতিটা station-এর জন্য, যদি সেই station আজ skip হতো তাহলে final output কত হতো।
+    প্রথম বুদ্ধি, প্রতিটা station-এর জন্য বাকি সবগুলোকে গুণ করা। ৬টা station-এ ঠিক আছে। ৬০০-তে অনেক বেশি গুণ।
+    সহজ plan দুই pass-এ, ভাগ ছাড়াই। প্রথম pass বাঁ থেকে ডানে, প্রতিটা station-এর বাঁ পাশের সবকিছুর running product বের করুন। দ্বিতীয় pass ডান থেকে বাঁয়ে, প্রতিটা station-এর ডান পাশের সবকিছুর running product বের করুন। দুটো গুণ করলে "আমি ছাড়া product" পেয়ে যান। O(n) সময়, কিছু fancy লাগে না। এই pattern-কে বলে prefix আর suffix array, একবার জানলে সব জায়গায় চোখে পড়ে।
+  hi: |
+    आप एक factory में काम करते हैं। एक conveyor belt है जिस पर stations हैं। हर station belt पर जा रही चीज़ के running product को multiply करता है। दिन के अंत में manager को हर station के लिए यह जानना है कि अगर वो station आज skip हो जाता तो final output क्या होता।
+    पहली सोच, हर station के लिए बाक़ी सारे multiply कर दो। 6 stations पर ठीक है। 600 पर बहुत ज़्यादा multiplications।
+    smart plan दो passes में, बिना division के। पहला pass बाएँ से दाएँ, हर station के बाएँ की सारी चीज़ों का running product निकालो। दूसरा pass दाएँ से बाएँ, हर station के दाएँ की सारी चीज़ों का running product निकालो। दोनों को multiply कर दो तो "मुझे छोड़कर product" मिल जाता है। O(n) time, कुछ fancy नहीं चाहिए। इस pattern को prefix और suffix array कहते हैं, एक बार पता चला तो हर जगह दिखेगा।
+  ar: |
+    تعمل في مصنع. هناك سير ناقل عليه محطات، وكل محطة تضرب حاصل الضرب الجاري للعنصر المارّ فيها. في نهاية اليوم يريد المدير تقريرًا، لكل محطة، ما كان سيكون الرقم النهائي لو تُخطّيت هذه المحطة اليوم.
+    أول فكرة هي عند كل محطة اضرب كل المحطات الأخرى. جيدة على 6 محطات. على 600 فهي عدد هائل من عمليات الضرب الزائدة.
+    الخطة الأنيقة تعمل بمرورين وبلا قسمة. مرور من اليسار إلى اليمين تحسب فيه حاصل ضرب كل ما يسار كل محطة. مرور من اليمين إلى اليسار تحسب فيه حاصل ضرب كل ما يمين كل محطة. ثم تضرب الاثنين عند كل محطة فتحصل على "ناتج بدون هذه المحطة". O(n) من الزمن بلا أي حيل غريبة. هذا النمط يُسمّى مصفوفات البادئة واللاحقة prefix and suffix arrays، وتراه في كل مكان بعد أن تتعلّمه.
+---
+
+## Boss 6, a curveball
+
+This one's a little different. It's in the Arrays & Hashing dungeon, but the weapon isn't a hash map. It's a technique called **prefix and suffix arrays** which is pure array work. No hashing at all.
+
+Why put it here? Because this pattern shows up in dozens of other problems across later dungeons, and learning it early makes those future bosses easier. Think of it as a side quest.
+
+---
+
+## The story
+
+You're a shift manager at a factory. The factory makes... something. Doesn't matter. There's a conveyor belt and a row of stations. Each station has a number on it. When a product moves down the belt, each station multiplies the running product by its number.
+
+So if the stations are `[2, 3, 4, 5, 6]`, a single product going end to end gets multiplied by 2, then 3, then 4, then 5, then 6. Final number: `720`.
+
+Easy.
+
+Then the big boss walks in holding a clipboard. "I'm doing a performance review. For each station, I want to know what the final product would have been *if that station had been skipped today*. Every station. By end of shift."
+
+You pull out the list of station values: `[2, 3, 4, 5, 6]`.
+
+- If station 0 (the `2`) had been skipped: `3 × 4 × 5 × 6 = 360`
+- If station 1 (the `3`) had been skipped: `2 × 4 × 5 × 6 = 240`
+- If station 2 (the `4`) had been skipped: `2 × 3 × 5 × 6 = 180`
+- If station 3 (the `5`) had been skipped: `2 × 3 × 4 × 6 = 144`
+- If station 4 (the `6`) had been skipped: `2 × 3 × 4 × 5 = 120`
+
+You need to hand back `[360, 240, 180, 144, 120]`.
+
+With five stations it's a 5-minute job. The boss mentions there are actually 600 stations and she wants it in 20 minutes.
+
+---
+
+## The naive way
+
+For each station, multiply all the others.
+
+```python
+def product_except_self_slow(nums):
+    result = []
+    for i in range(len(nums)):
+        p = 1
+        for j in range(len(nums)):
+            if i != j:
+                p *= nums[j]
+        result.append(p)
+    return result
+```
+
+That's the nested loop again. O(n²). For 600 stations, 360,000 multiplications. Doable but ugly and it won't pass interview constraints.
+
+---
+
+## The "cheat" way (division)
+
+A tempting idea. Compute the full product once. Then for each station, divide by that station's value.
+
+```python
+def product_except_self_division(nums):
+    total = 1
+    for x in nums:
+        total *= x
+    return [total // x for x in nums]
+```
+
+This is O(n). And it's wrong as soon as any station has a zero. Division by zero blows up. Even if there's no zero, interviewers explicitly forbid this approach because they want you to solve it without division. Real-world floating-point issues make this flaky anyway.
+
+---
+
+## The weapon: prefix and suffix
+
+Here's the insight. For any station `i`, the answer is:
+
+```
+(product of everything to the left of i)  ×  (product of everything to the right of i)
+```
+
+That's it. If you had those two numbers available for each station, the answer is just one multiplication.
+
+So the plan:
+
+1. Walk left to right. At each index, compute the product of everything *before* it. Call this the **prefix product**.
+2. Walk right to left. At each index, compute the product of everything *after* it. Call this the **suffix product**.
+3. Multiply prefix and suffix at each index. That's the answer.
+
+Each walk is O(n). You do two of them. Total: O(n). No division.
+
+<MermaidBlock>
+graph TB
+    A["stations [2, 3, 4, 5, 6]"] --> B["Pass 1 left to right\nprefix[i] equals product of everything before i"]
+    B --> C["prefix [1, 2, 6, 24, 120]"]
+    A --> D["Pass 2 right to left\nsuffix[i] equals product of everything after i"]
+    D --> E["suffix [360, 120, 30, 6, 1]"]
+    C --> F["result[i] equals prefix[i] times suffix[i]"]
+    E --> F
+    F --> G["result [360, 240, 180, 144, 120]"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Let me walk the prefix calculation on `[2, 3, 4, 5, 6]`:
+
+| Index | Stations before | Prefix product |
+|---|---|---|
+| 0 | (nothing) | **1** |
+| 1 | `[2]` | **2** |
+| 2 | `[2, 3]` | **6** |
+| 3 | `[2, 3, 4]` | **24** |
+| 4 | `[2, 3, 4, 5]` | **120** |
+
+Prefix is `[1, 2, 6, 24, 120]`. Note how index 0 gets `1`, the identity for multiplication, because there's nothing to the left.
+
+Suffix is symmetric:
+
+| Index | Stations after | Suffix product |
+|---|---|---|
+| 0 | `[3, 4, 5, 6]` | **360** |
+| 1 | `[4, 5, 6]` | **120** |
+| 2 | `[5, 6]` | **30** |
+| 3 | `[6]` | **6** |
+| 4 | (nothing) | **1** |
+
+Suffix is `[360, 120, 30, 6, 1]`.
+
+Now multiply element by element:
+
+`[1×360, 2×120, 6×30, 24×6, 120×1]` → `[360, 240, 180, 144, 120]` ✓
+
+---
+
+## The code
+
+```python
+def product_except_self(nums: list[int]) -> list[int]:
+    n = len(nums)
+    result = [1] * n
+
+    # First pass: result[i] becomes the prefix product
+    prefix = 1
+    for i in range(n):
+        result[i] = prefix
+        prefix *= nums[i]
+
+    # Second pass: multiply in the suffix product
+    suffix = 1
+    for i in range(n - 1, -1, -1):
+        result[i] *= suffix
+        suffix *= nums[i]
+
+    return result
+```
+
+Read it slow. First pass fills `result[i]` with the product of everything before index `i`. Second pass multiplies into `result[i]` the product of everything after. You never store a separate prefix and suffix array. You reuse `result` for both. **The extra space is O(1)**, not counting the output.
+
+<Callout type="tip" title="The order of the two statements matters">
+In the first pass, we set `result[i] = prefix` *before* multiplying `nums[i]` into `prefix`. That's deliberate. At index `i`, we want the product of everything *before* `i`, not including `i`. Same logic on the suffix pass. Getting the order wrong here is a classic off-by-one bug.
+</Callout>
+
+---
+
+## Complexity
+
+| | Naive | Division | Prefix/Suffix |
+|---|---|---|---|
+| Time | O(n²) | O(n) | **O(n)** |
+| Extra space | O(1) | O(1) | **O(1)** (excluding output) |
+| Handles zeros? | Yes | **No** | Yes |
+| Uses division? | No | Yes | **No** |
+
+Prefix/suffix is the best of all worlds. Linear time, constant extra space, and no division tricks.
+
+---
+
+## Gotchas
+
+**1. Initializing `prefix` or `suffix` to `0`.**
+Should be `1`. The identity for multiplication is 1. If you start at 0, everything stays 0 and you're back to debugging.
+
+**2. Order of `result[i] = prefix` and `prefix *= nums[i]`.**
+As noted above. The "current index's value" must not be included in the prefix at the current index. Assign first, multiply second.
+
+**3. Counting the output array as extra space.**
+The problem usually says "O(1) extra space, excluding the output". The output array is mandatory and doesn't count. Read carefully.
+
+**4. Two-array version.**
+It's fine to write the first version with an explicit `prefix[]` and `suffix[]` array for clarity. Then optimize into the single-array version once you're confident. Interviewers usually accept either, but they smile at the single-array one.
+
+---
+
+## What you really learned
+
+Prefix and suffix arrays are one of the most reusable techniques in array problems. The core idea is: precompute some aggregate from the left (or right) so that when you need information about "everything before this index" or "everything after", you can look it up in O(1).
+
+You'll see this everywhere:
+- **Range sum queries**: "what's the sum from index i to j?". Precompute a prefix sum array, then `prefix[j] - prefix[i]` answers in O(1).
+- **Best time to buy and sell stock**: precompute min-so-far to the left of each index, profit at each index is `price[i] - min_so_far`.
+- **Trapping rain water**: precompute max-height to the left and right, water at index i is `min(left, right) - height[i]`.
+- **This problem**: precompute prefix and suffix products.
+
+Whenever you're computing something over "everything before" or "everything after" an index, think prefix or suffix arrays.
+
+---
+
+## Boss down
+
+600 stations. Boss's answer ready in 15 minutes, ahead of schedule. You get pizza at the staff meeting.
+
+Next up: **Boss 7 — The Yearbook Chain.** The diner's alumni binder has graduation years for everyone who ever worked there, but they're out of order and some years have nobody. You'll find the longest **consecutive streak** of years without doing any sorting. It's the final boss of Dungeon 1 and it's a beautiful twist on the hash set you met back in Boss 1.
+
+Bring a pen and a nostalgic mood. See you at the yearbook.

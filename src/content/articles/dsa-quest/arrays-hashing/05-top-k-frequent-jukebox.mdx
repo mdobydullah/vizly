@@ -1,0 +1,219 @@
+---
+title: "Top K Frequent — The Jukebox Charts"
+slug: top-k-frequent-jukebox
+category: dsa
+series: arrays-hashing
+seriesOrder: 5
+description: "Dungeon 1, Boss 5. The diner's jukebox logged every song played this week. The owner wants the top 3. Learn bucket sort and why it beats a full sort when the range is known."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Bucket Sort
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T17:30:00Z"
+updatedAt: "2026-04-14T17:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The diner's jukebox spit out a log of every song played this week. Thousands of plays, dozens of songs. The owner wants to know the top 3 most played. She'll put them on a poster.
+    The obvious plan is count every song's plays, then sort the whole list. That works but you're doing more work than you need to. Sorting the entire list costs O(n log n) just to grab the top of it.
+    The smarter plan is a little weird. You count plays with a hash map like before. Then you build an array of "buckets" indexed by play count. A song played 47 times goes into bucket 47. At the end, you walk the buckets from the highest count down and pick the first three songs you find. That's bucket sort, it's O(n), and it works because the play count can't exceed the total number of plays.
+  bn: |
+    diner-এর jukebox এই সপ্তাহে যতগুলো গান বাজিয়েছে সবকিছুর log বের করেছে। হাজারো play, অনেক গান। মালিক জানতে চান সবচেয়ে বেশি বাজানো top ৩টা গান। poster বানাবেন।
+    সাধারণ plan হলো প্রতিটা গানের play গুণে নিন, তারপর পুরো list sort করে উপরে থেকে ৩টা নিন। কাজ হয়, কিন্তু বাড়তি খাটনি। পুরো list sort মানে O(n log n)।
+    চালাক plan একটু অদ্ভুত। hash map দিয়ে আগের মতো play গুণুন। তারপর একটা bucket array বানান যেখানে index হলো play count। ৪৭ বার বাজানো গান bucket ৪৭-এ যায়। শেষে সবচেয়ে উঁচু bucket থেকে নামতে নামতে প্রথম ৩টা গান তুলে নিন। এটাই bucket sort, O(n), আর কাজ করে কারণ কোনো গানের play কখনো total play-এর বেশি হতে পারে না।
+  hi: |
+    diner की jukebox ने इस हफ़्ते के हर song की log निकाली है। हज़ारों plays, दर्जनों songs। malkin को top 3 songs चाहिए poster के लिए।
+    सीधा plan है, हर song के plays गिनो, फिर पूरी list sort करके ऊपर से 3 उठा लो। काम हो जाता है पर ज़्यादा मेहनत हो रही है। पूरी list sort करना O(n log n) है।
+    smart plan थोड़ा अजीब है। hash map से plays गिनो पहले की तरह। फिर एक bucket array बनाओ जिसका index play count है। 47 बार बजा song bucket 47 में जाता है। आख़िर में सबसे ऊँचे bucket से नीचे आते हुए पहले 3 songs उठा लो। यही bucket sort है, O(n), और काम करता है क्योंकि किसी song के plays कुल plays से ज़्यादा नहीं हो सकते।
+  ar: |
+    جهاز الموسيقى في المطعم أخرج سجلًا بكل أغنية عُزفت هذا الأسبوع. آلاف التشغيلات ومئات الأغاني. المالكة تريد الأغاني الثلاث الأكثر تشغيلًا لتضعها على ملصق.
+    الخطة الواضحة هي عدّ تشغيلات كل أغنية ثم ترتيب القائمة كاملةً واختيار الأولى منها. تنجح لكنها عمل أكثر من اللازم. ترتيب القائمة كاملة يُكلّف O(n log n).
+    الخطة الأذكى غريبة قليلًا. تعدّ التشغيلات في hash map كما في السابق. ثم تبني مصفوفة من "الدلاء" مفهرسة حسب عدد التشغيلات. الأغنية التي عُزفت 47 مرة تدخل الدلو رقم 47. في النهاية تمشي من أعلى دلو نزولًا وتأخذ أول ثلاث أغاني تجدها. هذا هو bucket sort، زمنه O(n)، ويعمل لأن عدد التشغيلات لأغنية واحدة لا يتجاوز أبدًا إجمالي التشغيلات.
+---
+
+## Boss 5, top-K
+
+Welcome back. You've been using hash maps to answer yes-or-no questions and to group things. Today's problem is subtly different. You want the **most frequent** few items. Not all of them. Not a ranking of everything. Just the top K.
+
+You'll learn a really fun trick for this: **bucket sort**. It's one of the few places where you can beat O(n log n) sorting and pay O(n) instead.
+
+---
+
+## The story
+
+Friday morning. The owner of the diner pulls out a printed log from the jukebox. Thousands of lines, each one the name of a song that got played this week.
+
+```
+... "Sweet Caroline", "Don't Stop Believin'", "Sweet Caroline", ...
+```
+
+She says: "I want to print a poster with the top 3 most played songs of the week. Bring me the answer by lunch."
+
+You already know step one. Count the plays with a hash map.
+
+```python
+from collections import Counter
+counts = Counter(songs)
+```
+
+That's the easy part. Now you need the top 3. How?
+
+---
+
+## The naive way (which is also fine)
+
+Sort the counts dictionary by value, descending, take the first 3.
+
+```python
+def top_k_sort(songs, k):
+    counts = Counter(songs)
+    return [song for song, _ in counts.most_common(k)]
+```
+
+`most_common` is Python being helpful. Under the hood it sorts the pairs by count. Time: O(n + m log m) where n is the number of plays and m is the number of unique songs. For most inputs, this is totally fine. Don't let anyone tell you otherwise.
+
+But the problem setter wants you to do better than a full sort. So let's.
+
+---
+
+## The weapon: bucket sort
+
+Here's the mental shift. You don't need a sorted list of songs by count. You need the songs *that appear the most*, in any order. Fewer promises means more options.
+
+The range of possible play counts is bounded. A song can be played zero times, or once, or twice, or up to N times (where N is the total number of plays). So you can use **the play count itself as an index** into an array.
+
+Build an array of buckets, size N+1. Bucket `i` is a list of every song that was played exactly `i` times.
+
+```
+buckets[0]  = []
+buckets[1]  = ["Hotel California"]
+buckets[2]  = []
+buckets[3]  = ["Thunderstruck", "Bohemian Rhapsody"]
+...
+buckets[47] = ["Sweet Caroline"]
+```
+
+Now walk the buckets from the back (highest count) forward. Collect songs until you have K of them. Done.
+
+<MermaidBlock>
+graph LR
+    A["List of plays"] --> B["Count into hash map\nhash map -> freq"]
+    B --> C["Build bucket array\nbuckets index equals freq"]
+    C --> D["Walk buckets\nhigh to low"]
+    D --> E["Collect until you have K\nreturn"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+No sorting anywhere. Counting is O(n). Building the bucket array is O(m) where m is the number of unique songs. Walking the buckets backward is O(n) in the worst case because there are at most N buckets to scan. Total: **O(n)**. Beats a sort.
+
+---
+
+## The code
+
+```python
+from collections import Counter
+
+def top_k_frequent(songs: list[str], k: int) -> list[str]:
+    counts = Counter(songs)
+    buckets = [[] for _ in range(len(songs) + 1)]
+
+    for song, freq in counts.items():
+        buckets[freq].append(song)
+
+    result = []
+    for freq in range(len(buckets) - 1, -1, -1):
+        for song in buckets[freq]:
+            result.append(song)
+            if len(result) == k:
+                return result
+    return result
+```
+
+Read it top to bottom:
+
+1. Count plays with `Counter`.
+2. Create an empty bucket for each possible frequency (0 through N).
+3. Drop each song into the bucket for its frequency.
+4. Walk the buckets from highest frequency down, collecting songs into `result`.
+5. Stop as soon as `result` has K items.
+
+That's it. The "walk backward" part is the only slightly unusual bit, and Python's `range(..., -1, -1)` handles it cleanly.
+
+---
+
+## Why is this O(n)?
+
+This is the part worth understanding. You might look at the nested loop at the bottom and think "that's O(n × m), it can't be linear!". But count the *total* work done inside the loop body, not the structure.
+
+- The outer loop visits each bucket once.
+- The inner loop visits each song exactly once in its entire lifetime.
+- Each song appears in exactly one bucket.
+- Together, the inner loop runs a total of m times across all iterations, where m is the number of unique songs.
+
+So the whole nested-loop thing sums to O(n + m), which is O(n). The nested appearance is a red herring.
+
+This is the same reason hash map lookups are O(1) even though the hash function does work. You count amortized cost, not loop depth.
+
+<Callout type="info" title="When bucket sort is not appropriate">
+Bucket sort needs the value range to be bounded and small-ish. If you're sorting arbitrary floats or huge numbers, you can't just index an array by them. Bucket sort shines when the possible values are integers in a known, tight range. For top-K frequency problems, the range is "0 to n", which is always tight enough.
+</Callout>
+
+---
+
+## The comparison
+
+| | `most_common` | Heap of size K | Bucket sort |
+|---|---|---|---|
+| Time | O(n + m log m) | O(n + m log k) | **O(n)** |
+| Space | O(m) | O(m + k) | O(n) |
+| Code complexity | One line | Medium | Medium |
+| Best when... | Easy, m small | K small, m huge | Tight integer range |
+
+Three different tools for the same problem. Each has a use. Interviewers love bucket sort because it shows you see through the "obvious" sort-then-pick approach. In real life, the one-liner is usually enough and more maintainable.
+
+---
+
+## Gotchas
+
+**1. Sizing the bucket array.**
+You need `len(songs) + 1` buckets, not `len(songs)`. If you have 10 plays and one song got all of them, its frequency is 10, which is index 10, which needs an array of length 11. Off-by-one errors are classic here.
+
+**2. Forgetting that ties exist.**
+If K=3 and you have songs with counts `[5, 5, 5, 5, 2]`, there's more than one valid top-3. The problem usually says "any valid answer works". Don't stress over tie-breaking unless asked.
+
+**3. Walking the buckets wrong direction.**
+High count first. If you go from zero upward, you'll collect the least frequent songs, which is the opposite of what the owner wants.
+
+**4. Forgetting that `result` is already full.**
+Once `result` has K items, return immediately. Without the `if len(result) == k: return` check you'll keep going and return all unique songs sorted by frequency. Still correct if you slice, but slower and wastes work.
+
+---
+
+## What you really learned
+
+Bucket sort is one of those patterns that feels like cheating. It dodges the sorting barrier by exploiting a property of the data. The property here was "frequencies are integers bounded by n". Whenever you see a problem where the values have a known bounded range, ask yourself if you can use them as indices directly. Sometimes you can. When you can, the speedup is dramatic.
+
+Other places this trick shows up:
+- Sorting an array of integers in a small range (counting sort)
+- Finding the K most/least something
+- Histogram problems
+- "Given ages from 0 to 120, do something" kinds of problems
+
+---
+
+## Boss down
+
+Poster's printed. "Sweet Caroline", "Don't Stop Believin'", "Thunderstruck". Jukebox royalty.
+
+Next up: **Boss 6 — The Factory Line.** A factory assembly line multiplies products as they move down a conveyor belt. The manager wants to know, for each station, what the final product would have been if *that station had been skipped*. Sounds impossible in one pass. You'll learn the **prefix and suffix** trick, which is one of the most clever array techniques out there.
+
+Hard hats on. See you at the factory.

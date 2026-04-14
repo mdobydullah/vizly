@@ -1,0 +1,207 @@
+---
+title: "Two Sum — The Lunch Bill Split"
+slug: two-sum-lunch-bill
+category: dsa
+series: arrays-hashing
+seriesOrder: 3
+description: "Dungeon 1, Boss 3. A diner. A missing dollar amount. A list of orders. Find the two meals that add up to the mystery total before the manager notices."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T16:30:00Z"
+updatedAt: "2026-04-14T16:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You close out the diner's register and it's off by exactly $23. The kitchen print-out has every individual meal price from the night. The manager says "if two of those meals add up to exactly $23, we'll just write it off as a combo deal that didn't get rung in."
+    Your first instinct is to check every pair. That works on 30 meals. On 3,000 it's nine million checks. Slow.
+    So instead, you walk the list once. At each meal, you ask one question. "Have I already seen a meal that, added to this one, makes $23?" If yes, those two are the answer. If no, jot this meal's price in your hash map and move on. One pass, O(n), and the register closes on time.
+  bn: |
+    diner-এর register বন্ধ করছেন আর দেখলেন ঠিক ২৩ ডলার কম। রান্নাঘরের প্রিন্ট-আউটে রাতের প্রতিটা খাবারের আলাদা দাম আছে। ম্যানেজার বলল, "যদি দুটো খাবার যোগ করে ঠিক ২৩ ডলার হয়, তাহলে combo deal হিসেবে ছেড়ে দেব।"
+    প্রথম বুদ্ধি, প্রতিটা pair মিলিয়ে দেখো। ৩০টার জন্য ঠিক আছে। ৩,০০০ হলে ৯০ লাখ check, অনেক ধীর।
+    তাই একবার পুরো list ঘুরুন। প্রতিটা খাবারে একটাই প্রশ্ন, "আগে কি এমন কোনো দাম দেখেছি যেটা এটার সাথে যোগ করলে ২৩ হয়?" হ্যাঁ হলে এই দুটোই উত্তর। না হলে এই দামটা hash map-এ লিখে এগিয়ে যান। এক pass, O(n), আর register সময়মতো বন্ধ।
+  hi: |
+    diner का register बंद कर रहे हैं और ठीक $23 कम निकल रहे हैं। kitchen की print-out में रात का हर खाने का अलग दाम है। manager कहता है, "अगर कोई दो खाने मिलकर ठीक $23 बनाते हैं, तो combo deal मानकर छोड़ देंगे।"
+    पहली सोच, हर pair check कर लो। 30 खानों पर ठीक है। 3,000 पर 90 लाख checks, बहुत धीमा।
+    इसलिए पूरी list एक बार घूमो। हर खाने पर एक ही सवाल, "क्या पहले कोई ऐसा दाम देखा जिसे इससे जोड़ने पर $23 बनता है?" हाँ तो जवाब मिल गया। नहीं तो इस दाम को hash map में लिख लो और आगे बढ़ो। एक pass, O(n), register time पर बंद।
+  ar: |
+    تُغلق سجل المطعم فتجد أن المبلغ ناقص 23 دولارًا بالضبط. مطبعة المطبخ فيها سعر كل وجبة على حدة. يقول المدير "إن جمعت وجبتان منها 23 دولارًا بالضبط، فسنعدّها عرض كومبو لم يُسجَّل."
+    أول فكرة هي فحص كل زوجين. تنجح مع 30 وجبة. مع 3,000 فهي 9 ملايين فحص، بطيئة جدًا.
+    لذا تمرّ على القائمة مرّة واحدة. عند كل وجبة تسأل سؤالًا واحدًا. "هل رأيت سابقًا سعرًا إن جمعته مع هذا يُعطي 23؟" إن نعم، فالوجبتان هما الجواب. وإن لا، فدوّن هذا السعر في hash map وتابع. مرور واحد، O(n)، ويُغلق السجل في الوقت المحدد.
+---
+
+## Boss 3, the classic
+
+If you've seen any interview prep content anywhere in the last decade, you've heard of this problem. It's called Two Sum and it's the most famous coding interview question on Earth. It's a classic for a good reason. The trick it teaches shows up everywhere after you learn it.
+
+Today you're going to learn that trick by closing out a register.
+
+---
+
+## The story
+
+It's 11pm at the diner. You're counting the till. Everything balances except you're short exactly $23.
+
+You call the manager over. She shrugs. "Happens. Pull the ticket log. If any two meals tonight add up to $23 exactly, just mark it as a combo deal that someone forgot to ring up. Saves the paperwork."
+
+You pull the ticket log. It's a list of prices:
+
+```
+[7, 15, 11, 2, 8, 14, 19, 13]
+```
+
+You need two of those numbers that sum to 23. Fast. The manager is already putting her coat on.
+
+---
+
+## The naive way
+
+Nested loop. Check every pair.
+
+```python
+def two_sum_slow(prices, target):
+    for i in range(len(prices)):
+        for j in range(i + 1, len(prices)):
+            if prices[i] + prices[j] == target:
+                return [i, j]
+    return []
+```
+
+For 8 prices, that's at most 28 comparisons. Done before you finish typing.
+
+For 8,000 prices, that's 32 million comparisons. For 80,000, it's 3.2 billion. Your manager has definitely finished her coat.
+
+O(n²). Yet again we want to do better. And yet again, a hash map saves us.
+
+---
+
+## The weapon: complement lookup
+
+Here's the trick. For each price you look at, instead of asking "what pairs with this?", you ask "what would I *need* to pair with this?"
+
+If the target is 23 and the current price is 15, you need 8. That's the complement. `23 - 15 = 8`.
+
+So the question becomes: have I already seen an 8? If yes, those two numbers are the answer. If no, remember this 15 and keep walking.
+
+Walk the list. For each price:
+
+1. Compute the complement (`target - price`).
+2. Check if that complement is already in your hash map.
+3. If yes, you found the pair. Return both indices.
+4. If no, add the current price to the hash map (value = index) and continue.
+
+One pass. Each step is a constant-time hash lookup plus a constant-time insert. Total O(n).
+
+<MermaidBlock>
+graph LR
+    A["Current price\n+ index"] --> B["Compute complement\ntarget - price"]
+    B --> C{"Complement in map?"}
+    C -->|yes| D["Return both indices\ndone"]
+    C -->|no| E["Store price and index\ncontinue walking"]
+    E --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+Let's trace it on `[7, 15, 11, 2, 8, 14, 19, 13]` with target `23`.
+
+| Step | Price | Complement | Seen before? | Action |
+|---|---|---|---|---|
+| 0 | 7 | 16 | No | Remember 7 → 0 |
+| 1 | 15 | 8 | No | Remember 15 → 1 |
+| 2 | 11 | 12 | No | Remember 11 → 2 |
+| 3 | 2 | 21 | No | Remember 2 → 3 |
+| 4 | 8 | 15 | **Yes (at index 1)** | Return `[1, 4]` |
+
+Found it in 5 steps. The 15 and the 8 add to 23. The naive approach would have taken up to 28 comparisons on the same input. Hash map wins.
+
+---
+
+## The code
+
+```python
+def two_sum(prices: list[int], target: int) -> list[int]:
+    seen = {}  # price -> index
+    for i, price in enumerate(prices):
+        complement = target - price
+        if complement in seen:
+            return [seen[complement], i]
+        seen[price] = i
+    return []
+```
+
+Six lines. Read the middle three out loud:
+
+1. What do I need to add to the current price? That's the complement.
+2. Have I already seen that number? If yes, I'm done.
+3. If not, write this price in my map so a future price can find it.
+
+That's the whole algorithm.
+
+<Callout type="tip" title="Why we check before we store">
+If we stored the current price first and then checked for its complement, we might accidentally pair a number with itself. Check first, then store. Order matters.
+</Callout>
+
+---
+
+## The numbers
+
+| | Naive nested loop | Hash map lookup |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Extra space | O(1) | O(n) |
+| Early exit | Yes | Yes |
+| Scales? | Painful past ~10k | Smooth past millions |
+
+Same tradeoff as always. Spend some memory to save a ton of time. For any non-toy input, hash map wins.
+
+---
+
+## Gotchas
+
+**1. Storing before checking.**
+Mentioned above. If you do `seen[price] = i` *before* the complement check, then for a target of 10 and an input of `[5, ...]`, the first 5 sees itself as its own complement and you return `[0, 0]`. Wrong. Check before you store.
+
+**2. Assuming exactly one answer.**
+The classic Two Sum problem guarantees exactly one valid pair. Real life doesn't. If there can be multiple pairs or none, adjust the return type. Usually interviewers will tell you what to assume.
+
+**3. Returning values instead of indices.**
+Read the problem. Some versions want the two numbers, some want their indices. Not the same. Return whatever the problem asks for.
+
+**4. Sorted input temptation.**
+If the array is already sorted, you can solve Two Sum with two pointers in O(1) space (no hash map needed). That's actually Boss 2 of the next dungeon. Keep it in mind.
+
+---
+
+## The bigger pattern
+
+Complement lookup is one of the most reused techniques in interviews. The shape is always the same.
+
+You're walking a list, and at each element you ask: "have I already seen the piece that would complete me?"
+
+That exact shape shows up in:
+- Two Sum (this one)
+- Finding a pair that XORs to a target
+- Checking if any two characters combine to a known substring
+- Detecting if a subarray sums to zero (the complement becomes a running total)
+- Checking for a letter that pairs with another to form a palindrome
+
+The tool is always a hash map, and the question is always "is the thing I need already in here?". Train your brain to reach for this the moment a problem mentions pairs.
+
+---
+
+## Boss down
+
+Register closes at 11:03. Manager gives you a nod. You found the combo: the $15 burger and the $8 fries. Written off. Done.
+
+Next up: **Boss 4 — The Sock Drawer.** A giant pile of mismatched socks, and your job is to group every sock with the ones that share its exact pattern. You'll meet a sneaky twist on the hash map where the *key* itself is a sorted or canonical version of each item. Same structure, wildly different use case.
+
+Bring your laundry basket. See you at the dryer.

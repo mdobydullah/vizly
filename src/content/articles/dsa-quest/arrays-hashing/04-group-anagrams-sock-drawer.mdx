@@ -1,0 +1,208 @@
+---
+title: "Group Anagrams — The Sock Drawer"
+slug: group-anagrams-sock-drawer
+category: dsa
+series: arrays-hashing
+seriesOrder: 4
+description: "Dungeon 1, Boss 4. A giant pile of mismatched socks. Every sock with the same pattern belongs in the same drawer. Learn to group items by a canonical key."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T17:00:00Z"
+updatedAt: "2026-04-14T17:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Laundry day, but worse. Your roommate dumped every clean sock into one pile and now you have to sort them. You want every sock that shares the same pattern to end up in the same drawer.
+    The cheating way is to compare each sock to every other sock. On a pile of 200 socks you're doing tens of thousands of comparisons and going insane.
+    The clever way is to give each sock a tiny ID card based on its pattern. Same pattern, same ID card. Then you just drop each sock into the drawer labeled with its ID. One pass through the pile, one hash map where the key is the ID and the value is the drawer. Socks sort themselves. That trick is called a canonical key, and you'll use it more than you'd guess.
+  bn: |
+    laundry-র দিন, কিন্তু আরও খারাপ। roommate সব পরিষ্কার মোজা এক গাদায় ফেলে দিয়েছে, এখন আপনাকে বাছাই করতে হবে। আপনি চান একই design-এর সব মোজা একই drawer-এ যাক।
+    cheating উপায়, প্রতিটা মোজা বাকিগুলোর সাথে মিলিয়ে দেখো। ২০০টা মোজার গাদায় হাজার হাজার তুলনা, মাথা ঘুরে যাবে।
+    বুদ্ধিমান উপায়, প্রতিটা মোজাকে তার pattern অনুযায়ী একটা ছোট ID card দিন। একই pattern হলে একই ID। তারপর প্রতিটা মোজা তার ID-র drawer-এ ফেলে দিন। এক pass-এ পুরো গাদা, hash map-এ key হলো ID আর value হলো drawer। মোজা নিজে নিজেই বাছাই হয়ে যায়। এই trick-কে বলে canonical key, এবং এটা যত ভাবা যায় তার চেয়ে বেশি কাজে আসে।
+  hi: |
+    laundry का दिन है, पर और भी बुरा। roommate ने सारे साफ़ मोज़े एक ढेर में गिरा दिए और अब आपको छांटने हैं। आप चाहते हैं कि same pattern वाले सारे मोज़े एक ही drawer में जाएँ।
+    चालाकी का तरीक़ा, हर मोज़े की तुलना बाक़ी सबसे कर लो। 200 मोज़ों पर हज़ारों comparisons, दिमाग़ घूम जाएगा।
+    smart तरीक़ा, हर मोज़े को उसके pattern के आधार पर एक छोटा ID card दो। same pattern, same ID। फिर हर मोज़े को अपने ID वाले drawer में डाल दो। एक pass में पूरा ढेर, hash map में key है ID और value है drawer। मोज़े ख़ुद ही छंट जाते हैं। इस trick को canonical key कहते हैं, और यह जितना लगता है उससे ज़्यादा काम आती है।
+  ar: |
+    يوم غسيل، لكن أسوأ. ألقى شريك السكن كل جوربٍ نظيف في كومة واحدة، والآن عليك فرزها. تريد أن تنتهي الجوارب ذات النمط نفسه في نفس الدرج.
+    الطريقة البليدة هي مقارنة كل جورب بكل جورب آخر. على كومة من 200 جورب تُجري عشرات الآلاف من المقارنات وتفقد صبرك.
+    الطريقة الذكية هي أن تُعطي كل جورب بطاقة هوية صغيرة بناءً على نمطه. النمط نفسه يُعطي الهوية نفسها. ثم تُلقي كل جورب في الدرج الذي يحمل هويته. مرور واحد على الكومة، وخريطة hash map حيث المفتاح هو الهوية والقيمة هي الدرج. الجوارب تفرز نفسها. تُسمّى هذه الحيلة canonical key، وستستخدمها أكثر مما تتخيل.
+---
+
+## Boss 4, grouping things
+
+The last three bosses asked yes-or-no questions. Is there a duplicate? Is this an anagram? Is there a pair that sums to a target?
+
+Today is different. Today the question isn't "does a match exist?" It's "**group every item with its matches**". That needs a slightly different shape of hash map. Same tool, new use.
+
+---
+
+## The story
+
+Laundry day. Your roommate decided to be helpful and dumped every clean sock from three weeks of laundry into one massive pile on the bed. Every sock is clean. None of them are paired. They're all just sitting there, mocking you.
+
+You flip through the pile. These socks don't come in color pairs, they come in *patterns*. Zigzags, stripes, polka dots, argyles. Two socks belong together if they have the same set of design elements, regardless of the order those elements appear on the sock.
+
+So a sock with "stripe, dot, stripe" belongs with "dot, stripe, stripe" and "stripe, stripe, dot". They're the same sock, just with the elements in a different order. You want to group every one of those into one drawer.
+
+You have 200 socks. You have 8 drawers. You have 20 minutes before your laundry cycle ends.
+
+---
+
+## The naive way
+
+You pick up a sock. You compare it to every other sock in the pile. Same pattern? Put it in the same drawer. Different pattern? Keep looking.
+
+For 200 socks, that's up to 200 × 200 / 2 = 20,000 comparisons. And each comparison is already non-trivial, because you're comparing two multi-element patterns, not just two numbers.
+
+This works on small piles. It doesn't scale and it's a slog.
+
+---
+
+## The weapon: canonical key
+
+Here's the trick. Instead of comparing socks to each other, you give each sock a tiny ID card.
+
+The ID card is just the sock's pattern elements, written in a predictable order. Say, alphabetical.
+
+- Sock `"stripe, dot, stripe"` → sorted → `"dot, stripe, stripe"` → ID card: **`dot,stripe,stripe`**
+- Sock `"dot, stripe, stripe"` → sorted → `"dot, stripe, stripe"` → ID card: **`dot,stripe,stripe`**
+- Sock `"stripe, stripe, dot"` → sorted → `"dot, stripe, stripe"` → ID card: **`dot,stripe,stripe`**
+
+All three socks get the same ID card. That's not an accident. That's the whole point.
+
+Now the hash map gets simple. Keys are ID cards. Values are lists of socks that share that card.
+
+Walk the pile once. For each sock:
+
+1. Compute its ID (sort its pattern).
+2. Look up the ID in the hash map.
+3. Append the sock to that list. If the list doesn't exist yet, create it.
+
+Done. Socks with the same ID pile up in the same list. Each list is a drawer.
+
+<MermaidBlock>
+graph TB
+    A["Pile of socks"] --> B["For each sock"]
+    B --> C["Sort its pattern\nthis is its ID"]
+    C --> D{"Does ID exist in map?"}
+    D -->|yes| E["Append sock\nto that list"]
+    D -->|no| F["Create new list\nwith this sock"]
+    E --> B
+    F --> B
+    B --> G["All drawers\nfilled"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## The code
+
+The same pattern works on real anagram grouping. The input is a list of words, the grouping is "same letters, ignoring order".
+
+```python
+from collections import defaultdict
+
+def group_anagrams(words: list[str]) -> list[list[str]]:
+    groups = defaultdict(list)
+    for word in words:
+        key = ''.join(sorted(word))
+        groups[key].append(word)
+    return list(groups.values())
+```
+
+Read it slow. For each word, sort its letters to get a canonical key. Append the original word to the bucket for that key. At the end, hand back all the buckets.
+
+`defaultdict(list)` is Python's "if this key doesn't exist yet, start it as an empty list" shortcut. Other languages have their own version. The idea is the same.
+
+Trace it on `["eat", "tea", "tan", "ate", "nat", "bat"]`:
+
+| Word | Sorted key | Groups so far |
+|---|---|---|
+| `eat` | `aet` | `{aet: [eat]}` |
+| `tea` | `aet` | `{aet: [eat, tea]}` |
+| `tan` | `ant` | `{aet: [eat, tea], ant: [tan]}` |
+| `ate` | `aet` | `{aet: [eat, tea, ate], ant: [tan]}` |
+| `nat` | `ant` | `{aet: [eat, tea, ate], ant: [tan, nat]}` |
+| `bat` | `abt` | `{aet: [eat, tea, ate], ant: [tan, nat], abt: [bat]}` |
+
+Final answer: `[[eat, tea, ate], [tan, nat], [bat]]`.
+
+---
+
+## Why this works
+
+The canonical key is the whole game. Any two inputs that should "group together" get the exact same key. Any two that shouldn't get different keys. The hash map does the rest automatically because that's literally what hash maps do: group values under shared keys.
+
+You can swap the sorted-string key for other canonical forms depending on the problem:
+
+- **Sorted letters** (this problem)
+- **Letter count tuple** like `(0,0,1,0,2,...)` for 26 positions, which is O(n) instead of O(n log n) per word
+- **Sum or product of prime factors** if you want a single number
+- **A tuple of any canonical features** for more complex grouping
+
+The shape of the algorithm stays the same. Walk the input once. Give each item a canonical key. Drop it in the bucket for that key. O(n) total.
+
+<Callout type="tip" title="Pattern recognition">
+Any time you see "group together all items that share some property", think canonical key. The key is whatever makes two items "the same" for the purposes of this problem. Once you pick the right key, the hash map does the rest.
+</Callout>
+
+---
+
+## Complexity
+
+For n words of average length k:
+
+| | Time | Space |
+|---|---|---|
+| Sorted key | O(n · k log k) | O(n · k) |
+| Count tuple key | **O(n · k)** | O(n · k) |
+| Naive pairwise | O(n² · k) | O(1) |
+
+For short words or small inputs, the sorted key is fine and the code is shorter. For huge inputs, the count tuple is technically faster. In interviews, write the sorted-key version first. It's clearer. Mention the count tuple as an optimization if asked.
+
+---
+
+## Gotchas
+
+**1. Mutating the original list.**
+Don't. Sort a copy or use `sorted(word)` which returns a new list. Original input stays untouched.
+
+**2. Using the sorted result as the key without joining.**
+In most languages, a list is not hashable. You need a string or tuple as the map key. `''.join(sorted(word))` in Python, or `tuple(sorted(word))`.
+
+**3. Forgetting that the groups' internal order doesn't matter.**
+The problem usually accepts any order within groups and any order of groups. Don't waste time sorting output unless the problem asks.
+
+**4. Using `+=` on dict access.**
+`groups[key] += [word]` works but creates a new list each time. `groups[key].append(word)` mutates the existing one. The `defaultdict` pattern handles this cleanly.
+
+---
+
+## What you really learned
+
+The big idea is this: a hash map doesn't have to store "does this exist" or "how many of this". It can store "the bucket where this kind of thing belongs".
+
+When you hear "group by something", reach for a hash map where the key is whatever "by something" means. It's one of the most underrated patterns in competitive coding and in real production code. You'll use it for grouping log lines by error type, transactions by user, photos by album hash, anything.
+
+---
+
+## Boss down
+
+Socks are in drawers. Laundry cycle finished 30 seconds ago. Perfect timing.
+
+Next up: **Boss 5 — The Jukebox Charts.** The diner has a jukebox, and you've been asked to figure out the top 3 most played songs of the week from a long log of plays. You'll learn how counting and sorting work together, and meet a neat trick called **bucket sort** that dodges the usual O(n log n) sorting cost when the range is known.
+
+Grab a quarter. See you at the jukebox.

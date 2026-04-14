@@ -1,0 +1,212 @@
+---
+title: "Valid Anagram — The Scrabble Swap"
+slug: valid-anagram-scrabble-swap
+category: dsa
+series: arrays-hashing
+seriesOrder: 2
+description: "Dungeon 1, Boss 2. Two Scrabble racks land on the table. One player claims they're the same letters, just shuffled. You have to prove it or call the bluff."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T16:00:00Z"
+updatedAt: "2026-04-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    It's Sunday night Scrabble. Your cousin turns her rack around, shows you seven letters, and says "these are the exact same letters I had last round, just shuffled." You don't believe her. You need a quick way to check if two bags of letters are actually the same bag.
+    First thought, sort both racks alphabetically and compare. Works, but you're doing extra work just to compare.
+    Better, grab a notebook and tally each letter in one rack, then walk through the other rack and cross them off. If everything cancels out, they match. That's a hash map counter. One pass each way, O(n) time, and you catch her bluff before she can re-shuffle.
+  bn: |
+    রবিবার রাতের Scrabble খেলা। আপনার চাচাতো বোন তার rack ঘুরিয়ে সাতটা অক্ষর দেখিয়ে বলল, "এগুলো আগের রাউন্ডে আমার যে অক্ষরগুলো ছিল ঠিক সেগুলোই, শুধু এলোমেলো করা।" আপনি বিশ্বাস করছেন না। দরকার এমন একটা উপায় যা দিয়ে দ্রুত বোঝা যায় দুই ব্যাগ অক্ষর আসলে একই কিনা।
+    প্রথম চিন্তা, দুই rack-ই alphabet order-এ সাজিয়ে মিলিয়ে দেখো। কাজ হয়, কিন্তু শুধু তুলনা করতে গিয়ে বাড়তি খাটনি।
+    ভালো উপায়, একটা খাতা নিয়ে এক rack-এর প্রতিটা অক্ষরের গণনা লিখুন, তারপর অন্য rack-এর অক্ষরগুলো একটা একটা করে কাটতে থাকুন। সব যদি মিলে কেটে যায়, তাহলে মিলে গেছে। এটাই hash map counter। দুই দিকে একবার করে ঘুরলেই কাজ শেষ, O(n) সময়ে, আর বোনের bluff ধরা পড়ে যায়।
+  hi: |
+    रविवार की रात Scrabble चल रहा है। आपकी cousin अपना rack घुमाकर सात letters दिखाती है और कहती है "पिछले round में भी ये ही letters थे, बस shuffle कर दिए।" आपको यक़ीन नहीं है। आपको जल्दी से यह पता करने का तरीक़ा चाहिए कि दोनों बैग के letters सच में एक जैसे हैं या नहीं।
+    पहली सोच, दोनों racks को alphabet order में sort करके compare कर लो। काम होगा, पर सिर्फ़ तुलना के लिए अलग मेहनत।
+    बेहतर तरीक़ा, एक कॉपी पर पहले rack के letters की गिनती लिखो, फिर दूसरे rack के हर letter को उसमें से काटते जाओ। सब कट गए तो match, नहीं तो bluff. यही hash map counter है। दोनों तरफ़ एक-एक बार घूमो, O(n) में काम ख़त्म, और bluff पकड़ी गई।
+  ar: |
+    إنها ليلة أحد و"سكرابل" على الطاولة. تُدير ابنة عمك رفّها وتُريك سبعة حروف وتقول "هذه نفسها حروفي في الجولة السابقة، فقط مخلوطة." أنت لا تُصدّق. تحتاج طريقة سريعة لتعرف إن كان كيسا الحروف نفسه فعلًا.
+    أول فكرة هي ترتيب الرفّين أبجديًا والمقارنة. تنجح، لكنك تقوم بعمل إضافي فقط للمقارنة.
+    الأفضل أن تمسك دفترًا وتعدّ كل حرف في الرفّ الأول، ثم تمرّ على حروف الرفّ الثاني وتشطبها واحدًا واحدًا. إذا انتهى كل شيء فالحروف نفسها. هذا هو hash map counter. مرور واحد على كل جهة، O(n) من الزمن، ويُكشف الخداع قبل أن تعيد الخلط.
+---
+
+## Welcome back
+
+Boss 2. The Coat Check taught you to ask "have I seen this before?" using a hash set. Today you need something slightly smarter: not just "seen or not", but "how many times?".
+
+The data structure for that is a **hash map**. Same magic lookup speed, but now each key can carry a little counter.
+
+---
+
+## The story
+
+Your family has a Scrabble tradition. Sunday night, everyone at the table, one board, too much snacking. Tonight your cousin is three games in and she's getting cocky.
+
+She pulls her rack back, shields it with her hand, scribbles something on a notepad, then turns the rack around and says: "Before I play, I want to say something. These seven letters? They're the exact same seven I had last round. Shuffled. I just didn't use them."
+
+Everyone groans. She's messing with you. You know she had `A T R O L E E` last round and now she's showing you `E L A R O E T`. It looks the same. But she moves fast and you're not sure.
+
+You need a ten-second method to check: are these two sets of letters actually the same, ignoring order?
+
+---
+
+## The naive way
+
+First instinct, especially if you just finished the Coat Check: sort both racks.
+
+```python
+def is_anagram_slow(s: str, t: str) -> bool:
+    return sorted(s) == sorted(t)
+```
+
+One line, honest work. `sorted("atroleee") == sorted("elaroet")`? Yes, both become `aeeloort`. Match confirmed.
+
+It works. But think about what sorting actually costs. You're doing `n log n` comparisons on each string. If the racks are short, who cares. If you're comparing two million-character strings (people do this for DNA sequences, documents, filenames), you're burning time you don't need to burn.
+
+We're comparing *which letters appear and how many times*. That's a counting problem, not a sorting problem. Pick the right tool.
+
+---
+
+## The weapon: hash map counter
+
+Grab a notepad. Write down each letter from the first rack and tally how many times it shows up.
+
+Rack 1: `A T R O L E E` becomes:
+
+```
+A: 1
+T: 1
+R: 1
+O: 1
+L: 1
+E: 2
+```
+
+Now walk through the second rack. For each letter, subtract one from the counter.
+
+Rack 2: `E L A R O E T`
+- `E` → E goes from 2 to 1
+- `L` → L goes from 1 to 0
+- `A` → A goes from 1 to 0
+- `R` → R goes from 1 to 0
+- `O` → O goes from 1 to 0
+- `E` → E goes from 1 to 0
+- `T` → T goes from 1 to 0
+
+Every counter ended at zero. The racks match. No bluff.
+
+If at any point a counter went negative, or a letter you didn't have showed up, or you ended with some counters above zero, you'd know the racks were different.
+
+<MermaidBlock>
+graph LR
+    A["Rack 1\nA T R O L E E"] --> B["Build counter\nA:1 T:1 R:1 O:1 L:1 E:2"]
+    B --> C["Walk Rack 2\nsubtract each"]
+    C --> D{"All zero?"}
+    D -->|yes| E["Match\nreturn true"]
+    D -->|no| F["Bluff\nreturn false"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+---
+
+## The code
+
+```python
+def is_anagram(s: str, t: str) -> bool:
+    if len(s) != len(t):
+        return False
+
+    counts = {}
+    for c in s:
+        counts[c] = counts.get(c, 0) + 1
+
+    for c in t:
+        if c not in counts or counts[c] == 0:
+            return False
+        counts[c] -= 1
+
+    return True
+```
+
+Walk `s` once, build the counter. Walk `t` once, drain the counter. If anything goes wrong, return false. Otherwise true.
+
+The length check at the top is a nice early exit. If the strings aren't even the same length, they can't be anagrams. Don't do any work at all.
+
+Python users get a shortcut from the standard library:
+
+```python
+from collections import Counter
+
+def is_anagram(s: str, t: str) -> bool:
+    return Counter(s) == Counter(t)
+```
+
+One line. `Counter` is literally a hash map counter. It builds one for each string and compares them. Readable and correct. Use this when you're not in an interview asking you to implement it yourself.
+
+---
+
+## Why is this faster?
+
+| | Sort both | Hash map counter |
+|---|---|---|
+| Time | O(n log n) | **O(n)** |
+| Extra space | O(n) | O(k) where k = unique chars |
+| Scales to huge strings? | Slows down | **Stays linear** |
+| Early exit on length? | Nope | **Yes** |
+
+For seven Scrabble letters, both approaches finish instantly. For a million characters, the hash map wins by a lot. And because you're counting letters and there are only 26 of them in English, the `k` in "O(k) space" is tiny.
+
+<Callout type="tip" title="Pattern recognition">
+Any time a problem says "same elements, ignoring order" or "is A a permutation of B", your brain should say hash map counter. It works on letters, words, numbers, anything hashable.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the length check.**
+Without it, `"aab"` and `"aa"` would both build valid-looking counters before the mismatch shows up. With it, you bail in one line.
+
+**2. Using two separate counters and comparing.**
+Also correct, slightly more memory. The single-counter-with-subtraction approach is more elegant and uses half the space.
+
+**3. Case and whitespace.**
+The problem statement usually treats `"Listen"` and `"Silent"` as different unless you normalize. If the problem says "case-insensitive", lowercase everything before building the counter. Don't assume.
+
+**4. Unicode.**
+If the strings are Unicode, a "character" might be more than one code point (emoji with modifiers, accented characters). For English Scrabble letters this isn't an issue. For international text, you might need to normalize first.
+
+---
+
+## What you actually learned
+
+Hash map counter is the hash set's bigger sibling. Hash set answers "is it there?". Hash map counter answers "how many of it are there?". One extra bit of information, huge range of new problems you can solve.
+
+You'll reach for this in:
+- Anagram checking (this one)
+- Finding duplicates with a count threshold
+- Character frequency in strings
+- Counting words in a document
+- Finding the first unique character
+- Majority element problems
+- Pretty much anywhere you hear "how many" or "how often"
+
+---
+
+## Boss down
+
+Your cousin slumps. "Okay fine, one letter was different." You knew it.
+
+Next up: **Boss 3 — The Lunch Bill Split.** A receipt, a missing dollar amount, and a table full of orders. You'll meet the hash map's most famous trick: the **complement lookup**. Instead of asking "did I see this?", you'll ask "did I see the *thing I need to pair with this*?". That one twist unlocks a whole family of problems.
+
+Bring the calculator. See you at the diner.

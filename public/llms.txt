@@ -58,6 +58,12 @@
 - [Evaluating LLMs at Scale](/articles/evaluating-llms-at-scale): LLM-as-judge, eval frameworks, red-teaming, regression testing.
 - [Cost, Latency & Context Management](/articles/cost-latency-and-context-management): Token budgets, semantic caching, streaming, context window strategies.
 - [Contains Duplicate — The Coat Check](/articles/contains-duplicate-coat-check): Hash set pattern, O(n²) → O(n) speedup, story-framed.
+- [Valid Anagram — The Scrabble Swap](/articles/valid-anagram-scrabble-swap): Hash map counter, compare two strings without sorting.
+- [Two Sum — The Lunch Bill Split](/articles/two-sum-lunch-bill): Complement lookup, one-pass hash map, the classic interview problem.
+- [Group Anagrams — The Sock Drawer](/articles/group-anagrams-sock-drawer): Canonical key grouping, hash map buckets by sorted key.
+- [Top K Frequent — The Jukebox Charts](/articles/top-k-frequent-jukebox): Bucket sort, O(n) beats O(n log n) when range is bounded.
+- [Product Except Self — The Factory Line](/articles/product-except-self-factory-line): Prefix and suffix arrays, O(n) without division.
+- [Longest Consecutive — The Yearbook Chain](/articles/longest-consecutive-yearbook): Hash set with start-of-streak check, O(n) without sorting.
 - [Valid Palindrome — The Museum Mirror](/articles/valid-palindrome-museum-mirror): Two Pointers pattern, O(1) space, early exit, story-framed.
 
 ## Guides — System Design
