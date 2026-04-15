@@ -1,0 +1,269 @@
+---
+title: "Container With Most Water — The Rain Barrel"
+slug: container-most-water-rain-barrel
+category: dsa
+series: two-pointers
+seriesOrder: 4
+description: "Dungeon 2, Boss 4. A hardware store owner wants to nail two posts together to catch the most rainwater. Learn why the two-pointer greedy move is not magic, just good logic."
+tags:
+  - DSA
+  - Two Pointers
+  - Arrays
+  - Greedy
+  - Intermediate
+icon: "🪣"
+color: orange
+createdAt: "2026-04-15T11:00:00Z"
+updatedAt: "2026-04-15T11:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A hardware store owner has a row of wooden posts outside her shop, each a different height. She wants to nail two of them together with a flat board to catch rainwater between them. Big gap and tall posts means more water, but the water level is capped by the shorter post.
+
+    Trying every pair is fine for ten posts, but with a thousand posts it gets slow. There's a cleaner way. Put one finger on the first post and one on the last, then always move the shorter one inward. Never the taller one.
+
+    That's the whole trick. It feels almost too simple, and the first time you see it you think "that can't be right." It is right, and the reason is worth understanding once and never forgetting.
+  bn: |
+    এক হার্ডওয়্যার দোকানের সামনে এক সারি কাঠের খুঁটি বসানো আছে এবং একেকটার উচ্চতা একেক রকম। দোকানের মালিক খুঁটি দুটোর মাঝে একটা বোর্ড বসিয়ে বৃষ্টির পানি জমা করতে চান। খুঁটিগুলোর দূরত্ব এবং উচ্চতা যত বেশি হবে তত বেশি পানি ধরবে, কিন্তু পানির উচ্চতা সবসময় ছোট খুঁটিটার সমান হয়ে থেমে যায়।
+
+    দশটি খুঁটির জন্য সব জোড়া চেক করা যায়, কিন্তু এক হাজার খুঁটি হলে কাজটা অনেক ধীর হয়ে যাবে। এর চেয়ে পরিষ্কার একটা রাস্তা আছে। একটা আঙুল রাখুন প্রথম খুঁটিতে আর অন্যটা শেষ খুঁটিতে। তারপর সবসময় ছোট খুঁটিটাকে ভেতরের দিকে সরিয়ে আনুন। লম্বাটা ধরবেন না।
+
+    ব্যস, এটাই পুরো ট্রিক। প্রথমবার দেখলে মাথায় আসতে পারে "এটা কীভাবে সম্ভব", কিন্তু এটাই সঠিক নিয়ম। কেন এটা কাজ করে তা একবার বুঝে নিলে আপনি আর কক্ষনো ভুলবেন না।
+  hi: |
+    एक हार्डवेयर की दुकान के बाहर लकड़ी के बहुत सारे खंभे लगे हैं और सबकी ऊँचाई अलग-अलग है। दुकान की मालिक दो खंभों के बीच बोर्ड लगाकर बारिश का पानी इकट्ठा करना चाहती है। खंभों के बीच की दूरी और उनकी ऊँचाई जितनी ज़्यादा होगी पानी उतना ही ज़्यादा जमा होगा, पर पानी का स्तर हमेशा छोटे खंभे के बराबर ही रहता है।
+
+    दस खंभों के लिए हर जोड़ी को ढूँढना आसान है, लेकिन हज़ारों खंभों के लिए यह तरीका धीमा पड़ जाएगा। एक सीधा रास्ता भी है। एक उंगली पहले खंभे पर रखें और दूसरी आख़िरी पर। अब हमेशा छोटे खंभे वाली उंगली को ही अंदर की तरफ बढ़ाएं। बड़े वाले को नहीं।
+
+    यही पूरा खेल है। पहली बार में यह थोड़ा अजीब लग सकता है, लेकिन यह बिल्कुल सही है। एक बार इसकी वजह समझ लेंगे तो फिर कभी नहीं भूलेंगे।
+  ar: |
+    صاحبة متجر أدوات لديها صف من الأعمدة الخشبية بارتفاعات مختلفة. تريد اختيار عمودين لتثبت بينهما لوحاً وتجمع ماء المطر. المساحة الواسعة والأعمدة الطويلة تعني ماءً أكثر، لكن مستوى الماء يتحدد دائماً بطول العمود الأقصر بينهما.
+
+    تجربة كل زوج من الأعمدة قد تنجح مع عشرة فقط، لكنها ستكون بطيئة جداً مع ألف عمود. هناك طريقة أذكى. ضع إصبعاً على العمود الأول وإصبعاً على الأخير. ثم حرك دائماً العمود الأقصر للداخل، ولا تحرك الأطول أبداً.
+
+    هذه هي الخدعة ببساطة. في البداية قد تبدو غير منطقية، لكنها صحيحة تماماً. والسبب خلفها يستحق أن تفهمه مرة واحدة ليبقى في ذهنك للأبد.
+---
+
+## Welcome back
+
+Three bosses down. You've seen symmetric pointers (Boss 1), steered pointers on a sorted array (Boss 2), and composed pointers inside a loop (Boss 3).
+
+Boss 4 is the one that taught a lot of people to actually *trust* this pattern. The move feels like cheating. You ignore tons of possibilities on purpose, and somehow you still find the best answer. Understanding why that works is the real prize here.
+
+Today's boss: **The Rain Barrel**.
+
+---
+
+## The story
+
+You walk into a hardware store. The owner, Rina, is standing out back staring at a row of wooden posts nailed into the ground. They're all different heights.
+
+"What's up?" you ask.
+
+"I want to build a rain barrel," she says. "Pick two of these posts. I nail a flat board between them at the top of the shorter one. Water collects between them. I want the pair that holds the most water."
+
+You squint at the posts.
+
+```
+heights: [1, 8, 6, 2, 5, 4, 8, 3, 7]
+           0  1  2  3  4  5  6  7  8
+```
+
+You realize the amount of water each pair holds is:
+
+```
+water = min(left_height, right_height) * (right_index - left_index)
+```
+
+The width is the distance between the posts. The height is whichever post is **shorter** — water can't rise above the short one or it'd spill over.
+
+You could try every pair. With 9 posts that's 36 comparisons. Fine. But Rina says she has a storage lot with 10,000 posts in it. That's 50 million pair checks. No good.
+
+---
+
+## The problem, dressed up properly
+
+> Given `n` non-negative integers `height[0..n-1]`, where each represents the height of a vertical line, find two lines that together with the x-axis form a container that holds the most water. Return the maximum amount of water a container can store.
+
+You cannot tilt the container. Fair warning — that assumption is load-bearing for the whole trick.
+
+---
+
+## The naive way
+
+```python
+def max_area(height):
+    best = 0
+    n = len(height)
+    for i in range(n):
+        for j in range(i + 1, n):
+            area = min(height[i], height[j]) * (j - i)
+            best = max(best, area)
+    return best
+```
+
+Every pair. O(n²) time. With `n = 10,000`, that's 50 million iterations. Not great. Let's do better.
+
+---
+
+## The move
+
+Put a finger on the first post and a finger on the last post. Call the shorter post's height `h` and the distance between them `w`. Their area is `h * w`.
+
+Now here's the question that unlocks everything: **which finger should you move?**
+
+You have to move someone, because keeping them still doesn't get you anywhere. And whichever you move, the width shrinks by 1. So the only thing you can do to win is find taller posts.
+
+- If you move the **taller** pointer inward, the height of the container is still capped by the shorter post. It was shorter before, and the shorter post didn't move. You gain no height, and you lose width. **Strictly worse or equal.**
+- If you move the **shorter** pointer inward, you might find a taller post next, which could more than make up for the lost width. **Strictly better is at least possible.**
+
+So: **always move the shorter pointer.** Ignore the taller side. Sounds crazy. It isn't.
+
+<Callout type="tip" title="The greedy core">
+Every pair that involves the current shorter post as its shorter side is already worse or equal to the pair we just checked (same height, smaller width). So we lose nothing by retiring that short post. That is why we're allowed to move it and never look at it again.
+</Callout>
+
+---
+
+## Watching it work
+
+Let's run it on `[1, 8, 6, 2, 5, 4, 8, 3, 7]`.
+
+<MermaidBlock>
+graph TB
+    S1["L=0 (h=1), R=8 (h=7)\nwidth=8, min=1, area=8\nshorter is L, move L right"]
+    S2["L=1 (h=8), R=8 (h=7)\nwidth=7, min=7, area=49\nshorter is R, move R left"]
+    S3["L=1 (h=8), R=7 (h=3)\nwidth=6, min=3, area=18\nshorter is R, move R left"]
+    S4["L=1 (h=8), R=6 (h=8)\nwidth=5, min=8, area=40\nequal, move either, say R"]
+    S5["L=1 (h=8), R=5 (h=4)\nwidth=4, min=4, area=16\nshorter is R, move R left"]
+    S6["continue until pointers meet\nbest seen: 49"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style S3 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S4 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S5 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S6 fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Traced by hand:
+
+```
+heights: [1, 8, 6, 2, 5, 4, 8, 3, 7]
+
+L=0 (1), R=8 (7) → min(1,7) * 8 = 8    → move L (L is shorter)
+L=1 (8), R=8 (7) → min(8,7) * 7 = 49   → move R
+L=1 (8), R=7 (3) → min(8,3) * 6 = 18   → move R
+L=1 (8), R=6 (8) → min(8,8) * 5 = 40   → move either, say R
+L=1 (8), R=5 (4) → min(8,4) * 4 = 16   → move R
+L=1 (8), R=4 (5) → min(8,5) * 3 = 15   → move R
+L=1 (8), R=3 (2) → min(8,2) * 2 = 4    → move R
+L=1 (8), R=2 (6) → min(8,6) * 1 = 6    → move R
+L=1 == R → stop
+
+best = 49
+```
+
+Nine iterations. We checked 8 pairs out of 36 possible and still found the optimum. That's the win.
+
+---
+
+## The code
+
+```python
+def max_area(height: list[int]) -> int:
+    left, right = 0, len(height) - 1
+    best = 0
+
+    while left < right:
+        h = min(height[left], height[right])
+        w = right - left
+        best = max(best, h * w)
+
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+
+    return best
+```
+
+Read it slow. There are three lines of work per iteration: compute the area, update the best, move the shorter pointer. That's it. The whole function is under ten lines.
+
+---
+
+## Why is this correct?
+
+This is the part beginners skip, and I want you to not skip it. The question is: **how do we know we're not missing the best answer by ignoring all those pairs?**
+
+Claim: when we move the shorter pointer, we are throwing out pairs, but every pair we throw out is guaranteed to be worse than or equal to the one we just measured.
+
+**Proof sketch.** Suppose `height[L] < height[R]`. We're about to move `L`. The pairs we're throwing out are `(L, R-1), (L, R-2), ..., (L, L+1)` — all the pairs where `L` is still the left pointer.
+
+For any such pair `(L, k)` with `k < R`:
+
+- The height of the container is `min(height[L], height[k])`, which is at most `height[L]`.
+- The width is `k - L`, which is at most `R - L` (strictly less, actually).
+- So the area is at most `height[L] * (R - L)` — which is exactly the area we just computed.
+
+Every pair we skip has an area no better than the one we already have. Safe to skip. We move on.
+
+<Callout type="info" title="Why this matters">
+This argument is the entire reason two pointers is allowed to ignore things. Whenever you use a two-pointer greedy move, you should be able to explain why the pairs you are skipping can't beat what you already have. If you can't explain it, the algorithm probably isn't correct.
+</Callout>
+
+---
+
+## Why is this faster?
+
+Each step moves either `left` or `right` by one, and the pointers never cross. Total steps: at most `n - 1`. Each step does O(1) work.
+
+**O(n) time, O(1) space.**
+
+| | Brute force | Two Pointers |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Extra space | O(1) | O(1) |
+| Pairs examined | n²/2 | n |
+
+For 10,000 posts, that's 50 million ops vs 10,000. 5,000x speedup.
+
+---
+
+## Gotchas
+
+**1. Moving the taller pointer by accident.**
+Read your `if` statement twice. If `height[left] < height[right]`, you move `left`, not `right`. Flipping this gives wrong answers.
+
+**2. Ties.**
+When `height[left] == height[right]`, you can move either one. It doesn't matter. Both choices leave the same optimum reachable. Pick one and don't overthink it.
+
+**3. Off-by-one on width.**
+The width is `right - left`, not `right - left + 1`. Think about it this way: if posts are at indices 0 and 8, the water spans the gap between them, which is 8 units wide.
+
+**4. Trying to prove correctness by induction on a specific example.**
+It feels like magic because "skipping pairs" seems lossy. It isn't. Internalize the pair-comparison argument above, not the specific trace. The trace is a demo; the argument is the proof.
+
+---
+
+## The pattern inside the pattern
+
+Look at what just happened. You used two pointers, but not for symmetry (Boss 1), not for a target sum (Boss 2), not for an anchor plus a pair (Boss 3). You used them for a **greedy elimination**: at each step, you prove that one side of the decision is safe to discard, and you move on.
+
+That's a new shape. Whenever you see a problem where the answer is bounded by two positions and moving one side can only ever make a specific quantity worse, two pointers with a greedy move is suddenly on the table.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 4. Rina has her rain barrel, and she owes you coffee.
+
+What you walked away with:
+
+- A two-pointer greedy move (always advance the bottleneck)
+- A proof technique that makes the move feel obvious, not magic
+- An O(n) replacement for O(n²) with only a few lines of code
+
+Next up: **Boss 5 — The Rooftop Puddles.** The same city, now from above. Rain has fallen on a jagged skyline and you have to compute the total water trapped in the dips between buildings. This is the hardest boss in the dungeon. We'll build up to it slowly with a precompute trick first, then we'll refine it into a beautiful two-pointer version.
+
+Bring an umbrella.

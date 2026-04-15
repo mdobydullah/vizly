@@ -1,0 +1,253 @@
+---
+title: "Two Sum II — The Heist Loot Split"
+slug: two-sum-heist-loot
+category: dsa
+series: two-pointers
+seriesOrder: 2
+description: "Dungeon 2, Boss 2. Two thieves split a sorted bag of loot and need to hit an exact number. Learn how a sorted array unlocks a different shape of two pointers."
+tags:
+  - DSA
+  - Two Pointers
+  - Arrays
+  - Beginner
+icon: "💰"
+color: orange
+createdAt: "2026-04-15T10:00:00Z"
+updatedAt: "2026-04-15T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Two thieves just pulled a heist. The loot is in a bag, sorted from cheapest item to most expensive, and the rule is dead simple. Each thief picks exactly one item, and the two prices have to add up to the agreed split, no more no less.
+
+    You could try every pair, but with a thousand items that's a million checks. There's a faster way. Start with one finger on the cheapest item and one on the priciest. If the total is too high, the rich finger steps down. Too low, the cheap finger steps up.
+
+    That's Two Sum II. The bag being sorted is the whole trick. You walk both fingers inward and you find the pair in one clean pass.
+  bn: |
+    দুই চোর সবেমাত্র একটা চুরি শেষ করেছে। ব্যাগে সব মালামাল দাম অনুযায়ী সাজানো, সবচেয়ে সস্তা থেকে সবচেয়ে দামি। নিয়ম খুব সহজ। প্রত্যেক চোর ঠিক একটা করে জিনিস নেবে, আর দুই জিনিসের দাম যোগ করলে যা ঠিক করা ছিল ঠিক ততটাই হতে হবে।
+
+    আপনি চাইলে সব জোড়া চেক করে দেখতে পারেন, কিন্তু হাজারটা জিনিস হলে সেটা দশ লাখ বার চেক করা হবে। তার চেয়ে সহজ একটা বুদ্ধি আছে। একটা আঙুল রাখুন সবচেয়ে সস্তার ওপর, আর অন্যটা সবচেয়ে দামিটার ওপর। যোগফল টার্গেটের চেয়ে বেশি হলে দামি আঙুলটা এক ধাপ নামিয়ে দিন। কম হলে সস্তা আঙুলটা এক ধাপ আগিয়ে নিন।
+
+    এটাই Two Sum II। ব্যাগটা সাজানো থাকাটাই এখানে আসল চাবি। দুই আঙুল মাঝখানের দিকে সরাতে সরাতেই আপনি সঠিক জোড়াটা পেয়ে যাবেন।
+  hi: |
+    दो चोरों ने अभी-अभी एक चोरी की है। बैग में सारा सामान कीमत के हिसाब से सजाया हुआ है, सबसे सस्ते से सबसे महंगे तक। नियम सीधा है। हर चोर को बस एक चीज़ लेनी है और दोनों की कुल कीमत एकदम बराबर होनी चाहिए।
+
+    आप हर जोड़ी को आज़मा सकते हैं, पर हज़ार चीज़ों के साथ यह दस लाख बार चेक करना हो जाएगा। एक ज़्यादा तेज़ तरीका है। एक उंगली सबसे सस्ती चीज़ पर रखें और दूसरी सबसे महंगी पर। अगर जोड़ ज़्यादा है, तो महंगी वाली उंगली को पीछे लाएं। अगर कम है, तो सस्ती वाली उंगली को आगे बढ़ाएं।
+
+    यही Two Sum II है। बैग का पहले से सजा होना ही असली जादू है। दोनों उंगलियों को बीच की तरफ लाते ही आपको सही जोड़ी मिल जाएगी।
+  ar: |
+    لصّان سرقا للتو حقيبة مليئة بالذهب والمجوهرات. المسروقات مرتبة حسب السعر، من الأرخص إلى الأغلى. القاعدة بسيطة. كل لص يختار قطعة واحدة فقط، ومجموع سعر القطعتين يجب أن يساوي المبلغ المتفق عليه بالضبط.
+
+    يمكنك تجربة كل الاحتمالات، لكن مع ألف قطعة ستحتاج لمليون محاولة. هناك طريقة أسرع. ضع إصبعاً على الأرخص وإصبعاً على الأغلى. إذا كان المجموع كبيراً، حرك الإصبع "الغالي" للخلف. وإذا كان صغيراً، حرك الإصبع "الرخيص" للأمام.
+
+    هذه هي فكرة Two Sum II. السر كله في أن الحقيبة مرتبة. حرك الإصبعين نحو المنتصف وستجد القطعتين في جولة واحدة فقط.
+---
+
+## Welcome back
+
+Boss 1 taught you the basic shape: one finger at each end, walk inward. The Museum Mirror was symmetric, so both fingers always moved together.
+
+This boss is sneakier. The fingers still start at the ends and they still walk inward, but they don't always step at the same time. Sometimes only one moves. The reason is going to teach you the most important idea in this whole dungeon.
+
+Today's boss: **The Heist Loot Split**.
+
+---
+
+## The story
+
+Two thieves. One bag. A clean job done well.
+
+The bag has a bunch of stolen items inside, each with a price tag. Crucially, before they ran, they shoved everything into the bag in **price order** — cheapest at the bottom, priciest at the top. Don't ask why. Thieves are weird.
+
+Now they're back at the safehouse. The fence outside will pay exactly **$50** for any pair of items, no more, no less. They need to grab one item each so the two prices sum to fifty.
+
+They tip out the bag.
+
+```
+prices: [3, 8, 12, 19, 27, 31, 42, 47]
+target: 50
+```
+
+The first thief, who is impatient, just starts trying combinations.
+
+"3 plus 8? No. 3 plus 12? No. 3 plus 19? No..."
+
+The second thief, who is smarter, sighs.
+
+"There's a better way. Look. They're sorted."
+
+---
+
+## The problem, dressed up properly
+
+Here's the LeetCode version:
+
+> Given a 1-indexed array `numbers` that is sorted in non-decreasing order, find two numbers such that they add up to a specific `target`. Return the indices of the two numbers as a 1-indexed pair.
+
+The key word — and we'll come back to this a lot — is **sorted**. If the array weren't sorted, this would be a different problem with a different solution (you'd reach for the hash map from Dungeon 1). But it *is* sorted, and that changes everything.
+
+---
+
+## The naive way
+
+Impatient Thief's approach. Try every pair.
+
+```python
+def two_sum(numbers, target):
+    n = len(numbers)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if numbers[i] + numbers[j] == target:
+                return [i + 1, j + 1]
+```
+
+Two nested loops. For each item, check it against every other item. With `n` items this is roughly `n*n/2` comparisons. With 8 items, that's 28 checks. With 1,000 items, half a million. With 100,000 items? Five billion. You're not shipping that.
+
+Smart Thief is right. There's a better way, and the array being sorted is what unlocks it.
+
+---
+
+## Unlocking the weapon: directional two pointers
+
+Here's the trick. Put one finger on the cheapest item and one on the priciest.
+
+```
+prices: [3, 8, 12, 19, 27, 31, 42, 47]
+         ^                            ^
+         L                            R
+sum = 3 + 47 = 50
+```
+
+Now ask the question: is `prices[L] + prices[R]` equal to the target?
+
+- **Equal?** Done. You found the pair.
+- **Too big?** The right pointer is sitting on something too expensive. Move it left to a cheaper item.
+- **Too small?** The left pointer is sitting on something too cheap. Move it right to a pricier item.
+
+That's the whole pattern. And the reason it works — really, deeply works — is because the array is sorted.
+
+<Callout type="tip" title="Why sorted matters">
+When the array is sorted, moving the right pointer left can only ever decrease the sum. Moving the left pointer right can only ever increase it. That gives you a directional knob. You're not guessing, you're steering.
+</Callout>
+
+---
+
+## Watching it work
+
+Different example. Same idea.
+
+```
+prices: [2, 5, 9, 14, 18, 23, 30, 41]
+target: 32
+```
+
+<MermaidBlock>
+graph TB
+    S1["L=0 (val 2), R=7 (val 41)\nsum = 43, too big\nshrink R"]
+    S2["L=0 (val 2), R=6 (val 30)\nsum = 32, found it"]
+    S1 --> S2
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Two steps. That's it. Compare to the naive approach which would've checked 2+5, 2+9, 2+14, 2+18, 2+23, 2+30, 2+41, 5+9... before it got there.
+
+Let's try a harder one to see both pointers move.
+
+```
+prices: [1, 4, 6, 8, 11, 15, 20, 27]
+target: 19
+```
+
+```
+Step 1: L=0 (1),  R=7 (27) → 28, too big   → R--
+Step 2: L=0 (1),  R=6 (20) → 21, too big   → R--
+Step 3: L=0 (1),  R=5 (15) → 16, too small → L++
+Step 4: L=1 (4),  R=5 (15) → 19, found!
+```
+
+Four steps. Both pointers moved. Notice we never went backwards, and we never visited the same pair twice.
+
+---
+
+## The code
+
+```python
+def two_sum(numbers: list[int], target: int) -> list[int]:
+    left, right = 0, len(numbers) - 1
+
+    while left < right:
+        current = numbers[left] + numbers[right]
+
+        if current == target:
+            return [left + 1, right + 1]  # 1-indexed
+        elif current < target:
+            left += 1
+        else:
+            right -= 1
+
+    return []  # problem guarantees a solution exists
+```
+
+Read it line by line. The whole thing fits in your head. There are only three branches: equal, too small, too big. Each branch makes exactly one decision and the loop keeps running.
+
+---
+
+## Why is this faster?
+
+Each step does one of two things: move left right, or move right left. The pointers can never cross. That means the total number of moves across the whole algorithm is at most `n - 1`.
+
+So the runtime is **O(n)** time and **O(1)** extra space.
+
+| | Naive (two loops) | Two Pointers |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Extra space | O(1) | O(1) |
+| Needs sorted? | No | **Yes** |
+| Pairs visited | up to n²/2 | up to n |
+
+For 100,000 items, the naive version does about 5 billion operations and the two pointer version does about 100,000. Same answer. Different planet.
+
+<Callout type="info" title="What if the array isn't sorted?">
+Then this trick doesn't work. You either sort first (O(n log n) and you lose the original indices) or you reach for a hash map (O(n) time, O(n) space). The Lunch Bill Split boss in Dungeon 1 was exactly that hash map version. This boss is its sorted cousin.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting it's 1-indexed.**
+LeetCode wants `[left + 1, right + 1]`, not `[left, right]`. Read the problem twice.
+
+**2. Using `<=` instead of `<` in the loop.**
+If `left == right`, you'd be picking the same item twice. The problem says you must use two different elements. Stick with `left < right`.
+
+**3. Forgetting the array is already sorted.**
+This is the most common mistake when you're new. You see "find two numbers that sum to X" and your brain jumps straight to hash map. Slow down. Check whether the input is sorted. If yes, two pointers is cheaper because it uses no extra memory.
+
+**4. Off-by-one on the initial right pointer.**
+It's `len(numbers) - 1`, not `len(numbers)`. Forgetting that is a guaranteed crash on the first iteration.
+
+---
+
+## The pattern is shifting
+
+Notice what just happened. In Boss 1, both pointers always moved together every step. Here, only one pointer moves per step, and which one depends on what we just saw.
+
+This is a more general version of two pointers. The fingers are still at opposite ends, but they're being **steered** by the result of each comparison. In the next boss, we'll add another twist: there will be three things to find instead of two, and the outer loop will pick one while the inner two pointers find the other two.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 2. Two thieves, one bag, fifty bucks.
+
+What you walked away with:
+
+- The "sorted array" superpower — when you see sorted input, two pointers is almost always on the table
+- Directional pointer movement (only the side that's wrong moves)
+- An O(n) replacement for an O(n²) brute force without using any extra memory
+
+Next up: **Boss 3 — The Party Table Seating.** A party host needs to seat guests at a round table such that any three of them sum to zero on the IOU board. You'll learn how to layer two pointers *inside* a loop to solve a problem with three moving parts. It looks scary. It isn't.
+
+See you at the party.

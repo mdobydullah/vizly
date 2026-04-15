@@ -17,7 +17,7 @@
 - [Multimodal & Generative AI](/series/multimodal-generative-ai): How AI creates images, videos, and more — diffusion models to the cutting edge. 4 articles.
 - [Production AI Engineering](/series/production-ai-engineering): Build, serve, evaluate, and maintain AI systems in production. 8 articles.
 - [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
-- [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Two Pointers pattern without the dry LeetCode grind. 6 articles.
+- [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Full Two Pointers pattern across 6 story-framed bosses. Complete.
 
 ## Articles
 
@@ -65,6 +65,11 @@
 - [Product Except Self — The Factory Line](/articles/product-except-self-factory-line): Prefix and suffix arrays, O(n) without division.
 - [Longest Consecutive — The Yearbook Chain](/articles/longest-consecutive-yearbook): Hash set with start-of-streak check, O(n) without sorting.
 - [Valid Palindrome — The Museum Mirror](/articles/valid-palindrome-museum-mirror): Two Pointers pattern, O(1) space, early exit, story-framed.
+- [Two Sum II — The Heist Loot Split](/articles/two-sum-heist-loot): Steered two pointers on a sorted array, O(n) target-sum lookup.
+- [3Sum — The Party Table Seating](/articles/three-sum-party-table): Outer loop plus inner two pointers, dedup-as-you-walk, O(n²) triples.
+- [Container With Most Water — The Rain Barrel](/articles/container-most-water-rain-barrel): Greedy two pointers, always advance the shorter side, O(n) max area.
+- [Trapping Rain Water — The Rooftop Puddles](/articles/trapping-rain-water-rooftop): Running max two pointers, O(1) space, hardest Two Pointers boss.
+- [Remove Duplicates — The Guest List Cleanup](/articles/remove-duplicates-guest-list): Fast-slow two pointers, in-place array rewriting, O(1) space.
 
 ## Guides — System Design
 

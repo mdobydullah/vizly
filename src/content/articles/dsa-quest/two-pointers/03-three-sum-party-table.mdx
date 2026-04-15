@@ -1,0 +1,330 @@
+---
+title: "3Sum — The Party Table Seating"
+slug: three-sum-party-table
+category: dsa
+series: two-pointers
+seriesOrder: 3
+description: "Dungeon 2, Boss 3. A party host needs to seat three guests whose IOUs cancel out. Learn how to layer two pointers inside a loop without losing your mind."
+tags:
+  - DSA
+  - Two Pointers
+  - Arrays
+  - Sorting
+  - Intermediate
+icon: "🎉"
+color: orange
+createdAt: "2026-04-15T10:30:00Z"
+updatedAt: "2026-04-15T10:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A friend is throwing a dinner and wants to seat three guests together, but only if their IOUs cancel out to zero. Some people are owed money, some owe money, and some are even. The host wants every clean trio she can find without inviting the same group twice.
+
+    Trying every possible trio with three nested loops is fine for ten guests, but a party of a hundred turns into a million checks. There's a smarter way. Sort the IOUs first. Pick one guest, then run two fingers across the rest of the list to find the pair that balances them out.
+
+    That's 3Sum. One outer loop picks the anchor, two pointers do the matching, and a small skip step keeps duplicate trios out of the guest list.
+  bn: |
+    এক বন্ধু একটা ডিনার পার্টি দিচ্ছে। সে তিনজন অতিথিকে একসাথে বসাতে চায় তখনই, যখন তাদের সবার দেনা-পাওনা যোগ করলে শূন্য হয়। কারও হয়তো অনেক টাকা ঋণ আছে, কেউ আবার অনেক টাকা পায়। হোস্টের কাজ হলো এমন সব ত্রয়ী খুঁজে বের করা এবং একই গ্রুপকে দুবার না দাওয়াত দেওয়া।
+
+    দশজন অতিথির জন্য তিনটা লুপ ঘুরিয়ে কাজ চালানো যায়, কিন্তু একশজন হলে প্রায় দশ লাখ বার চেক করতে হবে। এর চেয়ে সহজ একটা বুদ্ধি আছে। আগে দেনা-পাওনার লিস্টটা সাজিয়ে নিন। তারপর একজনকে ফিক্সড রেখে বাকি লিস্টের ওপর দুটো আঙুল চালিয়ে এমন জোড়া খুঁজুন যেটা প্রথমজনকে ব্যালেন্স করে দেয়।
+
+    এটাই 3Sum। বাইরের একটা লুপ একজনকে বেছে নেয়, ভেতরে Two Pointers বাকি জোড়া মেলায়, আর ছোট্ট একটা ট্রিক একই গ্রুপকে বারবার আসতে বাধা দেয়।
+  hi: |
+    एक दोस्त डिनर पार्टी दे रही है। वह तीन मेहमानों को एक साथ तभी बिठाना चाहती है जब उनके लेन-देन का हिसाब मिलकर शून्य हो जाए। कोई पैसे माँगता है, किसी पर उधार है, और कोई बराबर पर है। होस्ट को ऐसे सभी ग्रुप ढूँढने हैं, पर एक ही ग्रुप को दोबारा लिस्ट में नहीं डालना है।
+
+    दस मेहमानों के लिए तीन लूप चलाना ठीक है, पर सौ लोगों के लिए यह दस लाख चेक बन जाएगा। एक बेहतर तरीका भी है। पहले लिस्ट को सॉर्ट कर लें। फिर एक मेहमान को चुनकर बाकी लिस्ट पर दो उंगलियाँ चलाएं और वह जोड़ी ढूँढें जो हिसाब बराबर कर दे।
+
+    यही 3Sum है। बाहरी लूप एक एंकर चुनता है, Two Pointers बाकी जोड़ी ढूँढते हैं, और एक छोटा सा स्टेप एक ही ग्रुप को बार-बार आने से रोकता है।
+  ar: |
+    صديقتك تقيم حفل عشاء وتريد إجلاس كل ثلاثة ضيوف معاً بشرط أن تتعادل ديونهم وتصبح صفراً. بعضهم يطلب مالاً، وبعضهم مديون، والبعض حسابه متوازن. المضيفة تريد العثور على كل الثلاثيات الممكنة دون تكرار نفس المجموعة مرتين.
+
+    تجربة كل الاحتمالات بثلاث حلقات متداخلة قد تنجح مع عشرة ضيوف، لكن مع مئة ضيف ستحتاج لمليون عملية. هناك طريقة أذكى. رتب قائمة الديون أولاً. اختر ضيفاً واحداً، ثم استخدم إصبعين على بقية القائمة لإيجاد الزوج الذي يوازن الحساب.
+
+    هذه هي فكرة 3Sum. حلقة خارجية تختار الضيف الأول، و Two Pointers يبحثان عن البقية، مع خطوة بسيطة لمنع تكرار نفس الأشخاص في القائمة.
+---
+
+## Welcome back
+
+Boss 2 was clean. Two pointers, sorted array, find a pair. You should be feeling good.
+
+Now we add a twist. Instead of finding two numbers that sum to a target, we have to find **three** numbers that sum to zero. And we have to find *all* such trios, without listing the same one twice.
+
+This is the moment a lot of people freeze. "Three numbers? Three nested loops? My brain is melting."
+
+Don't worry. The trick is small. We turn three things into "one pick plus two pointers." Watch.
+
+Today's boss: **The Party Table Seating**.
+
+---
+
+## The story
+
+Your friend Mira is throwing a dinner party. She has a guest list and she wants to seat people in trios at small round tables. But there's a catch.
+
+Mira keeps an IOU board for her friend group. Some people are owed money (positive number). Some owe money (negative). Some are even (zero). She wants every trio at every table to **sum to zero**, so the conversation stays light and nobody glares across the table.
+
+Tonight's IOU board:
+
+```
+ious: [-4, -1, -1, 0, 1, 2, 5]
+```
+
+She needs every clean trio. And she's strict: if two trios contain the exact same three people, that's the same trio. Don't list it twice.
+
+You think for a second. With seven names, you could just try every combination. But Mira's circle is growing. Last year was twenty people. This year it's seventy. Next year? Three nested loops on a hundred names would be a million combinations. There has to be a better way.
+
+---
+
+## The problem, dressed up properly
+
+LeetCode version:
+
+> Given an integer array `nums`, return all the unique triplets `[nums[i], nums[j], nums[k]]` such that `i != j`, `i != k`, `j != k`, and `nums[i] + nums[j] + nums[k] == 0`.
+>
+> The solution set must not contain duplicate triplets.
+
+Two things matter here:
+
+1. **Sum to zero.** Same vibe as Boss 2, but with three numbers instead of two.
+2. **No duplicates.** This is the part that catches people. We'll handle it carefully.
+
+---
+
+## The naive way
+
+Three nested loops. Try every combination.
+
+```python
+def three_sum(nums):
+    result = set()
+    n = len(nums)
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                if nums[i] + nums[j] + nums[k] == 0:
+                    triplet = tuple(sorted([nums[i], nums[j], nums[k]]))
+                    result.add(triplet)
+    return [list(t) for t in result]
+```
+
+Works. Slow. With `n` items it's about `n³/6` checks. For 100 items, around 160,000. For 1,000 items, 160 million. Already painful. For 10,000? Forget it.
+
+We need to flatten the third loop.
+
+---
+
+## The trick: pick one, two-pointer the rest
+
+Here's the move that unlocks the whole problem.
+
+If we want three numbers that sum to zero, that's the same as saying: **pick one number `a`, then find two other numbers that sum to `-a`.**
+
+And finding two numbers that sum to a target in a sorted array? That's Boss 2. We already know how to do that in O(n).
+
+So the plan is:
+
+1. **Sort the array first.** This is essential for two reasons: it lets us use two pointers, and it lets us skip duplicates easily.
+2. **Loop through each element `a`.** For each one, set a target of `-a`.
+3. **Two pointers on the rest of the array** to find pairs that sum to `-a`.
+4. **Skip duplicates** when stepping forward at any level so we never report the same trio twice.
+
+Let's go.
+
+---
+
+## Watching it work
+
+Start with our list, sorted:
+
+```
+sorted: [-4, -1, -1, 0, 1, 2, 5]
+```
+
+We iterate `i` through each index. At each `i`, we set `L = i + 1` and `R = n - 1`, then run two pointers looking for `nums[L] + nums[R] == -nums[i]`.
+
+<MermaidBlock>
+graph TB
+    A["i=0 (val -4), target = 4\nL=1, R=6\nrun two pointers"]
+    B["i=1 (val -1), target = 1\nL=2, R=6\nrun two pointers"]
+    C["i=2 (val -1), duplicate of i=1\nskip"]
+    D["i=3 (val 0), target = 0\nL=4, R=6\nrun two pointers"]
+    E["i=4 onward\nany remaining trio already counted\nstop early when nums i is positive"]
+    A --> B --> C --> D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Let's trace `i=0`, `nums[i] = -4`, target = 4.
+
+```
+sorted: [-4, -1, -1, 0, 1, 2, 5]
+              ^                ^
+              L                R
+
+L=1 (-1), R=6 (5) → -1 + 5 = 4 → found! trio: [-4, -1, 5]
+                    move L right, move R left
+L=2 (-1), R=5 (2) → -1 + 2 = 1 → too small, L++
+L=3 (0),  R=5 (2) → 0 + 2 = 2  → too small, L++
+L=4 (1),  R=5 (2) → 1 + 2 = 3  → too small, L++
+L=5, R=5 → pointers met, stop
+```
+
+One trio so far: `[-4, -1, 5]`.
+
+Now `i=1`, `nums[i] = -1`, target = 1.
+
+```
+sorted: [-4, -1, -1, 0, 1, 2, 5]
+                  ^           ^
+                  L           R
+
+L=2 (-1), R=6 (5) → -1 + 5 = 4  → too big, R--
+L=2 (-1), R=5 (2) → -1 + 2 = 1  → found! trio: [-1, -1, 2]
+                    L++, R--
+L=3 (0),  R=4 (1) → 0 + 1 = 1   → found! trio: [-1, 0, 1]
+                    L++, R--
+L=4, R=3 → crossed, stop
+```
+
+Two more trios. Now `i=2`, `nums[i] = -1`. But wait — `nums[2] == nums[1]`. If we run the two pointers from here, we'll just find the same trios again. **Skip.**
+
+`i=3`, `nums[i] = 0`, target = 0.
+
+```
+L=4 (1), R=6 (5) → 1 + 5 = 6 → too big, R--
+L=4 (1), R=5 (2) → 1 + 2 = 3 → too big, R--
+L=4, R=4 → pointers met, stop
+```
+
+No trio.
+
+`i=4`, `nums[i] = 1`. Now we can stop early. The array is sorted, so if the smallest of our three numbers is positive, the sum can't be zero. Break.
+
+Final answer:
+
+```
+[[-4, -1, 5], [-1, -1, 2], [-1, 0, 1]]
+```
+
+---
+
+## The code
+
+```python
+def three_sum(nums: list[int]) -> list[list[int]]:
+    nums.sort()
+    n = len(nums)
+    result = []
+
+    for i in range(n - 2):
+        # if the smallest number is already positive, no triple can sum to 0
+        if nums[i] > 0:
+            break
+        # skip duplicate anchors
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+
+        left, right = i + 1, n - 1
+        target = -nums[i]
+
+        while left < right:
+            s = nums[left] + nums[right]
+            if s == target:
+                result.append([nums[i], nums[left], nums[right]])
+                left += 1
+                right -= 1
+                # skip duplicate left
+                while left < right and nums[left] == nums[left - 1]:
+                    left += 1
+                # skip duplicate right
+                while left < right and nums[right] == nums[right + 1]:
+                    right -= 1
+            elif s < target:
+                left += 1
+            else:
+                right -= 1
+
+    return result
+```
+
+Walk it slowly. The shape is: sort, outer loop picks `i`, inner two pointers look for the pair, three deduping skips.
+
+The deduping skips are the only tricky part. Let's name what each does:
+
+1. **Skip duplicate `i`.** If `nums[i] == nums[i-1]`, we already ran the same anchor. Move on.
+2. **Skip duplicate `left` after a hit.** Once we found a trio, if the next `left` is the same value, it would just give us the same trio. Skip.
+3. **Skip duplicate `right` after a hit.** Same reasoning, mirror image.
+
+You don't need duplicate-skipping when the inner sum is wrong, only after a successful hit. The wrong-sum branches already advance their pointers anyway.
+
+---
+
+## Why is this faster?
+
+- **Sort** is O(n log n).
+- **Outer loop** runs `n` times.
+- **Inner two pointers** is O(n) per outer iteration.
+
+Total: O(n log n) + O(n²) = **O(n²)** time. Space is O(1) extra (or O(log n) if you count the sort's stack).
+
+Compare to brute force:
+
+| | Brute force (3 loops) | Sort + two pointers |
+|---|---|---|
+| Time | O(n³) | **O(n²)** |
+| Extra space | O(1) | O(log n) for sort |
+| Dedup | Hash set on tuples | Built into the walk |
+
+For n=1,000: brute force does ~160 million operations, two pointers does ~1 million. About 160x faster. As `n` grows, the gap explodes.
+
+<Callout type="info" title="Pattern within a pattern">
+You just composed two patterns. The outer loop picks an element. The inner block runs Boss 2 with a target equal to the negative of that element. This composition trick (one loop plus an inner two pointers) appears in 4Sum, 3Sum Closest, and several others. Once you see it, you see it everywhere.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting to sort.**
+This whole approach falls apart on an unsorted array. You'll get wrong answers, missed trios, and duplicates. Sort first. Always.
+
+**2. Forgetting to dedupe at all three levels.**
+There are three places duplicates leak in: the outer `i`, the `left` after a hit, and the `right` after a hit. Miss any of them and you'll get duplicate trios in the output.
+
+**3. Skipping `i` the wrong way.**
+The check is `if i > 0 and nums[i] == nums[i - 1]`. The `i > 0` guard matters — without it you'd index into `nums[-1]` on the first iteration, which in Python silently wraps around to the last element and gives wrong results.
+
+**4. Breaking too early.**
+The early-exit `if nums[i] > 0: break` only works because the array is sorted. If you forget the sort, this break gives wrong answers fast.
+
+**5. Comparing `left` against `left - 1` before incrementing.**
+The dedupe loop runs *after* `left += 1`, so `left - 1` refers to the value we just used. That's intentional. Read the order carefully.
+
+---
+
+## You just leveled up
+
+Boss 1 was symmetric pointers. Boss 2 was steered pointers. Boss 3 is a *composition*: an outer loop picks an anchor and the two pointers handle everything else. This is one of the most reusable shapes in all of algorithms.
+
+Once you have this, you can do 4Sum (two loops outside, two pointers inside), 3Sum Closest (track the closest sum instead of zero), and a dozen other variants. They all wear the same skeleton.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 3. The dinner party has its trios.
+
+What you walked away with:
+
+- The composition trick: outer pick + inner two pointers
+- Three-level deduping without a hash set
+- An O(n²) replacement for an O(n³) brute force
+- The "sort first" reflex when you see "find combinations that sum to X"
+
+Next up: **Boss 4 — The Rain Barrel.** A hardware store owner has a bunch of vertical posts and wants to nail two of them together to hold the most rainwater between them. You'll meet a flavor of two pointers where the question isn't "is this the right pair?" but "which side should I move to *maybe* find a better one?" The greedy logic is beautiful. Don't miss it.
+
+See you outside the shop.

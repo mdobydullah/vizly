@@ -106,14 +106,14 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 6: Product Except Self — Factory Line (prefix/suffix)
 - [x] Boss 7: Longest Consecutive — Yearbook Chain (hash set streak walking)
 
-### Dungeon 2 — Two Pointers (in progress)
+### Dungeon 2 — Two Pointers (COMPLETE)
 - [x] Series JSON created
 - [x] Boss 1: Valid Palindrome (Museum Mirror)
-- [ ] Boss 2: Two Sum II (Heist Loot Split)
-- [ ] Boss 3: 3Sum (Party Table Seating)
-- [ ] Boss 4: Container With Most Water (Rain Barrel)
-- [ ] Boss 5: Trapping Rain Water (Rooftop Puddles)
-- [ ] Boss 6: Remove Duplicates (Guest List Cleanup)
+- [x] Boss 2: Two Sum II (Heist Loot Split)
+- [x] Boss 3: 3Sum (Party Table Seating)
+- [x] Boss 4: Container With Most Water (Rain Barrel)
+- [x] Boss 5: Trapping Rain Water (Rooftop Puddles)
+- [x] Boss 6: Remove Duplicates (Guest List Cleanup)
 
 ### Dungeons 3-18
 - [ ] Stack, Binary Search, Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry

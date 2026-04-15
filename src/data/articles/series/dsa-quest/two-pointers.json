@@ -6,7 +6,7 @@
   "color": "orange",
   "tags": ["DSA", "Algorithms", "Two Pointers"],
   "createdAt": "2026-04-14T12:00:00Z",
-  "updatedAt": "2026-04-14T14:30:00Z",
+  "updatedAt": "2026-04-15T12:00:00Z",
   "articles": [
     { "order": 1, "slug": "valid-palindrome-museum-mirror", "title": "Valid Palindrome — The Museum Mirror" },
     { "order": 2, "slug": "two-sum-heist-loot", "title": "Two Sum II — The Heist Loot Split" },

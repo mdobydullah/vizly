@@ -1,0 +1,400 @@
+---
+title: "Trapping Rain Water — The Rooftop Puddles"
+slug: trapping-rain-water-rooftop
+category: dsa
+series: two-pointers
+seriesOrder: 5
+description: "Dungeon 2, Boss 5. Compute how much rain gets trapped in a jagged skyline. The hardest boss in the dungeon, solved twice: once with precomputed arrays and once with pure two pointers."
+tags:
+  - DSA
+  - Two Pointers
+  - Arrays
+  - Hard
+icon: "🌧️"
+color: orange
+createdAt: "2026-04-15T11:30:00Z"
+updatedAt: "2026-04-15T11:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Imagine you are looking at a city skyline from the side. Every building is a bar, different heights, packed side by side. A big storm hits and rain falls on the rooftops. Water pools in the dips between tall buildings and spills off the edges where nothing blocks it.
+
+    Your job is to figure out how much rain is trapped in total. The rule is simple. At any spot, the water sitting there is capped by the shorter of the tallest building on its left and the tallest building on its right, minus the building that is actually under your feet.
+
+    This is the hardest boss in the dungeon. We solve it twice. Once the obvious way with two extra arrays, then again with pure two pointers, no extra arrays at all.
+  bn: |
+    কল্পনা করুন আপনি পাশ থেকে একটা শহরের স্কাইলাইন দেখছেন। প্রতিটি বিল্ডিং একটি বারের মতো, যার উচ্চতা আলাদা এবং একটির সাথে আরেকটি লাগানো। হঠাৎ বড় এক ঝড়ে বিল্ডিংগুলোর ছাদে প্রচুর বৃষ্টি হলো। লম্বা বিল্ডিংগুলোর মাঝখানের নিচু জায়গাগুলোতে পানি জমে পাহাড়ের খাঁজের মতো পু puddle তৈরি হলো।
+
+    আপনার কাজ হলো মোট কতটুকু পানি এখানে আটকে আছে তা বের করা। নিয়মটা সহজ। যেকোনো একটি পয়েন্টে কতটুকু পানি জমবে তা নির্ভর করে তার বাম পাশের সবচেয়ে উঁচু বিল্ডিং এবং ডান পাশের সবচেয়ে উঁচু বিল্ডিংয়ের ওপর। এই দুটোর মধ্যে যেটা ছোট, পানি সেই উচ্চতা পর্যন্তই জমবে। সেখান থেকে ওই জায়গার বিল্ডিংয়ের উচ্চতা বিয়োগ দিলেই জমা পানির পরিমাণ পাওয়া যাবে।
+
+    এটি এই ডানজিয়নের সবচেয়ে কঠিন বস। আমরা এটি দুবার সমাধান করব। প্রথমে সহজ পদ্ধতিতে দুটি বাড়তি অ্যারে ব্যবহার করে, তারপর আবার শুধুমাত্র Two Pointers দিয়ে কোনো বাড়তি মেমরি ছাড়াই।
+  hi: |
+    कल्पना कीजिए कि आप शहर की स्काईलाइन को किनारे से देख रहे हैं। हर बिल्डिंग एक बार की तरह है, सबकी ऊँचाई अलग है और वे एक-दूसरे से सटी हुई हैं। एक बड़े तूफ़ान में छतों पर बहुत बारिश होती है। ऊँची इमारतों के बीच के गड्ढों में पानी जमा हो जाता है और जहाँ कोई रुकावट नहीं होती वहाँ से बह जाता है।
+
+    आपका काम यह पता लगाना है कि कुल कितना पानी जमा हुआ है। नियम सीधा है। किसी भी जगह पर पानी का स्तर उसकी बाईं और दाईं ओर की सबसे ऊँची इमारतों में से छोटी वाली इमारत तय करती है। उस स्तर में से वहाँ की अपनी बिल्डिंग की ऊँचाई घटाने पर आपको जमा पानी की मात्रा मिल जाएगी।
+
+    यह इस डंजन का सबसे कठिन बॉस है। हम इसे दो बार हल करेंगे। पहले दो एक्स्ट्रा ऐरे वाले आसान तरीके से, और फिर बिना किसी एक्स्ट्रा ऐरे के सिर्फ Two Pointers का इस्तेमाल करके।
+  ar: |
+    تخيل أنك تنظر إلى أفق المدينة من بعيد. كل مبنى عبارة عن عمود بارتفاع مختلف، وكلها مصطفة بجانب بعضها. هبت عاصفة قوية وتساقط المطر فوق الأسطح. تجمعت المياه في المنخفضات بين المباني العالية، بينما تسربت من الأماكن التي لا يوجد لها ساتر.
+
+    مهمتك هي حساب كمية المطر الإجمالية المحتجزة. القاعدة بسيطة. في أي نقطة، مستوى الماء يعتمد على أطول مبنى على اليسار وأطول مبنى على اليمين. الارتفاع سيكون موازياً للمبنى الأقصر بينهما، وبطرح ارتفاع المبنى الحالي من هذا المستوى تحصل على كمية الماء المحتجزة.
+
+    هذا هو أصعب زعيم في الزنزانة. سنقوم بحله بطريقتين. الأولى هي الطريقة التقليدية باستخدام مصفوفتين إضافيتين، والثانية باستخدام Two Pointers فقط دون استهلاك أي ذاكرة إضافية.
+---
+
+## Welcome back
+
+This is the one everyone dreads. Trapping Rain Water has a reputation. Interviewers love it because the naive version is easy to describe and the fast version is hard to find.
+
+Here's the plan. We're going to solve it in three passes.
+
+1. **Think out loud** until the formula clicks.
+2. **Solve it with extra arrays** (the obvious approach).
+3. **Refine it into pure two pointers** (the fast approach).
+
+Each step is smaller than it looks. Take your time. Today's boss: **The Rooftop Puddles**.
+
+---
+
+## The story
+
+You're on a news helicopter circling the city after a storm. Below you, the skyline looks like a bar chart. Some buildings are tall, some are short, some are medium. Between the tall buildings, rainwater pools into puddles on the flat roofs.
+
+Your editor calls. "How much rain did we trap in total? I need a number for the broadcast."
+
+Here's the skyline, simplified:
+
+```
+heights: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+```
+
+The answer for this one is **6** cubic units of water. Let's figure out why.
+
+---
+
+## The key idea
+
+Look at a single spot in the skyline — say, index 5 (which has height 0). How much water sits *above* that spot?
+
+```
+heights: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+                          ^
+                          spot of interest
+```
+
+The water above index 5 is trapped by the tallest building to its left and the tallest building to its right. Those act like walls. Water rises until it would spill over the shorter wall.
+
+- Tallest on the left of index 5: `max(0, 1, 0, 2, 1) = 2`
+- Tallest on the right of index 5: `max(1, 3, 2, 1, 2, 1) = 3`
+- Water level cap: `min(2, 3) = 2`
+- Building at index 5 itself: `0`
+- Water trapped above index 5: `2 - 0 = 2`
+
+Do this for every index and add it up. That's the whole idea.
+
+Formally:
+
+```
+water[i] = max(0, min(leftMax[i], rightMax[i]) - height[i])
+```
+
+The `max(0, ...)` is because if the current building is taller than either wall, no water sits on it.
+
+<Callout type="tip" title="The mental model">
+Don't think "where are the puddles?" Think "for each column, how much water sits on top of it?" Sum up every column. Much easier than tracking puddles as objects.
+</Callout>
+
+---
+
+## Approach 1: the obvious version
+
+Precompute two arrays:
+
+- `leftMax[i]` = tallest building from index 0 through i
+- `rightMax[i]` = tallest building from index i through n-1
+
+Then walk through and apply the formula.
+
+```python
+def trap(height: list[int]) -> int:
+    n = len(height)
+    if n == 0:
+        return 0
+
+    left_max = [0] * n
+    right_max = [0] * n
+
+    left_max[0] = height[0]
+    for i in range(1, n):
+        left_max[i] = max(left_max[i - 1], height[i])
+
+    right_max[n - 1] = height[n - 1]
+    for i in range(n - 2, -1, -1):
+        right_max[i] = max(right_max[i + 1], height[i])
+
+    total = 0
+    for i in range(n):
+        total += min(left_max[i], right_max[i]) - height[i]
+
+    return total
+```
+
+Three passes. Each O(n). Total **O(n) time, O(n) space**. Correct, clear, and usually "good enough" in an interview. Most people stop here.
+
+Let's trace it on our skyline to make sure.
+
+```
+heights:   [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+left_max:  [0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3]
+right_max: [3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 1]
+
+water per column:
+  i=0: min(0,3) - 0 = 0
+  i=1: min(1,3) - 1 = 0
+  i=2: min(1,3) - 0 = 1
+  i=3: min(2,3) - 2 = 0
+  i=4: min(2,3) - 1 = 1
+  i=5: min(2,3) - 0 = 2
+  i=6: min(2,3) - 1 = 1
+  i=7: min(3,3) - 3 = 0
+  i=8: min(3,2) - 2 = 0
+  i=9: min(3,2) - 1 = 1
+  i=10: min(3,2) - 2 = 0
+  i=11: min(3,1) - 1 = 0
+
+total = 6 ✓
+```
+
+Six units of trapped water. Matches the expected answer.
+
+---
+
+## Approach 2: two pointers, no extra arrays
+
+Now we get fancy. The question is: can we compute the water for each column without storing the full `leftMax` and `rightMax` arrays?
+
+Yes. Here's the insight.
+
+Put one pointer on the left end and one on the right end, and track two running maximums:
+
+- `left_max` = the tallest building we've seen from the left so far
+- `right_max` = the tallest building we've seen from the right so far
+
+At each step, we look at **whichever side has the shorter running max**. That side is the "bottleneck" for the water level, and we can commit the water for that column.
+
+Why is that safe? Because at that moment, we know:
+
+- The running `left_max` (or `right_max`) on this side is the **actual** leftMax (or rightMax) for this column, since we're walking from outside in.
+- On the *other* side, we don't know the actual max yet, but we know it's at least as tall as our current running max on that side, which is already taller than this side. So this side is definitely the bottleneck. Safe.
+
+Confusing? That's okay. Watch it run first, then re-read.
+
+---
+
+## Watching it work
+
+Same skyline.
+
+```
+heights: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+```
+
+<MermaidBlock>
+graph TB
+    S1["L=0 (0), R=11 (1)\nleft_max=0, right_max=1\nheights L smaller, left side is bottleneck\nheight L updates left_max to 0\nwater at L = left_max minus height L = 0\nL++"]
+    S2["L=1 (1), R=11 (1)\nleft_max=1, equal\nleft side is bottleneck again\nupdate left_max to 1\nwater = 1 - 1 = 0\nL++"]
+    S3["continue picking the smaller side each step\nadd water on that side"]
+    S4["final total = 6"]
+    S1 --> S2 --> S3 --> S4
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S3 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style S4 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Let's trace it step by step. `L=0, R=11, left_max=0, right_max=0, water=0`.
+
+```
+Step 1: L=0 (h=0), R=11 (h=1)
+        h[L]=0 < h[R]=1 → left side is bottleneck
+        update left_max = max(0, 0) = 0
+        add left_max - h[L] = 0 - 0 = 0
+        L++
+
+Step 2: L=1 (h=1), R=11 (h=1)
+        h[L]=1 >= h[R]=1 → right side is bottleneck (or equal)
+        update right_max = max(0, 1) = 1
+        add right_max - h[R] = 1 - 1 = 0
+        R--
+
+Step 3: L=1 (h=1), R=10 (h=2)
+        h[L]=1 < h[R]=2 → left side
+        left_max = max(0, 1) = 1
+        water += 1 - 1 = 0
+        L++
+
+Step 4: L=2 (h=0), R=10 (h=2)
+        h[L]=0 < h[R]=2 → left
+        left_max = max(1, 0) = 1
+        water += 1 - 0 = 1 (total: 1)
+        L++
+
+Step 5: L=3 (h=2), R=10 (h=2)
+        h[L]=2 >= h[R]=2 → right
+        right_max = max(1, 2) = 2
+        water += 2 - 2 = 0
+        R--
+
+Step 6: L=3 (h=2), R=9 (h=1)
+        h[L]=2 >= h[R]=1 → right
+        right_max = max(2, 1) = 2
+        water += 2 - 1 = 1 (total: 2)
+        R--
+
+Step 7: L=3 (h=2), R=8 (h=2)
+        h[L]=2 >= h[R]=2 → right
+        right_max = max(2, 2) = 2
+        water += 2 - 2 = 0
+        R--
+
+Step 8: L=3 (h=2), R=7 (h=3)
+        h[L]=2 < h[R]=3 → left
+        left_max = max(1, 2) = 2
+        water += 2 - 2 = 0
+        L++
+
+Step 9: L=4 (h=1), R=7 (h=3)
+        h[L]=1 < h[R]=3 → left
+        left_max stays 2
+        water += 2 - 1 = 1 (total: 3)
+        L++
+
+Step 10: L=5 (h=0), R=7 (h=3)
+         h[L]=0 < h[R]=3 → left
+         water += 2 - 0 = 2 (total: 5)
+         L++
+
+Step 11: L=6 (h=1), R=7 (h=3)
+         h[L]=1 < h[R]=3 → left
+         water += 2 - 1 = 1 (total: 6)
+         L++
+
+L=7, R=7 → pointers met, stop
+```
+
+**Total = 6.** Same answer. One pass. No extra arrays.
+
+---
+
+## The code
+
+```python
+def trap(height: list[int]) -> int:
+    if not height:
+        return 0
+
+    left, right = 0, len(height) - 1
+    left_max = right_max = 0
+    water = 0
+
+    while left < right:
+        if height[left] < height[right]:
+            # left side is the bottleneck
+            left_max = max(left_max, height[left])
+            water += left_max - height[left]
+            left += 1
+        else:
+            # right side is the bottleneck (or tied)
+            right_max = max(right_max, height[right])
+            water += right_max - height[right]
+            right -= 1
+
+    return water
+```
+
+Read it three times. The shape is the exact same two-pointer skeleton we've been using for the whole dungeon. The only new piece is tracking a running max on each side and adding the water the moment we decide which side is the bottleneck.
+
+---
+
+## Why is the two-pointer version correct?
+
+This is the heart of the problem. If you believe it, the whole thing collapses into "easy." If you don't, the code looks like magic.
+
+**Claim.** When `height[left] < height[right]`, the water level at index `left` is exactly `left_max` (our running left max), not limited by anything on the right.
+
+**Why.** The water at `left` is `min(actual_left_max, actual_right_max) - height[left]`. We know:
+
+- Our running `left_max` equals the actual left max at `left`, because we've walked in from index 0 and seen every value along the way.
+- We don't know the actual right max at `left`, but we know it's **at least** `height[right]`, because we've seen at least that value on the right side. And the running `right_max` is at least `height[right]` too.
+- Since `height[left] < height[right]`, and `left_max <= height[left]` is false (left_max was just updated to include height[left], so it's `>= height[left]`), we have `left_max ... hmm wait, left_max >= height[left]` is what we want.
+
+Let me restate it cleaner.
+
+At the moment we process `left`, we just set `left_max = max(left_max, height[left])`, so `left_max >= height[left]`. And since `height[left] < height[right] <= actual_right_max`, we get `left_max <= height[right] <= actual_right_max`. So `min(left_max, actual_right_max) = left_max`. The water is `left_max - height[left]`, exactly what we added.
+
+Mirror argument works on the right side. Correctness: done.
+
+<Callout type="info" title="Re-read that">
+That correctness argument is dense. Re-read it slowly. The key bit: we only commit water on the smaller side because only there can we be sure our running max equals the true bottleneck. On the bigger side, we wait — we don't know the other side's true max yet, so we can't safely compute.
+</Callout>
+
+---
+
+## Why is this faster?
+
+Both approaches are O(n) time. The difference is space:
+
+| | Two arrays | Two pointers |
+|---|---|---|
+| Time | O(n) | O(n) |
+| Extra space | O(n) | **O(1)** |
+| Passes | 3 | 1 |
+
+For an interviewer, two pointers is the "A" answer. It's shorter, uses no extra memory, and demonstrates you understood the geometry of the problem instead of brute-forcing it with precomputes.
+
+---
+
+## Gotchas
+
+**1. Processing the bigger side by mistake.**
+If you pick the taller side to commit water on, you're wrong because your running max on that side might not be the true max yet. Always commit on the smaller side.
+
+**2. Updating the running max after checking water.**
+Order matters. Update `left_max` *first*, then compute `left_max - height[left]`. Otherwise you might subtract from a stale max and get a negative number.
+
+**3. Forgetting the empty-array guard.**
+`if not height: return 0` is two lines and saves you from indexing errors. Add it.
+
+**4. Confusing trapping rain water with container with most water.**
+Boss 4 picks two posts and ignores everything in between. Boss 5 sums water across every column simultaneously. Same pattern, very different question. Don't mix them up.
+
+---
+
+## This is the ceiling of two pointers
+
+Boss 5 is the deepest use of two pointers you'll see in this dungeon. Every piece of this solution pulls on something you learned in the earlier bosses:
+
+- **Walking inward from both ends** (Boss 1)
+- **Letting the smaller side move** (Boss 2)
+- **A greedy argument about which side to advance** (Boss 4)
+
+Put it all together and you get a problem that feels hard until you see it, then feels almost mechanical after.
+
+If this boss still feels shaky, that's normal. Sleep on it and re-read. A lot of people need two or three passes over the correctness argument before it really clicks. Don't grind; rest, come back, read again.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 5. The news helicopter got its number.
+
+What you walked away with:
+
+- A clean mental model for the problem (water per column, not puddles)
+- Two solutions: one safe, one optimal
+- A correctness argument that explains *why* the fast version is allowed to be so cheap
+
+Next up: **Boss 6 — The Guest List Cleanup.** After the storm, the dinner party is back on, but the guest list is a mess. There are duplicates. You need to clean it up in place, no extra list allowed, and return the new count. It's the easiest boss of the dungeon and a great cooldown after all this rain.
+
+One boss to go. You've almost got this dungeon beat.

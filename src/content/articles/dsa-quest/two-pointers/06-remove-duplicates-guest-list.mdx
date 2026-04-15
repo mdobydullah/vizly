@@ -1,0 +1,285 @@
+---
+title: "Remove Duplicates — The Guest List Cleanup"
+slug: remove-duplicates-guest-list
+category: dsa
+series: two-pointers
+seriesOrder: 6
+description: "Dungeon 2, Boss 6. A sorted guest list has duplicates and you have to clean it up in place. Meet the fast-slow two-pointer pattern, where the pointers chase each other instead of meeting in the middle."
+tags:
+  - DSA
+  - Two Pointers
+  - Arrays
+  - Beginner
+icon: "📋"
+color: orange
+createdAt: "2026-04-15T12:00:00Z"
+updatedAt: "2026-04-15T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The party is back on after the storm. The host hands you the guest list, already sorted by name, but somewhere along the way every name got written down two or three times. You need to clean it up in place. No new list. No notebook. Just the same paper, same pen, and a good strategy.
+
+    So you use two fingers. A slow one that points at the next empty slot, and a fast one that scans ahead for new names. Every time the fast finger finds a name that is different from the last one written, you copy it into the slow slot and step the slow finger forward.
+
+    That is the whole fast-slow two-pointer pattern. The pointers don't meet in the middle. Instead, they chase each other. It's the cleanest way to rewrite an array in place.
+  bn: |
+    ঝড়ের পর পার্টি আবার ঠিকঠাক শুরু হয়েছে। হোস্ট আপনাকে অতিথিদের একটি তালিকা ধরিয়ে দিলেন যেখানে নামগুলো বর্ণানুসারে সাজানো আছে। কিন্তু কোনো এক ফাঁকে তালিকার প্রতিটি নাম দুই-তিনবার করে লেখা হয়ে গেছে। আপনাকে তালিকার এই ভুলগুলো ওই একই কাগজে ঠিক করতে হবে। আপনি নতুন কোনো কাগজ বা নোটবুক ব্যবহার করতে পারবেন না। আপনার কাছে আছে শুধু ওই কাগজ, একটি কলম এবং একটি ভালো বুদ্ধিমত্তা।
+
+    তাই আপনি এখানে দুটি আঙুল ব্যবহার করছেন। একটি ধীর আঙুল যা তালিকার পরবর্তী খালি জায়গাটি নির্দেশ করে এবং একটি দ্রুত আঙুল যা সামনের দিকে এগিয়ে গিয়ে নতুন নাম খুঁজে বের করে। দ্রুত আঙুল যখনই আগের নামের চেয়ে আলাদা কোনো নতুন নাম খুঁজে পায়, আপনি সেটি ধীর আঙুলের নির্দেশিত জায়গায় লিখে ফেলেন এবং ধীর আঙুলটিকে এক ধাপ এগিয়ে দেন।
+
+    এটিই হলো fast-slow two-pointer প্যাটার্ন। এখানে পয়েন্টার দুটি মাঝখানে মিলিত হওয়ার বদলে একে অপরের পেছনে ছুটতে থাকে। মেমরি অপচয় না করে একটি অ্যারে নতুন করে সাজানোর এটি সবচেয়ে চমৎকার পদ্ধতি।
+  hi: |
+    तूफ़ान के बाद पार्टी वापस शुरू हो गई है। होस्ट आपको मेहमानों की एक लिस्ट थमाती है जिसमें नाम पहले से ही क्रम में लगे हुए हैं। लेकिन गलती से हर नाम लिस्ट में दो-तीन बार लिख दिया गया है। अब आपको उसी कागज़ पर लिस्ट को साफ़ करना है। आपके पास कोई नया कागज़ या नोटबुक नहीं है। बस वही लिस्ट, वही कलम और एक अच्छी तरकीब है।
+
+    तो आप यहाँ अपनी दो उंगलियों का इस्तेमाल करते हैं। एक धीमी उंगली जो अगली खाली जगह को दर्शाती है, और एक तेज़ उंगली जो आगे जाकर नए नाम ढूँढती है। जब भी तेज़ उंगली को पिछले लिखे हुए नाम से अलग कोई नया नाम मिलता है, तो आप उसे धीमी उंगली वाली जगह पर लिख देते हैं और धीमी उंगली एक कदम आगे बढ़ जाती है।
+
+    यही fast-slow two-pointer पैटर्न है। इसमें पॉइंटर बीच में आपस में नहीं मिलते, बल्कि एक-दूसरे का पीछा करते हैं। किसी लिस्ट को बिना कोई दूसरी लिस्ट बनाए ठीक करने का यह सबसे बेहतरीन तरीका है।
+  ar: |
+    عادت أجواء الحفلة بعد انتهاء العاصفة. سلمتك المضيفة قائمة بالضيوف، والأسماء فيها مرتبة بالفعل، لكن لسبب ما تكرر كل اسم مرتين أو ثلاث مرات. عليك تنظيف القائمة في نفس الورقة، فلا توجد ورقة أخرى ولا دفتر ملاحظات إضافي. معك فقط الورقة نفسها، وقلم، وخطة ذكية.
+
+    إليك ما ستفعله: ستستخدم إصبعين. إصبع بطيء يشير إلى المكان الذي ستكتب فيه الاسم الجديد، وإصبع سريع يتحرك للأمام ليبحث عن الأسماء المختلفة. كلما وجد الإصبع السريع اسماً لم يكتب بعد، تقوم بنسخه في مكان الإصبع البطيء، ثم تحرك الإصبع البطيء خطوة واحدة للأمام.
+
+    هذا هو نمط fast-slow two-pointer باختصار. المؤشران هنا لا يلتقيان في المنتصف، بل يطارد أحدهما الآخر. إنها الطريقة الأكثر كفاءة لإعادة ترتيب القائمة في مكانها دون استهلاك أي مساحة إضافية.
+---
+
+## Welcome back
+
+You've seen four different flavors of two pointers so far: symmetric (Boss 1), steered (Boss 2), composed (Boss 3), and greedy (Boss 4 and 5). Today we unlock the last big shape in this dungeon.
+
+This one is called **fast-slow**, or sometimes "reader-writer." Both pointers start at the left. One walks ahead and scans. The other sits back and writes. They chase each other instead of meeting in the middle. It sounds unusual but it's the clean way to rewrite an array in place.
+
+Today's boss: **The Guest List Cleanup**.
+
+---
+
+## The story
+
+Mira's dinner party is back on after the rainstorm. She hands you the guest list.
+
+```
+guests: ["Ada", "Ada", "Ben", "Cara", "Cara", "Cara", "Dan", "Dan", "Eve"]
+```
+
+It's already alphabetized. But whoever typed it up hit Ctrl+V one too many times and every name got duplicated. Your job is to clean it up in place.
+
+"Do it on this same sheet of paper," she says. "I don't want another list. Just fix this one and tell me how many unique guests there are."
+
+You look at the list. You could write the clean version on a new sheet, but she said no new sheet. You could erase and slide everything down, but that's a mess. There's a better way.
+
+---
+
+## The problem, dressed up properly
+
+> Given a sorted integer array `nums`, remove the duplicates in place such that each unique element appears only once. The relative order of the elements should be kept the same. Return the number `k` of unique elements.
+>
+> Do not allocate a new array. You must do this by modifying the input array in place with O(1) extra memory.
+>
+> The first `k` positions of `nums` should contain the unique elements in their original order. The elements beyond position `k` don't matter.
+
+Key phrases: **sorted**, **in place**, **O(1) extra memory**. Those three together are what force the fast-slow pattern.
+
+---
+
+## The naive way
+
+If the "no new array" rule didn't exist, you'd do this:
+
+```python
+def remove_duplicates(nums):
+    unique = []
+    for x in nums:
+        if not unique or x != unique[-1]:
+            unique.append(x)
+    nums[:len(unique)] = unique
+    return len(unique)
+```
+
+Works. But that `unique = []` is a second array, and the problem said no. We have to clean the list *using only the list itself*.
+
+---
+
+## The move: fast-slow pointers
+
+Here's the trick.
+
+- **Slow pointer** (let's call it `write`) points at the next position to *write* a unique value into.
+- **Fast pointer** (let's call it `read`) walks ahead looking for the next new value.
+
+Start with both at index 0. Actually, start `write = 1` and `read = 1`, because index 0 is always a keeper — it's the first element and has nothing to be a duplicate of.
+
+Then:
+
+- For each `read`, compare `nums[read]` to `nums[write - 1]` (the last unique value we wrote).
+- If they differ, we found a new unique value. Copy it: `nums[write] = nums[read]`. Then step `write` forward.
+- If they're the same, `nums[read]` is a duplicate. Skip.
+- Either way, step `read` forward.
+
+When `read` reaches the end, the first `write` elements of `nums` are the unique values in order, and `write` itself is the count.
+
+<Callout type="tip" title="Why this only works when the array is sorted">
+If the array isn't sorted, duplicates can appear anywhere, and checking `nums[read] == nums[write - 1]` won't catch them. The sorted order packs all copies of the same value into consecutive positions. That's what makes the "different from the previous kept value" check sufficient.
+</Callout>
+
+---
+
+## Watching it work
+
+```
+nums: [1, 1, 2, 2, 2, 3, 4, 4, 5]
+```
+
+<MermaidBlock>
+graph TB
+    S1["write=1, read=1\nnums[read]=1, nums[write-1]=1\nsame, skip\nread++"]
+    S2["write=1, read=2\nnums[read]=2, nums[write-1]=1\ndifferent, copy\nnums[1]=2, write++\nread++"]
+    S3["write=2, read=3\nnums[read]=2, nums[write-1]=2\nsame, skip\nread++"]
+    S4["continue until read = n\nfinal write = 5"]
+    S1 --> S2 --> S3 --> S4
+    style S1 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S2 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S4 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Let's trace it by hand.
+
+```
+nums:  [1, 1, 2, 2, 2, 3, 4, 4, 5]
+index:  0  1  2  3  4  5  6  7  8
+
+Start: write=1, read=1
+
+read=1 (val 1), nums[write-1]=nums[0]=1 → same, skip, read++
+read=2 (val 2), nums[write-1]=nums[0]=1 → different, write it
+   nums[1] = 2
+   nums becomes [1, 2, 2, 2, 2, 3, 4, 4, 5]
+   write=2, read++
+read=3 (val 2), nums[write-1]=nums[1]=2 → same, skip
+read=4 (val 2), nums[write-1]=nums[1]=2 → same, skip
+read=5 (val 3), nums[write-1]=nums[1]=2 → different
+   nums[2] = 3
+   nums becomes [1, 2, 3, 2, 2, 3, 4, 4, 5]
+   write=3, read++
+read=6 (val 4), nums[write-1]=nums[2]=3 → different
+   nums[3] = 4
+   nums becomes [1, 2, 3, 4, 2, 3, 4, 4, 5]
+   write=4, read++
+read=7 (val 4), nums[write-1]=nums[3]=4 → same, skip
+read=8 (val 5), nums[write-1]=nums[3]=4 → different
+   nums[4] = 5
+   nums becomes [1, 2, 3, 4, 5, 3, 4, 4, 5]
+   write=5, read++
+
+read=9, stop
+
+return write = 5
+```
+
+The first 5 elements of `nums` are `[1, 2, 3, 4, 5]`. That's the clean list. The garbage after index 4 doesn't matter — the problem said to ignore it.
+
+---
+
+## The code
+
+```python
+def remove_duplicates(nums: list[int]) -> int:
+    if not nums:
+        return 0
+
+    write = 1
+    for read in range(1, len(nums)):
+        if nums[read] != nums[write - 1]:
+            nums[write] = nums[read]
+            write += 1
+
+    return write
+```
+
+That's the whole function. Seven lines with the guard. Read it twice. The loop walks `read` through every index, and only `write` moves when we find something new.
+
+---
+
+## Why is this correct?
+
+Two invariants keep the whole thing honest:
+
+1. **`nums[0..write-1]` always contains the unique values we've kept so far, in order.** True at the start (just one element). True after each step: we either skip (no change) or we write a value that's different from the last kept value, which preserves the "unique and sorted" property.
+
+2. **`nums[write..read-1]` is garbage we're allowed to overwrite.** These are indices we've already read from, so writing to them won't lose information. Importantly, `write <= read` always, so we never write past where we've read.
+
+The second invariant is what makes the in-place write safe. Since `write` only advances when `read` has advanced at least once, `write` can never overtake `read`. You're always writing into a slot whose original value has already been processed.
+
+<Callout type="info" title="Fast-slow is the in-place sibling of map">
+If you squint, `write` is what a functional `filter` would build up, and `read` is the iterator. The only difference is fast-slow uses the same array instead of a new one. Same idea, zero allocation.
+</Callout>
+
+---
+
+## Why is this faster?
+
+Both versions are O(n) time. The difference is space:
+
+| | With a new array | Fast-slow two pointers |
+|---|---|---|
+| Time | O(n) | O(n) |
+| Extra space | O(n) | **O(1)** |
+| Allocations | 1 new list | Zero |
+
+For a million-element array, the new-array version allocates a million integers of scratch memory. Fast-slow allocates nothing. Same Big-O, very different real-world cost.
+
+---
+
+## Gotchas
+
+**1. Starting both pointers at 0.**
+If you start `write = 0, read = 0`, the first comparison tries to read `nums[write - 1] = nums[-1]`, which in Python is the last element. You'll get wrong answers. Start at `write = 1, read = 1`.
+
+**2. Forgetting the empty-array case.**
+An empty input should return 0, but the `write = 1` initialization assumes at least one element. Guard with `if not nums: return 0`.
+
+**3. Applying this to an unsorted array.**
+Don't. The `nums[read] != nums[write - 1]` check only catches adjacent duplicates. If the array isn't sorted, you'll miss duplicates that are separated. Sort first, or use a hash set instead.
+
+**4. Returning the elements instead of the count.**
+The problem wants the count `k`. The array is the side effect. Read the problem statement carefully before you hit submit.
+
+**5. Trying to "delete" from the middle of a list.**
+Python lets you `del nums[i]`, but doing that inside a loop is O(n) per call and changes the indices underneath you. Don't. Just use fast-slow and let the garbage sit at the end.
+
+---
+
+## The fifth shape of two pointers
+
+Here's every shape we've seen in this dungeon, all in one place:
+
+1. **Symmetric** (Boss 1) — both ends, both move every step. Palindromes, reversal.
+2. **Steered** (Boss 2) — both ends, only one moves per step based on comparison. Sorted-array target sums.
+3. **Composed** (Boss 3) — an outer loop picks an anchor, inner two pointers handle the rest. Triples and quadruples.
+4. **Greedy** (Boss 4 and 5) — both ends, and a proof that advancing the weaker side can't miss the optimum. Maximum area, trapped water.
+5. **Fast-slow** (Boss 6) — both at the left, one reads and one writes. In-place array rewriting.
+
+Every two-pointer problem you'll ever meet is a variation on one of these five shapes. Knowing which shape a problem wants is half the work.
+
+---
+
+## Dungeon cleared
+
+That's it. Dungeon 2 is done. You cleared six bosses and walked away with a weapon that applies to palindromes, target sums, triples, max area, trapped rain, and in-place cleanups. And the shape of the pattern stays consistent across all of them.
+
+Take a minute to appreciate that. Most algorithmic patterns only solve one narrow family of problems. Two pointers solves at least five. When you see an array or a string, "could two pointers help here?" is one of the first questions worth asking.
+
+---
+
+## Boss down. Dungeon down. XP gained.
+
+What you walked away with from Dungeon 2 as a whole:
+
+- Five shapes of two pointers, with a clear mental model for when each applies
+- A handful of classic problems you now understand deeply instead of having memorized
+- The "sorted input" reflex — when you see sorted, two pointers goes on the list
+- A habit of asking "which side can I safely skip?" instead of "which pair should I check next?"
+
+**Next dungeon: Stack.** Different weapon, different shape. Whenever a problem has a "latest thing opened is the first thing closed" flavor, you'll be reaching for a stack. Balanced parentheses, monotonic structures, expression evaluation, and some surprising sorting tricks. The good news: you don't need the two-pointer brain for any of it. The better news: you get to learn a fresh tool from scratch.
+
+See you in Dungeon 3.
