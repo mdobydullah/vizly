@@ -1,11 +1,19 @@
 {
   "slug": "stack",
   "title": "Stack",
-  "description": "Dungeon 3. LIFO power. Parentheses, histograms, and why some problems only unlock when you remember what came before.",
+  "description": "Dungeon 3 of DSA Quest. LIFO power — parentheses, histograms, monotonic tricks, and why some problems only unlock when you remember what came before.",
   "icon": "📚",
   "color": "orange",
   "tags": ["DSA", "Stack"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-04-17T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "valid-parentheses-locksmith", "title": "Valid Parentheses — The Locksmith's Keys" },
+    { "order": 2, "slug": "min-stack-warehouse-foreman", "title": "Min Stack — The Warehouse Foreman" },
+    { "order": 3, "slug": "reverse-polish-notation-calculator", "title": "Evaluate Reverse Polish Notation — The Calculator Factory" },
+    { "order": 4, "slug": "generate-parentheses-architect", "title": "Generate Parentheses — The Architect's Blueprints" },
+    { "order": 5, "slug": "daily-temperatures-weather-station", "title": "Daily Temperatures — The Weather Station" },
+    { "order": 6, "slug": "car-fleet-highway-convoy", "title": "Car Fleet — The Highway Convoy" },
+    { "order": 7, "slug": "largest-rectangle-histogram-billboard", "title": "Largest Rectangle in Histogram — The Billboard Builder" }
+  ]
 }

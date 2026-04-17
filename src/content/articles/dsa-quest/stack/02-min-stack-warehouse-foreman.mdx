@@ -1,0 +1,232 @@
+---
+title: "Min Stack — The Warehouse Foreman"
+slug: min-stack-warehouse-foreman
+category: dsa
+series: stack
+seriesOrder: 2
+description: "Dungeon 3, Boss 2. A warehouse foreman needs to know the lightest crate at any moment. Learn how to augment a stack so getMin is O(1), not O(n)."
+tags:
+  - DSA
+  - Stack
+  - Design
+  - Beginner
+icon: "📦"
+color: orange
+createdAt: "2026-04-17T10:15:00Z"
+updatedAt: "2026-04-17T10:15:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A warehouse foreman stacks crates on top of each other and can only add or remove from the top. His boss often demands to know the lightest crate in the pile instantly without unstacking everything. You can solve this by keeping a second Stack running alongside the first one to track the current minimum. Every time you push a crate, the lightest one so far sits ready on top of your second stack. This trick keeps your lookups fast and your boss happy.
+  bn: |
+    একজন গুদাম ফোরম্যান একটার উপর আরেকটা ক্রেট সাজাচ্ছেন এবং তিনি শুধু উপর থেকেই সেগুলো সরাতে পারেন। তার বস হুটহাট এসে জানতে চান পুরো স্তূপের মধ্যে সবচেয়ে হালকা ক্রেট কোনটা, কিন্তু সেটা জানাতে স্তূপ খোলা যাবে না। আপনি মূল Stack-এর পাশাপাশি দ্বিতীয় আরেকটি Stack ব্যবহার করে এই সমস্যার সমাধান করতে পারেন। যখনই নতুন কোনো ক্রেট রাখা হয়, সেই মুহূর্তের সবচেয়ে হালকা ক্রেটটি দ্বিতীয় Stack-টির উপরে জমা থাকে। এই কৌশলে কোনো খোঁজাখুঁজি ছাড়াই আপনি সবসময় সঠিক উত্তর দিতে পারবেন।
+  hi: |
+    एक गोदाम का फोरमैन एक के ऊपर एक क्रेट रखता है और वह उन्हें सिर्फ ऊपर से ही हटा सकता है। उसका बॉस अक्सर अचानक आकर पूछता है कि ढेर में सबसे हल्का क्रेट कौन सा है, लेकिन वह पूरा ढेर खुलवाना नहीं चाहता। आप मुख्य Stack के साथ एक दूसरा Stack चलाकर इस समस्या को हल कर सकते हैं। जब भी आप कोई क्रेट रखते हैं, उस समय का सबसे हल्का वजन दूसरे Stack के ऊपर बैठ जाता है। इस ट्रिक से आप बिना किसी देरी के हमेशा सही जवाब दे पाएंगे।
+  ar: |
+    يقوم مشرف المستودع بتكديس الصناديق فوق بعضها البعض ولا يمكنه الإضافة أو الإزالة إلا من الأعلى. يطلب رئيسه أحياناً معرفة أخف صندوق في الكومة فوراً دون فكها بالكامل. يمكنك حل ذلك عن طريق الاحتفاظ بـ Stack ثانٍ بجانب الأول لتتبع الحد الأدنى الحالي. في كل مرة تضع فيها صندوقاً، يكون أخف صندوق حتى الآن جاهزاً في أعلى الـ Stack الثاني. هذه الحيلة تجعل عمليات البحث سريعة وتجعل مديرك سعيداً.
+---
+
+## Welcome back
+
+Boss 1 taught you the basic stack: push, pop, peek. One list, one rule (touch only the top), one pass.
+
+This boss adds a twist. You still have a stack, but now someone keeps asking "what's the smallest thing in here?" And they want the answer *instantly*. Not "let me scan through the pile." Instantly.
+
+Today's boss: **The Warehouse Foreman**.
+
+---
+
+## The story
+
+You're working at a warehouse. The foreman, Hector, stacks crates on top of each other. He can only add to the top or remove from the top. Standard stack stuff.
+
+But Hector's boss is paranoid. She walks in at random moments and demands: "What's the lightest crate in the pile right now?"
+
+Hector used to answer this by unstacking every crate, weighing them all, restacking them, and reporting the minimum. His boss was not impressed.
+
+"I need the answer immediately," she said. "No digging."
+
+So Hector asks you: design a stack that supports push, pop, top, **and getMin**, all in constant time.
+
+---
+
+## The problem, dressed up properly
+
+> Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
+>
+> Implement the `MinStack` class:
+> - `push(val)` — pushes the element val onto the stack.
+> - `pop()` — removes the element on the top of the stack.
+> - `top()` — gets the top element of the stack.
+> - `getMin()` — retrieves the minimum element in the stack.
+>
+> Each function must run in O(1) time.
+
+The hard part: **getMin in O(1)**. Without this constraint, you'd just scan the stack. With it, you need to be cleverer.
+
+---
+
+## The naive way
+
+Keep a normal stack. When someone calls `getMin()`, scan the whole stack and return the smallest.
+
+```python
+class MinStack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, val):
+        self.stack.append(val)
+
+    def pop(self):
+        self.stack.pop()
+
+    def top(self):
+        return self.stack[-1]
+
+    def getMin(self):
+        return min(self.stack)  # O(n) scan
+```
+
+Everything is O(1) except `getMin`, which is O(n). If the boss asks a thousand times a day with a stack of ten thousand crates, that's ten million operations. Not good enough.
+
+---
+
+## The trick: a second stack
+
+Here's the insight. Every time you push a value, you also push the **current minimum** onto a second stack. When you pop, you pop from both.
+
+The second stack is a "minimum snapshot." Its top always tells you the minimum of the entire main stack, at that moment, without any scanning.
+
+<MermaidBlock>
+graph TB
+    A["push(5)\nmain: [5]\nmin_stack: [5]"]
+    B["push(3)\nmain: [5, 3]\nmin_stack: [5, 3]"]
+    C["push(7)\nmain: [5, 3, 7]\nmin_stack: [5, 3, 3]"]
+    D["getMin = 3\njust read min_stack top"]
+    E["pop (removes 7)\nmain: [5, 3]\nmin_stack: [5, 3]"]
+    F["getMin = 3\nstill correct"]
+    A --> B --> C --> D --> E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+```
+Operation       main stack      min stack       getMin
+push(5)         [5]             [5]             5
+push(3)         [5, 3]          [5, 3]          3
+push(7)         [5, 3, 7]       [5, 3, 3]       3
+push(2)         [5, 3, 7, 2]    [5, 3, 3, 2]    2
+pop()           [5, 3, 7]       [5, 3, 3]       3
+pop()           [5, 3]          [5, 3]          3
+pop()           [5]             [5]             5
+```
+
+Every time we push, the min stack gets `min(new_value, current_min_top)`. Every time we pop, we pop from both. The min stack top is always the minimum of everything currently in the main stack.
+
+Notice the third push: we pushed 7, which is bigger than the current min (3). So the min stack pushes 3 again. That way, if 7 gets popped later, the min stack still has the right answer.
+
+---
+
+## The code
+
+```python
+class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []
+
+    def push(self, val: int) -> None:
+        self.stack.append(val)
+        # push the new minimum: either val or whatever was min before
+        min_val = min(val, self.min_stack[-1]) if self.min_stack else val
+        self.min_stack.append(min_val)
+
+    def pop(self) -> None:
+        self.stack.pop()
+        self.min_stack.pop()
+
+    def top(self) -> int:
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        return self.min_stack[-1]
+```
+
+Every method is one or two lines. Every method is O(1). The min stack uses O(n) extra space, but that's the trade: you trade space for time.
+
+---
+
+## Why does this work?
+
+The key insight: the minimum of a stack only changes when you push or pop. It doesn't change on its own. So if you snapshot the minimum at every push and discard it on every pop, you always have the right answer.
+
+More precisely: `min_stack[i]` stores the minimum of `stack[0..i]`. Since pop only removes from the top, after a pop, `min_stack[-1]` is still the minimum of everything left.
+
+<Callout type="info" title="Space optimization exists">
+You could save space by only pushing to the min stack when the new value is less than or equal to the current minimum. Then you only pop from the min stack when the popped value equals the min. This uses less space on average, but the worst case is the same (a decreasing sequence pushes everything to both stacks). The simpler version above is cleaner and the one interviewers want to see first.
+</Callout>
+
+---
+
+## Complexity
+
+| Operation | Time | Space (total) |
+|---|---|---|
+| push | O(1) | O(n) |
+| pop | O(1) | — |
+| top | O(1) | — |
+| getMin | **O(1)** | — |
+
+All O(1) time. O(n) extra space for the second stack. That's the price of instant min lookups.
+
+---
+
+## Gotchas
+
+**1. Forgetting to push the min for every element.**
+If you only push to the min stack when you see a new minimum, you need special pop logic. It works but it's a common source of bugs. The "push every time" approach is bulletproof.
+
+**2. Empty stack edge case.**
+When the main stack is empty, the min stack is also empty. Calling `getMin` on an empty stack is undefined — the problem guarantees it won't happen, but guard it if you're writing production code.
+
+**3. Duplicate minimums.**
+If you push 3 twice and then pop once, the minimum is still 3. The "push every time" approach handles this correctly. The optimization variant (only push when `<=`) also handles it because of the "equal to" check.
+
+---
+
+## The pattern: augmented data structures
+
+What you just did is called **augmenting a data structure**. You took a plain stack and added extra tracking (the min stack) so that a query that would normally require a scan became instant.
+
+This pattern shows up everywhere:
+- Stack with max (same idea, track max instead)
+- Queue with min/max (use two stacks to simulate a queue)
+- Augmented trees (extra metadata at each node)
+
+The general principle: if you need to answer a query fast, precompute the answer incrementally as the data changes.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 2. Hector's boss is happy.
+
+What you walked away with:
+
+- The augmented stack pattern (extra tracking for O(1) queries)
+- A MinStack implementation that's clean and correct
+- The trade-off: O(n) extra space buys you O(1) getMin
+
+Next up: **Boss 3 — The Calculator Factory.** A factory floor calculator only understands postfix notation (also called Reverse Polish Notation). You'll evaluate expressions like `3 4 + 2 *` using nothing but a stack. It's the problem that shows you stacks aren't just for brackets.
+
+Grab your hard hat.

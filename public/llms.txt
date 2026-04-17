@@ -18,6 +18,7 @@
 - [Production AI Engineering](/series/production-ai-engineering): Build, serve, evaluate, and maintain AI systems in production. 8 articles.
 - [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
 - [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Full Two Pointers pattern across 6 story-framed bosses. Complete.
+- [Stack (DSA Quest)](/series/stack): Dungeon 3 of DSA Quest. LIFO, monotonic stacks, bracket matching, histograms across 7 bosses. Complete.
 
 ## Articles
 
@@ -70,6 +71,13 @@
 - [Container With Most Water — The Rain Barrel](/articles/container-most-water-rain-barrel): Greedy two pointers, always advance the shorter side, O(n) max area.
 - [Trapping Rain Water — The Rooftop Puddles](/articles/trapping-rain-water-rooftop): Running max two pointers, O(1) space, hardest Two Pointers boss.
 - [Remove Duplicates — The Guest List Cleanup](/articles/remove-duplicates-guest-list): Fast-slow two pointers, in-place array rewriting, O(1) space.
+- [Valid Parentheses — The Locksmith's Keys](/articles/valid-parentheses-locksmith): Stack-based bracket matching, LIFO, O(n) one pass.
+- [Min Stack — The Warehouse Foreman](/articles/min-stack-warehouse-foreman): Augmented stack with O(1) getMin using a second stack.
+- [Evaluate Reverse Polish Notation — The Calculator Factory](/articles/reverse-polish-notation-calculator): Stack-based postfix expression evaluation.
+- [Generate Parentheses — The Architect's Blueprints](/articles/generate-parentheses-architect): Backtracking with two counters, recursion as implicit stack.
+- [Daily Temperatures — The Weather Station](/articles/daily-temperatures-weather-station): Monotonic decreasing stack, next greater element in O(n).
+- [Car Fleet — The Highway Convoy](/articles/car-fleet-highway-convoy): Sort by position, compute arrival times, stack-count fleets.
+- [Largest Rectangle in Histogram — The Billboard Builder](/articles/largest-rectangle-histogram-billboard): Monotonic increasing stack, nearest smaller element, O(n) max rectangle.
 
 ## Guides — System Design
 

@@ -1,0 +1,272 @@
+---
+title: "Largest Rectangle in Histogram — The Billboard Builder"
+slug: largest-rectangle-histogram-billboard
+category: dsa
+series: stack
+seriesOrder: 7
+description: "Dungeon 3, Boss 7. The final boss. Find the largest rectangle in a histogram using a monotonic stack. One of the most famous interview problems, demystified."
+tags:
+  - DSA
+  - Stack
+  - Monotonic Stack
+  - Arrays
+  - Hard
+icon: "🏗️"
+color: orange
+createdAt: "2026-04-17T11:30:00Z"
+updatedAt: "2026-04-17T11:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A company wants to hang the largest possible rectangular billboard across a row of poles with different heights. The height of your billboard is always limited by the shortest pole it covers. By using a Stack to keep track of increasing heights, you can instantly know when a pole can no longer stretch any further to the right. When a shorter pole appears, you just "pop" the previous ones and calculate the area they could have covered.
+  bn: |
+    একটি কোম্পানি বিভিন্ন উচ্চতার পোলের ওপর সবচেয়ে বড় আয়তক্ষেত্রাকার বিলবোর্ড ঝোলাতে চায়। এই বিলবোর্ডের উচ্চতা সবসময় এর নিচে থাকা সবচেয়ে খাটো পোলটির সমান হবে। একটি Stack ব্যবহার করে আপনি বাড়তি উচ্চতাগুলোর হিসাব রাখতে পারেন এবং সহজেই বুঝতে পারবেন কখন একটি পোল আর ডানে বাড়ানো সম্ভব নয়। যখনই কোনো খাটো পোল সামনে আসে, আপনি আগের পোলগুলো Stack থেকে সরিয়ে সেই পর্যন্ত পাওয়া সম্ভাব্য বিলবোর্ডের ক্ষেত্রফল বের করে নিতে পারেন।
+  hi: |
+    एक कंपनी अलग-अलग ऊँचाई वाले खंभों पर सबसे बड़ा आयताकार बिलबोर्ड लगाना चाहती है। बिलबोर्ड की ऊँचाई हमेशा उसमें शामिल सबसे छोटे खंभे द्वारा सीमित होती है। बढ़ती ऊँचाई को ट्रैक करने के लिए Stack का उपयोग करके आप तुरंत जान सकते हैं कि कोई खंभा अब और दाईं ओर नहीं फैल सकता। जैसे ही कोई छोटा खंभा आता है, आप पिछले खंभों को "पॉप" करते हैं और उनके द्वारा घेरे जा सकने वाले क्षेत्र का हिसाब लगा लेते हैं।
+  ar: |
+    تريد إحدى الشركات تعليق أكبر لوحة إعلانية مستطيلة ممكنة عبر صف من الأعمدة ذات الارتفاعات المختلفة. يقتصر ارتفاع اللوحة دائماً على أقصر عمود تغطيه. باستخدام Stack لتتبع الارتفاعات المتزايدة، يمكنك معرفة متى لا يمكن للعمود التمدد أكثر جهة اليمين. عندما يظهر عمود أقصر، ما عليك سوى سحب الأعمدة السابقة وحساب المساحة التي كان بإمكانها تغطيتها.
+---
+
+## Welcome back
+
+This is it. The final boss of Dungeon 3. Largest Rectangle in Histogram is one of the most well-known hard problems in all of algorithms. It shows up in FAANG interviews, in competitive programming, and as a subroutine inside even harder problems (like Maximal Rectangle in a 2D grid).
+
+But after six bosses of stack practice, you have every tool you need. This is just a monotonic stack with a carefully computed width.
+
+Today's boss: **The Billboard Builder**.
+
+---
+
+## The story
+
+A billboard company has a stretch of road with vertical poles installed at even intervals. Each pole has a different height.
+
+```
+heights: [2, 1, 5, 6, 2, 3]
+```
+
+They want to hang the biggest rectangular billboard they can across some consecutive poles. The billboard's height can't exceed the shortest pole it covers. Its width is the number of poles it spans.
+
+Your job: find the area of the largest rectangle.
+
+Looking at the heights, you can see that poles at indices 2 and 3 (heights 5 and 6) support a rectangle of height 5 and width 2, giving area 10. That's the answer for this example.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of integers `heights` representing the histogram's bar heights where the width of each bar is 1, return the area of the largest rectangle in the histogram.
+
+---
+
+## The naive way
+
+Try every possible pair of left and right boundaries. For each pair, the height is the minimum in that range.
+
+```python
+def largest_rectangle(heights):
+    best = 0
+    n = len(heights)
+    for i in range(n):
+        min_h = heights[i]
+        for j in range(i, n):
+            min_h = min(min_h, heights[j])
+            best = max(best, min_h * (j - i + 1))
+    return best
+```
+
+O(n²). For 100,000 bars, that's 10 billion operations. Way too slow.
+
+---
+
+## The key insight
+
+Think about each bar differently. Instead of asking "what's the widest rectangle at this height?", ask: **for each bar, how far left and how far right can it extend as the shortest bar?**
+
+If bar `i` has height `h`, and it can extend left to index `L` and right to index `R` (where every bar in `[L, R]` has height `>= h`), then the rectangle using bar `i` as the height constraint has area `h * (R - L + 1)`.
+
+The largest rectangle in the histogram is the maximum across all bars.
+
+The question reduces to: for each bar, find the nearest shorter bar to its left and the nearest shorter bar to its right.
+
+Sound familiar? "Nearest smaller element" is exactly the monotonic stack pattern from Boss 5, just flipped from "next greater" to "next smaller."
+
+---
+
+## The algorithm
+
+Use a monotonically **increasing** stack (bottom to top). Walk through the bars.
+
+- **If the current bar is taller than or equal to the stack top**: push it. The increasing property is maintained.
+- **If the current bar is shorter than the stack top**: the stack top can no longer extend right — this shorter bar blocks it. Pop it, compute its rectangle, and repeat.
+
+When you pop a bar, you know:
+- **Its right boundary** is the current index (the bar that triggered the pop).
+- **Its left boundary** is the new stack top after the pop (the next bar to the left that's shorter), or -1 if the stack is empty (it extends all the way left).
+
+After processing all bars, pop any remaining bars — they extend all the way to the right end.
+
+<MermaidBlock>
+graph TB
+    S1["Current bar shorter than top\ntop can't extend right\npop and compute area"]
+    S2["Width = current_i minus new_top minus 1\nHeight = popped bar's height\nArea = height times width"]
+    S3["Current bar taller or equal\npush, continue"]
+    S4["End of bars\npop remaining\nright boundary = n"]
+    S1 --> S2
+    S3 --> S4
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style S3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S4 fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+```
+heights: [2, 1, 5, 6, 2, 3]
+index:    0  1  2  3  4  5
+```
+
+We track the best area as we go.
+
+```
+i=0 (h=2): stack empty, push 0            stack: [0]
+i=1 (h=1): 1 < heights[0]=2 → pop 0
+            width = 1 - (-1) - 1 = 1 (stack empty, left = -1)
+            area = 2 * 1 = 2, best=2
+            push 1                         stack: [1]
+i=2 (h=5): 5 > heights[1]=1 → push 2     stack: [1, 2]
+i=3 (h=6): 6 > heights[2]=5 → push 3     stack: [1, 2, 3]
+i=4 (h=2): 2 < heights[3]=6 → pop 3
+            width = 4 - 2 - 1 = 1
+            area = 6 * 1 = 6, best=6
+           2 < heights[2]=5 → pop 2
+            width = 4 - 1 - 1 = 2
+            area = 5 * 2 = 10, best=10
+           2 >= heights[1]=1 → stop
+           push 4                          stack: [1, 4]
+i=5 (h=3): 3 > heights[4]=2 → push 5     stack: [1, 4, 5]
+
+Done scanning. Pop remaining:
+pop 5 (h=3): width = 6 - 4 - 1 = 1, area = 3, best still 10
+pop 4 (h=2): width = 6 - 1 - 1 = 4, area = 2*4=8, best still 10
+pop 1 (h=1): width = 6 - (-1) - 1 = 6, area = 1*6=6, best still 10
+
+Answer = 10 ✓
+```
+
+The rectangle of height 5, spanning indices 2-3, gives area 10. That's the answer.
+
+---
+
+## The code
+
+```python
+def largest_rectangle_area(heights: list[int]) -> int:
+    stack = []  # stores indices
+    best = 0
+    n = len(heights)
+
+    for i in range(n):
+        while stack and heights[i] < heights[stack[-1]]:
+            h = heights[stack.pop()]
+            w = i - stack[-1] - 1 if stack else i
+            best = max(best, h * w)
+        stack.append(i)
+
+    # pop remaining bars
+    while stack:
+        h = heights[stack.pop()]
+        w = n - stack[-1] - 1 if stack else n
+        best = max(best, h * w)
+
+    return best
+```
+
+Two loops that look similar. The first processes bars left to right, popping when a shorter bar arrives. The second cleans up bars that extend to the right end of the histogram.
+
+The width formula: when you pop index `j`, the rectangle's left boundary is `stack[-1] + 1` (the bar just below `j` on the stack, which is shorter), and the right boundary is `i - 1` (the bar that triggered the pop, which is also shorter). So width = `i - stack[-1] - 1`. If the stack is empty after the pop, the bar extends all the way to index 0, so width = `i`.
+
+---
+
+## Why is this O(n)?
+
+Same amortized argument as Boss 5. Each bar is pushed exactly once and popped at most once. Total operations: at most `2n`.
+
+**O(n) time, O(n) space.**
+
+| | Brute force | Monotonic stack |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Space | O(1) | O(n) |
+
+---
+
+## The width formula, slowly
+
+This is the part that trips people up. Let me spell it out.
+
+When you pop bar `j` from the stack:
+
+- **Height** = `heights[j]`. That's the height of the rectangle.
+- **Right boundary** = `i` (or `n` in the cleanup loop). This is the first bar to the right that's shorter than bar `j`.
+- **Left boundary** = `stack[-1] + 1` if the stack isn't empty, or `0` if it is. The stack top after popping is the first bar to the left that's shorter than bar `j`.
+- **Width** = right boundary - left boundary = `i - (stack[-1] + 1)` = `i - stack[-1] - 1`.
+  - If stack is empty: width = `i - 0` = `i` (or `n` in cleanup).
+
+Why is the stack top the left boundary? Because the stack is monotonically increasing. Everything between the current stack top and bar `j` was already popped (they were taller than the stack top but shorter than bar `j` wouldn't be possible — actually they were taller than `j` and already popped, or equal and already popped). So the stack top is the nearest shorter bar to the left.
+
+<Callout type="info" title="Trick: sentinel values">
+Some implementations add a `0` at the beginning and end of the heights array to avoid the empty-stack edge cases. This eliminates the `if stack else` checks and makes the code cleaner. Both approaches give the same answer.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The width formula.**
+Getting the width wrong is the #1 bug. Draw it out on paper. The width is not `i - j`. It's `i - stack[-1] - 1` (or `i` if stack empty).
+
+**2. Forgetting the cleanup loop.**
+If the histogram is strictly increasing (`[1, 2, 3, 4, 5]`), nothing gets popped during the main loop. All the work happens in the cleanup. Skip it and you return 0.
+
+**3. Using `<=` instead of `<` in the pop condition.**
+Equal heights don't trigger a pop. If two adjacent bars have the same height, the later one can still extend left through the earlier one. Using `<=` would pop too early and give wrong widths. (Some implementations use `<=` with a slightly different width formula, but `<` is safer.)
+
+**4. Confusing with Container With Most Water.**
+Boss 4 of Dungeon 2 picks two posts and ignores the middle. This problem considers every bar between two boundaries and uses the minimum height. Same visual setup, completely different logic.
+
+---
+
+## Dungeon cleared
+
+Seven bosses. Seven flavors of the stack:
+
+1. **Bracket matching** (Boss 1) — push openers, pop on closers
+2. **Augmented tracking** (Boss 2) — second stack for O(1) min
+3. **Expression evaluation** (Boss 3) — operands stack, operators trigger computation
+4. **Backtracking as implicit stack** (Boss 4) — recursion IS the stack
+5. **Monotonic stack: next greater** (Boss 5) — decreasing stack, pop when beaten
+6. **Sort + stack counting** (Boss 6) — arrival times, stack-count fleets
+7. **Monotonic stack: nearest smaller** (Boss 7) — increasing stack, pop when blocked
+
+Every stack problem in existence is a variation of one of these seven patterns.
+
+---
+
+## Boss down. Dungeon down. XP gained.
+
+What you walked away with from Dungeon 3:
+
+- The stack as a data structure and a mental model
+- LIFO thinking: "what was the most recent unresolved thing?"
+- Monotonic stacks for "next greater" and "nearest smaller" queries
+- The amortized O(n) argument (each element pushed and popped once)
+- Augmented stacks for instant queries
+
+**Next dungeon: Binary Search.** A completely different weapon. Instead of processing elements one by one, you'll cut the search space in half every step. Sorted arrays, rotated arrays, and search conditions that make your head spin — then click.
+
+See you in Dungeon 4.

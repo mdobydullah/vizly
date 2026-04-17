@@ -1,0 +1,261 @@
+---
+title: "Valid Parentheses — The Locksmith's Keys"
+slug: valid-parentheses-locksmith
+category: dsa
+series: stack
+seriesOrder: 1
+description: "Dungeon 3, Boss 1. A locksmith has a ring of keys and locks. Each lock must close in the exact reverse order it opened. Your first taste of LIFO thinking."
+tags:
+  - DSA
+  - Stack
+  - Strings
+  - Beginner
+icon: "🔐"
+color: orange
+createdAt: "2026-04-17T10:00:00Z"
+updatedAt: "2026-04-17T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A locksmith hands you a ring of keys. He tells you that every lock must be closed in the exact reverse order it was opened. If you open a round lock and then a square one, you have to close the square one first. You can solve this by keeping a little stack of open locks next to you. This "last in, first out" logic is your very first weapon in this dungeon.
+  bn: |
+    একজন তালাওয়ালা আপনাকে একগুচ্ছ চাবি দিয়ে বললেন যে প্রতিটি তালা ঠিক উল্টো ক্রমে বন্ধ করতে হবে। তার মানে আপনি যদি প্রথমে গোল তালা আর তারপর চারকোনা তালা খোলেন, আগে চারকোনাটাই বন্ধ করতে হবে। পাশে খোলা তালাগুলোর একটা ছোট Stack রেখে আপনি সহজেই এই হিসাব রাখতে পারেন। যখনই নতুন কোনো চাবি আসবে, আপনি শুধু দেখবেন সেটা আপনার জমানো তালার একদম উপরেরটার সাথে মিলছে কি না। এই "সবার শেষে আসা জিনিস সবার আগে বেরোবে" নিয়মটাই হলো এই ডনজিয়নে আপনার প্রথম অস্ত্র।
+  hi: |
+    एक ताला बनाने वाला आपको चाबियों का एक गुच्छा देता है और कहता है कि हर ताला ठीक उल्टे क्रम में बंद होना चाहिए। यानी अगर आपने पहले गोल ताला खोला और फिर चौकोर, तो पहले चौकोर ही बंद करना होगा। अपने पास खुले तालों का एक छोटा Stack रखकर आप आसानी से यह हिसाब रख सकते हैं। जब भी कोई नई चाबी आए, बस देखिए कि वह सबसे ऊपर वाले ताले से मेल खाती है या नहीं। यह "जो आखिर में आया वो पहले बाहर जाएगा" वाला लॉजिक ही इस डंजन में आपका पहला हथियार है।
+  ar: |
+    يسلمك صانع أقفال مجموعة من المفاتيح ويخبرك أن كل قفل يجب إغلاقه بالترتيب العكسي تماماً لفتحه. إذا فتحت قفلاً دائرياً ثم مربعاً، يجب أن تغلق القفل المربع أولاً. يمكنك تتبع ذلك عن طريق الاحتفاظ بـ Stack صغير من الأقفال المفتوحة بجانبك. في كل مرة ترى فيها مفتاحاً للإغلاق، تحقق مما إذا كان يطابق القفل الموجود في أعلى الـ Stack. منطق "آخر من دخل يخرج أولاً" هذا هو سلاحك الأول في هذا الزنزانة.
+---
+
+## Welcome to Dungeon 3
+
+Two dungeons down. You walked out of Dungeon 1 with hashing and Dungeon 2 with two pointers. Two weapons, two families of problems.
+
+This dungeon gives you a third: the **stack**. It's a data structure, not an algorithm, but the problems it solves have a very specific flavor. Any time you see "last opened, first closed" or "what was the most recent thing?" — that's stack territory.
+
+Seven bosses in this dungeon. Let's go.
+
+Today's boss: **The Locksmith's Keys**.
+
+---
+
+## The story
+
+You walk into a locksmith's workshop. The old locksmith, Koji, is testing a new ring of keys for a client's vault. The ring has a sequence of symbols on it:
+
+```
+"( [ { } ] )"
+```
+
+Each opening bracket represents turning a key to open a lock. Each closing bracket represents turning a key to close a lock. The vault only works if every lock is closed in the **exact reverse order** it was opened.
+
+"Simple enough," says Koji. "But some of these rings are damaged. I need you to check them for me."
+
+He slides a few test rings across the counter:
+
+```
+"( )"       → valid
+"( ] "      → invalid (opened round, closed square)
+"( [ ) ]"   → invalid (opened square, but closed round first)
+"{ [ ] }"   → valid
+""          → valid (nothing opened, nothing to close)
+```
+
+You need a system that can check any ring, no matter how long, and tell Koji whether it's valid.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s` containing just the characters `(`, `)`, `{`, `}`, `[` and `]`, determine if the input string is valid.
+>
+> A string is valid if:
+> 1. Open brackets must be closed by the same type of brackets.
+> 2. Open brackets must be closed in the correct order.
+> 3. Every close bracket has a corresponding open bracket of the same type.
+
+---
+
+## The naive attempt (and why it's messy)
+
+Your first thought might be: scan for pairs, remove them, repeat until nothing's left. If something remains, it's invalid.
+
+```python
+def is_valid(s):
+    while "()" in s or "[]" in s or "{}" in s:
+        s = s.replace("()", "").replace("[]", "").replace("{}", "")
+    return s == ""
+```
+
+It works! But it's slow. Each `replace` scans the whole string, and you might need to do it `n/2` times. That's O(n²) worst case. For short strings it's fine, but it's not what we're here to learn.
+
+---
+
+## The weapon: a stack
+
+Here's the idea. Walk the string left to right. Keep a stack (a list where you only add and remove from the top).
+
+- See an **opening bracket**? Push it onto the stack.
+- See a **closing bracket**? Check: does it match the bracket on top of the stack?
+  - Yes: pop the top. Keep going.
+  - No: invalid. Stop immediately.
+- At the end, if the stack is empty, every bracket was matched. Valid.
+
+<MermaidBlock>
+graph TB
+    S1["See opening bracket\npush onto stack"]
+    S2["See closing bracket\npeek at stack top"]
+    S3["Match?\npop and continue"]
+    S4["No match?\ninvalid, stop"]
+    S5["End of string\nstack empty = valid\nstack not empty = invalid"]
+    S1 --> S2
+    S2 --> S3
+    S2 --> S4
+    S3 --> S5
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S3 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style S4 fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style S5 fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+Let's trace `"{ [ ] }"`.
+
+```
+char    action          stack
+{       opener, push    ['{']
+[       opener, push    ['{', '[']
+]       closer, top='[' matches → pop   ['{']
+}       closer, top='{' matches → pop   []
+
+End: stack empty → valid ✓
+```
+
+Now let's trace `"( [ ) ]"`.
+
+```
+char    action          stack
+(       opener, push    ['(']
+[       opener, push    ['(', '[']
+)       closer, top='[' does NOT match ')' → invalid ✗
+```
+
+Caught on the third character. We expected `]` to close the `[`, but got `)` instead. Invalid.
+
+One more: `"( ( ("`.
+
+```
+char    action          stack
+(       push            ['(']
+(       push            ['(', '(']
+(       push            ['(', '(', '(']
+
+End: stack has 3 items → invalid ✗
+```
+
+Unclosed brackets. The stack isn't empty, so there are openers with no closers.
+
+---
+
+## The code
+
+```python
+def is_valid(s: str) -> bool:
+    stack = []
+    match = {')': '(', ']': '[', '}': '{'}
+
+    for char in s:
+        if char in match:
+            # it's a closer
+            if not stack or stack[-1] != match[char]:
+                return False
+            stack.pop()
+        else:
+            # it's an opener
+            stack.append(char)
+
+    return len(stack) == 0
+```
+
+Walk through it. The `match` dictionary maps each closer to the opener it expects. For every character:
+
+- If it's a closer, check that the stack isn't empty and the top matches. If not, bail.
+- If it's an opener, push it.
+- At the end, the stack must be empty.
+
+---
+
+## Why does this work?
+
+The stack enforces the "last opened, first closed" rule automatically. When you push openers in order and pop them on matching closers, the stack's top always holds the **most recently opened, not-yet-closed** bracket. That's exactly the one that should be closed next.
+
+This property is called **LIFO** — Last In, First Out. It's the defining feature of stacks, and it's the reason they solve bracket-matching problems in one clean pass.
+
+<Callout type="tip" title="LIFO in the real world">
+Think of a stack of plates. You can only take the top plate off. The last plate you put on is the first one you take off. Brackets work the same way. The innermost bracket must close before the outer ones can.
+</Callout>
+
+---
+
+## Complexity
+
+- **Time**: O(n). One pass through the string, each character is pushed or popped at most once.
+- **Space**: O(n) worst case. If the string is all openers (`"((((("`), the stack grows to size n.
+
+Compare to the replace-loop approach:
+
+| | Replace loop | Stack |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Space | O(n) (new string each time) | O(n) |
+| Early exit? | No | **Yes** |
+
+---
+
+## Gotchas
+
+**1. Empty stack when you see a closer.**
+`"]"` has no opener at all. If you forget to check `not stack` before peeking, you'll crash.
+
+**2. Non-empty stack at the end.**
+`"((("` has no closers. The loop finishes without errors, but the stack still has items. You must check `len(stack) == 0` at the end.
+
+**3. Mixing up the match direction.**
+The dictionary maps closers to openers, not the other way around. `')': '('` means "when I see `)`, I expect `(` on top." If you flip it, every valid string becomes invalid.
+
+**4. Characters other than brackets.**
+The problem says the string only contains brackets, but if you're writing this for production code, you'd skip characters that aren't in your match dictionary.
+
+---
+
+## You just picked up a new weapon
+
+The stack is not fancy. It's a list with a discipline: you only touch the top. But that discipline is what makes it powerful. It gives you a "memory of what was most recently opened," and that memory turns a confusing scanning problem into a clean one-pass algorithm.
+
+This same idea appears in:
+- HTML tag matching
+- Compiler syntax checking
+- Undo/redo systems
+- Call stacks in every programming language
+
+You'll use it in every remaining boss of this dungeon.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 1. Koji's key rings are validated.
+
+What you walked away with:
+
+- A stack — the LIFO data structure
+- A one-pass bracket matching algorithm
+- The intuition that "last opened, first closed" = "use a stack"
+
+Next up: **Boss 2 — The Warehouse Foreman.** A warehouse worker needs to know the lightest crate in the pile at any moment, without digging through the whole stack. You'll learn how to augment a stack with extra tracking so that `getMin()` is instant, not linear.
+
+Meet you at the loading dock.

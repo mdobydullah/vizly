@@ -1,0 +1,237 @@
+---
+title: "Generate Parentheses — The Architect's Blueprints"
+slug: generate-parentheses-architect
+category: dsa
+series: stack
+seriesOrder: 4
+description: "Dungeon 3, Boss 4. An architect needs every valid bracket layout for n rooms. Learn how backtracking with two counters generates all valid parentheses without duplicates."
+tags:
+  - DSA
+  - Stack
+  - Backtracking
+  - Recursion
+  - Intermediate
+icon: "📐"
+color: orange
+createdAt: "2026-04-17T10:45:00Z"
+updatedAt: "2026-04-17T10:45:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An architect needs to find all the ways to arrange several pairs of arched doorways into valid paths. You can solve this by building the paths piece by piece and keeping track of how many arches are currently open. This way, you only add a closing arch if there is an open one waiting to be matched. This process is called backtracking, and it is like exploring every path and "popping" back whenever you hit a dead end.
+  bn: |
+    একজন স্থপতি বেশ কিছু জোড়া খিলান ব্যবহার করে পথ তৈরি করতে চান। তাকে এমন সব রাস্তা খুঁজে বের করতে হবে যেখানে খিলানগুলো সবসময় সঠিক নিয়মে সাজানো থাকে। এই কাজটি করার সবচেয়ে ভালো উপায় হলো খিলানগুলো একে একে সাজানো এবং কয়টি খোলা আছে তার হিসাব রাখা। আপনি কেবল তখনই একটি খিলান বন্ধ করবেন যখন তার জন্য একটি খোলা খিলান অপেক্ষমান থাকবে। এই পদ্ধতিকে ব্যাকট্র্যাকিং বলা হয়, যা মূলত প্রতিটি পথ পরখ করে দেখা এবং ভুল পথে গেলে পিছনে ফিরে এসে আবার চেষ্টা করার মতো।
+  hi: |
+    एक आर्किटेक्ट कई जोड़ी मेहराबों (arches) को सही रास्तों में सजाने के तरीके ढूँढना चाहता है। इसे हल करने के लिए आप एक-एक करके रास्ते बना सकते हैं और ध्यान रख सकते हैं कि अभी कितने मेहराब खुले हैं। आप एक मेहराब तभी बंद कर सकते हैं जब उसे मिलाने के लिए कोई खुला हुआ मेहराब पहले से मौजूद हो। इस तरीके को बैकट्रैकिंग कहा जाता है, जिसमें आप हर संभव रास्ते को आज़माते हैं और गलत रास्ता मिलने पर पीछे लौटकर फिर से कोशिश करते हैं।
+  ar: |
+    يحتاج مهندس معماري إلى العثور على جميع الطرق الممكنة لترتيب عدة أزواج من الممرات المقوسة في مسارات صالحة. يمكنك حل ذلك عن طريق بناء المسارات خطوة بخطوة وتتبع عدد الأقواس المفتوحة حالياً. بهذه الطريقة، لن تضيف قوساً مغلقاً إلا إذا كان هناك قوس مفتوح ينتظر المطابقة. تسمى هذه التقنية بالتتبع الخلفي (backtracking)، وهي تشبه استكشاف كل مسار والرجوع للخلف كلما وصلت إلى طريق مسدود.
+---
+
+## Welcome back
+
+Three bosses in. You've used stacks to match brackets, track minimums, and evaluate expressions. Now we flip the script. Instead of *checking* whether brackets are valid, you're going to *generate* every valid combination.
+
+This boss is interesting because the stack isn't a literal `stack = []` in your code. It's the **call stack** — the recursion itself is the stack. You'll feel the LIFO pattern even though you never call `.push()`.
+
+Today's boss: **The Architect's Blueprints**.
+
+---
+
+## The story
+
+An architect named Lena is designing a building where rooms nest inside other rooms. She has `n` pairs of doors to place. Each pair is an open and a close. She wants **every valid floor plan** — every arrangement where no door closes before its matching door opens, and every door that opens eventually closes.
+
+For `n = 1`, there's only one plan: `()`.
+
+For `n = 2`, there are two: `(())` and `()()`.
+
+For `n = 3`, there are five: `((()))`, `(()())`, `(())()`, `()(())`, `()()()`.
+
+How many are there for `n = 10`? She doesn't want to miss any.
+
+---
+
+## The problem, dressed up properly
+
+> Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
+
+---
+
+## The brute force way
+
+Generate every string of length `2n` using `(` and `)`, then filter for valid ones using Boss 1's stack check.
+
+```python
+def generate(n):
+    result = []
+    for combo in itertools.product("()", repeat=2*n):
+        s = "".join(combo)
+        if is_valid(s):
+            result.append(s)
+    return result
+```
+
+There are `2^(2n)` possible strings. For `n = 10`, that's over a million, and most are invalid. For `n = 15`, it's over a billion. Way too slow.
+
+---
+
+## The trick: build valid strings only
+
+Instead of generating all strings and filtering, we build strings one character at a time and **only add characters that keep the string valid**.
+
+Two rules:
+
+1. **You can add `(` if you haven't used all `n` of them yet.** (You have `open_count < n`.)
+2. **You can add `)` if it wouldn't create a mismatch.** (You have `close_count < open_count`.)
+
+That's it. At each step you have at most two choices: add `(` or add `)`. You try both (if they're valid), and recurse. When the string reaches length `2n`, it's a complete valid combination.
+
+<MermaidBlock>
+graph TB
+    A["start: empty string\nopen=0, close=0"]
+    B["add (\nopen=1, close=0"]
+    C["add (\nopen=2, close=0"]
+    D["add )\nopen=1, close=1\nthen continue"]
+    E["add )\nopen=2, close=1"]
+    F["add )\nopen=2, close=2\nresult: (())"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    E --> F
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This is called **backtracking**. You explore a decision tree, and at each node you only branch into valid directions.
+
+---
+
+## Watching it work
+
+For `n = 2`, the full decision tree looks like:
+
+```
+""
+├── "("
+│   ├── "(("
+│   │   └── "(()"
+│   │       └── "(())" ✓
+│   └── "()"
+│       └── "()()"  ... wait
+│       └── "()()"  ... let me trace properly
+```
+
+Let me trace it step by step:
+
+```
+backtrack("", open=0, close=0)
+  add "(", backtrack("(", 1, 0)
+    add "(", backtrack("((", 2, 0)
+      can't add "(", open=2=n
+      add ")", backtrack("(()", 2, 1)
+        can't add "(", open=2=n
+        add ")", backtrack("(())", 2, 2) → length=4=2n, save "(())"
+    add ")", backtrack("()", 1, 1)
+      add "(", backtrack("()(", 2, 1)
+        can't add "(", open=2=n
+        add ")", backtrack("()()", 2, 2) → length=4=2n, save "()()"
+```
+
+Result: `["(())", "()()"]`. Both valid, no duplicates, no invalid strings generated.
+
+---
+
+## The code
+
+```python
+def generate_parenthesis(n: int) -> list[str]:
+    result = []
+
+    def backtrack(current: str, open_count: int, close_count: int):
+        if len(current) == 2 * n:
+            result.append(current)
+            return
+
+        if open_count < n:
+            backtrack(current + "(", open_count + 1, close_count)
+
+        if close_count < open_count:
+            backtrack(current + ")", open_count, close_count + 1)
+
+    backtrack("", 0, 0)
+    return result
+```
+
+Short. Clean. The two `if` statements are the two rules. The base case is when the string reaches full length.
+
+---
+
+## Why does this only generate valid strings?
+
+Two invariants maintained at every recursive call:
+
+1. **`open_count <= n`** — we never use more openers than allowed.
+2. **`close_count <= open_count`** — at every prefix of the string, the number of closers never exceeds the number of openers. This is *exactly* the definition of "well-formed parentheses."
+
+Since we only add `)` when `close_count < open_count`, we can never create a mismatch. And since we stop when `len == 2n` with `open_count == close_count == n`, every generated string uses all n pairs.
+
+No filtering needed. Every string that reaches the base case is valid.
+
+<Callout type="tip" title="The call stack IS the stack">
+Notice there's no explicit `stack = []` anywhere. But the recursion itself maintains a stack of decisions. Each recursive call is a "push" and each return is a "pop." This is why Generate Parentheses is in the Stack dungeon even though it looks like a recursion problem.
+</Callout>
+
+---
+
+## Complexity
+
+The number of valid combinations for `n` pairs is the **nth Catalan number**: `C(n) = (2n)! / ((n+1)! * n!)`. This grows roughly as `4^n / (n * sqrt(n))`.
+
+- For `n = 3`: 5 results
+- For `n = 5`: 42 results
+- For `n = 10`: 16,796 results
+
+Each result has length `2n`, so:
+
+- **Time**: O(C(n) * n) — generating each string takes O(n) work.
+- **Space**: O(n) for the recursion depth, plus O(C(n) * n) for storing results.
+
+This is exponential, but we're generating exponentially many answers, so it's essentially optimal.
+
+---
+
+## Gotchas
+
+**1. Allowing close when `close_count == open_count`.**
+If close equals open and you add `)`, the prefix has more closers than openers. Invalid. The rule is strict less-than: `close_count < open_count`.
+
+**2. String concatenation performance.**
+`current + "("` creates a new string each time. In Python this is fine for the problem's constraints. In languages where strings are immutable and large, use a list and join at the end.
+
+**3. Forgetting this is about stacks.**
+The recursion tree looks like a binary tree of decisions. But each path through the tree is a valid sequence of push (open) and pop (close) operations on an imaginary stack of unmatched openers. That's the stack connection.
+
+**4. Thinking this only works for parentheses.**
+The same pattern generates valid sequences of any matched pair: HTML tags, begin/end blocks, lock/unlock sequences. Swap `(` and `)` for whatever your domain uses.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 4. Lena has all her floor plans.
+
+What you walked away with:
+
+- Backtracking with two counters
+- The insight that recursion *is* a stack
+- An O(Catalan(n)) generator that never produces invalid results
+
+Next up: **Boss 5 — The Weather Station.** A meteorologist has a list of daily temperatures and wants to know, for each day, how many days until a warmer one. You'll meet the **monotonic stack**, a stack that stays sorted by design. It's one of the most useful tricks in this dungeon.
+
+Pack a thermometer.

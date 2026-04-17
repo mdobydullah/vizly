@@ -20,8 +20,8 @@ Dependencies are real (Sliding Window needs Two Pointers, Trees need recursion, 
 
 Full dungeon list (ship in order):
 1. **Arrays & Hashing** — Dungeon 1 (next to build)
-2. **Two Pointers** — Dungeon 2 (in progress — Boss 1 shipped)
-3. Stack
+2. **Two Pointers** — Dungeon 2 (COMPLETE)
+3. **Stack** — Dungeon 3 (COMPLETE)
 4. Binary Search
 5. Sliding Window
 6. Linked List
@@ -115,8 +115,18 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 5: Trapping Rain Water (Rooftop Puddles)
 - [x] Boss 6: Remove Duplicates (Guest List Cleanup)
 
-### Dungeons 3-18
-- [ ] Stack, Binary Search, Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 3 — Stack (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Valid Parentheses (Locksmith's Keys)
+- [x] Boss 2: Min Stack (Warehouse Foreman)
+- [x] Boss 3: Evaluate Reverse Polish Notation (Calculator Factory)
+- [x] Boss 4: Generate Parentheses (Architect's Blueprints)
+- [x] Boss 5: Daily Temperatures (Weather Station)
+- [x] Boss 6: Car Fleet (Highway Convoy)
+- [x] Boss 7: Largest Rectangle in Histogram (Billboard Builder)
+
+### Dungeons 4-18
+- [ ] Binary Search, Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

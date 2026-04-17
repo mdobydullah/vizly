@@ -1,0 +1,229 @@
+---
+title: "Daily Temperatures — The Weather Station"
+slug: daily-temperatures-weather-station
+category: dsa
+series: stack
+seriesOrder: 5
+description: "Dungeon 3, Boss 5. A meteorologist wants to know how many days until a warmer one. Meet the monotonic stack, the single most useful stack trick you'll learn."
+tags:
+  - DSA
+  - Stack
+  - Monotonic Stack
+  - Arrays
+  - Intermediate
+icon: "🌡️"
+color: orange
+createdAt: "2026-04-17T11:00:00Z"
+updatedAt: "2026-04-17T11:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A weather station wants to know how many days you would have to wait from each day until a warmer one arrives. Instead of searching forward for every day, you can look backward using a Stack of "unanswered" days. When a hot day finally appears, it provides the answer for all the cooler days waiting at the top of your pile. This "monotonic stack" approach lets you resolve hundreds of days in just one quick pass.
+  bn: |
+    একটি আবহাওয়া কেন্দ্র জানতে চায় প্রতি দিনের পর ঠিক কতদিন অপেক্ষা করলে এর চেয়ে বেশি তাপমাত্রা পাওয়া যাবে। প্রতিদিনের জন্য সামনে খোঁজাখুঁজি না করে আপনি একটি Stack-এর মাধ্যমে আগের "অমীমাংসিত" দিনগুলোর হিসাব রাখতে পারেন। যখনই কোনো গরম দিন আসে, সেটি আপনার Stack-এর উপরে থাকা সব শীতল দিনগুলোর অপেক্ষার অবসান ঘটায়। এই পদ্ধতিকে "মনোটনিক স্ট্যাক" বলা হয়, যা আপনাকে এক নিমেষেই শত শত দিনের হিসাব নিখুঁতভাবে বুঝিয়ে দেবে।
+  hi: |
+    एक मौसम केंद्र यह जानना चाहता है कि हर दिन के बाद कितने दिन इंतज़ार करना होगा जब तक कि उससे ज़्यादा तापमान वाला दिन न आ जाए। हर दिन के लिए आगे की तरफ खोजने के बजाय, आप "अधूरे" दिनों के लिए एक Stack का उपयोग करके पीछे मुड़कर देख सकते हैं। जब आख़िरकार कोई गर्म दिन आता है, तो वह ढेर के ऊपर इंतज़ार कर रहे सभी ठंडे दिनों का जवाब दे देता है। "मोनोटोनिक स्टैक" का यह तरीका आपको एक ही बार में कई दिनों का हिसाब सुलझाने में मदद करता है।
+  ar: |
+    تريد محطة أرصاد جوية معرفة عدد الأيام التي يجب انتظارها من كل يوم حتى يأتي يوم أكثر دفئاً. بدلاً من البحث في الأيام القادمة لكل يوم، يمكنك النظر للخلف باستخدام Stack للأيام التي "لم تتم الإجابة عليها" بعد. عندما يظهر يوم حار أخيراً، فإنه يوفر الإجابة لجميع الأيام الأبرد المنتظرة في أعلى الكومة. تتيح لك طريقة "المونوتونيك ستاק" هذه حل مئات الأيام في تمريرة سريعة واحدة فقط.
+---
+
+## Welcome back
+
+Boss 4 used recursion as an implicit stack. Now we return to an explicit stack, but a very specific kind: a **monotonic stack**. This is arguably the most useful stack pattern in competitive programming and interviews.
+
+Today's boss: **The Weather Station**.
+
+---
+
+## The story
+
+You're interning at a weather station. The lead meteorologist, Sam, hands you a list of daily temperatures from the past week:
+
+```
+temps: [73, 74, 75, 71, 69, 72, 76, 73]
+```
+
+Sam asks: "For each day, how many days until we see a warmer temperature? If it never gets warmer, put zero."
+
+Expected answer:
+
+```
+result: [1, 1, 4, 2, 1, 1, 0, 0]
+```
+
+- Day 0 (73°): Day 1 is 74°, warmer. Wait 1 day.
+- Day 2 (75°): Next warmer is Day 6 (76°). Wait 4 days.
+- Day 6 (76°): Nothing warmer after. 0.
+- Day 7 (73°): Nothing after. 0.
+
+Sam says the real dataset has 30,000 days. "Make it fast."
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of integers `temperatures`, return an array `answer` such that `answer[i]` is the number of days you have to wait after the `i`th day to get a warmer temperature. If there is no future day where it's warmer, put `answer[i] = 0`.
+
+---
+
+## The naive way
+
+For each day, scan forward until you find a warmer one.
+
+```python
+def daily_temperatures(temps):
+    n = len(temps)
+    result = [0] * n
+    for i in range(n):
+        for j in range(i + 1, n):
+            if temps[j] > temps[i]:
+                result[i] = j - i
+                break
+    return result
+```
+
+Two nested loops. O(n²) worst case (think of a decreasing sequence like `[100, 99, 98, ..., 1]` — every day scans to the end). For 30,000 days, that's 450 million operations. Slow.
+
+---
+
+## The weapon: monotonic stack
+
+Here's the idea. Walk through the days left to right. Keep a stack of **indices** of days that haven't found their warmer day yet. The stack stores indices, and the temperatures at those indices are in decreasing order (that's the "monotonic" part).
+
+For each new day:
+
+1. **While the stack isn't empty and today's temp is warmer than the temp at the top index**: pop the top. That day just found its answer: `today - popped_index`.
+2. **Push today's index onto the stack.**
+
+When you're done, any indices still on the stack never found a warmer day. Their answers stay 0.
+
+<MermaidBlock>
+graph TB
+    S1["New day arrives\ncompare temp with stack top"]
+    S2["Today warmer than top?\npop top, fill answer\nrepeat"]
+    S3["Today not warmer?\npush today onto stack"]
+    S4["End of days\nstack leftovers get 0"]
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style S3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S4 fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+```
+temps: [73, 74, 75, 71, 69, 72, 76, 73]
+index:   0   1   2   3   4   5   6   7
+```
+
+```
+i=0 (73): stack empty, push 0        stack: [0]
+i=1 (74): 74 > temps[0]=73 → pop 0, answer[0]=1-0=1
+           stack empty, push 1        stack: [1]
+i=2 (75): 75 > temps[1]=74 → pop 1, answer[1]=2-1=1
+           stack empty, push 2        stack: [2]
+i=3 (71): 71 < temps[2]=75 → push 3  stack: [2, 3]
+i=4 (69): 69 < temps[3]=71 → push 4  stack: [2, 3, 4]
+i=5 (72): 72 > temps[4]=69 → pop 4, answer[4]=5-4=1
+           72 > temps[3]=71 → pop 3, answer[3]=5-3=2
+           72 < temps[2]=75 → stop
+           push 5                     stack: [2, 5]
+i=6 (76): 76 > temps[5]=72 → pop 5, answer[5]=6-5=1
+           76 > temps[2]=75 → pop 2, answer[2]=6-2=4
+           stack empty, push 6        stack: [6]
+i=7 (73): 73 < temps[6]=76 → push 7  stack: [6, 7]
+
+Done. Stack has [6, 7] → answer[6]=0, answer[7]=0
+
+result: [1, 1, 4, 2, 1, 1, 0, 0] ✓
+```
+
+Look at the stack at any moment. The temperatures at those indices are always **decreasing** from bottom to top. That's what makes it monotonic — you pop anything that's smaller than the current value, maintaining the decreasing order.
+
+---
+
+## The code
+
+```python
+def daily_temperatures(temperatures: list[int]) -> list[int]:
+    n = len(temperatures)
+    result = [0] * n
+    stack = []  # stores indices
+
+    for i in range(n):
+        while stack and temperatures[i] > temperatures[stack[-1]]:
+            j = stack.pop()
+            result[j] = i - j
+        stack.append(i)
+
+    return result
+```
+
+Seven lines of logic. Each index is pushed once and popped at most once. One pass.
+
+---
+
+## Why is this O(n)?
+
+This is the part that surprises people. "There's a while loop inside a for loop — isn't that O(n²)?"
+
+No. Each index is pushed onto the stack exactly once and popped at most once. Across the entire algorithm, the total number of push + pop operations is at most `2n`. The while loop doesn't start over from scratch each time — it pops items that never come back.
+
+**O(n) time, O(n) space** (for the stack and result array).
+
+| | Brute force | Monotonic stack |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Space | O(n) | O(n) |
+| Passes | n scans | **1 pass** |
+
+---
+
+## What makes it "monotonic"?
+
+A monotonic stack is a stack where the elements are always in sorted order (either always increasing or always decreasing from bottom to top). You maintain this property by popping anything that would violate the order before pushing.
+
+In this problem, the stack is **monotonically decreasing** (bottom to top) because:
+- You only push when the current temperature is less than or equal to the top.
+- You pop everything that's smaller before pushing.
+
+This means the stack bottom always holds the hottest unsolved day, and the top holds the coolest. Any new day that's warmer than the top triggers a cascade of pops.
+
+<Callout type="tip" title="When to reach for a monotonic stack">
+Any time a problem asks "for each element, find the next greater (or smaller) element" — that's a monotonic stack problem. Daily Temperatures is the classic example, but you'll see it again in stock prices, building heights, and histograms.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Storing values instead of indices.**
+You need the index to compute the distance (`i - j`). If you only store temperatures, you can tell *which* temperature was beaten but not *when*.
+
+**2. Using `>=` instead of `>`.**
+The problem asks for **strictly warmer**. If today's temp equals the stack top, it doesn't count as warmer. Use `>`, not `>=`.
+
+**3. Forgetting that leftovers get 0.**
+Anything still on the stack at the end never found a warmer day. The result array was initialized to 0, so this is handled automatically. But if you initialized to something else, you'd have a bug.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 5. Sam has his weather forecasts.
+
+What you walked away with:
+
+- The monotonic stack pattern
+- "Next greater element" = monotonic stack
+- The amortized O(n) argument (each element pushed and popped once)
+
+Next up: **Boss 6 — The Highway Convoy.** Cars are on a single-lane highway heading toward a destination. Faster cars behind slower ones will catch up and form fleets. How many fleets arrive? It sounds like a simulation problem, but a stack + sorting trick solves it cleanly.
+
+Buckle up.

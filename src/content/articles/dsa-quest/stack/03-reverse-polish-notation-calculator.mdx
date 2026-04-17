@@ -1,0 +1,232 @@
+---
+title: "Evaluate Reverse Polish Notation — The Calculator Factory"
+slug: reverse-polish-notation-calculator
+category: dsa
+series: stack
+seriesOrder: 3
+description: "Dungeon 3, Boss 3. A factory calculator only speaks postfix. Learn how a stack evaluates expressions like 3 4 + 2 * without needing parentheses at all."
+tags:
+  - DSA
+  - Stack
+  - Math
+  - Intermediate
+icon: "🧮"
+color: orange
+createdAt: "2026-04-17T10:30:00Z"
+updatedAt: "2026-04-17T10:30:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An old factory calculator only understands postfix notation, where you give it numbers first and then the operator. To calculate "3 + 4", you have to type "3 4 +". You can solve this by pushing numbers onto a Stack and popping two of them whenever you hit an operator. By the time you reach the end, the final answer is sitting right there on top of your pile.
+  bn: |
+    কারখানার একটি পুরোনো ক্যালকুলেটর কোনো ব্র্যাকেট বা হিসাবের সাধারণ নিয়ম বোঝে না। এটি শুধু পোস্টফিক্স নোটেশন বোঝে, যেখানে আগে সংখ্যাগুলো এবং শেষে অপারেটর দিতে হয়। যেমন "৩ + ৪" এর বদলে আপনাকে লিখতে হবে "৩ ৪ +"। আপনি একটি Stack ব্যবহার করে এই সমস্যার সমাধান করতে পারেন যেখানে আপনি সংখ্যাগুলো জমা রাখবেন এবং অপারেটর পেলেই শেষ দুটি সংখ্যা বের করে হিসাব করবেন। সব নম্বর শেষ হওয়ার পর আপনার জমানো তথ্যের একদম উপরেই উত্তরটি পাওয়া যাবে।
+  hi: |
+    कारखाने का एक पुराना कैलकुलेटर ब्रैकेट या गणित के सामान्य नियमों को नहीं समझता है। यह केवल पोस्टफ़िक्स नोटेशन समझता है, जिसमें पहले नंबर और बाद में ऑपरेटर दिया जाता है। उदाहरण के लिए "3 + 4" के लिए आपको "3 4 +" लिखना होगा। आप एक Stack का उपयोग करके इसे हल कर सकते हैं जहाँ आप नंबरों को जमा करते हैं और ऑपरेटर मिलते ही पिछले दो नंबरों को निकालकर हिसाब करते हैं। अंत में, आपका सही उत्तर ठीक उसी ढेर के ऊपर मिल जाएगा।
+  ar: |
+    تستخدم آلة حاسبة قديمة في المصنع التدوين اللاحق (postfix notation)، حيث تدخل الأرقام أولاً ثم العامل الحسابي. لحساب "3 + 4"، عليك كتابة "3 4 +". يمكنك حل هذه المشكلة باستخدام Stack واحد، حيث تضع الأرقام فيه وتسحب آخر رقمين عند مواجهة أي عامل حسابي لتنفيذ العملية. عند الوصول إلى نهاية المدخلات، ستجد النتيجة النهائية بانتظارك في أعلى الـ Stack.
+---
+
+## Welcome back
+
+Two bosses in and you've learned the stack's core operations (push, pop, peek) and how to augment one with extra tracking. Now we use the stack for something completely different: **evaluating math expressions**.
+
+Today's boss: **The Calculator Factory**.
+
+---
+
+## The story
+
+You're on the factory floor. The old industrial calculator on the wall takes inputs in a weird format:
+
+```
+"3 4 + 2 *"
+```
+
+Instead of `(3 + 4) * 2`, the operator comes *after* its operands. This is called **Reverse Polish Notation** (RPN), or postfix notation. It was invented so machines wouldn't need to parse parentheses. No ambiguity, no precedence rules, no brackets. Just a flat sequence of tokens that a stack can eat.
+
+Your shift supervisor hands you a list of expressions to evaluate. You need to build the logic.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array of strings `tokens` that represents a valid arithmetic expression in Reverse Polish Notation.
+>
+> Evaluate the expression and return an integer that represents its value.
+>
+> Valid operators are `+`, `-`, `*`, and `/`. Each operand may be an integer or another expression. Division truncates toward zero.
+
+Example: `["2", "1", "+", "3", "*"]` equals `(2 + 1) * 3 = 9`.
+
+---
+
+## Why postfix?
+
+In normal (infix) notation, `3 + 4 * 2` is ambiguous without precedence rules. Does it mean `(3 + 4) * 2 = 14` or `3 + (4 * 2) = 11`? You need PEMDAS/BODMAS and parentheses to clarify.
+
+In postfix, there's no ambiguity:
+- `3 4 + 2 *` means `(3 + 4) * 2 = 14`
+- `3 4 2 * +` means `3 + (4 * 2) = 11`
+
+The order of tokens *is* the precedence. That's why calculators and compilers love it.
+
+---
+
+## The algorithm
+
+Walk the tokens left to right. Keep a stack.
+
+1. **Number?** Push it onto the stack.
+2. **Operator?** Pop two numbers. Apply the operator. Push the result.
+
+When you reach the end, the stack has exactly one number: the answer.
+
+<MermaidBlock>
+graph TB
+    S1["Token is a number\npush onto stack"]
+    S2["Token is an operator\npop b, then pop a\ncompute a op b\npush result"]
+    S3["End of tokens\nstack has one item\nthat is the answer"]
+    S1 --> S3
+    S2 --> S3
+    style S1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S3 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+Expression: `["4", "13", "5", "/", "+"]` which represents `4 + (13 / 5) = 4 + 2 = 6`.
+
+```
+token   action                  stack
+"4"     number, push            [4]
+"13"    number, push            [4, 13]
+"5"     number, push            [4, 13, 5]
+"/"     pop 5 (b), pop 13 (a)
+        13 / 5 = 2 (truncate)
+        push 2                  [4, 2]
+"+"     pop 2 (b), pop 4 (a)
+        4 + 2 = 6
+        push 6                  [6]
+
+Done. Answer = 6 ✓
+```
+
+Another one: `["2", "1", "+", "3", "*"]` which is `(2 + 1) * 3 = 9`.
+
+```
+token   action                  stack
+"2"     push                    [2]
+"1"     push                    [2, 1]
+"+"     pop 1, pop 2 → 2+1=3   [3]
+"3"     push                    [3, 3]
+"*"     pop 3, pop 3 → 3*3=9   [9]
+
+Done. Answer = 9 ✓
+```
+
+---
+
+## The code
+
+```python
+def eval_rpn(tokens: list[str]) -> int:
+    stack = []
+    ops = {'+', '-', '*', '/'}
+
+    for token in tokens:
+        if token in ops:
+            b = stack.pop()
+            a = stack.pop()
+            if token == '+':
+                stack.append(a + b)
+            elif token == '-':
+                stack.append(a - b)
+            elif token == '*':
+                stack.append(a * b)
+            elif token == '/':
+                # truncate toward zero
+                stack.append(int(a / b))
+        else:
+            stack.append(int(token))
+
+    return stack[0]
+```
+
+Clean. The only subtle part is the order of `a` and `b`. You pop `b` first (it was pushed second, so it's on top), then `a`. The operation is `a op b`, not `b op a`. For addition and multiplication, order doesn't matter. For subtraction and division, it does.
+
+---
+
+## The division trap
+
+Python's `//` operator does *floor* division, which rounds toward negative infinity. But the problem says to truncate toward zero.
+
+```
+-7 // 2 = -4     (floor)
+int(-7 / 2) = -3  (truncate toward zero)
+```
+
+Using `int(a / b)` gives the truncation behavior the problem expects. This trips up a lot of people.
+
+<Callout type="warning" title="Watch the division">
+`-7 // 2` in Python gives `-4`, not `-3`. Use `int(a / b)` to truncate toward zero, which is what LeetCode and most problem statements expect.
+</Callout>
+
+---
+
+## Why does this work?
+
+RPN is designed for stacks. The notation itself encodes the order of operations as the order of tokens. Every operator immediately knows its two operands: they're the two most recent numbers on the stack.
+
+This is why compilers convert infix to postfix as a first step. Once you're in postfix, evaluation is mechanical — a simple stack walk with no need to think about precedence or parentheses.
+
+---
+
+## Complexity
+
+- **Time**: O(n). One pass through the tokens. Each token is processed once.
+- **Space**: O(n). The stack can hold at most n/2 numbers (if all numbers come first, then all operators).
+
+---
+
+## Gotchas
+
+**1. Popping in the wrong order.**
+`a - b` and `b - a` are different. The first pop gives you `b` (top of stack), the second gives you `a`. The operation is `a op b`.
+
+**2. Division truncation.**
+Use `int(a / b)`, not `a // b`. They differ for negative numbers.
+
+**3. Negative number tokens.**
+`"-3"` is a valid token. `int("-3")` correctly returns -3. Don't accidentally treat the `-` as an operator — it's only an operator when it's a standalone token, not when it's part of a number.
+
+**4. Assuming the input might be invalid.**
+The problem says the expression is always valid. You don't need to handle mismatched operators or empty stacks. But in production code, you would.
+
+---
+
+## The stack is more than brackets
+
+After Boss 1, you might have thought stacks are just for matching brackets. Boss 2 showed they can track metadata. Now Boss 3 shows they can evaluate entire expressions.
+
+The common thread: stacks are for problems where you process things left to right and need to **defer decisions** until you have more information. In bracket matching, you defer closing until you see the closer. In RPN, you defer computation until you see the operator.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 3. The factory calculator does its job.
+
+What you walked away with:
+
+- RPN evaluation with a stack
+- The pop-order subtlety (b first, then a)
+- The division truncation trap
+- The insight that stacks are for "deferred decisions"
+
+Next up: **Boss 4 — The Architect's Blueprints.** Instead of evaluating parentheses, you're going to *generate* all valid combinations of them. It's the first problem in this dungeon where the stack is conceptual rather than literal. You'll use recursion, and the call stack *is* the stack.
+
+Bring your blueprints.
