@@ -1,0 +1,206 @@
+---
+title: "Contains Duplicate — The Biryani Token"
+slug: contains-duplicate-biryani-token
+category: dsa
+series: arrays-hashing
+seriesOrder: 1
+description: "Dungeon 1, Boss 1. Your very first DSA Quest boss. Learn the hash set pattern by helping a panicked manager spot duplicate food tokens before the biryani runs out."
+tags:
+  - DSA
+  - Arrays
+  - Hashing
+  - Beginner
+readTime: "8 min"
+icon: "🗃️"
+color: orange
+createdAt: "2026-04-14T15:00:00Z"
+updatedAt: "2026-04-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You are in charge of the food tokens at a massive wedding feast with 5,000 guests. The manager is worried about duplicate tickets and says if two people get the same number, we will run out of biryani and a riot will start. You do not have time to compare every ticket by hand because the line is already out the door. So you grab a bowl, drop each token in, and check if the number is already there before letting them pass. It is fast, the guests are happy, and you saved the party.
+  bn: |
+    আপনি এক বিশাল মেজবান বা বিরিয়ানির আয়োজনে টোকেন চেক করার দায়িত্বে আছেন। ৫,০০০ মেহমানের মধ্যে কারোর কাছে ডুপ্লিকেট টোকেন আছে কি না সেটা আপনাকে বের করতে হবে। ম্যানেজার বললেন, যদি একই নম্বর দুইবার থাকে তবে বিরিয়ানি কম পড়বে আর মারামারি লেগে যাবে। একেকটা টোকেন নিয়ে সবার সাথে মিলিয়ে দেখার সময় নেই কারণ গেটে লম্বা লাইন লেগে গেছে। তাই আপনি একটা বাটি নিলেন আর প্রতিটা টোকেন রাখার আগে দেখে নিলেন ওই নম্বরটা আগে থেকেই সেখানে আছে কি না। এভাবে আপনি খুব সহজে ঝামেলা এড়িয়ে গেলেন।
+  hi: |
+    आप एक बड़ी दावत में बिरयानी के टोकन चेक करने के इंचार्ज हैं। आपको 5,000 मेहमानों के बीच यह चेक करना है कि कहीं किसी के पास डुप्लीकेट टोकन तो नहीं है। मैनेजर ने कहा, अगर एक ही नंबर दो बार हुआ तो बिरयानी कम पड़ जाएगी और हंगामा हो जाएगा। हर टोकन को हाथ से एक-एक करके मिलाने का समय नहीं है क्योंकि बाहर बहुत लंबी लाइन है। तो आपने एक कटोरा लिया और हर टोकन डालने से पहले देखा कि वह नंबर पहले से वहां है या नहीं। इस तरह आपने पार्टी को बिगड़ने से बचा लिया।
+  ar: |
+    أنت المسؤول عن توزيع وجبات البرياني في حفل زفاف ضخم يضم 5,000 ضيف. المدير قلق من وجود تذاكر مكررة وقال لك: إذا حصل شخصان على نفس الرقم، فسينفد الطعام وتحدث فوضى. ليس لديك وقت لمقارنة كل تذكرة بالأخرى لأن الطابور طويل جداً. لذلك أحضرت وعاءً، وبدأت تضع فيه التذاكر مع التأكد من عدم وجود الرقم مسبقاً قبل السماح لهم بالدخول. لقد كان الأمر سريعاً، وأنقذت الحفلة من مشكلة كبيرة.
+---
+
+## Welcome to Dungeon 1
+
+You just walked into the very first dungeon of DSA Quest. Before we fight anything: Arrays and Hashing is the foundation for everything else. Almost every problem you'll ever solve starts here.
+
+Today's boss: **The Biryani Token**. Your weapon to unlock: **the hash set**.
+
+---
+
+## The story
+
+Tonight is the biggest wedding feast of the year. We are talking 5,000 guests and the smell of fresh biryani everywhere. You just got hired to manage the food tokens at the gate.
+
+You show up early and the manager hands you a stack of 5,000 numbered tokens. He looks worried.
+
+"One of our printers had a glitch last week. Some of these tokens might be duplicates. If two guests show up with the same number, we'll run out of food and there will be a riot. Before doors open in ten minutes, tell me — is there a duplicate anywhere in this stack?"
+
+Ten minutes. Five thousand tokens. You need a plan.
+
+---
+
+## The naive way (please don't)
+
+Your first instinct is to compare every token with every other token. You pick up token #1 and check it against tokens #2, #3, #4... all the way to #5000. Then you pick up token #2 and check it against #3, #4... and so on.
+
+```python
+def has_duplicate_slow(tokens):
+    for i in range(len(tokens)):
+        for j in range(i + 1, len(tokens)):
+            if tokens[i] == tokens[j]:
+                return True
+    return False
+```
+
+Let's count the damage.
+
+With 5,000 tokens, that's roughly `5000 × 5000 / 2 = 12.5 million` comparisons. If each comparison takes one microsecond, you're done in 12 seconds. Okay, survivable.
+
+But what if the party is a mega-event next month with 100,000 guests? Now it's `100,000 × 100,000 / 2 = 5 billion` comparisons. That's not ten minutes. That's an hour and a half.
+
+This is O(n²). It works. But it scales like garbage. We can do better.
+
+---
+
+## The weapon: hash set
+
+Here's the idea. Grab a bowl. Any bowl.
+
+Walk through the tokens one at a time. Before you drop each token in the bowl, peek inside and ask: **is this number already here?**
+
+- If yes — duplicate. Alert the manager. Done.
+- If no — drop the token in and move to the next one.
+
+If you make it all the way through the stack without finding a match, there are no duplicates.
+
+That's it. That's the whole pattern.
+
+<MermaidBlock>
+graph LR
+    A["Next token\n#1847"] --> B{"Already in bowl?"}
+    B -->|yes| C["Duplicate found!\nreturn true"]
+    B -->|no| D["Drop in bowl\ncontinue"]
+    D --> A
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The bowl in this story is a **hash set**. In Python it's `set()`, in JavaScript it's `new Set()`, in Java it's `HashSet`. The rules across languages are the same: you can add items, you can check if an item exists, and both operations run in roughly **constant time**.
+
+<Callout type="tip" title="Why 'constant time' matters">
+A hash set doesn't scan through its contents when you ask "do you have this?". It jumps directly to the spot where that item would live and checks just that spot. Whether the set has 10 items or 10 million, the check takes about the same time. That is the magic.
+</Callout>
+
+---
+
+## The code
+
+Here's the two-line version in Python:
+
+```python
+def contains_duplicate(tokens: list[int]) -> bool:
+    return len(set(tokens)) != len(tokens)
+```
+
+Read it like English. "If the set of tokens is smaller than the list of tokens, some of them collapsed into one — duplicates exist."
+
+This is cute and it works, but it walks the entire list no matter what. Let's write the early-exit version, which is what you'd actually want on the job:
+
+```python
+def contains_duplicate(tokens: list[int]) -> bool:
+    seen = set()
+    for t in tokens:
+        if t in seen:
+            return True
+        seen.add(t)
+    return False
+```
+
+Four lines that do the work. Walk the list once, check before adding, bail the instant you find a repeat.
+
+---
+
+## Why is this so much faster?
+
+Look at what changed.
+
+| | Naive (compare all) | Hash Set |
+|---|---|---|
+| Time | O(n²) | **O(n)** |
+| Extra space | O(1) | O(n) |
+| Scales to 100k items? | Painfully | Instantly |
+| Early exit? | Yes | **Yes** |
+
+Yeah, you used more memory. The set grows as you walk. For 5,000 tokens, that's a few hundred kilobytes. On any computer built in the last 20 years, you don't care.
+
+But the time savings are wild. For 100,000 tokens:
+
+- Naive: ~5 billion operations
+- Hash set: ~100,000 operations
+
+That's a **50,000× speedup**. Same problem. Same computer. Just a smarter approach.
+
+<Callout type="info" title="The tradeoff you just learned">
+Most DSA improvements come down to this: spend a little memory to save a lot of time. The hash set is usually the first place you reach for that trade.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the early exit.**
+If you loop through the whole list even after finding a duplicate, you're wasting the speed advantage. Return as soon as you spot it.
+
+**2. Adding before checking.**
+If you add `t` to the set *before* you check, the set will always "contain" `t` when you look for it. You'll flag every single ticket as a duplicate of itself. Check first, add second.
+
+**3. Trying to use this on non-hashable items.**
+Hash sets work because the items have a stable hash. Numbers, strings, tuples — fine. Lists and dicts — not hashable in Python. If your items are complex objects, you need to hash them into something stable first.
+
+**4. Assuming "constant time" means "instant".**
+O(1) means "doesn't grow with input size". It doesn't mean "zero cost". A hash lookup is still slower than comparing two numbers. For 5 items, a nested loop might actually be faster in practice. For 5,000 or more, the hash set wins every time.
+
+---
+
+## The bigger lesson
+
+You didn't just solve one problem. You learned the single most useful pattern in coding interviews:
+
+**When a problem asks "have I seen this before?", reach for a hash set.**
+
+That shows up in a surprising number of problems:
+
+- Finding duplicates (this one)
+- Checking if two lists share any element
+- Detecting cycles in a linked list (spoiler: Dungeon 6)
+- Counting unique things
+- Sliding window problems that track "what's in my window right now"
+
+Your brain should now have a new reflex. See "duplicate", "seen", "unique", "exists" — think hash set.
+
+---
+
+## Boss down. XP gained.
+
+Ten minutes later, doors open. You found the duplicate on ticket #1847, swapped it with a fresh one from the back, and the manager gives you a nod. Night saved.
+
+Here's what you walked away with:
+
+- A pattern (hash set) that shows up in more problems than almost anything else
+- The O(n²) → O(n) jump, which is usually the biggest speedup you'll make in your life
+- A feel for when memory-for-speed is worth it (almost always, at interview scale)
+
+Next up: **Boss 2 — The Scrabble Swap**. Two words land on the table, and you need to know if one is just a rearrangement of the other. You'll meet the hash set's slightly smarter cousin: the **hash map**. Same bowl, but now each item has a counter stuck to it.
+
+Grab your bowl. See you at the Scrabble board.
