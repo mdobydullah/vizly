@@ -1,0 +1,148 @@
+---
+title: "Cross Products"
+slug: la-cross-products
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 10
+description: "Chapter 10. The dot product gives a number. The cross product gives a vector: one that stands straight up from two others, with a length equal to the area of the parallelogram they make. Here is how to picture it and compute it."
+tags:
+  - Math
+  - Linear Algebra
+  - Cross Product
+  - 3D
+icon: "✖️"
+color: blue
+createdAt: "2026-06-12T11:30:00Z"
+updatedAt: "2026-06-12T11:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+The cross product is the other famous way to multiply vectors. It only really lives in 3D, and instead of giving you a number like the dot product, it hands you back a brand new vector. It has a clean geometric meaning that makes it easy to remember.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Cross products](https://www.youtube.com/watch?v=eu6i7WJeinw)
+</Callout>
+
+---
+
+## Warm-up in 2D: signed area
+
+Before 3D, picture two vectors `v` and `w` in the flat plane. They form a parallelogram. The 2D cross product is just the **area** of that parallelogram, with a sign attached.
+
+```
+v cross w = area of the parallelogram made by v and w
+```
+
+And here is the lovely part: that area is exactly the determinant you met in Chapter 6.
+
+```
+v = [a, c], w = [b, d]
+
+v cross w = det | a  b | = ad - bc
+                | c  d |
+```
+
+The sign tells you orientation. If `w` is counterclockwise from `v`, the result is positive. If it is clockwise, negative. So the 2D cross product is really "signed area", and you already know how to compute it.
+
+---
+
+## The real cross product is in 3D
+
+In 3D, the cross product of two vectors `v` and `w` is itself a 3D vector. It has two properties worth burning into memory.
+
+1. **Direction**: the result points straight out, perpendicular to *both* `v` and `w`. It stands up off the plane that `v` and `w` lie in.
+2. **Length**: the length of the result equals the area of the parallelogram formed by `v` and `w`.
+
+```
+length of (v cross w) = area of parallelogram of v and w
+```
+
+So a bigger or more spread-out parallelogram gives a longer result vector. If `v` and `w` point the same way, their parallelogram is flat with zero area, and the cross product is the zero vector.
+
+<MermaidBlock>
+graph TD
+    A["two 3D vectors v and w"] --> B["they span a flat parallelogram"]
+    B --> C["cross product points perpendicular to both"]
+    B --> D["its length = the parallelogram's area"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+---
+
+## Which of the two perpendicular ways does it point?
+
+A line perpendicular to the plane has two directions: up or down. The cross product picks one using the **right hand rule**. Point your right hand's fingers along `v`, curl them toward `w`, and your thumb points the way `v cross w` goes.
+
+This is why order matters and flips the sign:
+
+```
+w cross v = -(v cross w)
+```
+
+Swapping the inputs points the result the opposite way. Curl your fingers the other direction and your thumb flips.
+
+---
+
+## How to compute it
+
+For `v = [v1, v2, v3]` and `w = [w1, w2, w3]`, the formula is:
+
+```
+v cross w = | v2*w3 - v3*w2 |
+            | v3*w1 - v1*w3 |
+            | v1*w2 - v2*w1 |
+```
+
+A worked example with `v = [1, 0, 0]` and `w = [0, 1, 0]` (that is `î` and `ĵ`):
+
+```
+v cross w = | 0*0 - 0*1 |   | 0 |
+            | 0*0 - 1*0 | = | 0 |
+            | 1*1 - 0*0 |   | 1 |
+```
+
+The answer is `[0, 0, 1]`, which is `k̂`, pointing straight out of the page. That matches the picture: `î` and `ĵ` lie flat in the plane, and their cross product stands up perpendicular to both. The right hand rule confirms the direction.
+
+<Callout type="tip" title="A memory aid">
+Many people remember the formula by writing a determinant with the symbols î, ĵ, k̂ in the top row and the two vectors below, then expanding it. We will see in the next chapter that this is not just a memory trick; there is a real reason a determinant shows up here.
+</Callout>
+
+---
+
+## Why this matters later
+
+- **Physics** uses cross products everywhere: torque, angular momentum, and magnetic force are all "this vector crossed with that one".
+- **3D graphics** finds the direction a surface faces (its normal) by crossing two edges of a triangle. That normal decides how light bounces off it.
+- **Geometry** uses the length of the cross product to get areas of triangles and parallelograms in space.
+
+<Callout type="success" title="The mental model to keep">
+The cross product (in 3D) is a vector perpendicular to both inputs, with length equal to their parallelogram's area. In 2D it collapses to a signed area, which is just the determinant. Order flips the sign.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**Dot product gives a number; cross product gives a vector.** Do not mix them up.
+
+**Order matters.** `v cross w` and `w cross v` point opposite ways.
+
+**Parallel vectors give zero.** If two vectors point the same direction, their parallelogram is flat and the cross product is the zero vector.
+
+**True cross product is a 3D thing.** The 2D version is really just the signed area (a number), not a vector.
+
+---
+
+## What you walked away with
+
+- The 3D **cross product** returns a vector perpendicular to both inputs.
+- Its **length** is the area of the parallelogram the two vectors make.
+- The **right hand rule** picks the direction, and swapping the order flips the sign.
+- In 2D, the cross product is the **signed area**, which equals the determinant.
+
+Next up, Chapter 11: a deeper look at *why* the cross product formula works, using the duality idea from Chapter 9. It is an optional, mind-bending bonus that ties several chapters together.

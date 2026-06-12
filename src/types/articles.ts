@@ -35,6 +35,7 @@ export interface SeriesArticleEntry {
   order: number;
   slug: string;
   title: string;
+  fundamental?: boolean;
 }
 
 export interface ArticleSeries {

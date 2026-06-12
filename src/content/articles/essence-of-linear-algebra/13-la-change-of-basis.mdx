@@ -1,0 +1,141 @@
+---
+title: "Change of Basis"
+slug: la-change-of-basis
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 13
+description: "Chapter 13. The same arrow gets different coordinates depending on which basis you use. This chapter shows how to translate vectors and even whole transformations between two coordinate systems. It is the formal version of an idea from Chapter 2."
+tags:
+  - Math
+  - Linear Algebra
+  - Change of Basis
+  - Coordinates
+icon: "🔁"
+color: blue
+createdAt: "2026-06-12T12:00:00Z"
+updatedAt: "2026-06-12T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+Back in Chapter 2 we said coordinates are not sacred; they are just the amounts you scale your chosen basis vectors by. This chapter cashes that in. Two people can describe the very same arrow with different numbers because they use different basis vectors. Change of basis is the dictionary that translates between them.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Change of basis](https://www.youtube.com/watch?v=P2LTAUO1TdA)
+</Callout>
+
+---
+
+## Two people, one arrow, different numbers
+
+Imagine you and a friend named Jen looking at the same arrow in space.
+
+- You use the standard basis: `î = [1, 0]` and `ĵ = [0, 1]`.
+- Jen uses her own basis vectors, which (in your coordinates) are `b1 = [2, 1]` and `b2 = [-1, 1]`.
+
+The arrow does not change. But because Jen measures with different rulers, she writes down different coordinates than you do. Neither of you is wrong. You are just speaking different coordinate languages.
+
+The question of this chapter is simple: given Jen's numbers, how do we find your numbers, and the other way around?
+
+---
+
+## The change of basis matrix
+
+Here is the trick. Build a matrix whose columns are Jen's basis vectors, written in **your** coordinates:
+
+```
+B = | 2  -1 |     column 1 = b1 = Jen's first basis vector, in your coords
+    | 1   1 |     column 2 = b2 = Jen's second basis vector, in your coords
+```
+
+Now think about what this matrix does using Chapter 3. Its columns are where the basis vectors land. So if you feed it a vector written in **Jen's** language, it returns that same arrow written in **your** language.
+
+```
+your coordinates = B * (Jen's coordinates)
+```
+
+It works because a vector in Jen's coordinates, say `[x, y]`, literally means "x of b1 plus y of b2", and the matrix `B` computes exactly that combination in your coordinate system.
+
+<MermaidBlock>
+graph LR
+    J["a vector in Jen's coords"] -->|"multiply by B"| Y["same vector in your coords"]
+    Y -->|"multiply by B inverse"| J2["back to Jen's coords"]
+    style J fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style Y fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style J2 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+To go the other way, from your coordinates to Jen's, just use the inverse:
+
+```
+Jen's coordinates = B inverse * (your coordinates)
+```
+
+`B` translates Jen to you; `B inverse` translates you to Jen.
+
+---
+
+## Translating a whole transformation
+
+Now the powerful part. Suppose you have a transformation, like a 90 degree rotation, written as a matrix `M` in **your** coordinates. Jen wants the matrix for that same rotation in **her** coordinates. How?
+
+You cannot just hand her `M`, because `M` expects and produces vectors in your language, not hers. So you build a translation sandwich. Read it right to left:
+
+```
+M in Jen's language = B inverse * M * B
+```
+
+Walk through what happens to a vector written in Jen's coordinates:
+
+1. **`B`** translates it from Jen's language into your language.
+2. **`M`** applies the transformation, in your language (where you know how to do it).
+3. **`B inverse`** translates the result back into Jen's language.
+
+The middle step is the actual work; the outer two just translate in and out. The whole expression is one matrix that performs the transformation entirely in Jen's coordinate system.
+
+<Callout type="tip" title="A pattern worth memorizing">
+Anytime you see `B inverse * M * B`, read it as "do M, but as seen from a different coordinate system". This sandwich shape (called a change of basis, or conjugation) shows up constantly, including in the very next chapter.
+</Callout>
+
+---
+
+## Why anyone would bother
+
+Switching coordinate systems is not just for friends with quirky tastes. Sometimes a transformation is messy in the standard basis but becomes wonderfully simple in a smarter one. A rotation around a tilted axis is ugly in normal coordinates but trivial if you pick a basis lined up with that axis.
+
+This is the entire motivation for the next chapter. If you can find a basis made of a transformation's **eigenvectors**, the transformation turns into a simple diagonal matrix, and hard calculations become easy.
+
+---
+
+## Why this matters later
+
+- **Eigenbasis** (Chapter 14) is a change of basis chosen to make a matrix as simple as possible.
+- **Principal Component Analysis** in data science is literally a change of basis to the directions where data varies most.
+- **Physics and graphics** constantly switch between world coordinates, camera coordinates, and object coordinates, each a change of basis.
+
+<Callout type="success" title="The mental model to keep">
+A vector's coordinates depend on the basis. The matrix B (columns are the new basis vectors in old coordinates) translates new to old; B inverse goes old to new. To express a transformation in a new basis, sandwich it: B inverse * M * B.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**The columns of B are the new basis vectors written in the old coordinates.** Get this direction right or everything flips.
+
+**`B` goes from the new language to the old one.** It feels backwards, but remember: it takes new coordinates in and gives old coordinates out.
+
+**Read the sandwich right to left.** `B` first, then `M`, then `B inverse`.
+
+---
+
+## What you walked away with
+
+- The same arrow has **different coordinates** in different bases.
+- The **change of basis matrix** `B` (new basis vectors in old coords) converts new coordinates to old; `B inverse` converts old to new.
+- To rewrite a transformation in a new basis, use the sandwich **`B inverse * M * B`**.
+- Choosing a clever basis can make a hard transformation simple.
+
+Next up, Chapter 14: **eigenvectors and eigenvalues**, the special arrows a transformation only stretches without knocking off their line, and the reason a well-chosen basis can turn a matrix into a simple diagonal.

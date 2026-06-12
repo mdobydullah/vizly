@@ -1,0 +1,146 @@
+---
+title: "Dot Products and Duality"
+slug: la-dot-products-duality
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 9
+description: "Chapter 9. The dot product turns two vectors into one number, and it secretly measures how much they point the same way. Then comes a lovely twist called duality: every vector is also a transformation that squishes space onto a line."
+tags:
+  - Math
+  - Linear Algebra
+  - Dot Product
+  - Duality
+icon: "🎯"
+color: blue
+createdAt: "2026-06-12T11:20:00Z"
+updatedAt: "2026-06-12T11:20:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+The dot product is probably the first way anyone learns to multiply two vectors. It is easy to compute and incredibly useful. But the real prize in this chapter is understanding *why* the easy computation matches the geometric meaning. That answer, called duality, is one of the most satisfying ideas in the whole series.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Dot products and duality](https://www.youtube.com/watch?v=LyGKycYT2v0)
+</Callout>
+
+---
+
+## The easy way to compute it
+
+To take the dot product of two vectors, multiply matching components and add the results:
+
+```
+[3, 1] dot [2, 4] = (3)(2) + (1)(4) = 6 + 4 = 10
+```
+
+That is it. Two vectors go in, one plain number comes out. It works in any dimension; just keep pairing up components and adding.
+
+---
+
+## What that number actually means
+
+The dot product measures how much two vectors point in the same direction. Here is the geometric picture: take one vector, project the other one straight down onto its line (drop a shadow), then multiply the shadow's length by the first vector's length.
+
+```
+v dot w = (length of v) times (length of w's shadow on v)
+```
+
+This gives you a clean way to read the sign:
+
+- **Positive**: the two vectors roughly point the same way.
+- **Zero**: they are perpendicular. One casts no shadow on the other at all.
+- **Negative**: they point in roughly opposite directions.
+
+<Callout type="tip" title="Perpendicular = zero">
+The fastest fact to remember: if the dot product is zero, the vectors are at a right angle. This one check shows up constantly, from physics to graphics to machine learning.
+</Callout>
+
+There is also the angle formula, which says the same thing:
+
+```
+v dot w = |v| |w| cos(theta)
+```
+
+where `theta` is the angle between them. When they line up, `cos` is 1 and the product is biggest. At 90 degrees, `cos` is 0, so the dot product is 0.
+
+---
+
+## Order does not matter
+
+Unlike matrix multiplication, the dot product does not care about order:
+
+```
+v dot w = w dot v
+```
+
+The shadow length works out the same whichever vector you project onto the other. This symmetry is a small but pleasant surprise, and the duality idea below explains why it is true.
+
+---
+
+## The twist: duality
+
+Here is the deep question. Why does "multiply components and add" (pure arithmetic) match "project and scale lengths" (pure geometry)? They look unrelated. Duality is the bridge.
+
+Remember from Chapter 8 that a single-row matrix turns a 2D vector into one number. Something like:
+
+```
+| 3  1 | applied to | x | gives 3x + 1y
+                     | y |
+```
+
+Look closely. That is the exact same arithmetic as the dot product of `[3, 1]` with `[x, y]`. So:
+
+> Taking the dot product with a fixed vector is the same as applying a certain "squish everything onto a line" transformation.
+
+Every vector `v` has a matching transformation that flattens space onto the number line, and that transformation is just "dot with `v`". Flip it around and you get the headline:
+
+> Every linear transformation from space to the number line can be described as a dot product with one specific vector.
+
+That hidden one-to-one match between vectors and these flattening transformations is what we mean by **duality**. The vector and the transformation are two faces of the same thing.
+
+<MermaidBlock>
+graph LR
+    V["a vector v"] -->|"is the same as"| T["a transformation:<br/>squish space onto a line"]
+    T -->|"applying it"| N["a single number"]
+    V -->|"dot with another vector"| N
+    style V fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style T fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style N fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This is why the arithmetic and the geometry agree: the components of `v` *are* the recipe for the projection transformation. The numbers and the shadows are literally the same operation seen two ways.
+
+---
+
+## Why this matters later
+
+- **Similarity** between two things (documents, images, user profiles) is almost always a dot product. AI search and recommendations rank results by how aligned their vectors are.
+- **Projections**, used in least squares and PCA, are built from dot products.
+- **Perpendicularity tests**, like checking if a surface faces a light source in graphics, are just "is the dot product positive, zero, or negative".
+
+<Callout type="success" title="The mental model to keep">
+The dot product is one number that says how aligned two vectors are: positive for same direction, zero for perpendicular, negative for opposite. Duality says every vector is secretly a transformation that flattens space onto a line, which is why the arithmetic matches the geometry.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**The output is a number, not a vector.** Do not expect an arrow back.
+
+**Zero means perpendicular, not "no relationship".** Perpendicular vectors are very much related; they are just at a right angle.
+
+**Length matters too.** A big dot product can come from alignment or from long vectors. To measure only direction, divide by the lengths (that gives the cosine).
+
+---
+
+## What you walked away with
+
+- The **dot product** multiplies matching components and adds, giving one number.
+- That number measures **alignment**: positive (same way), zero (perpendicular), negative (opposite).
+- **Duality** reveals that every vector is also a transformation squishing space onto a line, which is exactly why the simple arithmetic equals the geometric projection.
+
+Next up, Chapter 10: the **cross product**. Where the dot product gives a number, the cross product (in 3D) gives a whole new vector, one that points perpendicular to both inputs with a length equal to their parallelogram's area.

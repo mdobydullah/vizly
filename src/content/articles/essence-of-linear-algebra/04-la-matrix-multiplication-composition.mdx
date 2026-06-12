@@ -1,0 +1,160 @@
+---
+title: "Matrix Multiplication as Composition"
+slug: la-matrix-multiplication-composition
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 4
+description: "Chapter 4. Why does matrix multiplication have that weird row-times-column rule? Because multiplying two matrices just means doing one transformation, then another. Once you see that, the rule writes itself."
+tags:
+  - Math
+  - Linear Algebra
+  - Matrices
+  - Transformations
+icon: "🔗"
+color: blue
+createdAt: "2026-06-12T10:30:00Z"
+updatedAt: "2026-06-12T10:30:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+In Chapter 3 we learned that a matrix moves all of space, and its columns tell you where the basis vectors land. Now we ask: what if you move space twice? First a rotation, then a shear, say. That is what multiplying two matrices means.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Matrix multiplication as composition](https://www.youtube.com/watch?v=XkY2DOUCWMU)
+</Callout>
+
+---
+
+## Doing two things in a row
+
+Say you rotate space, and then you shear it. Each step is its own transformation, so each has its own matrix. But the end result, rotate then shear, is also a single linear transformation. Grid lines stay straight and evenly spaced, the origin stays put. So there must be one matrix that does the whole thing in one shot.
+
+That single matrix is called the **composition** of the two. And finding it is exactly what matrix multiplication does.
+
+---
+
+## Reading the order: right to left
+
+Here is the part that trips people up. We write it like this:
+
+```
+(shear)(rotation)
+```
+
+and it means "rotation first, then shear". The transformation closest to the vector runs first. It reads right to left, like function notation in math: `f(g(x))` does `g` first.
+
+So `M2 * M1` means: apply `M1`, then apply `M2`.
+
+<Callout type="warning" title="This feels backwards at first">
+We read English left to right, but matrices apply right to left. The matrix sitting next to the vector touches it first. Train your eye to read the rightmost matrix as the first step.
+</Callout>
+
+---
+
+## How to actually compute it
+
+You already know the trick from Chapter 3: to describe any transformation, just find where the basis vectors land. So to find the combined matrix, push `î` and `ĵ` through both steps and see where they end up.
+
+The shortcut in numbers: take the first matrix (the one that runs first), and apply the second matrix to each of its columns. Each transformed column becomes a column of the answer.
+
+Let us multiply a shear by a rotation.
+
+```
+Shear M2 = | 1  1 |        Rotation M1 = | 0  -1 |
+           | 0  1 |                      | 1   0 |
+```
+
+Apply the shear to each column of the rotation.
+
+First column of M1 is `[0, 1]`. Apply the shear:
+
+```
+| 1  1 |   | 0 |       | 1 |       | 1 |     | 1 |
+| 0  1 | * | 1 | = 0 * | 0 | + 1 * | 1 |  = | 1 |
+```
+
+Second column of M1 is `[-1, 0]`. Apply the shear:
+
+```
+| 1  1 |   | -1 |        | 1 |       | 1 |     | -1 |
+| 0  1 | * |  0 | = -1 * | 0 | + 0 * | 1 |  = |  0 |
+```
+
+Stack those two answers as columns:
+
+```
+M2 * M1 = | 1  -1 |
+          | 1   0 |
+```
+
+That single matrix does "rotate, then shear" in one move. No memorized rule needed. You just sent each column through the second transformation.
+
+<MermaidBlock>
+graph LR
+    V["a vector"] --> R["apply M1 (runs first)"]
+    R --> S["apply M2 (runs second)"]
+    S --> O["same result as one matrix M2*M1"]
+    style V fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style O fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Order matters a lot
+
+Rotate then shear is **not** the same as shear then rotate. Try it with real paper: rotate a sheet 90 degrees and then push the top sideways, versus push first and then rotate. You land in different places.
+
+In math terms:
+
+```
+M2 * M1   is usually NOT equal to   M1 * M2
+```
+
+We say matrix multiplication is **not commutative**. Swapping the order changes the result. This is normal once you remember that these are physical actions, and the order you do actions in clearly matters.
+
+---
+
+## One thing that does stay nice
+
+If you chain three transformations, you can group them however you like:
+
+```
+(A * B) * C   equals   A * (B * C)
+```
+
+This is called being **associative**. It is obvious once you think geometrically: in both cases you are doing C first, then B, then A. Grouping is just about which pair you combine into one matrix first. The actual order of actions never changed, so the result cannot change either.
+
+---
+
+## Why this matters later
+
+- Every time you "stack" operations (rotate a 3D model, then move the camera, then project to a screen), you are composing transformations. Graphics engines multiply these matrices together once and reuse the result.
+- In neural networks, stacking linear layers is matrix multiplication. Two linear layers in a row collapse into one matrix, which is exactly why you need a nonlinear step between them.
+
+<Callout type="success" title="The mental model to keep">
+Multiplying matrices means doing one transformation after another. Read right to left. To compute it, push the first matrix's columns through the second matrix. Order matters; grouping does not.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**Right to left, always.** The matrix next to the vector acts first.
+
+**Sizes must line up.** To multiply, the number of columns in the left matrix must equal the number of rows in the right one. That is just saying the output of the first step must fit as input to the second.
+
+**Do not assume you can swap.** `AB` and `BA` are different in general. If a problem lets you swap them, that is a special fact about those specific matrices, not a free rule.
+
+---
+
+## What you walked away with
+
+- Matrix multiplication is **composition**: do one transformation, then another.
+- It reads **right to left**, the rightmost matrix first.
+- Compute it by sending the first matrix's columns through the second matrix.
+- It is **not commutative** (order matters) but it is **associative** (grouping is free).
+
+Next up, Chapter 5: everything we have done in flat 2D works the same in 3D. We just add a third basis vector and a third row. Quick chapter, but it sets up determinants and cross products.

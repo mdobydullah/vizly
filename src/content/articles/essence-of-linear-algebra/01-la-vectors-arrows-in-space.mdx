@@ -1,0 +1,169 @@
+---
+title: "Vectors, What Even Are They?"
+slug: la-vectors-arrows-in-space
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 1
+description: "Chapter 1, a fundamental. Three people walk into linear algebra: a physics student, a CS student, and a mathematician. They all mean something different by 'vector'. Here is the one picture that ties them together."
+tags:
+  - Math
+  - Linear Algebra
+  - Vectors
+  - Fundamentals
+  - Beginner
+icon: "➡️"
+color: blue
+createdAt: "2026-06-12T10:00:00Z"
+updatedAt: "2026-06-12T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 1 of the Essence of Linear Algebra series. It is one of the three fundamentals. If you only ever read three chapters, read these first three, because every later idea (matrices, determinants, eigenvectors) is built on top of them.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Linear Algebra". Watch Chapter 1 here: [Vectors, what even are they?](https://www.youtube.com/watch?v=fNk_zzaMoSs)
+</Callout>
+
+---
+
+## The fight over one word
+
+Ask three people what a vector is and you get three answers.
+
+- The **physics student** says: a vector is an arrow pointing somewhere. It has a length and a direction. Move it around, it is still the same arrow.
+- The **CS student** says: a vector is a list of numbers. `[3, 1]` is a vector. Order matters, length matters.
+- The **mathematician** says: a vector is anything that follows the rules of adding and scaling. Could be an arrow, could be a list, could be a function.
+
+They are not arguing. They are describing the same thing from three angles. Linear algebra is the bridge between the arrow and the list, and that bridge is the single most useful idea you will take from this chapter.
+
+---
+
+## The picture: an arrow from the origin
+
+For now, plant every vector at the origin (the point `0, 0`). A vector is the arrow from the origin to some point.
+
+Take the vector `[3, 1]`. Walk 3 to the right, then 1 up. Drop the arrowhead there.
+
+```
+   ^
+ 2 |
+ 1 |          • (3, 1)
+   |       ⟋
+ 0 +----------------->
+   0   1   2   3
+```
+
+That pair of numbers is just an instruction. The first number says how far along the x-axis, the second says how far along the y-axis. The arrow and the list `[3, 1]` are two views of the same object.
+
+<Callout type="tip" title="Why anchor at the origin?">
+In physics an arrow can sit anywhere. In linear algebra we pin the tail to the origin so that every vector matches exactly one pair of coordinates. One arrow, one list, no ambiguity. That pinning is what makes the whole subject click.
+</Callout>
+
+We write vectors as a column, stacked top to bottom:
+
+```
+v = | 3 |
+    | 1 |
+```
+
+In 3D you just add a third number for the z-axis: `[2, 1, 4]`. Same idea, one more direction to walk.
+
+---
+
+## The only two things you can do to a vector
+
+Here is the surprise. Almost all of linear algebra is built from exactly two operations. That is it.
+
+### 1. Add two vectors
+
+To add `[3, 1]` and `[1, 2]`, add them slot by slot:
+
+```
+| 3 |   | 1 |   | 3+1 |   | 4 |
+| 1 | + | 2 | = | 1+2 | = | 3 |
+```
+
+What does that mean as arrows? Put the tail of the second arrow on the tip of the first. Walk the first arrow, then walk the second from where you landed. The single arrow from your start to your finish is the sum.
+
+<MermaidBlock>
+graph LR
+    O["Origin"] -->|"first: (3,1)"| A["land at (3,1)"]
+    A -->|"second: (1,2)"| B["finish at (4,3)"]
+    O -.->|"sum: (4,3)"| B
+    style O fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Addition is just "do one movement, then the next, and ask where you ended up".
+
+### 2. Scale a vector by a number
+
+Multiply a vector by a plain number (called a **scalar**) and you stretch or squish it:
+
+```
+       | 3 |   | 6 |
+   2 * | 1 | = | 2 |
+```
+
+`2 * [3, 1]` points the same way but is twice as long. `0.5 * [3, 1]` is half as long. And a **negative** scalar flips it to point the opposite way:
+
+```
+        | 3 |   | -3 |
+  -1 *  | 1 | = | -1 |
+```
+
+The word "scalar" exists for exactly this reason: a number that *scales* a vector.
+
+---
+
+## Why this is the whole game
+
+Adding and scaling sound almost too simple to matter. But stack them together and you can build any vector in the plane out of just two starting arrows. That combination, "scale these, then add them", is called a **linear combination**, and it is the entire subject of Chapter 2.
+
+Every big idea coming later is some flavor of these two moves:
+
+- A **matrix** is a recipe that adds and scales vectors in bulk (Chapter 3).
+- A **span** is every vector you can reach by adding and scaling a fixed set (Chapter 2).
+- **Eigenvectors** are the special arrows a transformation only scales, never knocks off their line (Chapter 14).
+
+If "add and scale" lives in your bones, the rest of the series is variations on a theme.
+
+---
+
+## The numbers-vs-arrows superpower
+
+Why keep both views around? Because each one rescues you when the other gets stuck.
+
+- When a problem has **2 or 3 dimensions**, picture arrows. Geometry gives you intuition: "this vector is longer", "these two point the same way".
+- When a problem has **500 dimensions** (think a row of data, or the weights in a neural net), you cannot picture it. So you fall back to the list and crunch numbers.
+
+Linear algebra lets you reason visually in low dimensions, trust that the algebra behaves the same way in high dimensions, and move between the two for free. That translation is the actual product you are buying.
+
+<Callout type="success" title="The mental model to keep">
+A vector is an arrow from the origin, and also a list of coordinates. Adding = walk one then the next. Scaling = stretch, squish, or flip. Everything else is built from these.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**A point and a vector look the same but mean different things.** `(3, 1)` as a *point* is a location. `[3, 1]` as a *vector* is a movement from the origin to that location. In linear algebra we lean on the movement reading.
+
+**Order matters.** `[3, 1]` and `[1, 3]` are different arrows. The slots are positions, not a set.
+
+**Dimension is just the count of numbers.** A 2D vector has 2, a 3D vector has 3, a 100D vector has 100. You stop being able to draw it past 3, but the rules never change.
+
+---
+
+## What you walked away with
+
+- A vector is an arrow from the origin and a list of coordinates, two views of one thing.
+- There are only two core operations: **add** (tip to tail) and **scale** (stretch, squish, flip).
+- "Scale then add" is a **linear combination**, and it powers everything ahead.
+- Pictures for low dimensions, numbers for high dimensions, same rules for both.
+
+Next up, Chapter 2 (also a fundamental): we take two little arrows, scale and add them every possible way, and ask what region of space we can cover. That gives us **span**, **basis vectors**, and **linear independence**. See you there.

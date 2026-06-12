@@ -1,0 +1,142 @@
+---
+title: "Cross Products in the Light of Linear Transformations"
+slug: la-cross-products-transformations
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 11
+description: "Chapter 11. A bonus deep dive. Why does the cross product formula work, and why does a determinant show up in it? The answer uses duality from Chapter 9 and is one of the most elegant moments in the series."
+tags:
+  - Math
+  - Linear Algebra
+  - Cross Product
+  - Duality
+icon: "🌀"
+color: blue
+createdAt: "2026-06-12T11:40:00Z"
+updatedAt: "2026-06-12T11:40:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is the most advanced chapter so far, and it is optional. If you only want to *use* the cross product, Chapter 10 already gave you everything. This chapter answers a deeper "why": where does that formula come from, and why does it look like a determinant? The payoff is seeing duality (Chapter 9) do real work.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Cross products in the light of linear transformations](https://www.youtube.com/watch?v=BaM7OCEm3G0)
+</Callout>
+
+<Callout type="tip" title="Read these first">
+This chapter leans hard on two earlier ideas: the determinant as volume (Chapter 6) and duality (Chapter 9). If either feels shaky, a quick reread will make this click.
+</Callout>
+
+---
+
+## The puzzle
+
+In the last chapter we computed the cross product with a formula that, oddly, looked like a determinant with `î`, `ĵ`, `k̂` sitting in the top row. That should feel suspicious. Determinants measure volume. Why would a volume calculation produce a vector that is perpendicular to two others, with a length equal to an area? This chapter shows it is not a coincidence at all.
+
+---
+
+## Step 1: a volume function
+
+Take your two fixed vectors `v` and `w`. Now imagine a third, *variable* vector. Call its coordinates `[x, y, z]`. These three vectors form a slanted 3D box (a parallelepiped).
+
+Define a function: feed in any `[x, y, z]`, and it returns the **signed volume** of the box made by `[x, y, z]`, `v`, and `w`.
+
+```
+f([x, y, z]) = signed volume of the box from [x,y,z], v, and w
+```
+
+That volume is a determinant (Chapter 6), so this function is a determinant where one column is the variable `[x, y, z]` and the other two are the fixed `v` and `w`.
+
+---
+
+## Step 2: this function is linear
+
+Here is the key observation. As you change `[x, y, z]`, the volume changes in a perfectly linear way. Double the input, double the volume. Add two inputs, add their volumes. So `f` is a **linear transformation** that takes a 3D vector and returns a single number.
+
+That is exactly the kind of function Chapter 9 was about: space squished down to the number line.
+
+---
+
+## Step 3: duality hands us a vector
+
+Recall the punchline of duality: every linear transformation from 3D to a single number is the same as taking the **dot product** with one specific vector. So there must be some special vector, call it `p`, where:
+
+```
+f([x, y, z]) = p dot [x, y, z]
+```
+
+In words: computing this box's volume is the same as dotting your input with one fixed vector `p`.
+
+<MermaidBlock>
+graph LR
+    I["input [x,y,z]"] --> F["volume of box with v and w<br/>(a linear function to a number)"]
+    F -->|"duality says this equals"| P["dot product with a special vector p"]
+    P --> R["and that p IS v cross w"]
+    style I fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style P fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style R fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Step 4: that special vector is the cross product
+
+Now ask: what is `p`, geometrically? We need a vector such that dotting it with `[x, y, z]` gives the volume of the box.
+
+Think about what volume means: it is the base area times the height. The base is the parallelogram of `v` and `w`. The height is how far `[x, y, z]` reaches perpendicular to that base. A dot product measures exactly that kind of "length times perpendicular reach".
+
+For `p dot [x, y, z]` to equal that volume, `p` must:
+
+- point **perpendicular to both `v` and `w`** (so the dot product picks out the height direction), and
+- have a **length equal to the area of the `v`, `w` parallelogram** (so it scales the height into a volume).
+
+But those are precisely the two defining properties of the cross product from Chapter 10. So `p` is `v cross w`. Mystery solved.
+
+```
+p = v cross w
+    points perpendicular to v and w
+    length equals the parallelogram's area
+```
+
+The determinant-looking formula was duality quietly translating a volume function into the vector that represents it.
+
+---
+
+## Why this is beautiful
+
+Several chapters just snapped together:
+
+- **Determinant** (Chapter 6) gave us volume.
+- **Duality** (Chapter 9) turned a volume function into a vector.
+- **Cross product** (Chapter 10) turned out to be that exact vector.
+
+You did not have to accept the formula on faith. It falls out of ideas you already trust. This is what people mean when they say linear algebra is one connected story rather than a pile of separate tricks.
+
+<Callout type="success" title="The mental model to keep">
+Volume-of-the-box is a linear function from a vector to a number. Duality says every such function is a dot product with some vector. For the box built on v and w, that vector is exactly v cross w. The cross product is duality applied to volume.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**This explains the "why", not a new "how".** You still compute the cross product the same way as Chapter 10.
+
+**The î, ĵ, k̂ in the top row is a bookkeeping trick.** It works because of the duality argument above, not because you are really taking a determinant of symbols.
+
+**It is fine to skip this chapter on a first pass.** Come back once Chapters 6 and 9 feel solid, and it will read like a payoff instead of a puzzle.
+
+---
+
+## What you walked away with
+
+- The volume of the box built from `[x, y, z]`, `v`, and `w` is a **linear function** of `[x, y, z]`.
+- By **duality**, that function equals a dot product with one special vector.
+- That special vector has to be perpendicular to `v` and `w` with length equal to their area, which makes it exactly **`v cross w`**.
+- The determinant-style formula is duality at work, not a coincidence.
+
+Next up, Chapter 12: **Cramer's rule**, a way to solve linear systems using ratios of determinants, explained through the same area and volume pictures.

@@ -52,5 +52,11 @@
     "name": "DSA Quest",
     "color": "orange",
     "icon": "swords"
+  },
+  {
+    "slug": "math",
+    "name": "Math",
+    "color": "blue",
+    "icon": "sigma"
   }
 ]

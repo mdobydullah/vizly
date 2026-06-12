@@ -192,6 +192,25 @@ export default function SeriesDetailClient({ series, articles, parentPath }: Rea
                 )}
               </div>
 
+              {/* Fundamental badge */}
+              {entry.fundamental && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  color: accentColor,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  padding: '0.2rem 0.5rem',
+                  borderRadius: '999px',
+                  background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+                  border: `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)`,
+                  flexShrink: 0,
+                }}>
+                  ★ Fundamental
+                </span>
+              )}
+
               {/* Status */}
               {!isPublished && (
                 <span style={{
