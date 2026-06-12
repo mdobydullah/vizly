@@ -1,0 +1,161 @@
+---
+title: "Inverse Matrices, Column Space, and Null Space"
+slug: la-inverse-column-space-null-space
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 7
+description: "Chapter 7. This is where linear algebra earns its keep: solving systems of equations. We will see an inverse as the transformation that rewinds another, and meet column space and null space, the two ideas that tell you when a system has a solution."
+tags:
+  - Math
+  - Linear Algebra
+  - Inverse
+  - Linear Systems
+icon: "↩️"
+color: blue
+createdAt: "2026-06-12T11:00:00Z"
+updatedAt: "2026-06-12T11:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+So far we have moved space around for fun. Now we use it for the most common job in all of applied math: solving systems of linear equations. The whole chapter rests on one re-framing of what an equation even is.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Inverse matrices, column space and null space](https://www.youtube.com/watch?v=uQhTuRlWMxw)
+</Callout>
+
+---
+
+## A system of equations is secretly one matrix equation
+
+Look at a typical system:
+
+```
+2x + 2y = -4
+1x + 3y =  1
+```
+
+Pack the coefficients into a matrix, the unknowns into a vector, and the right side into another vector:
+
+```
+| 2  2 |   | x |   | -4 |
+| 1  3 | * | y | = |  1 |
+```
+
+We write that as `A * x = v`. Now read it with the eyes from Chapter 3. The matrix `A` is a transformation. The vector `x` is some mystery input. After `A` transforms it, it lands on `v`.
+
+So solving the system means: **find the vector that lands on `v` after the transformation `A`**. That is a much more visual question than "do algebra on two lines".
+
+---
+
+## The inverse: rewind the transformation
+
+If `A` rotates, stretches, and shears space to send `x` to `v`, then to find `x` we just do the opposite. Unrotate, unstretch, unshear. That reverse transformation is called the **inverse**, written `A` with a small `-1`:
+
+```
+A inverse * A = the identity (the do-nothing transformation)
+```
+
+Applying `A` and then `A inverse` gets you back exactly where you started, because the second step undoes the first.
+
+So the solution is:
+
+```
+x = A inverse * v
+```
+
+You take your target `v` and play the transformation backwards to find where it came from. One clean answer, as long as the inverse exists.
+
+<MermaidBlock>
+graph LR
+    X["unknown x"] -->|"apply A"| V["target v"]
+    V -->|"apply A inverse (rewind)"| X2["recover x"]
+    style X fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style V fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style X2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## When can you NOT rewind?
+
+Here is where Chapter 6 pays off. You can rewind a transformation only if it did not lose any information. If `A` squished 2D space down to a line, many different inputs got crushed onto the same output, so there is no single way to undo it.
+
+That squishing is exactly when the **determinant is zero**.
+
+```
+det(A) is not zero   ->   inverse exists, exactly one solution
+det(A) is zero       ->   no inverse, space was flattened
+```
+
+A zero determinant does not always mean "no solution". It means you cannot use the clean inverse trick, and you have to look closer. That is what the next two ideas are for.
+
+---
+
+## Column space: what outputs are even possible
+
+The **column space** of a matrix is the span of its columns. In plain words, it is the set of every vector you could possibly land on as an output.
+
+- If `A` is a healthy 2D transformation (determinant not zero), its column space is the whole plane. Every `v` is reachable, so every system has a solution.
+- If `A` squished space to a line, its column space is just that line. You can only solve `A * x = v` when `v` happens to sit on that line. Ask for any `v` off the line, and there is simply no input that reaches it.
+
+The dimension of the column space (how many dimensions the outputs fill) has a name: the **rank**. Rank 2 in 2D means full and healthy. Rank 1 means everything got squished onto a line.
+
+---
+
+## Null space: everything that lands on zero
+
+The **null space** (also called the kernel) is the set of all vectors that the transformation sends to the origin, the zero vector.
+
+- For a healthy transformation, only the zero vector lands on zero. The null space is just a single point. Boring, which is good.
+- When space gets squished (determinant zero), a whole line or plane of vectors gets crushed down onto the origin. That line or plane is the null space.
+
+Why care? Because the null space is exactly the set of "extra" solutions. If you find one solution to `A * x = v`, you can add anything from the null space and still have a solution, since that extra part lands on zero and changes nothing. A big null space means many solutions; a trivial null space means at most one.
+
+<Callout type="success" title="The mental model to keep">
+Column space = all the outputs you can reach. Null space = all the inputs that get crushed to zero. A full column space means every system is solvable; a trivial null space means the solution is unique.
+</Callout>
+
+---
+
+## Putting it together
+
+```
+det not zero  ->  full rank, inverse exists, exactly one solution for any v
+det zero      ->  no inverse. Solution exists only if v is in the column space.
+                  If it is, there are infinitely many (shifted by the null space).
+                  If it is not, there are none.
+```
+
+That single table answers "does this system have zero, one, or infinitely many solutions?" geometrically, without grinding through row reduction.
+
+---
+
+## Why this matters later
+
+- Almost every engineering and data problem becomes "solve `A * x = v`": fitting a line to data, balancing forces, circuit analysis, computer graphics.
+- **Least squares**, the backbone of linear regression, is what you do when `v` is not in the column space and you want the closest reachable answer instead.
+- Rank and null space tell you whether your data or model has redundant or missing information.
+
+---
+
+## Quick gotchas
+
+**Inverse needs a square matrix and a nonzero determinant.** No inverse otherwise.
+
+**Zero determinant is not automatically "no solution".** It means "check whether `v` is in the column space first". It might have infinitely many solutions.
+
+**Null space is about landing on zero, not about being zero.** The vectors in it are usually nonzero; it is where they land that matters.
+
+---
+
+## What you walked away with
+
+- A system `A * x = v` asks: which input lands on `v` after transformation `A`?
+- The **inverse** rewinds the transformation, giving `x = A inverse * v`, and it exists only when `det(A)` is not zero.
+- **Column space** is every reachable output; its dimension is the **rank**.
+- **Null space** is every input that gets crushed to zero, and it controls how many solutions you get.
+
+Next up, Chapter 8: what about matrices that are not square? We will see how a non-square matrix moves vectors **between** dimensions, like flattening 3D into 2D, or lifting 2D into 3D.

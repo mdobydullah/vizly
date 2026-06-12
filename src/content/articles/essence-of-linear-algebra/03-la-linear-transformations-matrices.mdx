@@ -1,0 +1,185 @@
+---
+title: "Linear Transformations and Matrices"
+slug: la-linear-transformations-matrices
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 3
+description: "Chapter 3, a fundamental. A matrix is not a grid of random numbers. It is a recipe for moving all of space at once, and its columns tell you exactly where the basis vectors land. Once you see this, matrix multiplication stops being magic."
+tags:
+  - Math
+  - Linear Algebra
+  - Matrices
+  - Transformations
+  - Fundamentals
+icon: "🔄"
+color: blue
+createdAt: "2026-06-12T10:20:00Z"
+updatedAt: "2026-06-12T10:20:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+Chapter 3, and the last of the three fundamentals. This is the chapter that flips a switch. Before it, a matrix is a box of numbers you were told to memorize rules about. After it, a matrix is a *thing that does something*, and the rules become obvious. If one chapter in this series earns the word "essence", it is this one.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Linear transformations and matrices](https://www.youtube.com/watch?v=kYB8IZa5AuE)
+</Callout>
+
+---
+
+## What "transformation" really means
+
+A **transformation** is just a fancy word for a function: feed it a vector, get a vector back. The word "transformation" is chosen on purpose, though, because it nudges you to *picture movement*. Input vector goes in, output vector comes out, and you imagine the input sliding to where the output is.
+
+Now imagine doing that to **every vector in the plane at the same time**. The whole sheet of space warps. That is the mental image to hold for the rest of linear algebra.
+
+---
+
+## "Linear" means the grid stays a grid
+
+Out of all the wild ways you could warp space, linear transformations are the well-behaved ones. A transformation is **linear** if it keeps two promises:
+
+1. **Lines stay lines.** No curving. A straight line in goes to a straight line out.
+2. **The origin stays put.** It never moves.
+
+A clean way to picture it: lay down evenly spaced grid lines. After a linear transformation, the grid lines are still straight, still parallel, and still evenly spaced. They might be rotated, sheared, or stretched, but the grid never bends and never bunches up.
+
+<Callout type="warning" title="What is NOT linear">
+Curving space, like wrapping it around a circle, breaks promise 1. Sliding everything 2 to the right (a translation) moves the origin, breaking promise 2. Neither is a linear transformation. This is why, later, "affine" transformations need an extra trick to handle translation.
+</Callout>
+
+---
+
+## The one idea that makes everything click
+
+Here is the trick that the whole chapter rests on.
+
+> To know where **every** vector lands, you only need to know where the **basis vectors** land.
+
+Why? Because every vector is a linear combination of the basis vectors (that was Chapter 2), and a linear transformation preserves linear combinations. So if you track only `î` and `ĵ`, you can reconstruct where anything goes.
+
+Walk through it. Take `v = [-1, 2]`, which means `v = -1 * î + 2 * ĵ`.
+
+After some linear transformation, say `î` lands on `[1, -2]` and `ĵ` lands on `[3, 0]`. Then `v` lands on:
+
+```
+transformed v = -1 * (where î landed)  +  2 * (where ĵ landed)
+              = -1 * [1, -2]           +  2 * [3, 0]
+              = [-1, 2]                 +  [6, 0]
+              = [5, 2]
+```
+
+You never had to track `v` directly. You tracked two arrows and let the linear combination do the rest. **That** is the leverage.
+
+---
+
+## A matrix is just the landing spots, written down
+
+So a linear transformation is fully described by two pieces of data: where `î` lands and where `ĵ` lands. Write those two landing vectors as columns, side by side, and you have a **matrix**.
+
+```
+| 1   3 |     <- top row
+| -2  0 |     <- bottom row
+  ^   ^
+  |   where ĵ lands  = [3, 0]
+  where î lands  = [1, -2]
+```
+
+That is the entire secret. A 2x2 matrix is two columns. The first column is where `î` goes. The second column is where `ĵ` goes. Nothing more.
+
+<Callout type="success" title="The mental model to keep">
+Read any matrix by its columns. Column 1 = the new home of the first basis vector. Column 2 = the new home of the second. The matrix is a snapshot of how space got moved.
+</Callout>
+
+---
+
+## Matrix times vector, finally explained
+
+Now the formula for multiplying a matrix by a vector is not something to memorize. It falls out of "scale the columns by the vector's coordinates and add".
+
+To apply matrix `M` to vector `[x, y]`:
+
+```
+| a  b |   | x |       | a |       | b |     | ax + by |
+| c  d | * | y | = x * | c | + y * | d |  =  | cx + dy |
+```
+
+Read it as English: take `x` copies of the first column (where `î` went), take `y` copies of the second column (where `ĵ` went), add them. The result is where `[x, y]` lands.
+
+A worked example with the matrix from before:
+
+```
+| 1   3 |   | -1 |        | 1  |       | 3 |     | -1 + 6 |   | 5 |
+| -2  0 | * |  2 | = -1 * | -2 | + 2 * | 0 |  =  |  2 + 0 | = | 2 |
+```
+
+Same answer we got by hand above, `[5, 2]`. The formula is just the linear-combination idea wearing a compact notation.
+
+<MermaidBlock>
+graph LR
+    V["vector [x, y]"] --> S["x scales column 1 (î's new home)"]
+    V --> T["y scales column 2 (ĵ's new home)"]
+    S --> A["add them"]
+    T --> A
+    A --> R["where [x, y] lands"]
+    style V fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style R fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Reading transformations off a matrix
+
+Once columns mean "where basis vectors go", you can eyeball what a matrix does.
+
+```
+| 0  -1 |   rotation 90 degrees counterclockwise
+| 1   0 |   (î -> up, ĵ -> left)
+
+| 1   1 |   a shear: î stays put, ĵ tips to the right
+| 0   1 |
+
+| 2   0 |   stretch x by 2, leave y alone
+| 0   1 |
+
+| 1   0 |   the identity: nothing moves
+| 0   1 |   (î -> î, ĵ -> ĵ)
+```
+
+The **identity matrix** is the "do nothing" transformation: each basis vector lands exactly on itself, so every vector stays put. It is the linear-algebra version of multiplying by 1.
+
+---
+
+## Why this is the hinge of the whole subject
+
+Every later chapter is "what happens when you do this to space?":
+
+- **Multiply two matrices** (Chapter 4) = do one transformation, then another. The product is the single matrix that does both.
+- **The determinant** (Chapter 6) = how much the transformation stretches or shrinks area. You can read it off the columns.
+- **Eigenvectors** (Chapter 14) = the rare vectors that stay on their own line while space warps around them.
+
+None of that makes sense if a matrix is just "a grid of numbers". All of it is obvious once a matrix is "a recipe for moving space, told through where the basis vectors go".
+
+---
+
+## Quick gotchas
+
+**Columns, not rows, are the landing spots.** This trips everyone up once. The first *column* is where `î` goes, not the first row.
+
+**Order of operations is right to left.** In `M * v`, the matrix acts on the vector to its right. When you chain them, the rightmost transformation happens first (more on this in Chapter 4).
+
+**Linear needs the origin fixed.** If a "transformation" shifts everything sideways, it is not linear, and a plain matrix cannot represent it.
+
+---
+
+## What you walked away with
+
+- A **linear transformation** moves all of space while keeping grid lines straight, parallel, evenly spaced, and the origin fixed.
+- It is fully pinned down by **where the basis vectors land**.
+- A **matrix** is just those landing vectors written as columns.
+- **Matrix times vector** = scale the columns by the vector's coordinates and add. The formula is the linear-combination idea in disguise.
+
+That wraps the three fundamentals. From here the series builds fast: Chapter 4 shows that **multiplying matrices is just chaining transformations**, and suddenly the messy row-by-column multiplication rule will feel inevitable. Keep going.

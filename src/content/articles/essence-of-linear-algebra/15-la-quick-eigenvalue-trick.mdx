@@ -1,0 +1,162 @@
+---
+title: "A Quick Trick for Computing Eigenvalues"
+slug: la-quick-eigenvalue-trick
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 15
+description: "Chapter 15. A short, practical chapter. With two easy numbers from any 2 by 2 matrix, the mean and the product of its eigenvalues, you can find both eigenvalues in your head. Great for interviews and quick checks."
+tags:
+  - Math
+  - Linear Algebra
+  - Eigenvalues
+  - Shortcut
+icon: "⚡"
+color: blue
+createdAt: "2026-06-12T12:20:00Z"
+updatedAt: "2026-06-12T12:20:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is a short, fun chapter with a real payoff. For a 2 by 2 matrix, there is a shortcut that finds both eigenvalues with almost no setup. No characteristic polynomial to expand, no fuss. It is perfect for mental math and for checking your work under pressure.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [A quick trick for computing eigenvalues](https://www.youtube.com/watch?v=e50Bj7jn9IQ)
+</Callout>
+
+---
+
+## Two facts that do all the work
+
+For any 2 by 2 matrix, the two eigenvalues are tied to two easy-to-read numbers.
+
+**Fact 1: their mean comes from the diagonal.**
+
+The sum of the two eigenvalues equals the sum of the diagonal entries (top-left plus bottom-right). That diagonal sum has a name, the **trace**. So the *average* of the eigenvalues is half the trace.
+
+```
+A = | a  b |
+    | c  d |
+
+mean of eigenvalues = (a + d) / 2
+```
+
+Call that mean `m`.
+
+**Fact 2: their product is the determinant.**
+
+The two eigenvalues multiplied together equal the determinant.
+
+```
+product of eigenvalues = ad - bc
+```
+
+Call that product `p`.
+
+Both facts come straight from earlier chapters: the determinant is the product of how much each eigen-direction scales (Chapter 6 and 14), and the trace tracks their sum.
+
+---
+
+## The formula
+
+If two numbers have mean `m` and product `p`, you can recover them with one clean formula:
+
+```
+eigenvalues = m plus or minus the square root of (m squared minus p)
+```
+
+Written compactly:
+
+```
+lambda = m ± sqrt(m^2 - p)
+
+where  m = (a + d) / 2      (half the trace)
+       p = ad - bc          (the determinant)
+```
+
+That is the entire trick. Compute `m`, compute `p`, drop them into the formula, done.
+
+<MermaidBlock>
+graph LR
+    A["2x2 matrix"] --> M["m = (a+d)/2<br/>half the trace"]
+    A --> P["p = ad - bc<br/>the determinant"]
+    M --> F["lambda = m ± sqrt(m² - p)"]
+    P --> F
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Why it works
+
+The two eigenvalues sit at an equal distance on either side of their mean `m`. So they look like `m + d` and `m - d` for some spread `d`. Their product is:
+
+```
+(m + d)(m - d) = m^2 - d^2
+```
+
+But we know that product is `p`. So `m^2 - d^2 = p`, which gives `d^2 = m^2 - p`, and therefore `d = sqrt(m^2 - p)`. Plug `d` back into `m + d` and `m - d` and you get the formula. It is just "two numbers from their mean and product", dressed for eigenvalues.
+
+---
+
+## Worked examples
+
+**Example 1:**
+
+```
+A = | 2  1 |
+    | 1  2 |
+
+m = (2 + 2) / 2 = 2
+p = (2)(2) - (1)(1) = 3
+lambda = 2 ± sqrt(4 - 3) = 2 ± 1
+```
+
+Eigenvalues are `3` and `1`. Done in your head.
+
+**Example 2:**
+
+```
+A = | 3  1 |
+    | 0  2 |
+
+m = (3 + 2) / 2 = 2.5
+p = (3)(2) - (1)(0) = 6
+lambda = 2.5 ± sqrt(6.25 - 6) = 2.5 ± 0.5
+```
+
+Eigenvalues are `3` and `2`, matching the longhand answer we got in Chapter 14.
+
+---
+
+## A bonus: spotting rotations
+
+If `m^2 - p` comes out **negative**, the square root is imaginary, so the eigenvalues are complex. As we saw in Chapter 14, that is the signal that the transformation involves rotation. The trick even tells you when there are no real eigenvectors.
+
+<Callout type="success" title="The mental model to keep">
+For a 2 by 2 matrix: m is half the trace (the mean of the eigenvalues), p is the determinant (their product), and the eigenvalues are m plus or minus the square root of (m squared minus p).
+</Callout>
+
+---
+
+## Quick gotchas
+
+**This shortcut is for 2 by 2 matrices.** Bigger matrices need the full characteristic polynomial.
+
+**Negative inside the square root means complex eigenvalues.** That points to rotation, not a mistake.
+
+**Double-check with the two facts.** Your two answers should add up to the trace and multiply to the determinant. If they do not, recompute.
+
+---
+
+## What you walked away with
+
+- For a 2 by 2 matrix, eigenvalues have **mean `m = (a+d)/2`** and **product `p = ad - bc`**.
+- The eigenvalues are **`m ± sqrt(m^2 - p)`**.
+- It works because two numbers are fully pinned down by their mean and product.
+- A negative value under the root means complex eigenvalues, the fingerprint of rotation.
+
+Next up, the finale, Chapter 16: **abstract vector spaces**. We zoom out and discover that everything in this series applies not just to arrows, but to anything that obeys the rules of adding and scaling, even functions.

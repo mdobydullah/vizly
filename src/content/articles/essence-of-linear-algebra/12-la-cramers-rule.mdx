@@ -1,0 +1,151 @@
+---
+title: "Cramer's Rule, Explained Geometrically"
+slug: la-cramers-rule
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 12
+description: "Chapter 12. Cramer's rule solves a linear system using ratios of determinants. It looks like a magic formula in textbooks, but with the area picture from earlier chapters, it becomes something you can actually see."
+tags:
+  - Math
+  - Linear Algebra
+  - Cramer's Rule
+  - Determinant
+icon: "🧮"
+color: blue
+createdAt: "2026-06-12T11:50:00Z"
+updatedAt: "2026-06-12T11:50:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+Cramer's rule is usually taught as a formula to memorize, with no reason given. That is a shame, because the geometric story behind it is clear and even pretty. In practice you will often solve systems other ways, but understanding Cramer's rule cements your feel for determinants.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Cramer's rule, explained geometrically](https://www.youtube.com/watch?v=jBsC34PxzoM)
+</Callout>
+
+---
+
+## The problem we are solving
+
+We are back to solving `A * x = v`, the same setup as Chapter 7. For a 2D example:
+
+```
+| a  b |   | x |   | e |
+| c  d | * | y | = | f |
+```
+
+We want the unknowns `x` and `y`. Cramer's rule gives them directly as ratios of determinants. The question is why that works.
+
+---
+
+## A first idea that almost works
+
+You might guess that `x` is somehow connected to the coordinates of the output `v`. But a transformation scrambles coordinates, so you cannot just read `x` off `v`. We need a quantity that survives the transformation in a predictable way. That quantity is **area**.
+
+---
+
+## The key picture: area tied to a coordinate
+
+Here is the trick. In the input space, build a parallelogram using the first basis vector `î` and the unknown solution vector `[x, y]`.
+
+The area of that parallelogram (signed) turns out to be exactly `y`. Why? Because `î` has length 1 along the x-axis, so the parallelogram's area is just its height, which is the `y` coordinate of the solution. Similarly, the parallelogram made from `[x, y]` and `ĵ` has signed area equal to `x`.
+
+So each unknown coordinate is hiding as the area of a simple parallelogram.
+
+<MermaidBlock>
+graph TD
+    A["solution vector [x, y]"] --> B["area of box with î = y coordinate"]
+    A --> C["area of box with ĵ = x coordinate"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+---
+
+## Now apply the transformation
+
+When we run the transformation `A`, every area gets scaled by `det(A)` (that was the whole point of Chapter 6). So:
+
+- The parallelogram that had area `x` now has area `x * det(A)`.
+- But after the transformation, that same parallelogram is built from the *transformed* pieces: the output vector `v` and the second column of `A` (which is where `ĵ` landed).
+
+So the area of that transformed parallelogram can be computed two ways. One way gives `x * det(A)`. The other way is a determinant of a matrix made from `v` and the columns of `A`.
+
+Set them equal and solve for `x`. That is Cramer's rule.
+
+---
+
+## The formula
+
+For the 2D system above:
+
+```
+x = det | e  b |  divided by  det | a  b |
+        | f  d |                  | c  d |
+
+y = det | a  e |  divided by  det | a  b |
+        | c  f |                  | c  d |
+```
+
+Read the pattern. The bottom is always `det(A)`. For `x`, you replace the **first** column of `A` with the output vector `v`, then take its determinant. For `y`, you replace the **second** column with `v`. Each unknown gets its own column swapped in.
+
+A quick number example:
+
+```
+2x + 1y = 5
+1x + 3y = 6
+```
+
+```
+det(A) = det | 2  1 | = (2)(3) - (1)(1) = 5
+             | 1  3 |
+
+x = det | 5  1 |  / 5 = (5*3 - 1*6) / 5 = (15 - 6) / 5 = 9/5
+        | 6  3 |
+
+y = det | 2  5 |  / 5 = (2*6 - 5*1) / 5 = (12 - 5) / 5 = 7/5
+        | 1  6 |
+```
+
+So `x = 9/5` and `y = 7/5`. You can plug them back in to check; they fit both equations.
+
+---
+
+## When it breaks
+
+Notice the formula divides by `det(A)`. If `det(A)` is zero, you cannot divide, and Cramer's rule fails. That is the same condition from Chapter 7: a zero determinant means space got squished, the transformation is not reversible, and there is no single clean solution. Everything stays consistent.
+
+---
+
+## Should you actually use it?
+
+Cramer's rule is elegant and great for understanding, and it is handy for tiny 2 by 2 or 3 by 3 systems by hand. But for large systems it is slow compared to other methods like elimination, because computing many determinants is expensive. So treat this chapter as intuition-building first, and a practical tool only for small cases.
+
+<Callout type="success" title="The mental model to keep">
+Each unknown is the signed area of a simple parallelogram. The transformation scales every area by det(A). Undo that scaling, and you recover the unknown. That ratio of determinants is Cramer's rule.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**Swap the right column for each unknown.** First column for `x`, second for `y`, and so on. The output vector `v` goes into the column matching the variable you want.
+
+**Always divide by det(A).** If it is zero, the rule does not apply.
+
+**It is slow for big systems.** Beautiful for understanding, not the fast tool for large problems.
+
+---
+
+## What you walked away with
+
+- Each unknown coordinate equals the **signed area** of a small parallelogram.
+- The transformation scales all areas by **det(A)**, so dividing undoes that scaling.
+- **Cramer's rule**: replace one column of `A` with the output `v`, take that determinant, divide by `det(A)`.
+- It fails exactly when `det(A) = 0`, matching everything from Chapter 7.
+
+Next up, Chapter 13: **change of basis**. We will learn to translate vectors and transformations between different coordinate systems, the formal version of "the same arrow gets different numbers in a different basis".

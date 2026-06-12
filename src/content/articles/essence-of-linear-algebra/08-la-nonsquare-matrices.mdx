@@ -1,0 +1,151 @@
+---
+title: "Nonsquare Matrices as Transformations Between Dimensions"
+slug: la-nonsquare-matrices
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 8
+description: "Chapter 8. Square matrices keep space in the same dimension. Nonsquare ones move between dimensions: squashing 3D down to 2D, or lifting 2D up into 3D. Same column idea, just with inputs and outputs of different sizes."
+tags:
+  - Math
+  - Linear Algebra
+  - Matrices
+  - Dimensions
+icon: "🔀"
+color: blue
+createdAt: "2026-06-12T11:10:00Z"
+updatedAt: "2026-06-12T11:10:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+Up to now every matrix has been square: 2 by 2, 3 by 3. Those keep space the same size, 2D stays 2D. But a matrix does not have to be square. A nonsquare matrix takes vectors from one dimension and drops them into another. Once you read it by its columns, it is not scary at all.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Nonsquare matrices as transformations between dimensions](https://www.youtube.com/watch?v=v8VSDg_WQlA)
+</Callout>
+
+---
+
+## Reading the shape of a matrix
+
+A matrix has rows and columns. The shape is written as rows by columns.
+
+- The number of **columns** tells you the **input** dimension (how many basis vectors you start with).
+- The number of **rows** tells you the **output** dimension (how many numbers each landing vector has).
+
+So a 3 by 2 matrix has 2 columns and 3 rows. Two columns means it eats 2D vectors. Three rows means each output is a 3D vector. It lifts 2D into 3D.
+
+<Callout type="tip" title="Quick way to remember">
+Columns are inputs, rows are outputs. A matrix that is "tall" (more rows than columns) lifts you into a bigger space. A matrix that is "wide" (more columns than rows) flattens you into a smaller one.
+</Callout>
+
+---
+
+## Lifting 2D into 3D
+
+Take this 3 by 2 matrix:
+
+```
+| 2  0 |
+| 1  1 |
+| 1 -1 |
+```
+
+It has 2 columns, so it transforms 2D vectors. Each column is a 3D vector (3 numbers), so:
+
+```
+î = [1, 0] lands on [2, 1, 1]    (the first column)
+ĵ = [0, 1] lands on [0, 1, -1]   (the second column)
+```
+
+You hand it a flat 2D vector, and it places it somewhere in 3D space. The result is that the whole 2D plane gets mapped onto a tilted, flat sheet (a plane) sitting inside 3D. The input was 2D and stays 2D in spirit; it just lives inside a bigger room now.
+
+Applying it works the same as always, scale the columns and add:
+
+```
+| 2  0 |   | 3 |        | 2 |       | 0 |     | 6 |
+| 1  1 | * | 1 | =  3 * | 1 | + 1 * | 1 |  = | 4 |
+| 1 -1 |               | 1 |       | -1 |     | 2 |
+```
+
+A 2D input went in, a 3D output came out.
+
+---
+
+## Flattening 3D into 2D
+
+Now flip the shape. A 2 by 3 matrix has 3 columns and 2 rows:
+
+```
+| 3  1  4 |
+| 1  5  9 |
+```
+
+Three columns means it eats 3D vectors. Two rows means each output is a 2D vector. So this one **flattens** 3D space onto the 2D plane.
+
+```
+î = [1,0,0] lands on [3, 1]
+ĵ = [0,1,0] lands on [1, 5]
+k̂ = [0,0,1] lands on [4, 9]
+```
+
+Three landing spots, each a flat 2D vector. This is exactly what happens when a 3D scene is projected onto your flat screen: a 3D-to-2D transformation.
+
+<MermaidBlock>
+graph LR
+    A["2 columns, 3 rows<br/>(tall)"] --> A2["2D input lifts into 3D"]
+    B["3 columns, 2 rows<br/>(wide)"] --> B2["3D input flattens into 2D"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style A2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## What about a 1 by N matrix?
+
+A matrix with a single row, like `[2  1]`, has 2 columns and 1 row. It takes a 2D vector and outputs a single number (a 1D vector). It maps the plane onto the number line.
+
+This little case looks small, but it is the secret hero of the next chapter. A row vector turning 2D into one number is exactly what a dot product does, and that surprising link is called duality.
+
+---
+
+## Why "no determinant" for nonsquare matrices
+
+The determinant measures how area or volume scales when you stay in the same dimension. But a nonsquare matrix changes the dimension, so "how much did area scale" is not even a sensible question. That is why determinants are defined only for square matrices. Same reason there is no plain inverse: you cannot perfectly rewind a step that threw away a dimension.
+
+---
+
+## Why this matters later
+
+- **Computer graphics** constantly flattens 3D worlds to 2D screens with wide matrices.
+- **Machine learning** layers are usually nonsquare: a layer might take 784 input pixels and output 128 features. That is a 128 by 784 matrix moving you from one dimension to another.
+- **Embeddings** in AI map huge sparse inputs down into a small dense space, a flattening transformation.
+
+<Callout type="success" title="The mental model to keep">
+Columns are inputs, rows are outputs. Tall matrices lift into higher dimensions, wide matrices flatten into lower ones. The column rule never changes: each column is where one basis vector lands.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**Shape is rows by columns, but meaning is the reverse.** Columns set the input size, rows set the output size.
+
+**No determinant, no plain inverse for nonsquare matrices.** Those need a square shape.
+
+**The columns still must have as many numbers as there are output dimensions (rows).** If they do not line up, the matrix is written wrong.
+
+---
+
+## What you walked away with
+
+- A nonsquare matrix moves vectors **between** dimensions.
+- **Columns = input dimension, rows = output dimension.**
+- Tall matrices lift up, wide matrices flatten down, and a single row sends a vector to a single number.
+- Determinants and plain inverses only exist for square matrices.
+
+Next up, Chapter 9: the **dot product**, the simplest way to multiply two vectors into a number, plus a surprising connection (called duality) to those single-row matrices we just met.

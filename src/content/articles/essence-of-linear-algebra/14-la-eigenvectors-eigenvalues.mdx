@@ -1,0 +1,165 @@
+---
+title: "Eigenvectors and Eigenvalues"
+slug: la-eigenvectors-eigenvalues
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 14
+description: "Chapter 14. When a transformation warps space, most vectors get knocked off their original line. A few special ones do not: they only get stretched. Those are eigenvectors, and the stretch factor is the eigenvalue. This is one of the most useful ideas in all of applied math."
+tags:
+  - Math
+  - Linear Algebra
+  - Eigenvectors
+  - Eigenvalues
+icon: "🔱"
+color: blue
+createdAt: "2026-06-12T12:10:00Z"
+updatedAt: "2026-06-12T12:10:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+Eigenvectors sound intimidating, but the idea is friendly. When you transform space, almost every vector swings off to point in a new direction. A rare few keep pointing exactly the same way; they just get longer or shorter. Those special survivors are eigenvectors, and finding them tells you the deepest truth about what a transformation does.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [Eigenvectors and eigenvalues](https://www.youtube.com/watch?v=PFDu9oVAE-g)
+</Callout>
+
+---
+
+## The idea: vectors that stay on their line
+
+Picture a transformation stretching and shearing the plane. Take any vector and watch where it goes. Most vectors get rotated off their original arrow, landing on a totally different line through the origin.
+
+But some special vectors stay on their own line. After the transformation they point the same way (or the exact opposite way); they are only scaled. These are the **eigenvectors**.
+
+The amount each one gets stretched (or squished, or flipped) is its **eigenvalue**.
+
+- Eigenvalue of 2: the eigenvector doubles in length, same direction.
+- Eigenvalue of 0.5: it shrinks to half, same direction.
+- Eigenvalue of -1: it flips to point the opposite way, same length.
+
+```
+A * (eigenvector) = (eigenvalue) * (eigenvector)
+```
+
+Read that equation in words: applying the transformation `A` to an eigenvector does the same thing as just multiplying it by a plain number. The whole matrix acts like a simple scalar, but only along that special direction.
+
+<MermaidBlock>
+graph TD
+    A["transform the whole plane"] --> B["most vectors swing off their line"]
+    A --> C["eigenvectors stay on their line"]
+    C --> D["they only get scaled by the eigenvalue"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Why this is so useful
+
+An eigenvector is the axis a transformation acts simplest along. For example, a 3D rotation has an eigenvector: the axis it spins around. Every other vector swings, but the axis stays fixed. So finding the eigenvector of a rotation tells you instantly what it rotates around, no matter how the matrix is written.
+
+More generally, eigenvectors reveal the natural directions of a transformation, the directions where it just stretches without any twisting.
+
+---
+
+## How to find them
+
+We want vectors where `A * v = lambda * v`, with `lambda` the eigenvalue. Rearrange it:
+
+```
+A * v - lambda * v = 0
+(A - lambda * I) * v = 0
+```
+
+Here `I` is the identity matrix, used so we can subtract `lambda` from the matrix properly. This says: the matrix `(A - lambda * I)` sends the eigenvector `v` to the zero vector.
+
+From Chapter 7, a transformation can crush a nonzero vector to zero only when it squishes space, which means its **determinant is zero**. So:
+
+```
+det(A - lambda * I) = 0
+```
+
+Solving this equation gives the eigenvalues. Then, for each eigenvalue, you find the vectors that land on zero (the null space of `A - lambda * I`); those are the eigenvectors.
+
+---
+
+## A worked example
+
+```
+A = | 3  1 |
+    | 0  2 |
+```
+
+Set up `A - lambda * I` and take its determinant:
+
+```
+A - lambda*I = | 3-lambda    1    |
+               |   0      2-lambda |
+
+det = (3 - lambda)(2 - lambda) - (1)(0) = (3 - lambda)(2 - lambda)
+```
+
+Set it to zero: `(3 - lambda)(2 - lambda) = 0`, so the eigenvalues are `lambda = 3` and `lambda = 2`.
+
+For `lambda = 3`, solve `(A - 3I) v = 0`. That gives an eigenvector along `[1, 0]`: the transformation stretches anything on the x-axis by 3. For `lambda = 2`, you get another eigenvector along a second line, stretched by 2.
+
+---
+
+## Some transformations have surprises
+
+- A pure **rotation** (other than 180 degrees) has **no real eigenvectors**, because every single vector gets turned off its line. Nothing stays put. The math gives imaginary eigenvalues, a hint that rotation is happening.
+- A **shear** has just **one** eigenvector direction (the line it slides along).
+- A pure **scaling** that stretches everything equally has eigenvectors **everywhere**; every vector stays on its line.
+
+These cases are a quick way to sanity check your intuition.
+
+---
+
+## Eigenbasis: making a matrix simple
+
+Here is the payoff, tying back to Chapter 13. Suppose you can find enough eigenvectors to use as a basis (an **eigenbasis**). If you switch to that basis, the transformation becomes a **diagonal matrix**: numbers only on the diagonal, zeros everywhere else.
+
+```
+| lambda1    0    |
+|   0     lambda2 |
+```
+
+Diagonal matrices are wonderful. They just scale each axis independently, and raising them to high powers is trivial (you raise each diagonal number to that power). Computing `A` multiplied by itself 100 times is brutal in the original basis but easy in an eigenbasis. You change basis, do the easy diagonal work, then change back. This is the workhorse trick behind many real algorithms.
+
+<Callout type="success" title="The mental model to keep">
+Eigenvectors are the directions a transformation only stretches, never rotates. The stretch factor is the eigenvalue. Find them by solving det(A - lambda*I) = 0. In an eigenbasis, the messy matrix turns diagonal and easy.
+</Callout>
+
+---
+
+## Why this matters later
+
+- **PCA** in data science finds the eigenvectors of a data covariance matrix to identify the directions of greatest variation.
+- **Google's PageRank** was, at heart, finding a special eigenvector of a giant web link matrix.
+- **Vibrations, stability, and quantum mechanics** all revolve around eigenvalues, which describe natural frequencies and energy levels.
+
+---
+
+## Quick gotchas
+
+**Eigenvectors come in lines, not single arrows.** If `v` is an eigenvector, so is any scaled version of it. We usually pick a clean representative.
+
+**Not every matrix has a full eigenbasis.** Some (like shears) do not have enough independent eigenvectors to diagonalize.
+
+**Real rotations can give complex eigenvalues.** That is not an error; it is the math telling you rotation is involved.
+
+---
+
+## What you walked away with
+
+- **Eigenvectors** stay on their own line under a transformation; they only get scaled.
+- The scale factor is the **eigenvalue**, captured by `A * v = lambda * v`.
+- Find eigenvalues by solving **`det(A - lambda*I) = 0`**, then find eigenvectors as the null space for each.
+- An **eigenbasis** turns the transformation into a simple diagonal matrix.
+
+Next up, Chapter 15: a quick, almost magical shortcut for finding the eigenvalues of a 2 by 2 matrix in your head, using just the trace and the determinant.

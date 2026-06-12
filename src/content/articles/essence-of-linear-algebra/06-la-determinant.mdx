@@ -1,0 +1,163 @@
+---
+title: "The Determinant"
+slug: la-determinant
+category: math
+series: essence-of-linear-algebra
+seriesOrder: 6
+description: "Chapter 6. The determinant is one number that tells you how much a transformation stretches or shrinks area. When it is zero, space got flattened. When it is negative, space got flipped. That is the whole idea."
+tags:
+  - Math
+  - Linear Algebra
+  - Determinant
+  - Area
+icon: "🔲"
+color: blue
+createdAt: "2026-06-12T10:50:00Z"
+updatedAt: "2026-06-12T10:50:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+A transformation moves space around. Some transformations stretch space out, some squish it in. The determinant is the single number that measures that stretching. It is simple, visual, and it shows up everywhere later.
+
+<Callout type="info" title="Watch the original">
+Follow along with 3Blue1Brown: [The determinant](https://www.youtube.com/watch?v=Ip3X9LOh2dk)
+</Callout>
+
+---
+
+## The core idea: how much does area grow?
+
+Start with a 1 by 1 square in the plane, sitting on `î` and `ĵ`. Its area is 1.
+
+Now apply a transformation. That little square turns into some parallelogram. Ask one question: how many times bigger (or smaller) did its area get?
+
+That factor is the **determinant**.
+
+- If the square's area becomes 6, the determinant is 6. Every region in the plane gets 6 times bigger.
+- If the area becomes 0.5, the determinant is 0.5. Everything shrinks to half size.
+- If the area stays 1, the determinant is 1. The transformation did not change any areas (a pure rotation, for example).
+
+```
+| 3  0 |   stretches x by 3, y by 2
+| 0  2 |   the unit square becomes a 3 by 2 box, area 6, so det = 6
+```
+
+The beautiful part: you only have to check what happens to that one unit square. Because the transformation is linear, every region in the whole plane scales by the same factor.
+
+---
+
+## When the determinant is zero
+
+This is the most important case. If the determinant is **0**, it means the transformation squished all of space down into a line, or even a single point. Area got crushed to nothing.
+
+```
+| 1  2 |   both columns point along the same line
+| 2  4 |   the unit square collapses to a flat sliver, area 0, so det = 0
+```
+
+A zero determinant is a giant red flag. It tells you the columns are **linearly dependent** (remember Chapter 2), space lost a dimension, and the transformation cannot be undone. We will lean on this hard in Chapter 7 when we talk about inverses.
+
+<Callout type="warning" title="Zero is special">
+det = 0 means "space got flattened". Whenever you see it, think: columns are dependent, a dimension was lost, no inverse exists. It is the single most useful thing the determinant tells you.
+</Callout>
+
+---
+
+## Negative determinants: space got flipped
+
+What does a negative determinant mean? Area cannot really be negative. The minus sign is telling you the transformation **flipped space over**, like flipping a sheet of paper so you see its back.
+
+Before, going from `î` to `ĵ` was a counterclockwise turn. After a flip, that same turn goes clockwise. Orientation reversed. The size of the number is still the area factor; the sign tracks whether space got turned over.
+
+So `det = -3` means: areas tripled, and space was flipped.
+
+---
+
+## The formula, and why it makes sense
+
+For a 2 by 2 matrix:
+
+```
+det | a  b | = ad - bc
+    | c  d |
+```
+
+Where does `ad - bc` come from? It is the area of the parallelogram made by the two columns `[a, c]` and `[b, d]`. The `ad` part is the area of the box you would get with no skew, and `bc` corrects for how much the columns lean toward each other. If the columns line up (dependent), `ad` and `bc` cancel out and you get 0, exactly as expected.
+
+A quick example:
+
+```
+det | 3  0 | = (3)(2) - (0)(0) = 6
+    | 0  2 |
+```
+
+Matches the area-6 box from earlier.
+
+---
+
+## In 3D it measures volume
+
+The same idea jumps to 3D. There, the determinant of a 3 by 3 matrix tells you how much **volume** scales. The unit cube turns into a slanted box (a parallelepiped), and the determinant is the factor its volume changed by.
+
+- `det = 0` in 3D means space got flattened onto a plane, a line, or a point. A dimension was lost.
+- A negative 3D determinant means the orientation flipped, like turning a right hand into a left hand.
+
+<MermaidBlock>
+graph TD
+    D{"determinant value"} --> P["positive: scales area, keeps orientation"]
+    D --> N["negative: scales area, flips orientation"]
+    D --> Z["zero: space squished, a dimension lost"]
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style P fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style N fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style Z fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+---
+
+## One handy rule
+
+If you do two transformations in a row, their area factors just multiply:
+
+```
+det(A * B) = det(A) * det(B)
+```
+
+This makes total sense. If the first transformation triples area and the second doubles it, together they make area six times bigger. Areas stack by multiplying.
+
+---
+
+## Why this matters later
+
+- **Invertibility**: a matrix can be undone only when its determinant is not zero (Chapter 7).
+- **Cramer's rule** solves linear systems using ratios of determinants (Chapter 12).
+- **Change of variables** in calculus uses the determinant to track how area or volume stretches when you switch coordinates.
+
+<Callout type="success" title="The mental model to keep">
+The determinant is the factor by which a transformation scales area (2D) or volume (3D). Zero means space was flattened. Negative means space was flipped.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**Determinant is one number, not a matrix.** It summarizes the whole transformation's scaling in a single value.
+
+**Zero is the headline.** If you remember nothing else, remember det = 0 means flattened, dependent columns, no inverse.
+
+**Sign is orientation, size is area.** Read them separately: the size tells you the stretch, the sign tells you whether space flipped.
+
+---
+
+## What you walked away with
+
+- The **determinant** is how much area (or volume) gets scaled by a transformation.
+- **Zero** means space collapsed and lost a dimension; the columns are dependent.
+- **Negative** means orientation flipped.
+- For 2 by 2, the formula is `ad - bc`, which is just the area of the column parallelogram.
+- Determinants of composed transformations multiply.
+
+Next up, Chapter 7: now that we can spot when a transformation is reversible, we will build the **inverse**, the transformation that undoes another, and meet **column space** and **null space** along the way.
