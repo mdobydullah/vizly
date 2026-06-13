@@ -1,12 +1,12 @@
-import React from 'react';
 import { compile, run } from '@mdx-js/mdx';
 import * as runtime from 'react/jsx-runtime';
+import type { MDXComponents } from 'mdx/types';
 import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
 
 interface MdxRendererProps {
   source: string;
-  components?: Record<string, React.ComponentType<unknown>>;
+  components?: MDXComponents;
 }
 
 // Renders MDX from a string source.
