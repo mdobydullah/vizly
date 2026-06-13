@@ -1,0 +1,228 @@
+---
+title: "Visualizing the Chain Rule and Product Rule"
+slug: ec-chain-rule-product-rule
+category: math
+series: essence-of-calculus
+seriesOrder: 4
+description: "Chapter 4. The product rule is a growing rectangle, and the chain rule is a nudge rippling down a line. Master this one picture and you have already understood the engine that trains every neural network: backpropagation."
+tags:
+  - Math
+  - Calculus
+  - Derivatives
+  - Chain Rule
+  - AI
+icon: "🔗"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 4 of the Essence of Calculus series. So far we have taken derivatives of clean, standalone functions. Real functions are rarely that polite. They are built by adding, multiplying, and nesting simpler pieces. This chapter gives you three rules for those three moves, and the last one, the chain rule, is the single most important idea in this entire series if you care about machine learning.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 4 here: [Visualizing the chain rule and product rule](https://www.youtube.com/watch?v=YG15m2VwSjA)
+</Callout>
+
+---
+
+## Three ways to combine functions
+
+If you have two functions `g(x)` and `h(x)`, there are three basic ways to glue them together, and each one gets its own derivative rule.
+
+- **Add them:** `g(x) + h(x)`. The sum rule.
+- **Multiply them:** `g(x) · h(x)`. The product rule.
+- **Nest them:** `g(h(x))`, one function fed into another. The chain rule.
+
+We will take them in order of difficulty. The sum is almost free, the product needs a picture, and the chain rule deserves the spotlight.
+
+---
+
+## The sum rule (the easy one)
+
+If you add two functions, you add their derivatives. That is the whole rule.
+
+```
+d
+-- ( g(x) + h(x) ) = g'(x) + h'(x)
+dx
+```
+
+Why? Nudge `x` a tiny bit. The first function changes by roughly `g'(x)·dx`, the second by `h'(x)·dx`. The total change is just the two changes added up. Rate of change of a sum is the sum of the rates. Nothing surprising, so we move on.
+
+---
+
+## The product rule, as a growing rectangle
+
+People memorize the product rule as a chant and never see why it is true. The picture fixes that.
+
+Think of the product `g(x)·h(x)` as the **area of a rectangle**. Let the width be `g(x)` and the height be `h(x)`. Then the area *is* the product.
+
+```
+        width = g
+   +---------------------+
+   |                     |
+ h |    area = g · h     | height = h
+   |                     |
+   +---------------------+
+```
+
+Now nudge `x` by a tiny `dx`. The width grows by `dg` and the height grows by `dh`. Three new slivers of area appear:
+
+```
+        g            dg
+   +---------+------+
+   |         |      |   <- top sliver:  g · dh
+ h |  g·h    | h·dg |
+   |         |      |
+   +---------+------+
+dh |  g·dh   |  ░░  |   <- corner: dg · dh (negligible)
+   +---------+------+
+        ^
+   right sliver: h · dg
+```
+
+- The bar along the right adds `h · dg`.
+- The bar along the top adds `g · dh`.
+- The tiny corner adds `dg · dh`, a sliver times a sliver. It is so small we throw it away.
+
+So the change in area is `d(g·h) = g·dh + h·dg`. Divide by `dx` and you get the product rule:
+
+```
+(g · h)' = g · h' + h · g'
+```
+
+<Callout type="tip" title="Say it out loud">
+"Left d-right, plus right d-left." Keep the first function, differentiate the second, then add the second function times the derivative of the first. The rectangle is why there are two terms: the area grows from two sides at once.
+</Callout>
+
+---
+
+## The chain rule, the centerpiece
+
+Here is the rule that matters most. A **composition** feeds one function into another: `f(g(x))`. You compute `g(x)` first, then hand that result to `f`.
+
+To see how a nudge travels through, lay out **three number lines**, one for each stage:
+
+```
+  x-line:    --x--(x + dx)-------------->
+                 |
+                 |  g squeezes/stretches by g'(x)
+                 v
+  g-line:    --g--(g + dg)-------------->        dg = g'(x) · dx
+                 |
+                 |  f squeezes/stretches by f'(g)
+                 v
+  f-line:    --f--(f + df)-------------->        df = f'(g) · dg
+```
+
+Follow the nudge as it falls down the stack:
+
+1. You push `x` by a tiny `dx`.
+2. That moves the middle value `g` by `dg = g'(x)·dx`. The local rate at `x` is `g'(x)`.
+3. That moved `g`, in turn, moves the output `f` by `df = f'(g)·dg`. The local rate at `g` is `f'(g)`.
+
+Substitute the first change into the second and the rates **multiply**:
+
+```
+df = f'(g) · dg = f'(g) · g'(x) · dx
+```
+
+Divide by `dx`:
+
+```
+d
+-- f(g(x)) = f'(g(x)) · g'(x)
+dx
+```
+
+<MermaidBlock>
+graph LR
+    X["nudge x<br/>by dx"] -->|"× g'(x)"| G["g moves<br/>by dg"]
+    G -->|"× f'(g)"| F["f moves<br/>by df"]
+    X -.->|"overall rate = f'(g)·g'(x)"| F
+    style X fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The chain rule is just this: **a nudge ripples through each stage, and at every stage it gets multiplied by that stage's local rate of change.** The overall sensitivity of the output to the input is the product of all the local sensitivities along the way.
+
+<Definition
+  term="chain rule"
+  langs={{
+    en: 'The chain rule says how to differentiate a function inside a function. For `f(g(x))`, the rate of change is the outer rate times the inner rate: `f\'(g(x)) · g\'(x)`. A nudge to the input travels through each stage, multiplying by the local rate at each step.',
+    bn: 'চেইন রুল বলে দেয় একটি ফাংশনের ভেতরের আরেকটি ফাংশনের ডেরিভেটিভ কীভাবে বের করতে হয়। `f(g(x))`-এর ক্ষেত্রে পরিবর্তনের হার হলো বাইরের হার গুণ ভেতরের হার: `f\'(g(x)) · g\'(x)`। ইনপুটে একটি ছোট ধাক্কা প্রতিটি স্তর পেরিয়ে যায় এবং প্রতি ধাপে স্থানীয় হার দিয়ে গুণ হয়।',
+    hi: 'चेन रूल बताता है कि किसी फलन के अंदर बैठे फलन का अवकलज कैसे निकालें। `f(g(x))` के लिए परिवर्तन की दर बाहरी दर गुणा भीतरी दर होती है: `f\'(g(x)) · g\'(x)`। इनपुट को दिया गया छोटा धक्का हर चरण से गुज़रता है और हर कदम पर स्थानीय दर से गुणा होता है।',
+    ar: 'تخبرنا قاعدة السلسلة كيف نشتق دالة بداخلها دالة أخرى. بالنسبة لـ `f(g(x))`، معدل التغير هو المعدل الخارجي مضروباً في المعدل الداخلي: `f\'(g(x)) · g\'(x)`. فأي دفعة صغيرة في المدخل تنتقل عبر كل مرحلة وتُضرب في المعدل المحلي عند كل خطوة.',
+  }}
+/>
+
+---
+
+## A worked example
+
+Take `sin(x²)`. This is a composition: the inner function is `g(x) = x²`, the outer function is `f(g) = sin(g)`.
+
+- Outer rate: `f'(g) = cos(g) = cos(x²)`.
+- Inner rate: `g'(x) = 2x`.
+- Multiply them:
+
+```
+d
+-- sin(x²) = cos(x²) · 2x
+dx
+```
+
+Notice we keep the inside untouched inside the cosine (`cos(x²)`, not `cos(x)`), then multiply by the derivative of the inside. That "leave the inside alone, then multiply by its derivative" habit is the chain rule in muscle memory.
+
+---
+
+## Why this is the engine of deep learning
+
+Now the payoff. Everything above was setup for one idea.
+
+A neural network is nothing but a **deep composition of functions**. Layer 1 transforms the input, layer 2 transforms that, layer 3 transforms that, and so on:
+
+```
+loss = L( fₙ( ... f₂( f₁( x, w₁ ), w₂ ) ... , wₙ ) )
+```
+
+To train it, you need to know how the final **loss** changes when you wiggle each individual **weight** buried deep inside. That is a derivative of a composition with respect to something many layers down. There is exactly one tool for that.
+
+<Callout type="success" title="Backpropagation IS the chain rule">
+Backpropagation is the chain rule applied layer by layer. Starting from the loss, you compute the local derivative at each layer and **multiply them together as you walk backward** through the network, all the way to each weight. The gradient for a weight in layer 1 is the product of every local rate between that weight and the loss. This single rule from a calculus chapter is the reason deep learning trains at all. No chain rule, no gradient, no learning.
+</Callout>
+
+This also explains two failure modes you will hear about constantly. Because the gradient is a long **product** of local rates:
+
+- If many of those local rates are smaller than 1, the product shrinks toward zero as it travels back. Early layers barely learn. This is the **vanishing gradient** problem.
+- If many of them are larger than 1, the product blows up. Updates become wild and training diverges. This is the **exploding gradient** problem.
+
+A huge amount of modern deep learning design (ReLU activations, residual connections, normalization, careful initialization) exists for one reason: to keep that chain-rule product well behaved as it multiplies its way back through dozens or hundreds of layers.
+
+---
+
+## Quick gotchas
+
+**Do not forget the inner derivative.** The most common mistake is writing `d/dx sin(x²) = cos(x²)` and stopping. You still have to multiply by `2x`. The whole point of the chain rule is that extra factor.
+
+**The product rule is not "multiply the derivatives".** `(g·h)'` is *not* `g'·h'`. The rectangle picture shows you it is `g·h' + h·g'`, two terms, because the area grows from two sides.
+
+**Keep the inside untouched in the outer rate.** In `f'(g(x))` you evaluate the outer derivative *at the inner function*, not at `x`. It is `cos(x²)`, never `cos(x)`.
+
+**Chain rule scales to any depth.** For `f(g(h(x)))` you just multiply three local rates: `f'(g(h)) · g'(h) · h'(x)`. This is exactly why it survives a 100-layer network.
+
+---
+
+## What you walked away with
+
+- **Sum rule:** `(g + h)' = g' + h'`. Rates just add.
+- **Product rule:** `(g·h)' = g·h' + h·g'`, the growing rectangle. "Left d-right plus right d-left."
+- **Chain rule:** `f(g(x))' = f'(g(x))·g'(x)`. A nudge ripples through each stage, multiplying by the local rate at each one.
+- **The big one:** backpropagation is the chain rule run layer by layer, and vanishing/exploding gradients are what happen when those multiplied local rates shrink or blow up.
+
+Next up, Chapter 5: we look at the derivatives of exponentials, `eˣ` and friends, and uncover why `e` is the one base whose rate of change equals itself. That self-referencing property is the seed of growth, decay, and a surprising amount of the math behind learning. See you there.

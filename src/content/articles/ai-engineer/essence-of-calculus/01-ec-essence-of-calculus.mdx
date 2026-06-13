@@ -1,0 +1,162 @@
+---
+title: "The Essence of Calculus"
+slug: ec-essence-of-calculus
+category: math
+series: essence-of-calculus
+seriesOrder: 1
+description: "Chapter 1, the opening move. You do not memorise calculus, you reinvent it. Stare hard enough at the area of a circle and the whole subject, integrals, derivatives, and the bridge between them, falls out of one picture."
+tags:
+  - Math
+  - Calculus
+  - Fundamentals
+  - Beginner
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 1 of the Essence of Calculus series. The whole point of this opening chapter is a single liberating idea: the scary formulas in a calculus textbook are not handed down from on high. Anyone who understands the core pictures can rebuild them from scratch. You do not memorise, you reinvent.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 1 here: [The Essence of Calculus, Chapter 1](https://www.youtube.com/watch?v=WUvTyaaNkzM)
+</Callout>
+
+---
+
+## The lie of memorisation
+
+Most people meet calculus as a wall of formulas to be drilled and forgotten. Area of a circle is πr², the derivative of this is that, integrate by parts, and so on. It feels like a stack of rules invented by someone cleverer than you.
+
+It is not. Every one of those rules was discovered by a person staring at a concrete problem and asking, "what if I broke this into tiny pieces?". If you learn to ask the same question, you can re-derive the formula on the spot. That is the difference between knowing calculus and owning it.
+
+<Definition
+  term="calculus"
+  langs={{
+    en: 'Calculus is the maths of tiny changes. It gives you two tools: adding up infinitely many tiny pieces to measure something whole (integration), and zooming in on a tiny change to measure a rate (differentiation). The surprise is that those two tools are opposites of each other.',
+    bn: 'ক্যালকুলাস হলো ক্ষুদ্র পরিবর্তনের গণিত। এটা দুটো হাতিয়ার দেয়: অসংখ্য ক্ষুদ্র টুকরো যোগ করে একটা গোটা জিনিস মাপা (ইন্টিগ্রেশন), আর একটা ক্ষুদ্র পরিবর্তনে জুম করে হার মাপা (ডিফারেনশিয়েশন)। মজার ব্যাপার হলো, এই দুটো হাতিয়ার একে অপরের উল্টো।',
+    hi: 'कैलकुलस छोटे-छोटे बदलावों का गणित है। यह दो औज़ार देता है: अनगिनत छोटे टुकड़ों को जोड़कर पूरी चीज़ मापना (इंटीग्रेशन), और एक छोटे बदलाव पर ज़ूम करके दर मापना (डिफरेंशिएशन)। हैरानी की बात यह है कि ये दोनों औज़ार एक-दूसरे के उलट हैं।',
+    ar: 'التفاضل والتكامل هو رياضيات التغيّرات الصغيرة. يمنحك أداتين: جمع عدد لا نهائي من القطع الصغيرة لقياس شيء كامل (التكامل)، والتقريب على تغيّر صغير لقياس المعدل (التفاضل). والمفاجأة أن هاتين الأداتين عكس بعضهما البعض.',
+  }}
+/>
+
+---
+
+## One picture: the area of a circle
+
+Let us do exactly what a self-respecting inventor of calculus would do. We want the area of a circle of radius `R`. We do not know the formula yet. So we cheat in the most productive way possible: we slice the hard shape into easy ones.
+
+Slice the disk into thin concentric rings. Pick one ring at radius `r` with a tiny thickness `dr`.
+
+```
+       _____
+    ⟋    .    ⟍      <- one thin ring at radius r,
+   |   ⟋   ⟍   |        thickness dr
+   |  | ( r ) |  |
+   |   ⟍ _ ⟋   |
+    ⟍   ' '   ⟋
+       ‾‾‾‾‾
+```
+
+If `dr` is small enough, that ring is basically a thin strip bent into a circle. Unroll it and it becomes an almost-perfect rectangle:
+
+- its **width** is the circumference of the ring, `2πr`
+- its **height** is the thickness, `dr`
+
+So the area of one ring is approximately `2πr · dr`. The smaller `dr` gets, the closer "approximately" creeps to "exactly".
+
+---
+
+## Stacking the rings into a triangle
+
+Now comes the move. The total area of the disk is the sum of all those ring areas, from the innermost (`r = 0`) to the outermost (`r = R`). Line each unrolled rectangle up side by side, ordered by radius. Their widths run from `0` up to `2πR`, their bottoms sit on a common axis.
+
+```
+height = 2πr
+  2πR |                      /|
+      |                  /    |
+      |              /        |
+      |          /            |
+      |      /                |
+      |  /                    |
+    0 +------------------------+
+      0          r            R
+```
+
+The tops of the rectangles trace the straight line `y = 2πr`. Under that line is a triangle: base `R`, height `2πR`. And the area of a triangle is something you have known since school:
+
+```
+area = 1/2 · base · height
+     = 1/2 · R · 2πR
+     = πR²
+```
+
+There it is. We just **rebuilt** the area of a circle from nothing but "slice it thin and add the pieces up". No memorising required.
+
+---
+
+## The three big ideas, all hiding in that picture
+
+That one example quietly previews the entire course.
+
+<MermaidBlock>
+graph LR
+    P["Area under a curve"] -->|"add up tiny pieces"| I["INTEGRAL"]
+    I -->|"inverse operations"| D["DERIVATIVE"]
+    D -->|"rate of change"| P
+    style P fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style I fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+**1. The integral.** Adding up infinitely many tiny ring areas to get a whole was integration. A hard, curvy problem became easy the instant we cut it into tiny pieces and summed them. That trick, "approximate with tiny bits, then add", is the heart of every integral you will ever compute.
+
+**2. The derivative.** Look again at one ring: its area is `2πr · dr`. That `2πr` is the *rate* at which the total area grows as the radius nudges outward. So the area function `A(r) = πr²` has a rate of change of `2πr`. The derivative of `πr²` is `2πr`, and it fell out of the picture without a single rule being memorised.
+
+**3. They are inverses.** Notice what happened. We added up the `2πr` strips and got `πr²`. Going the other way, the rate of change of `πr²` is `2πr`. Integration walked us one direction, differentiation walked us straight back. That two-way street is the **fundamental theorem of calculus**, and it is the punchline the whole series builds towards.
+
+<Callout type="success" title="The mental model to keep">
+A hard problem becomes easy when you break it into tiny pieces and add them up (integration). The rate at which a running total grows is the derivative. And these two moves undo each other. That is calculus in one breath.
+</Callout>
+
+---
+
+## Why an AI engineer should care
+
+This is not a detour from machine learning, it is the foundation.
+
+Every neural network learns by **gradient descent**: it measures how a tiny change in each weight would change the error, then nudges the weights downhill. That "how a tiny change affects the output" is exactly the derivative from this chapter, scaled up to millions of dimensions. The gradient is just a bag of derivatives.
+
+So when you train a model, you are quietly running the calculus we just reinvented:
+
+- **Derivatives** tell the optimiser which way is downhill.
+- **The chain rule** (Chapter 4) is how backpropagation pushes those derivatives layer by layer through a deep network.
+- **Integrals** show up the moment you touch probability: expected values, loss over a distribution, areas under curves.
+
+Get these pictures into your bones now and backprop stops being magic. It becomes bookkeeping.
+
+---
+
+## Quick gotchas
+
+**`dr` is not zero, it is "as small as you like".** The whole game is that the approximation error shrinks faster than the thing you are measuring. We never divide by zero, we take a limit. That distinction is the next chapter's job.
+
+**The unrolled ring is not a perfect rectangle, and that is fine.** The inner edge is slightly shorter than the outer edge. But that mismatch is proportional to `dr²`, which vanishes far faster than the `dr`-sized area we keep. Tiny pieces forgive tiny errors.
+
+**Integration is not "the area under a curve" by definition.** Area is just the friendliest first example. Integration is "add up a lot of tiny things". Sometimes those things are areas, sometimes they are distances, probabilities, or accumulated error.
+
+---
+
+## What you walked away with
+
+- Calculus formulas are not to be memorised. They can be **reinvented** by anyone who breaks a problem into tiny pieces.
+- **Integration** is adding up infinitely many tiny things. We used it to rebuild `πR²` from thin rings.
+- **Differentiation** is measuring a rate of change. The growth rate of `πr²` is `2πr`, straight from the same picture.
+- These two are **inverse operations**, the fundamental theorem of calculus, which the rest of the series unpacks.
+- For an AI engineer, derivatives are the engine of gradient descent and the reason backprop works at all.
+
+Next up, Chapter 2: we slow down and pin down what a derivative actually *is*. We zoom in on a moving point, ask how fast it is changing in an instant, and confront the slippery idea of "the slope at a single point". That gives us the **derivative** properly, and sets up the chain rule that backprop is built on. See you there.

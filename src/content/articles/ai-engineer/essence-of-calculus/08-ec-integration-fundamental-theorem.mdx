@@ -1,0 +1,200 @@
+---
+title: "Integration and the Fundamental Theorem of Calculus"
+slug: ec-integration-fundamental-theorem
+category: math
+series: essence-of-calculus
+seriesOrder: 8
+description: "Chapter 8, the other half of calculus. You drove for eight seconds, the speedometer kept moving, and somehow you know how far you went. Slice the trip into tiny rectangles, add them up, and the same antiderivative you built for derivatives hands you the answer for free."
+tags:
+  - Math
+  - Calculus
+  - Integration
+  - Fundamentals
+icon: "∫"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 8 of the Essence of Calculus series. So far every chapter has been about derivatives: take a function, ask how fast it changes. This chapter runs the machine backwards. We start with a rate and ask for the total. That question is **integration**, and the punchline is that it is secretly the same tool you already have, used in reverse.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 8 here: [Integration and the fundamental theorem of calculus](https://www.youtube.com/watch?v=rfG8ce4nNh0)
+</Callout>
+
+---
+
+## The car problem
+
+You are in a car. The speedometer is the only thing you can see, and it tells you your velocity at every instant. Say it reads `v(t)` over an eight second trip. Question: how far did you travel?
+
+If the speed were constant, this is grade school. Distance is speed times time. Drive 60 for 2 hours, you go 120. Done.
+
+But the needle keeps moving. The speed at second 3 is different from the speed at second 7. There is no single number to multiply by 8. The thing that makes this hard is exactly the thing calculus was built to chew through: a quantity that changes continuously.
+
+Here is the move. Plot velocity against time and look at the **area under that curve**. That area is the total distance. The rest of this chapter is about why that is true and how to compute it.
+
+---
+
+## Slice it into rectangles
+
+The trick is the one from Chapter 1: when something curvy is hard, chop it into tiny straight pieces.
+
+Pick a tiny chunk of time, call its width `dt`. Over a window that short the velocity barely changes, so pretend it is constant at `v(t)`. The distance covered in that sliver is just speed times time:
+
+```
+distance in one sliver ≈ v(t) · dt
+```
+
+That is the area of a skinny rectangle: height `v(t)`, width `dt`. Now tile the whole trip with these rectangles and add their areas:
+
+```
+ v(t)
+   ^            ___
+   |        ___|   |__
+   |     __|   |   |  |___
+   |  __|  |   |   |  |   |__
+   | |  |  |   |   |  |   |  |
+   | |  |  |   |   |  |   |  |
+   +-+--+--+---+---+--+---+--+----> t
+   0    dt   dt  dt   ...     8
+   |<--- total distance = sum of areas --->|
+```
+
+Add up every `v(t)·dt` and you get an approximation of the distance. Make `dt` smaller and the rectangles hug the curve tighter, so the approximation gets better. In the limit, as `dt` shrinks toward zero, the staircase becomes the smooth area and the sum becomes an **integral**:
+
+```
+total distance = ∫  v(t) dt     from t = 0 to t = 8
+```
+
+The elongated S is a stretched "sum". The `dt` is the leftover whisper of the rectangle width, kept in the notation to remind you what you summed.
+
+<Definition
+  term="integral"
+  langs={{
+    en: 'An integral adds up infinitely many infinitely thin pieces. Geometrically `∫ f(x) dx` from a to b is the area under the curve `f(x)` between a and b: slice the region into rectangles of width `dx` and height `f(x)`, sum their areas, then let `dx` shrink to zero.',
+    bn: 'ইন্টিগ্রাল হলো অসীম সংখ্যক অসীম-পাতলা টুকরোর যোগফল। জ্যামিতিকভাবে a থেকে b পর্যন্ত `∫ f(x) dx` মানে a আর b এর মাঝে `f(x)` বক্ররেখার নিচের ক্ষেত্রফল: অঞ্চলটাকে `dx` চওড়া আর `f(x)` উঁচু আয়তক্ষেত্রে কাটো, ক্ষেত্রফল যোগ করো, তারপর `dx` কে শূন্যের দিকে নামাও।',
+    hi: 'समाकलन (इंटीग्रल) अनंत पतले टुकड़ों का योग है। ज्यामितीय रूप से a से b तक `∫ f(x) dx` का अर्थ है a और b के बीच `f(x)` वक्र के नीचे का क्षेत्रफल: क्षेत्र को `dx` चौड़ाई और `f(x)` ऊँचाई के आयतों में काटो, उनके क्षेत्रफल जोड़ो, फिर `dx` को शून्य की ओर ले जाओ।',
+    ar: 'التكامل هو جمع عدد لا نهائي من القطع المتناهية في الرقّة. هندسياً `∫ f(x) dx` من a إلى b هو المساحة تحت المنحنى `f(x)` بين a و b: قسّم المنطقة إلى مستطيلات عرضها `dx` وارتفاعها `f(x)`، اجمع مساحاتها، ثم اجعل `dx` يقترب من الصفر.',
+  }}
+/>
+
+---
+
+## The twist: an area that grows
+
+Computing that limit by hand sounds horrible. We do not. Instead we ask a sneaky question.
+
+Forget the fixed endpoints for a second. Let the right edge slide. Define `A(x)` as the area under `v(t)` from the start up to some movable point `x`. As you push `x` to the right, the area grows. So `A(x)` is itself a function: feed it a right edge, get back an area.
+
+Now nudge `x` by a tiny `dx`. How much new area appears? You glued on one more skinny rectangle: height `v(x)`, width `dx`. So:
+
+```
+dA  ≈  v(x) · dx
+```
+
+Divide both sides by `dx`:
+
+```
+dA
+---  =  v(x)
+dx
+```
+
+Read that slowly. The **derivative of the area function is the original height**. The area piles up exactly as fast as the curve is tall, which is the whole reason a tall curve sweeps out area quickly and a flat one crawls.
+
+<Callout type="tip" title="The inverse showing itself">
+This is the hinge of the entire subject. Integration asks "what is the total area?" Differentiation asks "how fast is the area growing?" The second question undoes the first. An integral and a derivative are inverse operations, the same way squaring and square-rooting are.
+</Callout>
+
+So to find the area function `A(x)`, you do not sum anything. You hunt for a function whose derivative is `v(x)`. That function is called an **antiderivative**, and you already know how to find them from Chapters 3 through 7.
+
+---
+
+## The fundamental theorem
+
+Suppose you find any antiderivative `F`, meaning `F'(x) = f(x)`. Then the area under `f` from `a` to `b` is just the change in `F` across that span:
+
+```
+∫  f(x) dx  =  F(b) - F(a)        from a to b
+```
+
+That is the **Fundamental Theorem of Calculus**. Why subtract? `F(b)` is the accumulated area from the start out to `b`, `F(a)` is the accumulated area out to `a`. Take the difference and the overlap from the start to `a` cancels, leaving exactly the slab between `a` and `b`.
+
+<MermaidBlock>
+graph LR
+    f["f(x) — a rate / height"] -->|"integrate (antiderivative)"| F["F(x) — accumulated area"]
+    F -->|"differentiate (slope)"| f
+    F --> Ev["area = F(b) - F(a)"]
+    style f fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style Ev fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+No limits of giant sums in sight. You reverse a derivative, plug in two numbers, subtract. The infinite sum was real, but the theorem lets you skip it.
+
+---
+
+## Worked example
+
+Say the velocity is `v(t) = t²`, and you want the distance traveled between `t = 0` and `t = 8`.
+
+Step one, find an antiderivative. You want `F` with `F'(t) = t²`. The power rule run backwards (bump the exponent up by one, divide by the new exponent) gives:
+
+```
+F(t) = t³ / 3        because   F'(t) = 3t²/3 = t²   ✓
+```
+
+Step two, evaluate at the bounds and subtract:
+
+```
+∫ t² dt  =  F(8) - F(0)  =  8³/3 - 0³/3  =  512/3  ≈ 170.67
+```
+
+So the car covered about 170.67 units of distance. The whole curvy-velocity problem collapsed into one cube divided by three, minus zero. That is the leverage the fundamental theorem buys you.
+
+---
+
+## The same idea as Chapter 1
+
+Go back to the very first chapter, where we found the area of a circle by slicing it into thin concentric rings and unrolling them into a triangle. That was this exact move in disguise: chop a hard region into many tiny pieces, approximate each piece as something simple (a thin rectangle), add them up, and take the limit as the pieces vanish.
+
+A circle's rings, a car's velocity slivers, the area under any curve. Different stories, one engine. **Integration is the art of adding up an infinity of tiny things, and the fundamental theorem is the shortcut that makes it painless.**
+
+---
+
+## Where this lands in AI
+
+Integrals are everywhere once probability enters the room, because a continuous probability is an area.
+
+- **Expectations and probabilities.** The expected value of a continuous variable is an integral: `E[x] = ∫ x · p(x) dx`. The probability of landing in a range is the area under the density over that range.
+- **Normalizing constants.** A distribution has to integrate to 1. The denominator that forces that, the partition function in energy based models or the evidence in Bayes' rule, is an integral. It is also the hard part of most of those methods.
+- **Continuous losses.** Many objectives are integrals over a data distribution rather than a clean finite sum.
+
+The catch: most of these integrals have no neat antiderivative. So in practice we **approximate them by sampling**, drawing many points and averaging, which is the core of Monte Carlo methods. The fundamental theorem tells you what the exact answer means; sampling tells you how to estimate it when the algebra runs out.
+
+---
+
+## Quick gotchas
+
+**Area below the axis counts as negative.** If `v(t)` dips under zero (driving in reverse), that chunk subtracts from the total. The integral gives **signed** area, not raw area. For total distance you would integrate the absolute speed.
+
+**The `dt` is not decoration.** It tells you which variable you are summing over and carries the units of the width. Drop it and the notation stops meaning anything.
+
+**An antiderivative is not unique.** `t³/3` and `t³/3 + 7` both differentiate to `t²`. The constant cancels in `F(b) - F(a)`, which is why definite integrals do not care about it. Indefinite integrals carry a `+ C` to remember the whole family.
+
+---
+
+## What you walked away with
+
+- The area under a rate curve is the accumulated total: area under velocity is distance.
+- Slice into rectangles of width `dt`, sum `v(t)·dt`, shrink `dt` to zero, and the sum becomes the integral `∫ v(t) dt`.
+- The area function `A(x)` has derivative `f(x)`, because each new sliver adds `f(x)·dx`. Integration and differentiation are inverses.
+- **Fundamental theorem:** find an antiderivative `F`, then the area from `a` to `b` is `F(b) - F(a)`. No infinite sum required.
+- In AI this powers expectations, normalizing constants, and continuous losses, with Monte Carlo sampling standing in when the integral is intractable.
+
+Next up, Chapter 9: we put the pieces together to find the **average value** of a continuously changing function, and watch integrals and derivatives shake hands one more time. See you there.

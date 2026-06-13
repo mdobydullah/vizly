@@ -1,0 +1,212 @@
+---
+title: "Derivative Formulas Through Geometry"
+slug: ec-derivative-formulas-geometry
+category: math
+series: essence-of-calculus
+seriesOrder: 3
+description: "Chapter 3. Stop memorizing the derivative table. Every formula is secretly a picture of how much an area or a length grows when you nudge the input by a hair."
+tags:
+  - Math
+  - Calculus
+  - Derivatives
+  - Fundamentals
+  - Beginner
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 3 of the Essence of Calculus series. Last chapter you learned what a derivative actually is: the rate at which an output changes for a tiny nudge in the input. This chapter is where we stop talking about it abstractly and start computing. The twist: we are not going to memorize a table of rules. We are going to draw them.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 3 here: [Derivative formulas through geometry](https://www.youtube.com/watch?v=S0_qX4VJhMQ)
+</Callout>
+
+---
+
+## The one question behind every formula
+
+When you write `df`, you are asking a single question over and over: if I nudge the input by a tiny amount `dx`, how much does the output change? Every derivative formula in your textbook is an answer to that question for one specific function. And almost every one of them can be seen, not just calculated.
+
+<Definition
+  term="derivative formula"
+  langs={{
+    en: 'A derivative formula tells you the rate of change of a function. Geometrically it answers: when I increase the input by a tiny `dx`, how much area or length does the output gain? For `x^2` the answer is `2x` times `dx`.',
+    bn: 'একটি ডেরিভেটিভ সূত্র একটি ফাংশনের পরিবর্তনের হার বলে দেয়। জ্যামিতিকভাবে এটি উত্তর দেয়: ইনপুট সামান্য `dx` বাড়ালে আউটপুটের ক্ষেত্রফল বা দৈর্ঘ্য কতটুকু বাড়ে? `x^2`-এর জন্য উত্তর হলো `2x` গুণ `dx`।',
+    hi: 'व्युत्पन्न सूत्र किसी फलन की परिवर्तन दर बताता है। ज्यामितीय रूप से यह उत्तर देता है: जब मैं इनपुट को थोड़ा सा `dx` बढ़ाता हूँ, तो आउटपुट का क्षेत्रफल या लंबाई कितनी बढ़ती है? `x^2` के लिए उत्तर है `2x` गुणा `dx`।',
+    ar: 'صيغة المشتقة تخبرك بمعدل تغير الدالة. هندسياً تجيب عن: عندما أزيد المدخل بمقدار صغير `dx`، كم تكتسب المخرجات من المساحة أو الطول؟ بالنسبة لـ `x^2` تكون الإجابة `2x` مضروبة في `dx`.',
+  }}
+/>
+
+---
+
+## x² is a square
+
+Forget the graph for a second. Let `f(x) = x^2` be the literal **area of a square** whose side is `x`.
+
+Now nudge the side by a tiny `dx`. The square grows. But look at exactly *where* it grows:
+
+```
+        x          dx
+   +----------+----+
+   |          |    |
+ x |   x·x    | x·dx
+   |          |    |
+   +----------+----+
+   |   x·dx   | dx²|   <- tiny corner
+   +----------+----+
+        dx
+```
+
+The new area is added in three pieces:
+
+- a thin strip along the right, area `x · dx`
+- a thin strip along the top, area `x · dx`
+- a tiny square in the corner, area `dx · dx = dx^2`
+
+So the change in area is `d(x^2) = 2x·dx + dx^2`. Here is the key move: `dx` is tiny, so `dx^2` is *unbelievably* tiny (a millionth becomes a trillionth). We throw it away.
+
+```
+d(x^2) = 2x·dx        =>   d(x^2)/dx = 2x
+```
+
+That `2x` you memorized is just the **two thin strips** that appear when a square grows.
+
+<Callout type="tip" title="Why dropping dx² is legal">
+We are not being sloppy. As `dx` shrinks toward zero, the corner `dx^2` shrinks so much faster than the strips `2x·dx` that its share of the change vanishes completely. The derivative is the exact value the ratio approaches, and that value has no corner in it.
+</Callout>
+
+---
+
+## x³ is a cube
+
+Same trick, one dimension up. Let `f(x) = x^3` be the **volume of a cube** with side `x`. Nudge the side by `dx`.
+
+A cube has 6 faces, but they pair up. The new volume that matters is **three slabs**, one on each of three faces, each with volume `x^2 · dx`:
+
+```
+   3 faces gain a thin slab of area x² and thickness dx
+   ┌───────┐
+   │      ╱│   each slab:  x² · dx
+   │     ╱ │   three slabs: 3·x²·dx
+   └───────┘
+```
+
+The leftover bits, the thin edges (`x·dx^2`) and the corner cube (`dx^3`), all carry a `dx^2` or higher, so they vanish.
+
+```
+d(x^3) = 3x²·dx       =>   d(x^3)/dx = 3x²
+```
+
+A square gave `2x` from 2 strips. A cube gives `3x^2` from 3 slabs. See the pattern forming?
+
+<MermaidBlock>
+graph LR
+    A["x¹ (length)"] -->|"1 endpoint"| A2["d/dx = 1"]
+    B["x² (square)"] -->|"2 strips"| B2["d/dx = 2x"]
+    C["x³ (cube)"] -->|"3 slabs"| C2["d/dx = 3x²"]
+    D["xⁿ"] -->|"n copies"| D2["d/dx = n·xⁿ⁻¹"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#c084fc,color:#fff
+    style A2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B2 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D2 fill:#1a1f2b,stroke:#c084fc,color:#fff
+</MermaidBlock>
+
+This is the **power rule**. Bring the exponent down in front, then knock the exponent down by one:
+
+```
+d/dx (xⁿ) = n · xⁿ⁻¹
+```
+
+It holds for `n = 2`, `n = 3`, and in fact for any power, even negative and fractional ones. The geometry of the square and the cube is the reason it works.
+
+---
+
+## 1/x is a rectangle that fights to stay flat
+
+`1/x` looks nothing like an area, so let's *make* it one. Picture a rectangle whose **area is always exactly 1**. If its width is `x`, then its height has to be `1/x` to keep the area at 1.
+
+```
+   area = 1, always
+   ┌──────────────┐
+   │              │ height = 1/x
+   └──────────────┘
+         width = x
+```
+
+Now nudge the width to the right by `dx`. That adds a sliver of area on the right, roughly `(1/x)·dx`. But the total area is *locked* at 1. To pay back that extra sliver, the height must drop by some amount `d(1/x)`, removing a sliver of area `x · d(1/x)` off the top.
+
+For the area to stay put, the two slivers cancel:
+
+```
+x · d(1/x)  +  (1/x) · dx  =  0
+d(1/x) = - (1/x²) · dx      =>   d/dx (1/x) = -1/x²
+```
+
+The minus sign is not arbitrary: as you widen the rectangle, the height *must* fall. That is the picture of a negative derivative. (Notice it also obeys the power rule: `1/x = x^{-1}`, and `-1·x^{-2} = -1/x^2`.)
+
+---
+
+## sin(θ) is a height on the unit circle
+
+Trig derivatives feel like pure memorization until you put them on the unit circle. Walk a point around a circle of radius 1. The angle `θ` is the distance you have traveled along the arc. The **height** of the point above the horizontal axis is exactly `sin(θ)`.
+
+```
+              ┌ ─ ─ ─ ─•  point after a tiny step dθ
+          .  ╱│        ↑ this rise is what we want
+       .    ╱ │
+      .    ╱  │ ┐
+     .    •   │ │ sin(θ)  <- current height
+     .   ╱│   │ │
+     .  ╱ │θ  │ ┘
+     . ╱  │   │
+     •────┴───┘
+   center        the arc step dθ is along the circle
+```
+
+Take a tiny step `dθ` further along the circle. That step is a tiny arrow tangent to the circle, of length `dθ`. The tangent is perpendicular to the radius, so it sits at angle `θ` from vertical. The *vertical* part of that little step, the change in height, is `cos(θ) · dθ`.
+
+```
+d(sin θ) = cos(θ) · dθ     =>   d/dθ (sin θ) = cos θ
+```
+
+So `cos θ` is not a fact to memorize. It is literally how fast your height climbs as you slide along the circle. (And the same picture gives you `d/dθ (cos θ) = -sin θ`: the *horizontal* part of that step, which shrinks as you climb.)
+
+<Callout type="success" title="The mental model to keep">
+Every derivative formula is a picture of growth. `2x` is two strips on a square. `3x^2` is three slabs on a cube. `-1/x^2` is a rectangle dropping its height to stay flat. `cos θ` is the rise of a height as you slide around a circle. Draw the thing, nudge it, measure what changed.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**`dx^2` is not a typo you ignore, it is a term you discard on purpose.** Higher powers of `dx` vanish because the derivative is the limit as `dx` goes to zero, and they shrink faster than everything else.
+
+**The power rule needs no geometry to *use*, but the geometry is why it is true.** Once `n·x^{n-1}` lives in your hands, you can apply it to `x^{-1}`, `x^{1/2}`, anything. The square and cube are just the cases you can see.
+
+**Angles are in radians, always.** `d/dθ (sin θ) = cos θ` only works because arc length equals angle on the unit circle. In degrees an ugly factor of `π/180` shows up. Calculus runs on radians.
+
+---
+
+## What you walked away with
+
+- A derivative formula answers one question: nudge the input by `dx`, how much does the output grow?
+- `d/dx(x^2) = 2x` (two strips on a square), `d/dx(x^3) = 3x^2` (three slabs on a cube).
+- The **power rule** `d/dx(x^n) = n·x^{n-1}` generalizes the square and cube to any exponent.
+- `d/dx(1/x) = -1/x^2`, seen as a unit-area rectangle dropping its height to compensate.
+- `d/dθ(sin θ) = cos θ`, seen as the rise of a height as you step along the unit circle.
+
+<Callout type="info" title="Why this matters for AI">
+These few primitives, the power rule plus the derivatives of `1/x`, `sin`, `exp`, are the entire vocabulary of differentiation. A neural network is just thousands of these simple functions composed together. The **chain rule** (next chapter) is the single rule that stitches these building blocks into the gradient of a whole network. Backpropagation is the chain rule run at scale. Learn these pictures and you have learned the atoms that training is made of.
+</Callout>
+
+Next up, Chapter 4: we have derivatives of simple functions, but real functions are functions *inside* functions, like `sin(x^2)` or a network layer feeding the next. The **chain rule** (and the product rule) tells us how to differentiate those compositions. That is the rule deep learning runs on. See you there.

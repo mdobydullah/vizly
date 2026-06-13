@@ -6,11 +6,12 @@
   "color": "cyan",
   "tags": ["AI"],
   "createdAt": "2026-04-04T15:43:21Z",
-  "updatedAt": "2026-06-12T12:45:00Z",
+  "updatedAt": "2026-06-13T10:00:00Z",
   "estimatedWeeks": 12,
   "series": [
     "ai-fundamentals",
     "essence-of-linear-algebra",
+    "essence-of-calculus",
     "transformers-llms",
     "post-training-alignment",
     "rag-prompting-applications",

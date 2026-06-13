@@ -1,0 +1,172 @@
+---
+title: "Higher Order Derivatives"
+slug: ec-higher-order-derivatives
+category: math
+series: essence-of-calculus
+seriesOrder: 10
+description: "Chapter 10, a short one. If the first derivative is the slope, the second derivative is how fast the slope itself is changing. That single idea is curvature, it is acceleration, and it is the secret that optimizers use to find the bottom of a loss landscape."
+tags:
+  - Math
+  - Calculus
+  - Derivatives
+  - AI
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 10, and it is a short one. By now you can take a derivative. This chapter asks the obvious follow up question nobody tells you to ask: what happens when you take the derivative *again*?
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 10 here: [Higher order derivatives](https://www.youtube.com/watch?v=BLkz5LGWihw)
+</Callout>
+
+---
+
+## The derivative of the derivative
+
+The first derivative `f'(x)` answers "how fast is `f` changing right now?" It is the slope.
+
+But `f'(x)` is itself just another function. It has its own graph, its own slope, its own rate of change. So take *its* derivative. That gives you the **second derivative**, `f''(x)`.
+
+Read it out loud and it sounds almost silly: the second derivative is the rate of change of the rate of change. But that mouthful has a clean geometric meaning. It tells you how the slope is bending.
+
+<Definition
+  term="second derivative"
+  langs={{
+    en: 'The second derivative is the derivative of the derivative. It measures how fast the slope of a function is changing, which shows up on the graph as how much the curve is bending. Positive means it curves upward (a smile), negative means it curves downward (a frown).',
+    bn: 'দ্বিতীয় অন্তরজ হলো অন্তরজের অন্তরজ। এটা মাপে যে একটা ফাংশনের ঢাল কত দ্রুত বদলাচ্ছে, যা গ্রাফে দেখা যায় বক্ররেখাটা কতটা বাঁকছে তা দিয়ে। ধনাত্মক মানে উপরের দিকে বাঁকা (হাসিমুখ), ঋণাত্মক মানে নিচের দিকে বাঁকা (গোমড়ামুখ)।',
+    hi: 'दूसरा अवकलज, अवकलज का अवकलज है। यह मापता है कि किसी फलन का ढाल कितनी तेज़ी से बदल रहा है, जो ग्राफ़ पर वक्र के मुड़ने के रूप में दिखता है। धनात्मक का मतलब ऊपर की ओर मुड़ना (मुस्कान), ऋणात्मक का मतलब नीचे की ओर मुड़ना (उदासी)।',
+    ar: 'المشتقة الثانية هي مشتقة المشتقة. تقيس مدى سرعة تغيّر ميل الدالة، وهو ما يظهر في الرسم البياني كمقدار انحناء المنحنى. القيمة الموجبة تعني انحناءً للأعلى (ابتسامة)، والسالبة تعني انحناءً للأسفل (عبوس).',
+  }}
+/>
+
+---
+
+## The picture: smiles, frowns, and the moment in between
+
+Curvature is the word for how a graph bends, and the sign of `f''` is all you need to read it.
+
+When `f'' > 0`, the slope is increasing. The curve scoops upward like a bowl. We call this **concave up**.
+
+```
+ concave up (f'' > 0)        concave down (f'' < 0)
+   \             /              ___
+    \           /              /   \
+     \         /              /     \
+      \_______/              /       \
+       a smile                a frown
+```
+
+A smile holds water. A frown spills it. That is the whole intuition: concave up curves toward the sky, concave down curves toward the ground.
+
+And right where the bend flips from one to the other, `f''` passes through zero. That spot is the **inflection point**, the instant the curve stops smiling and starts frowning (or the reverse).
+
+```
+        inflection point: f'' = 0
+                  •
+        smile    / \    frown
+       _________/   \_________
+      curving up     curving down
+```
+
+<Callout type="tip" title="Sign of f'' vs sign of f'">
+Do not mix these up. The first derivative `f'` tells you whether the function is going **up or down**. The second derivative `f''` tells you whether it is **curving up or curving down**. A function can be rising steeply while still curving downward, like the early part of a frown.
+</Callout>
+
+---
+
+## The physical reading: position, velocity, acceleration
+
+The cleanest way to feel higher derivatives is to track a moving object.
+
+Let `f(t)` be your **position** along a road at time `t`.
+
+- `f'(t)` is how fast position changes. That is your **velocity**.
+- `f''(t)` is how fast velocity changes. That is your **acceleration**.
+
+So acceleration *is* a second derivative. When you floor the gas pedal, position is changing, velocity is changing, and the second derivative is large and positive. Slam the brakes and `f''` goes negative even while you are still rolling forward.
+
+<MermaidBlock>
+graph LR
+    P["position f(t)"] -->|"d/dt"| V["velocity f'(t)"]
+    V -->|"d/dt"| A["acceleration f''(t)"]
+    A -->|"d/dt"| J["jerk f'''(t)"]
+    style P fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style V fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style J fill:#1a1f2b,stroke:#a78bfa,color:#fff
+</MermaidBlock>
+
+You do not have to stop at two. The derivative of acceleration is the **third derivative**, and it even has a name: **jerk**. It is the lurch you feel when a car's acceleration suddenly changes, like the jolt when a train pulls away. Engineers who design elevators and roller coasters care about jerk so the ride feels smooth. For most of calculus, though, the second derivative is where the action is.
+
+---
+
+## Notation: where the little "²" comes from
+
+There are two common ways to write the second derivative.
+
+The first is just **prime notation**, stacking ticks: `f'(x)` for the first, `f''(x)` for the second, `f'''(x)` for the third. Past three primes people switch to `f⁽⁴⁾(x)` because the ticks get hard to count.
+
+The second is **Leibniz notation**, and its placement of the little 2 trips everyone up at first:
+
+```
+        d²f
+        ---
+        dx²
+```
+
+Why is the `²` on top of the `d` but on the bottom next to the `x`? Because the second derivative is literally `d/dx` applied twice. Write it out as repeated operators and the spelling falls right out:
+
+```
+   d  ( d f )      d   d        d² f
+   -- ( -- )    =  -- · --  f  = ----
+   dx ( dx )       dx   dx       dx²
+```
+
+The `d` operators multiply on top, giving `d²`. The two `dx` factors multiply on the bottom, giving `dx²` (read as "`dx` squared", not "`d` times `x²`"). It is not really an exponent. It is bookkeeping for "I did the `d/dx` step two times". Once you see it that way, the notation stops being a mystery.
+
+---
+
+<Callout type="success" title="Why this matters for AI: curvature is what optimizers crave">
+Training a model means rolling downhill on a loss landscape, and the second derivative is the map of how that hill bends.
+
+**Gradient descent only knows the slope.** The gradient (a vector of first derivatives) tells you which way is downhill, but not how the ground curves ahead. So you guess a learning rate and hope. Too big and you overshoot a sharp valley, too small and you crawl across a flat plain.
+
+**The Hessian is the second derivative in many dimensions.** It is the matrix of all the second partial derivatives, and it encodes the curvature of the loss in every direction at once. **Newton's method** and other **second order optimizers** use it to jump straight toward the minimum, because knowing the curvature tells you exactly how far to step, not just which way.
+
+**Curvature explains slow training.** A **flat** region (`f''` near zero) has a tiny gradient, so steps stall and progress drags. A **sharp** ravine (large `f''`) makes the loss swing wildly, so a fixed step bounces off the walls. The flat-vs-sharp-minima debate in deep learning, and why flat minima often generalize better, is a conversation about second derivatives.
+
+**Adam and friends fake it.** Computing a full Hessian is too expensive for a network with billions of parameters, so adaptive methods like **Adam** and **RMSProp** track the size of recent gradients per parameter to approximate curvature on the cheap. They scale down steps where the loss is steep and scale them up where it is flat, getting much of the benefit of second order information without ever building the matrix.
+
+**Convexity is the gold standard.** A function with `f'' ≥ 0` everywhere is **convex**: one smooth bowl, a single global minimum, no traps. That is why convex losses (like linear or logistic regression with the right setup) are easy, and why the non-convex landscape of a deep net, full of saddle points where `f''` flips sign across directions, is hard.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**`f'' = 0` does not always mean an inflection point.** The curvature has to actually *change sign* there. A flat spot can be momentary, like the bottom of `f(x) = x⁴`, where the curve stays concave up on both sides.
+
+**Acceleration is not speed.** A car cruising at a steady 100 km/h has high velocity but **zero** acceleration, because the velocity is not changing. `f'` large, `f''` zero.
+
+**`dx²` is not `d(x²)`.** In `d²f/dx²`, the bottom means "`dx` squared", a bookkeeping mark for applying `d/dx` twice. It is not the differential of `x²`.
+
+**A saddle point is not a minimum.** In many dimensions the curvature can be positive in one direction and negative in another. The gradient is zero but you are on a mountain pass, not in a valley. This is why high dimensional optimization is genuinely harder than the 1D picture suggests.
+
+---
+
+## What you walked away with
+
+- The **second derivative** `f''(x)` is the derivative of the derivative: the rate of change of the slope, which shows up as **curvature**.
+- Sign reading: `f'' > 0` is **concave up** (a smile), `f'' < 0` is **concave down** (a frown), and `f'' = 0` with a sign flip is an **inflection point**.
+- Physically, if `f` is **position**, then `f'` is **velocity** and `f''` is **acceleration**. The third derivative is **jerk**.
+- Notation `d²f/dx²` is just `d/dx` applied twice, which is where the little 2's land.
+- In AI, curvature drives optimization: the **Hessian** powers second order methods, **convexity** (`f'' ≥ 0`) guarantees one global minimum, and adaptive optimizers like **Adam** cheaply approximate the curvature the second derivative describes.
+
+Next up, Chapter 11: we stop describing functions exactly and start *approximating* them with polynomials, using every derivative at a single point. That is the **Taylor series**, one of the most powerful tools in all of mathematics. See you there.

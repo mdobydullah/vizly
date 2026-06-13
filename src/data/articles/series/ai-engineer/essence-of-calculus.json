@@ -1,0 +1,24 @@
+{
+  "slug": "essence-of-calculus",
+  "title": "Essence of Calculus",
+  "description": "A geometric, intuition-first walk through calculus, inspired by 3Blue1Brown's classic series. Each chapter builds the picture before the formula: what a derivative really measures, why the chain rule looks the way it does, and how integration undoes it all. Chapters 1 to 4 are the gradient-and-chain-rule core that backprop is built on. Every article links the original video.",
+  "icon": "📈",
+  "color": "amber",
+  "tags": ["Math", "Calculus", "Fundamentals"],
+  "createdAt": "2026-06-13T10:00:00Z",
+  "updatedAt": "2026-06-13T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "ec-essence-of-calculus", "title": "The Essence of Calculus", "badges": [{ "label": "Fundamental" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 2, "slug": "ec-paradox-of-the-derivative", "title": "The Paradox of the Derivative", "badges": [{ "label": "Fundamental" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 3, "slug": "ec-derivative-formulas-geometry", "title": "Derivative Formulas Through Geometry", "badges": [{ "label": "Fundamental" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 4, "slug": "ec-chain-rule-product-rule", "title": "Visualizing the Chain Rule and Product Rule", "badges": [{ "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 5, "slug": "ec-eulers-number-e", "title": "What's So Special About Euler's Number e?", "badges": [{ "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 6, "slug": "ec-implicit-differentiation", "title": "Implicit Differentiation, What's Going On Here?" },
+    { "order": 7, "slug": "ec-limits-lhopital-epsilon-delta", "title": "Limits, L'Hôpital's Rule, and Epsilon-Delta Definitions" },
+    { "order": 8, "slug": "ec-integration-fundamental-theorem", "title": "Integration and the Fundamental Theorem of Calculus" },
+    { "order": 9, "slug": "ec-area-and-slope", "title": "What Does Area Have to Do with Slope?" },
+    { "order": 10, "slug": "ec-higher-order-derivatives", "title": "Higher Order Derivatives", "badges": [{ "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 11, "slug": "ec-taylor-series", "title": "Taylor Series", "badges": [{ "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 12, "slug": "ec-derivatives-other-view", "title": "The Other Way to Visualize Derivatives" }
+  ]
+}

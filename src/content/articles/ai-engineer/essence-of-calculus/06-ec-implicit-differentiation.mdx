@@ -1,0 +1,189 @@
+---
+title: "Implicit Differentiation, What's Going On Here?"
+slug: ec-implicit-differentiation
+category: math
+series: essence-of-calculus
+seriesOrder: 6
+description: "Chapter 6. A circle is not a function, yet it has a slope at every point. Implicit differentiation feels like a magic trick the first time you see it. Here is the one picture that turns the trick into something obvious."
+tags:
+  - Math
+  - Calculus
+  - Derivatives
+  - Fundamentals
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 6 of the Essence of Calculus series. Up to now every derivative had a clean setup: `y = f(x)`, one input, one output, take the slope. This chapter breaks that comfort. We look at curves where `y` is tangled up with `x`, and ask how the slope can still exist.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 6 here: [Implicit differentiation, what's going on here?](https://www.youtube.com/watch?v=qb40J4N1fa4)
+</Callout>
+
+---
+
+## The circle that breaks the rules
+
+Take the circle of radius 5, centered at the origin:
+
+```
+x² + y² = 5²
+```
+
+Pick a point on it, say `(3, 4)`. The circle clearly has a tangent line there, so it has a slope. But try to write `y` as a function of `x` and you hit a wall. Solving gives `y = ±√(25 - x²)`. That `±` is the problem: above the x-axis is one function, below it is another, and at the far left and right edges the tangent is vertical, so the slope is not even a number.
+
+```
+        y
+        ^
+      • | •
+   •    |    •   ← tangent at (3,4)
+  •     |     ⟍
+ •------+------•----> x
+  •     |     •
+   •    |    •
+      • | •
+```
+
+So `dy/dx` for the whole circle at once does not fit the "one input, one output" mold. We need a way to find the slope without ever solving for `y`.
+
+<Definition
+  term="implicit differentiation"
+  langs={{
+    en: 'A way to find a slope when `y` is tangled into the equation instead of written as a clean function of `x`. You differentiate both sides of the equation with respect to `x`, treating `y` as something that secretly depends on `x`, then solve for `dy/dx`.',
+    bn: 'যখন `y` কে `x`-এর পরিষ্কার ফাংশন হিসেবে না লিখে সমীকরণের ভেতরে জড়িয়ে রাখা হয়, তখন ঢাল বের করার একটি উপায়। সমীকরণের দুই পাশকেই `x`-এর সাপেক্ষে অন্তরীকরণ করো, `y` কে `x`-এর উপর নির্ভরশীল ধরে নিয়ে, তারপর `dy/dx` বের করো।',
+    hi: 'जब `y` को `x` के साफ़ फलन के रूप में लिखने के बजाय समीकरण के अंदर उलझाया गया हो, तब ढलान निकालने का तरीका। समीकरण के दोनों पक्षों को `x` के सापेक्ष अवकलित करो, `y` को `x` पर निर्भर मानते हुए, फिर `dy/dx` हल करो।',
+    ar: 'طريقة لإيجاد الميل عندما يكون `y` متشابكاً داخل المعادلة بدلاً من كتابته كدالة واضحة في `x`. تشتق طرفي المعادلة بالنسبة إلى `x`، معتبراً أن `y` يعتمد سراً على `x`، ثم تحل لإيجاد `dy/dx`.',
+  }}
+/>
+
+---
+
+## The trick, step by step
+
+Here is the move that looks like magic. Take the derivative of **both sides** of `x² + y² = 5²` with respect to `x`. The key: treat `y` as if it were a function of `x`, even though we never wrote it that way.
+
+```
+d/dx ( x² + y² ) = d/dx ( 25 )
+```
+
+- `d/dx (x²) = 2x`. Easy, that is just the power rule.
+- `d/dx (y²) = 2y · dy/dx`. This is the chain rule. `y²` is an outer function squaring an inner thing `y`, and `y` itself changes as `x` changes, so we tack on `dy/dx`.
+- `d/dx (25) = 0`. A constant never changes.
+
+Put it together:
+
+```
+2x + 2y · dy/dx = 0
+```
+
+Now solve for the slope:
+
+```
+dy/dx = -x / y
+```
+
+Plug in `(3, 4)`: the slope is `-3/4`. Plug in a point on the right edge like `(5, 0)` and you get division by zero, which is exactly the vertical tangent we expected. The formula even tells you where the trick honestly breaks.
+
+<Callout type="tip" title="Why the dy/dx appears out of nowhere">
+The `dy/dx` is not a rabbit pulled from a hat. It is the chain rule being honest. The instant you write `d/dx (y²)`, you are differentiating a function of `x` (because `y` rides along on `x`), so the chain rule demands the extra factor `dy/dx`. Forgetting it is the single most common mistake here.
+</Callout>
+
+---
+
+## The deeper picture: keep the output fixed
+
+The step-by-step recipe works, but it can feel like symbol pushing. There is a cleaner way to see it.
+
+Think of the expression `x² + y²` as a machine that takes a point `(x, y)` and spits out a value. The circle is the set of points where that machine outputs exactly `25`. Staying **on** the curve means the output must never change. It is locked at `25`.
+
+Now nudge the point by a tiny step `(dx, dy)` along the curve. How much does the value `x² + y²` change? Each variable contributes its own little nudge:
+
+```
+nudge from x : 2x · dx
+nudge from y : 2y · dy
+total nudge  : 2x · dx + 2y · dy
+```
+
+To stay on the curve, the total nudge has to be **zero**, because the output is not allowed to drift off `25`:
+
+```
+2x · dx + 2y · dy = 0
+```
+
+Divide through by `dx` and you are right back at `2x + 2y · dy/dx = 0`. Same answer, but now you can see *why*. The two terms are competing nudges that must cancel.
+
+<MermaidBlock>
+graph LR
+    P["point (x, y) on curve"] -->|"step dx in x"| NX["value rises by 2x·dx"]
+    P -->|"step dy in y"| NY["value rises by 2y·dy"]
+    NX --> Z["stay on curve: nudges cancel<br/>2x·dx + 2y·dy = 0"]
+    NY --> Z
+    style P fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style NX fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style NY fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style Z fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This "sum the nudges and force them to cancel" view is the whole idea. It does not care whether you can solve for `y`. It just asks: which directions of travel leave the value unchanged?
+
+---
+
+## Related rates: the same trick over time
+
+The exact same machinery powers **related rates** problems, where two quantities are linked by an equation and both change over time.
+
+Classic setup: a 5 meter ladder leans against a wall. Its base slides away from the wall, its top slides down. The base distance `x` and the height `y` always satisfy:
+
+```
+x² + y² = 5²
+```
+
+Same equation as the circle. But now `x` and `y` both depend on time `t`, so differentiate both sides with respect to `t` instead of `x`:
+
+```
+2x · dx/dt + 2y · dy/dt = 0
+```
+
+If the base slides out at `dx/dt = 1` m/s, this lets you solve for how fast the top falls, `dy/dt`, at any moment. The nudges-must-cancel logic is identical. We only swapped the variable we differentiate against.
+
+<Callout type="success" title="The mental model to keep">
+An equation is a constraint: it pins some expression to a constant value. Differentiating both sides means asking how each variable's tiny nudge contributes to changing that value, then forcing the nudges to cancel so you never leave the curve. Solve for the rate you want.
+</Callout>
+
+---
+
+## Why this matters for AI
+
+<Callout type="info" title="Where this shows up in machine learning">
+The mindset here, *differentiate both sides, treat every variable as changing, and sum the nudges*, is exactly how **multivariable gradients** work. A gradient is just the full list of "how much does each variable nudge the output". When you train a model, backpropagation is this same nudge accounting run across millions of weights. And the "keep the output fixed while moving along a constraint" picture is precisely the idea behind **constrained optimization** and **Lagrange multipliers**: optimize a quantity while staying on a surface defined by an equation. You just met the seed of all of it.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**The chain rule factor is not optional.** `d/dx (y²)` is `2y · dy/dx`, never just `2y`. The `dy/dx` is the entire reason implicit differentiation works. Drop it and every answer is wrong.
+
+**The answer can contain both x and y.** `dy/dx = -x/y` depends on *where* you are on the curve. That is expected. A circle has a different slope at every point, so the slope formula must reference the point.
+
+**Vertical tangents show up as division by zero.** When `y = 0` the formula blows up. That is not a bug, it is the math telling you the tangent is vertical and the slope genuinely does not exist as a number there.
+
+**Pick the right variable to differentiate against.** For a slope `dy/dx`, differentiate with respect to `x`. For a related rates problem where things change over time, differentiate with respect to `t`. Same technique, different driving variable.
+
+---
+
+## What you walked away with
+
+- A curve like `x² + y² = 25` has a slope everywhere, even though `y` is not a clean function of `x`.
+- **Implicit differentiation**: differentiate both sides with respect to `x`, treat `y` as depending on `x` (chain rule gives the `dy/dx`), then solve.
+- The deeper view: an equation locks an expression to a constant, so a tiny step along the curve must leave the value unchanged. The nudges `2x·dx + 2y·dy` cancel to zero.
+- **Related rates** is the identical trick with time as the driving variable.
+- This nudge-accounting is the on-ramp to multivariable gradients and constrained optimization in machine learning.
+
+Next up, Chapter 7: we confront the limit head on. What does it really mean for a step to get "infinitely small", and how does the formal `(epsilon, delta)` definition pin that idea down? See you there.

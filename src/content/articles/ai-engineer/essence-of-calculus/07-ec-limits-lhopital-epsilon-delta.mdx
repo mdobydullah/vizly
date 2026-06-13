@@ -1,0 +1,221 @@
+---
+title: "Limits, L'Hôpital's Rule, and Epsilon-Delta Definitions"
+slug: ec-limits-lhopital-epsilon-delta
+category: math
+series: essence-of-calculus
+seriesOrder: 7
+description: "Chapter 7. We have been writing dx and pretending it is a tiny nudge. Now we make it honest. A limit is the value a function leans toward, even when it refuses to exist at the point itself."
+tags:
+  - Math
+  - Calculus
+  - Limits
+  - Fundamentals
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 7 of the Essence of Calculus series. Every earlier chapter leaned on a little symbol, `dx`, and asked you to read it as "a tiny change, as tiny as you like". That was a promissory note. This chapter pays it off. The idea that makes `dx` rigorous is the **limit**, and once you see it, the scary formal definition stops being scary.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 7 here: [Limits, L'Hôpital's rule, and epsilon delta definitions](https://www.youtube.com/watch?v=kfF40MiS7zA)
+</Callout>
+
+---
+
+## The derivative was a limit all along
+
+Back in Chapter 2 we defined the derivative as a slope, rise over run, between two points on a curve. We took two inputs `x` and `x + h`, looked at how much the output changed, and divided:
+
+```
+df        f(x + h) - f(x)
+---  ≈    -----------------
+dx                h
+```
+
+The trouble is the word "tiny". How tiny is `h`? If `h` is actually zero, the bottom is `0` and the whole thing explodes. If `h` is just small, the answer is only approximate. The honest fix is to never set `h` to zero at all. Instead, ask what number the ratio **approaches** as `h` shrinks toward zero.
+
+That is exactly what a limit is, and the real definition of the derivative is:
+
+```
+df            f(x + h) - f(x)
+---  =  lim   -----------------
+dx        h→0          h
+```
+
+The `dx` you have been writing is shorthand for "the value this ratio leans toward as `h` goes to zero". Not a tiny number. The destination of a process.
+
+<Definition
+  term="limit"
+  langs={{
+    en: 'A limit is the single value a function leans toward as its input gets closer and closer to some point. It does not care what happens at the point itself, only what the function is heading toward from nearby.',
+    bn: 'লিমিট হলো এমন একটিমাত্র মান, যার দিকে কোনো ফাংশন ঝুঁকতে থাকে যখন তার ইনপুট কোনো একটি বিন্দুর দিকে ক্রমশ এগিয়ে যায়। ঠিক ওই বিন্দুতে কী ঘটে তা এটি দেখে না, বরং আশেপাশ থেকে ফাংশনটি কোন দিকে যাচ্ছে সেটাই দেখে।',
+    hi: 'लिमिट वह एक मान है जिसकी ओर कोई फलन झुकता है जब उसका इनपुट किसी बिंदु के पास और पास आता जाता है। यह उस बिंदु पर क्या होता है इसकी परवाह नहीं करता, बस यह देखता है कि पास से फलन किस ओर बढ़ रहा है।',
+    ar: 'النهاية هي القيمة الوحيدة التي تميل إليها الدالة كلما اقترب مُدخلها أكثر فأكثر من نقطة ما. لا تهتم بما يحدث عند النقطة نفسها، بل بما تتجه إليه الدالة من النقاط المجاورة.',
+  }}
+/>
+
+---
+
+## A function can have a value it never reaches
+
+Here is the surprise that makes limits worth defining. A function can lean toward a number at a point where it is completely undefined.
+
+Take this expression, which shows up when you differentiate `2^x`:
+
+```
+        2^h - 1
+g(h) =  --------
+            h
+```
+
+Plug in `h = 0` and you get `(1 - 1) / 0 = 0/0`. Garbage. The function simply has no value there. But watch what happens as you walk `h` toward zero from both sides:
+
+```
+   h        g(h)
+ -0.1      0.6697
+ -0.01     0.6908
+ -0.001    0.6929
+   0        ???        <- hole, no value
+  0.001     0.6934
+  0.01      0.6956
+  0.1       0.7177
+```
+
+The numbers are closing in on a single value, about `0.6931`. The function never lands on it (the input `0` is a hole), but it leans toward it from every direction. That destination is the limit, and writing `lim_{h→0} g(h) ≈ 0.6931` is a precise, true statement even though `g(0)` is nonsense.
+
+<Callout type="tip" title="The hole is the whole point">
+Limits exist precisely so we can talk about values a function approaches but never touches. Every derivative is a `0/0` hole in disguise: the run goes to zero, the rise goes to zero, and yet the ratio aims at a definite slope.
+</Callout>
+
+---
+
+## Making "approaches" rigorous: epsilon and delta
+
+"Leans toward" is a feeling. Mathematicians needed it to be a checkable claim, so they invented the **epsilon-delta** definition. It sounds intimidating and it is genuinely just a challenge-and-response game.
+
+Suppose you claim the limit is `L`. I challenge you with a tolerance, **epsilon** (ε), a thin band around `L` on the output axis. You must answer with a closeness, **delta** (δ), a band around the input point, such that every input inside your δ-band gets mapped inside my ε-band. If you can do that for *every* ε I throw at you, no matter how thin, then `L` truly is the limit.
+
+```
+ output
+   |
+ L+ε ......===================......   <- my tolerance band
+   |        \                /
+  L |.........\....•........./.........   <- the value you claim
+   |           \   |       /
+ L-ε ......======|========......
+   |             | | |
+   +-------------|-|-|----------------> input
+               a-δ a a+δ
+                 \___/
+              your closeness band
+```
+
+The deal: pick any input within δ of `a` (and not equal to `a`), and its output is guaranteed to sit within ε of `L`. If I shrink ε, you find a smaller δ. As long as you can always answer, the limit holds. That is the entire definition. No mysticism, just "for every tolerance, there is a closeness that keeps you inside it".
+
+<MermaidBlock>
+graph LR
+    E["I pick tolerance ε<br/>(band around L)"] --> D["You find closeness δ<br/>(band around input a)"]
+    D --> C["Every input in δ-band<br/>maps into ε-band?"]
+    C -->|"yes, for every ε"| W["L is the limit"]
+    C -->|"fails for some ε"| F["L is not the limit"]
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style W fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#f87171,color:#fff
+</MermaidBlock>
+
+---
+
+## L'Hôpital's rule: a trick for 0/0
+
+You keep hitting `0/0`. The derivative is one. The expression above is another. Here is a clean tool for a whole family of them.
+
+Suppose two functions `f` and `g` both pass through zero at the same input `a`, so plugging in gives `f(a)/g(a) = 0/0`. The ratio is undefined exactly there, but it still has a limit, and **L'Hôpital's rule** says you can read it off the slopes:
+
+```
+       f(x)         f'(a)
+ lim  ------    =   ------
+ x→a   g(x)         g'(a)
+```
+
+Why on earth would the ratio of two functions equal the ratio of their *derivatives*? The picture explains it instantly.
+
+Near a root, a smooth function looks just like its tangent line. So zoom way in on the point `a` where both functions cross zero. Each curve becomes a straight line through `(a, 0)`:
+
+```
+  value
+    |        f rises with slope f'(a)
+    |       /
+    |      /
+    |     /        ____ g rises with slope g'(a)
+    |    /   ____/
+    |   / __/
+  0 +--•------------------> input
+       a
+```
+
+A tiny step `dx` past `a` lifts `f` by about `f'(a)·dx` and lifts `g` by about `g'(a)·dx`. Take the ratio and the common `dx` cancels:
+
+```
+ f(x)     f'(a)·dx     f'(a)
+ ----  ≈  ---------  = ------
+ g(x)     g'(a)·dx     g'(a)
+```
+
+The ratio of two heights becomes the ratio of two slopes. That is the whole geometric content of the rule.
+
+### Worked example
+
+The famous one: what does `sin(x) / x` approach as `x → 0`? At `x = 0` it is `0/0`. Apply the rule. The top is `f(x) = sin(x)` with `f'(x) = cos(x)`. The bottom is `g(x) = x` with `g'(x) = 1`.
+
+```
+       sin(x)         cos(x)     cos(0)     1
+ lim  --------   =   --------  = ------  =  -  =  1
+ x→0      x             1           1       1
+```
+
+So `sin(x)/x → 1`. Near zero, `sin(x)` and `x` rise at the same rate (both have slope 1 there), so their ratio heads to exactly 1. The geometry and the algebra agree.
+
+<Callout type="success" title="The mental model to keep">
+When you hit `0/0`, do not panic and do not divide by zero. Zoom in until both functions look like their tangent lines, then take the ratio of the slopes. That ratio is the limit.
+</Callout>
+
+---
+
+## Why this matters for AI
+
+Limits are not just exam fodder, they are the foundation the rest of the toolkit stands on.
+
+- **Gradients are limits.** Every gradient an optimizer computes is a derivative, and every derivative is a `lim_{h→0}` of a ratio. When backprop chases the slope of a loss surface, it is chasing the destination of a shrinking ratio. The whole of gradient descent rides on this chapter.
+- **`0/0` haunts real code.** Naive implementations of softmax, cross-entropy, and similar functions blow up when a `0/0` or `∞ - ∞` sneaks in. The fix, the **log-sum-exp** trick, is exactly the engineer's version of L'Hôpital reasoning: rewrite the expression so the limit is computed stably instead of dividing two tiny numbers and getting noise.
+
+If you understand that a limit is a destination, not a value at a point, the numerical-stability tricks in every deep learning library stop looking like black magic.
+
+---
+
+## Quick gotchas
+
+**A limit can exist where the function does not.** `g(0)` being undefined says nothing about `lim_{h→0} g(h)`. The hole and the destination are separate questions. This is the single most common confusion.
+
+**Both sides must agree.** The function has to approach the same value from the left and the right. If it leans toward `2` from the left and `5` from the right, there is no limit at that point.
+
+**L'Hôpital is only for `0/0` (and `∞/∞`).** If plugging in gives a normal number like `3/4`, just use it. Applying the slope-ratio rule to something that is not indeterminate gives the wrong answer.
+
+**ε comes first, δ responds.** The challenger picks the tolerance, then you find the closeness. Getting the order backwards inverts the whole definition.
+
+---
+
+## What you walked away with
+
+- A **limit** is the value a function leans toward as its input nears a point, regardless of what happens at the point itself.
+- The **derivative** is literally a limit: `df/dx = lim_{h→0} (f(x+h) - f(x)) / h`. The `dx` was always a destination, not a tiny number.
+- The **epsilon-delta** definition is a challenge-response game: for every tolerance ε around `L`, you can find a closeness δ around the input that keeps you inside it.
+- **L'Hôpital's rule** tames `0/0` by replacing the ratio of functions with the ratio of their slopes, because near a shared root each function is just its tangent line.
+
+Next up, Chapter 8: we turn the whole machine around. Instead of going from a function to its slope, we go from a rate of change back to the total accumulated, and discover that the area under a curve and the derivative are two ends of the same idea. That is **integration** and the **fundamental theorem of calculus**. See you there.

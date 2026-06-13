@@ -1,0 +1,189 @@
+---
+title: "The Other Way to Visualize Derivatives"
+slug: ec-derivatives-other-view
+category: math
+series: essence-of-calculus
+seriesOrder: 12
+description: "Chapter 12, the finale. Everyone draws the derivative as the slope of a graph. But there is a second picture, a function as a machine that stretches and squishes a number line, and it is the one that quietly powers everything ahead."
+tags:
+  - Math
+  - Calculus
+  - Derivatives
+  - Fundamentals
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 12, the final chapter of the Essence of Calculus series. You already know the derivative as the slope of a curve. That picture is good, but it is not the only one, and it is not the one that generalizes best to higher dimensions and to machine learning. This chapter hands you a second lens. Once you have both, the rest of your math life gets easier.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 12 here: [The other way to visualize derivatives](https://www.youtube.com/watch?v=CfW845LNObM)
+</Callout>
+
+---
+
+## The picture you already have
+
+When someone says "derivative", you probably see a curve and a tangent line. `f'(x)` is the steepness of that line. Rise over run. The graph lives in 2D: input on the horizontal axis, output on the vertical axis.
+
+```
+   f(x)
+    ^
+    |        ⟋  ← tangent, slope = f'(x)
+    |      •
+    |   ⟋
+    +------------> x
+```
+
+This is a fine picture. It got you through eleven chapters. But it has a hidden cost: it forces every function into a 2D plot, and once you have functions of several inputs and several outputs, the graph runs out of axes. We need a view that does not depend on plotting input against output at all.
+
+---
+
+## The other picture: a function as a mapping
+
+Forget the graph. Draw the input as one number line and the output as a second number line below it. A function is then a machine that grabs each point on the top line and sends it to a point on the bottom line.
+
+```
+input:   ... -2 --- -1 --- 0 --- 1 --- 2 --- 3 ...
+                            |     |     |
+                  f(x)=x²   |     |     |
+                            v     v     v
+output:  ... ----- 0 - 1 ---------- 4 --------- 9 ...
+```
+
+Now zoom in on a tiny interval around one input point and watch where it lands. A small neighborhood on the top line gets carried to a small neighborhood on the bottom line. Sometimes that interval comes out **longer** than it went in. Sometimes **shorter**. The derivative is exactly the factor by which the mapping stretches or squishes that tiny interval.
+
+```
+top:        [  x  ]      tiny interval of length  dx
+              |  \
+              v   v
+bottom:   [    f(x)    ]  lands as length  f'(x) · dx
+```
+
+<Definition
+  term="derivative (as a local stretch factor)"
+  langs={{
+    en: 'The derivative `f\'(x)` is the factor by which a function stretches or squishes a tiny interval around the input `x` as it maps that interval onto the output line. A tiny input length `dx` lands as an output length `f\'(x) · dx`.',
+    bn: 'অন্তরজ `f\'(x)` হলো সেই গুণক, যার দ্বারা একটি ফাংশন ইনপুট `x`-এর চারপাশের ছোট্ট একটি অংশকে আউটপুট রেখায় পাঠানোর সময় টেনে লম্বা বা চেপে ছোট করে। ছোট ইনপুট দৈর্ঘ্য `dx` আউটপুটে `f\'(x) · dx` দৈর্ঘ্য হয়ে পৌঁছায়।',
+    hi: 'अवकलज `f\'(x)` वह गुणक है जिससे कोई फलन इनपुट `x` के आसपास के एक छोटे अंतराल को आउटपुट रेखा पर भेजते समय खींचता या दबाता है। छोटी इनपुट लंबाई `dx` आउटपुट में `f\'(x) · dx` लंबाई बनकर पहुँचती है।',
+    ar: 'المشتقة `f\'(x)` هي المعامل الذي تمدّ به الدالة أو تضغط فترةً صغيرة حول المُدخل `x` عند إسقاطها على خط المُخرجات. فطول مُدخل صغير `dx` يصل كطول مُخرج `f\'(x) · dx`.',
+  }}
+/>
+
+---
+
+## Reading the number off the stretch
+
+This view turns the sign and size of `f'(x)` into something you can almost feel.
+
+- **`f'(x) > 1`**: local **stretching**. The neighborhood comes out bigger than it went in.
+- **`0 < f'(x) < 1`**: local **compression**. The neighborhood gets squished toward a point.
+- **`f'(x) < 0`**: the mapping **flips orientation** there. Points to the right of `x` land to the *left* of `f(x)`. The little interval gets turned around.
+- **`f'(x) = 0`**: the interval **collapses to a point**. Everything nearby piles up onto the same output. This is exactly why `f'(x) = 0` flags a flat spot: locally, the function has stopped moving the line at all.
+
+```
+ stretch (f'>1)     squish (0<f'<1)     flip (f'<0)      collapse (f'=0)
+  [ ]  -->  [   ]    [   ]  -->  [ ]     [a b] --> [b a]   [ ] -->  •
+```
+
+The slope picture and the stretch picture are the same number wearing different clothes. Rise over run in the graph *is* output length over input length in the mapping. They have to agree, because they are computed from the same `f`.
+
+---
+
+## Why the chain rule becomes obvious
+
+Here is where the new picture pays off. The chain rule was a formula you memorized in Chapter 4. In the mapping view it is almost trivial.
+
+Compose two functions: `g` maps the first line to the second, then `f` maps the second line to a third. Run a tiny interval through both.
+
+```
+line 1   [ ]   length dx
+           |  g  squishes/stretches by  g'(x)
+           v
+line 2  [   ]  length g'(x)·dx
+           |  f  squishes/stretches by  f'(g(x))
+           v
+line 3 [     ] length f'(g(x)) · g'(x) · dx
+```
+
+Each map multiplies the length by its own local stretch factor. Apply two maps in a row and you multiply the two factors. That is the whole chain rule:
+
+```
+d/dx f(g(x)) = f'(g(x)) · g'(x)
+```
+
+<Callout type="tip" title="Why composition means multiply">
+A stretch followed by a stretch is one bigger stretch, and the combined factor is the product, not the sum. Triple a length, then double it, and you have sextupled it. The chain rule is just that bookkeeping, applied to the infinitesimal stretch each function does at a point.
+</Callout>
+
+<MermaidBlock>
+graph LR
+    A["tiny length dx<br/>on input line"] -->|"× g'(x)"| B["length g'(x)·dx<br/>on middle line"]
+    B -->|"× f'(g(x))"| C["length f'(g(x))·g'(x)·dx<br/>on output line"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## The bridge back to linear algebra
+
+The reason this view is worth keeping is that it scales up cleanly. In one dimension the derivative is a single stretch factor. In higher dimensions a function takes a vector in and spits a vector out, and a tiny *region* around a point gets mapped to another tiny region. The thing that measures how much that region stretches, squishes, or flips is the **Jacobian determinant**.
+
+If that phrase rings a bell, it should. Back in the Essence of Linear Algebra series, the **determinant** of a transformation was defined as the factor by which it scales area (in 2D) or volume (in 3D), and a negative determinant meant the orientation flipped. The Jacobian determinant is that exact idea applied locally to a nonlinear map: zoom in far enough and any smooth function looks like a linear transformation, and its determinant is the local area/volume stretch factor.
+
+```
+ 1D:  derivative      = local length stretch   (one number, f'(x))
+ nD:  Jacobian det    = local area/volume stretch  (a determinant)
+```
+
+So calculus and linear algebra are not two subjects. Differentiation is the act of finding the linear transformation that best approximates a function near a point, and the determinant tells you what that transformation does to size. The "other view" of the derivative is the doorway between the two.
+
+<Callout type="success" title="The mental model to keep">
+A function is a machine that moves a number line. The derivative is how hard it stretches the line right where you are standing. Bigger than 1 stretches, between 0 and 1 squishes, negative flips, zero collapses. Compose machines and the stretch factors multiply. Go to higher dimensions and the stretch factor becomes the Jacobian determinant.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**The stretch factor is local, not global.** `f'(x)` describes only a tiny neighborhood of `x`. Move to a different input and the same function may stretch by a completely different amount. There is no single stretch factor for the whole function unless it is linear.
+
+**Negative does not mean "shrinking".** A negative derivative flips orientation. Its *size* `|f'(x)|` still tells you stretch versus squish. `f'(x) = -3` flips the interval and triples its length.
+
+**Collapse is not the same as "no output".** `f'(x) = 0` means the tiny interval squashes to a point at that input, not that the function stops existing. It is the flat spot, the maximum, minimum, or saddle you hunted in earlier chapters.
+
+**The slope picture is still true.** You are not throwing the graph away. The two views give the same number. Use whichever makes the problem in front of you easier to see.
+
+---
+
+## What you walked away with
+
+- The familiar derivative is the slope of a graph. The other view treats a function as a mapping between two number lines.
+- `f'(x)` is the factor by which that mapping stretches a tiny interval: `> 1` stretches, `0` to `1` squishes, `< 0` flips orientation, `= 0` collapses to a point.
+- The **chain rule** falls out for free: composing maps multiplies their local stretch factors, so `d/dx f(g(x)) = f'(g(x)) · g'(x)`.
+- In higher dimensions the stretch factor becomes the **Jacobian determinant**, which is the determinant from linear algebra, the area/volume scaling of a transformation, applied locally.
+
+---
+
+## Closing the series
+
+That is the Essence of Calculus, end to end. Look back at the arc you climbed:
+
+- **Derivatives** as the rate of tiny change, born from the paradox of "instantaneous" motion.
+- The **derivative formulas** read off geometry instead of memorized, and the **chain and product rules** that combine them.
+- **`e`** as the function that is its own derivative, and **implicit differentiation** for curves that refuse to be functions.
+- **Integrals** as accumulated change, and the **fundamental theorem** that ties them to derivatives as exact inverses.
+- **Taylor series**, which rebuild a whole function out of its derivatives at a single point.
+- And now this final view: the derivative as a local stretch, the bridge straight back to linear algebra.
+
+You now hold the two mathematical pillars of modern machine learning. Linear algebra gave you vectors, matrices, transformations, and the determinant. Calculus gave you derivatives, the chain rule, and gradients. Backpropagation is the chain rule run backward through a giant composition of functions. Attention is a stack of linear transformations with a few well chosen nonlinearities between them. Both are built from exactly what you just learned.
+
+Next in the AI Engineer path: the **Transformers and LLMs** series. With the foundation you have, you are ready to see how these pieces assemble into the architecture behind every modern language model. See you there.

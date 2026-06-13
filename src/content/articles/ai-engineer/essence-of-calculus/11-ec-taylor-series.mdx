@@ -1,0 +1,191 @@
+---
+title: "Taylor Series"
+slug: ec-taylor-series
+category: math
+series: essence-of-calculus
+seriesOrder: 11
+description: "Chapter 11. Take any smooth, curvy function and ask a polynomial to impersonate it near one point. Match the value, then the slope, then the curvature, and the fake gets eerily good. This is the single approximation idea sitting under almost all of optimization."
+tags:
+  - Math
+  - Calculus
+  - Approximation
+  - AI
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 11 of the Essence of Calculus series, and it might be the most useful single trick in the whole subject. Polynomials are the friendliest functions alive: easy to add, easy to differentiate, easy to compute. Functions like `cos(x)`, `e^x`, or a neural net's loss are not. Taylor series is the bridge. It lets a humble polynomial impersonate a scary function, at least near one chosen point, and it lets you dial the quality of the impersonation up term by term.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 11 here: [Taylor series](https://www.youtube.com/watch?v=3d6DsjIBzJ4)
+</Callout>
+
+---
+
+## The idea: copy a function's local behavior
+
+Pick a point. Now build a polynomial whose value matches the function there, whose slope matches, whose curvature matches, whose next bend matches, and so on. Each new condition you satisfy pins down one more coefficient and hugs the polynomial a little tighter to the real curve.
+
+The polynomial knows nothing about the function far away. It only copies what is happening *right at that point*: how high it is, which way it is leaning, how hard it is curving. The surprise is that copying enough of those local clues is almost enough to recreate the whole thing.
+
+<Definition
+  term="Taylor series"
+  langs={{
+    en: 'A Taylor series rebuilds a function near a point as an infinite polynomial whose value, slope, curvature, and every higher derivative match the function at that point. Keep a few terms for a quick approximation, keep them all for an exact copy.',
+    bn: 'টেইলর সিরিজ একটি ফাংশনকে কোনো একটি বিন্দুর কাছে একটি অসীম বহুপদী হিসেবে আবার তৈরি করে, যার মান, ঢাল, বক্রতা এবং প্রতিটি উচ্চতর অন্তরজ ওই বিন্দুতে ফাংশনের সাথে মিলে যায়। কয়েকটি পদ রাখলে দ্রুত আনুমানিক হিসাব, সবগুলো রাখলে হুবহু কপি।',
+    hi: 'टेलर श्रृंखला किसी फ़ंक्शन को एक बिंदु के पास एक अनंत बहुपद के रूप में फिर से बनाती है, जिसका मान, ढलान, वक्रता और हर उच्च अवकलज उस बिंदु पर फ़ंक्शन से मेल खाते हैं। कुछ पद रखें तो जल्दी अनुमान, सभी रखें तो हूबहू नकल।',
+    ar: 'متسلسلة تايلور تعيد بناء دالة قرب نقطة ما على هيئة كثير حدود لا نهائي تتطابق قيمته وميله وانحناؤه وكل مشتقاته العليا مع الدالة عند تلك النقطة. احتفظ ببضعة حدود لتقريب سريع، أو بكلها لنسخة مطابقة.',
+  }}
+/>
+
+---
+
+## Building up cos(x) near 0, one term at a time
+
+Let us impersonate `cos(x)` near `x = 0` and watch the polynomial get smarter with each correction.
+
+**Match the value.** At `x = 0`, `cos(0) = 1`. So start with the flattest guess that gets the height right: the constant `1`. Correct at one point, useless everywhere else.
+
+**Match the slope.** The derivative of cosine is `-sin(x)`, and `-sin(0) = 0`. The curve is momentarily flat at the top. Our constant `1` already has slope 0, so no linear term is needed. Still just `1`.
+
+**Match the curvature.** The second derivative of cosine is `-cos(x)`, which is `-1` at 0. A term `c·x²` has second derivative `2c`, so we need `2c = -1`, giving `c = -1/2`. Now the approximation bends downward like the real cosine does:
+
+```
+ 1 +  ____                  cos(x)
+   |  /    \___        •••• 1
+   | •          \      ──── 1 - x²/2
+   |•            \
+ 0 +•-------------•-------------> x
+   | -2   -1   0   1    2
+   |               \
+   |                \   (1 - x²/2 dives,
+   |                 \   cosine levels off)
+```
+
+`1 - x²/2` already hugs the curve for a good stretch around 0, then peels away.
+
+**Add the next bend.** Bring in an `x⁴` term to fix where it peeled off, and you get `1 - x²/2 + x⁴/24`. The hug widens.
+
+```
+ 1 +  _____                cos(x)
+   |  /     \__       ──── 1 - x²/2 + x⁴/24
+   | /         \
+   |/           \___
+ 0 +-------------•---•----> x
+   |  -2  -1  0  1  2  3
+```
+
+Each term you keep buys you accuracy over a wider window. Keep infinitely many and the polynomial *is* cosine:
+
+```
+cos(x) = 1 - x²/2! + x⁴/4! - x⁶/6! + ...
+```
+
+---
+
+## The general formula, and why n! shows up
+
+Here is the recipe for any smooth function `f`, expanded around a point `a`:
+
+```
+f(x) ≈ Σ  f⁽ⁿ⁾(a) · (x - a)ⁿ / n!
+       n=0
+```
+
+Written out: the function value, plus the slope times `(x-a)`, plus half the second derivative times `(x-a)²`, and onward.
+
+```
+f(x) ≈ f(a) + f'(a)(x-a) + f''(a)/2! (x-a)² + f'''(a)/3! (x-a)³ + ...
+```
+
+The mysterious part is always that `n!` in the denominator. It is not decoration, it is bookkeeping. Watch what differentiating `xⁿ` does:
+
+```
+        xⁿ
+ d/dx → n · xⁿ⁻¹
+ d/dx → n(n-1) · xⁿ⁻²
+ ...
+ nth  → n(n-1)(n-2)···1 = n!   (a constant)
+```
+
+Every time you differentiate `xⁿ`, a factor peels off the front. Take the nth derivative and you have stripped out exactly `n!`. So if you want the nth term of your polynomial to contribute *precisely* the nth derivative `f⁽ⁿ⁾(a)` and nothing extra, you have to divide by `n!` up front to cancel the `n!` that differentiation will later produce. The factorial is there so each term minds its own derivative and leaves the others alone.
+
+<MermaidBlock>
+graph LR
+    T0["term 0<br/>f(a)"] --> V["controls value"]
+    T1["term 1<br/>f'(a)(x-a)"] --> S["controls slope"]
+    T2["term 2<br/>f''(a)/2!·(x-a)²"] --> C["controls curvature"]
+    T3["term 3<br/>f'''(a)/3!·(x-a)³"] --> B["controls next bend"]
+    style T0 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style T1 fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style T2 fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style T3 fill:#1a1f2b,stroke:#c084fc,color:#fff
+</MermaidBlock>
+
+---
+
+## The cleanest example: e^x
+
+The exponential `e^x` is its own derivative. Differentiate it any number of times and you still have `e^x`, which is `1` at `x = 0`. So every coefficient `f⁽ⁿ⁾(0)` equals 1, and the series falls out with no effort:
+
+```
+e^x = 1 + x + x²/2! + x³/3! + x⁴/4! + ...
+```
+
+Nothing decorates the numerators. The whole structure of `e^x` is just "reciprocal factorials, all the way down". Plug in `x = 1` and you even get a formula for `e` itself: `1 + 1 + 1/2 + 1/6 + 1/24 + ...`.
+
+---
+
+## Does it always work? A word on convergence
+
+For `e^x`, `sin`, and `cos`, adding more terms keeps improving things no matter how far from the center you go. But some functions only let the series work within a certain distance of the center, called the **radius of convergence**. Step outside that radius and piling on terms makes the approximation *worse*, not better. A classic offender is `1/(1+x²)`: its series around 0 quietly gives up once `|x| > 1`, even though the function itself looks perfectly tame there.
+
+<Callout type="tip" title="The mental model to keep">
+A Taylor series trades a hard function for a polynomial that matches its value, slope, curvature, and beyond at one point. Keep a few terms for a cheap local approximation, keep them all for an exact identity, and respect the radius where that trade stays honest.
+</Callout>
+
+---
+
+## Why this is everywhere in AI
+
+<Callout type="success" title="AI relevance: Taylor is the spine of optimization">
+Training a model means minimizing a loss `L(θ)` over millions of parameters. You cannot see that surface, so you approximate it locally with Taylor, exactly the trick from this chapter.
+
+**Gradient descent is first-order Taylor.** Keep only the value and slope terms: `L(θ + Δ) ≈ L(θ) + ∇L·Δ`. That linear picture says "the loss drops fastest opposite the gradient", which is the entire update rule `θ ← θ − η∇L`. Every optimizer you have used is built on this one-term approximation.
+
+**Newton's method is second-order Taylor.** Add the curvature term: `L(θ + Δ) ≈ L(θ) + ∇L·Δ + ½ Δᵀ H Δ`, where `H` is the **Hessian** (the matrix of second derivatives). Minimize that quadratic exactly and you get a smarter step `Δ = −H⁻¹∇L` that accounts for how the surface bends. It converges in fewer steps but needs the Hessian, which is why second-order methods and their cheap approximations (L-BFGS, K-FAC) are a whole research area.
+
+**Activation functions lean on it too.** GELU is defined through the Gaussian error function and is shipped in practice as a `tanh`-based Taylor-style approximation so it stays fast. Countless numerical kernels (softmax stabilization, `exp`, `log`, attention score tricks) run on truncated series under the hood.
+</Callout>
+
+Whenever you hear "first-order method" or "second-order method", translate it as "how many Taylor terms did we keep".
+
+---
+
+## Quick gotchas
+
+**Taylor is local, not global.** The polynomial only promises to be good *near* the center `a`. Far away, all bets are off unless the function is one of the well-behaved ones.
+
+**More terms is not always better.** Outside the radius of convergence, adding terms makes things diverge. The series can betray you.
+
+**The factorial cancels, it does not shrink.** Beginners read `1/n!` as "make later terms tiny". Its real job is to undo the `n!` that differentiation will create, so each term controls exactly one derivative.
+
+**A Taylor series around 0 has a special name.** It is called a *Maclaurin series*. Same idea, just the center pinned at the origin.
+
+---
+
+## What you walked away with
+
+- A Taylor series rebuilds a function near a point by matching its value, slope, curvature, and every higher derivative.
+- The general term is `f⁽ⁿ⁾(a)·(x-a)ⁿ / n!`, and the `n!` is there to cancel the factor differentiation peels off `xⁿ`.
+- `e^x = 1 + x + x²/2! + ...` is the cleanest case, since the exponential is its own derivative.
+- A series only behaves within its **radius of convergence**; beyond it, more terms hurt.
+- In AI, gradient descent is the first-order Taylor approximation of the loss and Newton's method is the second-order one, so this chapter quietly powers optimization.
+
+That closes out the core of Essence of Calculus. You started by chopping areas into infinitesimal slivers and you end by rebuilding entire functions from their derivatives at a single point. The derivative and the integral were two sides of one coin, and Taylor series is the place where all of it pays off at once. See you in the next series.

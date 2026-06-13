@@ -1,0 +1,187 @@
+---
+title: "What's So Special About Euler's Number e?"
+slug: ec-eulers-number-e
+category: math
+series: essence-of-calculus
+seriesOrder: 5
+description: "Chapter 5. Every exponential is proportional to its own derivative. There is exactly one base where that proportion is a clean 1, and chasing it down hands you e, the natural log, and the math behind softmax and sigmoid."
+tags:
+  - Math
+  - Calculus
+  - Exponentials
+  - AI
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 5 of the Essence of Calculus series. We have differentiated polynomials and trig functions. Now we tackle exponentials like `2^x` and `7^x`, and that one strange question forces a new number into existence: `e`. By the end you will know exactly why `e^x` shows up everywhere in machine learning instead of some friendlier-looking base.
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 5 here: [What's so special about Euler's number e?](https://www.youtube.com/watch?v=m2MIpDrF7Es)
+</Callout>
+
+---
+
+## The question that breaks naive differentiation
+
+You know how to differentiate `x^2` or `sin(x)`. But what about a *variable in the exponent*, like `2^x`? The exponent rule does not apply. The variable is upstairs now, not downstairs.
+
+So go back to the only thing that always works: the definition of a derivative. Nudge the input by a tiny `dt` and ask how the output changes.
+
+```
+d        2^(t + dt) - 2^t
+-- 2^t = ----------------
+dt              dt
+```
+
+Here is the move that makes the whole chapter click. `2^(t + dt)` is just `2^t · 2^dt` (exponents add). Pull the common `2^t` out front:
+
+```
+2^t · 2^dt - 2^t       2^dt - 1
+----------------- = 2^t · --------
+       dt                   dt
+```
+
+The `2^t` factored cleanly out of the limit. Whatever `(2^dt - 1) / dt` settles to as `dt → 0` does not depend on `t` at all. It is just a constant.
+
+<Definition
+  term="e (Euler's number)"
+  langs={{
+    en: 'e ≈ 2.71828 is the unique base for which the exponential function equals its own derivative: the rate of growth of `e^x` at every point is exactly its current height. It is the number whose "proportionality constant" is a clean 1.',
+    bn: 'e ≈ 2.71828 হলো এমন একমাত্র ভিত্তি (base), যার জন্য সূচকীয় ফাংশন তার নিজের অন্তরকলনের (derivative) সমান হয়: প্রতিটা বিন্দুতে `e^x`-এর বৃদ্ধির হার ঠিক তার বর্তমান উচ্চতার সমান। অর্থাৎ যার "সমানুপাতিক ধ্রুবক" পরিষ্কার ১।',
+    hi: 'e ≈ 2.71828 वह अनोखा आधार (base) है जिसके लिए घातांकी फलन अपने ही अवकलज (derivative) के बराबर होता है: हर बिंदु पर `e^x` की वृद्धि दर ठीक उसकी वर्तमान ऊँचाई के बराबर होती है। यानी जिसका "समानुपाती स्थिरांक" साफ़ 1 है।',
+    ar: 'العدد e ≈ 2.71828 هو الأساس الوحيد الذي تكون عنده الدالة الأسية مساوية لمشتقتها: معدل نمو `e^x` عند كل نقطة يساوي تماماً ارتفاعه الحالي. أي العدد الذي يكون "ثابت التناسب" عنده يساوي 1 بالضبط.',
+  }}
+/>
+
+---
+
+## Every exponential is proportional to itself
+
+Plug in tiny values of `dt` and that mystery constant for base 2 settles near `0.6931`. So:
+
+```
+d
+-- 2^t  ≈  0.6931 · 2^t
+dt
+```
+
+Try base 3 and the constant is about `1.0986`. Base 8, about `2.0794`. Different base, different constant, but always the **same shape of answer**: the derivative of any exponential is *that exponential back again, times some constant*.
+
+```
+ base      constant (a^dt - 1)/dt
+ ----      ----------------------
+  2          0.6931...
+  e          1.0000...   <- the clean one
+  3          1.0986...
+  8          2.0794...
+```
+
+This is the deep property. Exponentials are the functions whose rate of change is proportional to their own value. That is why they model anything self-reinforcing: a population whose growth rate scales with its size, money whose interest scales with the balance, a chemical reaction that speeds up as product accumulates.
+
+<Callout type="tip" title="The pattern, not the number">
+Notice we have not even needed `e` yet. The real discovery is structural: `d/dx(a^x) = (constant) · a^x` for *every* base. `e` is simply the base we pick to make that constant disappear.
+</Callout>
+
+---
+
+## Defining e by demanding a clean answer
+
+A mathematician looks at that table and asks the natural question: which base makes the constant exactly `1`? Somewhere between 2 and 3, the proportionality constant passes through `1`. We *define* that base to be `e`.
+
+```
+e ≈ 2.71828182845...
+```
+
+And by construction:
+
+```
+d
+-- e^t  =  e^t
+dt
+```
+
+The exponential that is its own derivative. Graphically, the height of the curve at any point equals the slope of its tangent there. The function chases itself.
+
+<MermaidBlock>
+graph LR
+    H["height at t = e^t"] -->|"equals"| S["slope at t = e^t"]
+    S -->|"so the curve's growth"| G["is driven by its own value"]
+    G -->|"self-reinforcing"| H
+    style H fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## So where did 0.6931 come from? It was ln(2) all along
+
+We do not want to memorize a table of magic constants. The chain rule cleans it up.
+
+Any base can be written in terms of `e`. Since `e^(ln a) = a`, we have:
+
+```
+a^t = (e^(ln a))^t = e^(ln(a) · t)
+```
+
+Now `a^t` is just `e` raised to `(ln(a) · t)`. Differentiate with the chain rule: the derivative of `e^(stuff)` is `e^(stuff)` times the derivative of `stuff`, and the derivative of `ln(a) · t` is just `ln(a)`.
+
+```
+d
+-- a^t  =  ln(a) · a^t
+dt
+```
+
+That is the punchline. Those mystery constants were never mysterious: `0.6931... = ln(2)`, `1.0986... = ln(3)`, and `ln(e) = 1`. The natural log of the base *is* the proportionality constant.
+
+<Callout type="success" title="The mental model to keep">
+The derivative of `a^x` is `ln(a) · a^x`. Read it backwards and it defines the natural log: `ln(a)` is the number that tells you how fast `a^x` grows relative to its own height. `e` is the base where that number is 1.
+</Callout>
+
+---
+
+## Why ML lives and breathes e^x
+
+This is not a math-class curiosity. The base `e` is wired into nearly every model you will train, and the reason is exactly the clean derivative above.
+
+- **Softmax** turns a vector of logits into probabilities by taking `e^(z_i)` and normalizing: `e^(z_i) / Σ e^(z_j)`. Using `e` makes the gradient collapse into a famously simple form, which is what backprop pushes through every classifier.
+- **Sigmoid**, `1 / (1 + e^(-x))`, squashes any real number into `(0, 1)`. Its derivative is the tidy `σ(x)(1 - σ(x))`, free because `e^x` differentiates into itself.
+- **Cross-entropy loss** is built on `log` (natural log, the inverse of `e^x`). Pairing `log` with `softmax`'s `exp` cancels cleanly and gives numerically stable, easy-to-differentiate gradients.
+- **Temperature scaling** divides logits before the `exp`: `e^(z / T)`. Turning one knob reshapes how sharp or soft the probability distribution is.
+
+The thread through all of it: `e^x` is the one exponential whose calculus stays out of your way. Gradient descent needs derivatives at every step, and `e` is the base that makes those derivatives drop out for free instead of dragging a `ln(a)` factor around forever.
+
+<Callout type="info" title="Why not just use 2^x?">
+You could. But every gradient would carry a `ln(2) ≈ 0.693` tax, multiplied billions of times across training. Choosing `e` is not aesthetic, it is the choice that makes the math frictionless.
+</Callout>
+
+---
+
+## Quick gotchas
+
+**`e` is not pulled out of thin air.** It is *defined* by a requirement: the base whose exponential is its own derivative. The decimal `2.71828...` is the consequence, not the definition.
+
+**`ln` means log base `e`, always.** When you see `log` in a loss function or a derivative, assume natural log unless told otherwise. That is the one that pairs cleanly with `e^x`.
+
+**The constant is `ln(a)`, not `a`.** A common slip is writing `d/dx(2^x) = x · 2^(x-1)`, borrowing the power rule. Wrong. The variable is in the exponent, so the answer is `ln(2) · 2^x`.
+
+**`e^x` and `x^e` are unrelated.** One has the variable in the exponent (exponential), the other in the base (a plain power). They differentiate by completely different rules.
+
+---
+
+## What you walked away with
+
+- The derivative of any exponential is **proportional to itself**: `d/dx(a^x) = (constant) · a^x`.
+- `e ≈ 2.71828` is **defined** as the base where that constant is exactly `1`, so `d/dx(e^x) = e^x`.
+- That proportionality constant is the **natural log of the base**: `d/dx(a^x) = ln(a) · a^x`, via writing `a = e^(ln a)` and the chain rule.
+- `e` models **self-reinforcing growth**, where the rate of change tracks the current amount.
+- ML leans on `e^x` everywhere (softmax, sigmoid, cross-entropy, temperature) because its clean derivative makes gradient descent frictionless.
+
+Next up, Chapter 6: we slow down and stare at the limit itself, the `dt → 0` machinery we have been waving at this whole time. What does it actually mean for something to approach a value, and how do we make L'Hopital's rule fall out of it? See you there.

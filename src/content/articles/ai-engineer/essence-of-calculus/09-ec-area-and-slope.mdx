@@ -1,0 +1,191 @@
+---
+title: "What Does Area Have to Do with Slope?"
+slug: ec-area-and-slope
+category: math
+series: essence-of-calculus
+seriesOrder: 9
+description: "Chapter 9. The average value of a function is just its area divided by its width. Pull that thread and it hands you the fundamental theorem from a completely fresh angle, slope and area as two readings of one fact."
+tags:
+  - Math
+  - Calculus
+  - Integration
+  - Fundamentals
+icon: "📈"
+color: amber
+createdAt: "2026-06-13T10:00:00Z"
+updatedAt: "2026-06-13T10:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Start here
+
+This is Chapter 9 of the Essence of Calculus series. It is a short one, but it pays off the whole series. By now you have met derivatives (slope) and integrals (area) and you have been told they are inverses. This chapter shows you *why* through a question that sounds unrelated: what is the **average value** of a function?
+
+<Callout type="info" title="Watch the original">
+This series follows 3Blue1Brown's "Essence of Calculus". Watch Chapter 9 here: [What does area have to do with slope?](https://www.youtube.com/watch?v=FnJqaIESC2s)
+</Callout>
+
+---
+
+## A question with a sneaky answer
+
+Take a function like `sin(x)` between `0` and `π`. It starts at zero, bulges up to 1 in the middle, comes back to zero. Now ask a plain question:
+
+> What is the *average height* of this curve across that stretch?
+
+Averaging a finite list is easy: add the numbers, divide by how many there are. But here you have infinitely many heights, one for every `x` in the interval. You cannot add infinitely many numbers and divide by infinity.
+
+This is exactly the kind of "add up infinitely many tiny things" problem that integrals were built for. And the answer turns out to be one clean idea that ties area and slope together.
+
+<Definition
+  term="average value of a function"
+  langs={{
+    en: 'The average value of a function over an interval is the area under it divided by the width of the interval. In symbols, average = (integral of f from a to b) / (b - a). It is the height of a flat rectangle that holds the same area.',
+    bn: 'কোনো ব্যবধানে একটা ফাংশনের গড় মান হলো তার নিচের ক্ষেত্রফলকে ব্যবধানের প্রস্থ দিয়ে ভাগ করা। অর্থাৎ, গড় = (a থেকে b পর্যন্ত f-এর ইন্টিগ্রাল) / (b - a)। এটা এমন একটা সমান উচ্চতার আয়তক্ষেত্রের উচ্চতা, যার ক্ষেত্রফল একই।',
+    hi: 'किसी अंतराल पर किसी फलन का औसत मान उसके नीचे का क्षेत्रफल अंतराल की चौड़ाई से भाग देने पर मिलता है। यानी, औसत = (a से b तक f का समाकल) / (b - a)। यह उस सपाट आयत की ऊँचाई है जिसका क्षेत्रफल समान हो।',
+    ar: 'القيمة المتوسطة لدالة على فترة هي المساحة تحتها مقسومة على عرض الفترة. أي، المتوسط = (تكامل f من a إلى b) / (b - a). إنها ارتفاع مستطيل مسطح يحمل المساحة نفسها.',
+  }}
+/>
+
+---
+
+## Area over base equals average height
+
+Picture the area under the curve as a wobbly blob. Now imagine pouring that same area into a flat rectangle that spans the same base. The height that rectangle has to be, so the area comes out equal, is the average value.
+
+```
+  height
+    ^
+    |        ___
+    |      /     \         <- f(x), wobbly
+    |    /         \
+  A |--/-----------\----   <- average height (flat rectangle)
+    | /             \
+    +--------------------> x
+    a                b
+       width = b - a
+```
+
+The wobbly area and the flat rectangle's area are the same. So:
+
+```
+  average height  =      area under f
+                      -------------------
+                          b  -  a
+```
+
+That is the whole idea in one line. **Area divided by base is average height.** But the real magic shows up when you remember where that area comes from.
+
+---
+
+## The bridge to slope
+
+Here is the move that turns a cute fact into the fundamental theorem.
+
+The area under `f` is not some mysterious quantity. From earlier chapters you know it equals the **change in an antiderivative** `F`, a function whose derivative is `f`:
+
+```
+  area under f from a to b  =  F(b) - F(a)
+```
+
+Drop that straight into the average formula:
+
+```
+  average of f  =   F(b) - F(a)
+                  ---------------
+                      b  -  a
+```
+
+Now look hard at the right-hand side. `(F(b) - F(a)) / (b - a)` is "change in `F` over change in `x`". That is **rise over run**. That is the **average slope** of `F` between `a` and `b`.
+
+<Callout type="success" title="The punchline">
+The average **value** of a function `f` is the same number as the average **slope** of its antiderivative `F`. Area told one story, slope told the other, and they are the same story.
+</Callout>
+
+It makes sense if you picture it. `F` climbs steeply where `f` is tall, climbs gently where `f` is short. So the overall rise of `F` divided by the run is exactly the typical height of `f`. The slope of the antiderivative *is* a running report on the value of the function.
+
+<MermaidBlock>
+graph LR
+    A["f(x): the heights"] -->|"integrate, add tiny areas"| B["area = F(b) - F(a)"]
+    B -->|"divide by width (b-a)"| C["average value of f"]
+    C -->|"same number as"| D["average slope of F"]
+    D -->|"F is the antiderivative of f"| A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Worked example: the average of sine
+
+Let us nail it down. What is the average value of `sin(x)` from `0` to `π`?
+
+**Step 1, find the area.** An antiderivative of `sin(x)` is `-cos(x)`, because the derivative of `-cos(x)` is `sin(x)`. So:
+
+```
+  area = F(π) - F(0)
+       = (-cos(π)) - (-cos(0))
+       = (-(-1)) - (-(1))
+       = 1 + 1
+       = 2
+```
+
+**Step 2, divide by the width.** The interval runs from `0` to `π`, so the base is `π - 0 = π`:
+
+```
+  average value  =   2
+                    ---  ≈  0.6366
+                    π
+```
+
+So a sine hump that peaks at 1 has an average height of about `0.64`. That passes the sniff test, it should be less than the peak of 1 and more than half, since the curve spends a lot of time up near the top.
+
+And notice we never "averaged" anything in the usual sense. We found an area, then divided by a width. The slope-of-antiderivative reading and the area reading agreed automatically.
+
+---
+
+## Slope and area are two readings of one fact
+
+Step back and look at what just happened. We asked an averaging question, the kind you would answer with addition and division. The answer forced us to compute an integral (area) and then read it as a difference of an antiderivative (slope). The fundamental theorem of calculus is not two separate rules bolted together. It is the statement that **adding up a function's values and tracking the slope of its antiderivative are the same act seen from two sides.**
+
+- Read it one way: an integral accumulates area, and that area is the change in the antiderivative.
+- Read it the other way: the slope of the antiderivative, at any point, reports the value of the original function.
+
+Average value is the cleanest place to feel both readings at once, because the formula `(F(b) - F(a)) / (b - a)` is simultaneously "area over base" and "rise over run".
+
+---
+
+## A note for the AI track
+
+This is not a museum piece. Averaging a function over a region is the everyday math of training models.
+
+- **Expected loss over a dataset** is the average of a per-example loss function across all examples. That is an integral (or a sum, the discrete cousin) divided by the size of the dataset, the exact "total over measure" shape from this chapter.
+- **The mean of a batch** that you compute in every forward pass is this idea at finite scale: sum the values, divide by the count.
+- **Mini-batch gradient descent** leans on it directly. You cannot afford the true average gradient over millions of examples, so you estimate it from a small batch. The batch average is a sample-based stand-in for the integral-divided-by-size that you actually want to descend.
+
+When someone says a loss is "the expected value over the data distribution", they are saying area divided by measure. Same idea, dressed for probability.
+
+---
+
+## Quick gotchas
+
+**Average value is not the midpoint of the endpoints.** It is not `(f(a) + f(b)) / 2`. That only works for straight lines. For a curve you genuinely need the area, because the whole shape matters, not just the two ends.
+
+**Divide by the width, not by "the number of points".** There is no count to divide by here, the interval is continuous. The width `b - a` is what plays the role of "how many".
+
+**The antiderivative does the heavy lifting.** You are not summing infinitely many heights by hand. Find `F`, evaluate `F(b) - F(a)`, divide by `b - a`. Three steps.
+
+---
+
+## What you walked away with
+
+- The **average value** of a function over an interval is its area divided by the width, the height of an equal-area rectangle.
+- That area equals `F(b) - F(a)`, so the average value also equals `(F(b) - F(a)) / (b - a)`, which is the average **slope** of the antiderivative.
+- "Average of a function" and "average slope of its antiderivative" are the same number. Area and slope are two readings of one relationship.
+- Worked example: the average of `sin` over `[0, π]` is `2 / π ≈ 0.64`.
+- In AI this is everywhere: expected loss, batch means, and the average-gradient estimate behind mini-batch gradient descent.
+
+Next up, Chapter 10, we close the series with **higher order derivatives**, the slope of the slope and what its sign tells you about the bend of a curve. See you there.
