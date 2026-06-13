@@ -24,7 +24,6 @@ export function Callout({ type = 'info', title, children }: Readonly<CalloutProp
     <div className="article-callout" style={{
       background: `color-mix(in srgb, ${color} 5%, transparent)`,
       border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
-      borderLeft: `3px solid ${color}`,
       borderRadius: 'var(--radius)',
       padding: '1rem 1.2rem',
       margin: '1.5rem 0',

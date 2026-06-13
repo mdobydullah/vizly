@@ -31,11 +31,20 @@ export interface ArticleCategory {
 
 export type ArticleSortOption = 'newest' | 'oldest' | 'updated' | 'az' | 'za';
 
+/** A small status pill shown next to an article in a series list. Reusable across any series. */
+export interface ArticleBadge {
+  label: string;
+  /** Color name from the series COLOR_MAP (e.g. "purple", "green"). Defaults to the series accent color. */
+  color?: string;
+  /** Optional leading icon or emoji (e.g. "★", "🤖"). */
+  icon?: string;
+}
+
 export interface SeriesArticleEntry {
   order: number;
   slug: string;
   title: string;
-  fundamental?: boolean;
+  badges?: ArticleBadge[];
 }
 
 export interface ArticleSeries {

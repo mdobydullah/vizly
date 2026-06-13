@@ -192,24 +192,27 @@ export default function SeriesDetailClient({ series, articles, parentPath }: Rea
                 )}
               </div>
 
-              {/* Fundamental badge */}
-              {entry.fundamental && (
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6rem',
-                  fontWeight: 700,
-                  color: accentColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '999px',
-                  background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
-                  border: `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)`,
-                  flexShrink: 0,
-                }}>
-                  ★ Fundamental
-                </span>
-              )}
+              {/* Status pills — fully data-driven, reusable across any series */}
+              {entry.badges?.map((badge, i) => {
+                const badgeColor = (badge.color && COLOR_MAP[badge.color]) || accentColor;
+                return (
+                  <span key={`${badge.label}-${i}`} style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                    color: badgeColor,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '999px',
+                    background: `color-mix(in srgb, ${badgeColor} 12%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${badgeColor} 30%, transparent)`,
+                    flexShrink: 0,
+                  }}>
+                    {badge.icon ? `${badge.icon} ${badge.label}` : badge.label}
+                  </span>
+                );
+              })}
 
               {/* Status */}
               {!isPublished && (

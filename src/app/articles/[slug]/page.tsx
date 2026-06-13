@@ -1,18 +1,17 @@
 import { notFound } from 'next/navigation';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
-import rehypePrettyCode from 'rehype-pretty-code';
 import { getAllArticles, getArticleBySlug, getSeriesBySlug } from '@/lib/articles';
 import { ArticlePageClient } from './ArticlePageClient';
+import { MdxRenderer } from '@/components/articles/MdxRenderer';
 import '@/styles/articles/articles.css';
 
 // MDX components available in articles
-import { Callout, MermaidBlock } from '@/components/articles/mdx';
+import { Callout, MermaidBlock, Definition } from '@/components/articles/mdx';
 import { LightboxImage } from '@/components/common/LightboxImage';
 
 const mdxComponents = {
   Callout,
   MermaidBlock,
+  Definition,
   LightboxImage,
 };
 
@@ -79,19 +78,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       publishedSlugs={publishedSlugs}
       githubPath={githubPath}
     >
-      <MDXRemote
-        source={content}
-        components={mdxComponents}
-        options={{
-          mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: [
-              [rehypePrettyCode, { theme: 'github-dark-dimmed', keepBackground: false }],
-            ],
-            format: 'mdx',
-          },
-        }}
-      />
+      <MdxRenderer source={content} components={mdxComponents} />
     </ArticlePageClient>
   );
 }

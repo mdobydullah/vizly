@@ -56,8 +56,27 @@ src/
 - Content: `src/content/articles/[category-slug]/[order]-[slug].mdx`
 - Categories: `src/data/articles/categories.json` (add new topics here, no code changes)
 - Series: `src/data/articles/series/[series-slug].json` (defines article order + planned titles)
-- Rendered via `next-mdx-remote` with custom components (Callout, MermaidBlock, LightboxImage)
+- Rendered via custom `MdxRenderer` (`src/components/articles/MdxRenderer.tsx`) which compiles the string source with `@mdx-js/mdx` (`compile` + `run`). **Do not switch back to `next-mdx-remote`**: v6.0.0 silently drops JSX expression-container attributes (e.g. `langs={{ ... }}`), passing only plain string attributes to components.
+- Custom MDX components are registered in `src/app/articles/[slug]/page.tsx` (`mdxComponents` map): Callout, MermaidBlock, Definition, LightboxImage
 - Series nav auto-shows on articles that have `series` in frontmatter, collapsible if >3 articles
+
+#### MDX components
+Defined in `src/components/articles/mdx/` and exported from its `index.ts`.
+
+- **Definition** — inline multilingual term definition card. Use anywhere in article body:
+  ```mdx
+  <Definition
+    term="vector"
+    langs={{
+      en: 'A vector is an arrow with a length and a direction. ...',
+      bn: '...', hi: '...', ar: '...',
+    }}
+  />
+  ```
+  - `term` (optional): the headword. Auto-bolded on its first occurrence in the active text.
+  - `langs` (required): map of lang code → definition text. Renders a bordered card (rounded box, `var(--cyan)` accent) with a Globe + "Definition" label and a pill tab per language. Single language shows no tabs.
+  - Supported lang codes + RTL handling live in `mdx/lang.ts` (shared with `StorySummary`). Picking a language is synced across all components via `localStorage['vizly-story-lang']`.
+  - Text supports `**bold**` only (no inline `` `code` `` / backtick rendering). Keep entries plain prose. **Zero em dashes** in any language, per Rule 07 tone.
 
 ### Series (dedicated routes)
 - Data: `src/data/articles/series/[slug].json` (same files as above)
@@ -65,6 +84,23 @@ src/
 - Detail: `/series/[slug]` — shows series header + ordered article list (published = clickable, upcoming = "Soon")
 - Adding a new series: create a JSON in `series/` — no code changes
 - Series JSON: `{ slug, title, description, icon, color, tags, createdAt, updatedAt, articles: [...] }`
+- Series files are discovered recursively (`walkJsonFiles`), so they can be grouped in subfolders (e.g. `series/ai-engineer/<slug>.json`); the loader matches by `slug`, not by path.
+
+#### Article status badges (pills)
+Each entry in a series' `articles` array can carry a reusable `badges` array. Badges render as small pills next to the article title in `/series/[slug]` (`SeriesDetailClient.tsx`). The system is fully data-driven — no code change to add new badge types.
+
+```json
+{ "order": 1, "slug": "...", "title": "...",
+  "badges": [
+    { "label": "Fundamental" },
+    { "icon": "🤖", "label": "AI Engineer", "color": "purple" }
+  ]
+}
+```
+- `label` (required): pill text (rendered uppercase).
+- `color` (optional): color name from `COLOR_MAP` in `SeriesDetailClient.tsx` (cyan, purple, green, orange, pink, blue). Defaults to the series accent color.
+- `icon` (optional): leading emoji/symbol.
+- Type: `ArticleBadge` / `SeriesArticleEntry.badges` in `src/types/articles.ts`.
 
 ### Learning Paths (curated roadmaps)
 - Data: `src/data/articles/paths/[slug].json` — references series slugs in order
