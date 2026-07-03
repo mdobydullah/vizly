@@ -1,0 +1,26 @@
+{
+  "slug": "python-fundamentals",
+  "title": "Python Fundamentals",
+  "description": "Master Python basics the way you grind LeetCode: by practicing, not re-reading. Learn each concept first from a resource like learnpython.org, then come back here and drill chapter-wise — predict outputs, spot gotchas, and explain the why out loud. Chapters 1 to 10 cover the core language; 11 to 14 are the typing, decorators, testing, and async depth that senior interviews actually probe.",
+  "icon": "🐍",
+  "color": "green",
+  "tags": ["Python", "Fundamentals", "Practice"],
+  "createdAt": "2026-07-03T10:00:00Z",
+  "updatedAt": "2026-07-03T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "python-variables-types", "title": "Variables, Types & Type Casting", "badges": [{ "label": "Core" }] },
+    { "order": 2, "slug": "python-operators-strings", "title": "Operators & String Formatting", "badges": [{ "label": "Core" }] },
+    { "order": 3, "slug": "python-control-flow", "title": "Control Flow: if, Loops & match", "badges": [{ "label": "Core" }] },
+    { "order": 4, "slug": "python-data-structures", "title": "Data Structures: List, Tuple, Dict, Set", "badges": [{ "label": "Core" }] },
+    { "order": 5, "slug": "python-functions", "title": "Functions, *args/**kwargs & Scope", "badges": [{ "label": "Core" }] },
+    { "order": 6, "slug": "python-comprehensions-generators", "title": "Comprehensions & Generators", "badges": [{ "label": "Core" }] },
+    { "order": 7, "slug": "python-oop", "title": "OOP & Dunder Methods", "badges": [{ "label": "Core" }] },
+    { "order": 8, "slug": "python-error-handling", "title": "Error Handling & Context Managers", "badges": [{ "label": "Core" }] },
+    { "order": 9, "slug": "python-modules-files", "title": "Modules, File I/O & JSON", "badges": [{ "label": "Core" }] },
+    { "order": 10, "slug": "python-stdlib", "title": "Standard Library Power Tools", "badges": [{ "label": "Core" }] },
+    { "order": 11, "slug": "python-typing", "title": "Type Hints, Dataclasses & Protocols", "badges": [{ "icon": "💼", "label": "Interview", "color": "purple" }] },
+    { "order": 12, "slug": "python-decorators", "title": "Closures & Decorators", "badges": [{ "icon": "💼", "label": "Interview", "color": "purple" }] },
+    { "order": 13, "slug": "python-testing-pytest", "title": "Testing with pytest", "badges": [{ "icon": "💼", "label": "Interview", "color": "purple" }] },
+    { "order": 14, "slug": "python-async", "title": "Async, Await & asyncio", "badges": [{ "icon": "💼", "label": "Interview", "color": "purple" }] }
+  ]
+}

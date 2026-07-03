@@ -1,0 +1,149 @@
+{
+  "slug": "python-fundamentals/python-oop",
+  "title": "Python OOP & Dunder Methods",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is + actually doing? Predict all three",
+      "code": "print(5 + 3)\nprint((5).__add__(3))\nprint(\"a\" + \"b\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Operators in Python are **method calls in disguise**. 5 + 3 runs (5).__add__(3). String concatenation is str's own __add__. Same symbol, different method, chosen by the left operand's type.\n\nThese double-underscore methods are called **dunder methods**, and they are the hook system for the whole language: +, len(), print(), ==, in, indexing, iteration, all of them route through dunders. Define them on your class and your objects speak native Python. That is this chapter's real topic.",
+        "output": "8\n8\nab"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Why does calling this method crash?",
+      "code": "class Dog:\n    def bark():\n        print(\"woof\")\n\nd = Dog()\nd.bark()",
+      "difficulty": "easy",
+      "answer": {
+        "text": "d.bark() secretly passes d as the first argument, and bark() declared no parameters to receive it. Hence the error counting one argument you never typed.\n\nEvery instance method needs **self** as its first parameter. The name is convention, the slot is the rule.\n\nIf you have seen this error with \"2 given\" instead: same disease, a method that forgot self and also takes a real argument.",
+        "code": "class Dog:\n    def bark(self):\n        print(\"woof\")",
+        "output": "TypeError: Dog.bark() takes 0 positional arguments but 1 was given"
+      }
+    },
+    {
+      "id": 3,
+      "question": "What is self, really? Predict both calls",
+      "code": "class Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        print(f\"{self.name} says woof\")\n\nd = Dog(\"Rex\")\nd.bark()\nDog.bark(d)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both lines are **the same call**. d.bark() is sugar for Dog.bark(d): look up bark on the class, pass the instance as the first argument. That first argument is all self ever is, the instance, delivered automatically.\n\nOnce this clicks, methods stop being magic: they are plain functions that live on a class, and the dot syntax fills in their first parameter. It also explains why self.name = name in __init__ works: it is just attribute assignment on whatever object arrived as self.",
+        "output": "Rex says woof\nRex says woof"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Forgot the parentheses: predict the output",
+      "code": "class Dog:\n    def bark(self):\n        return \"woof\"\n\nd = Dog()\nprint(d.bark)\nprint(d.bark())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "d.bark without parentheses is the **bound method object**, a value, not a call. Chapter 5's rule again: parentheses call, no parentheses means the function itself.\n\nThe classic bug this makes: if d.bark: is always True (a method object is truthy), so a forgotten () turns a check into a yes-everything. Linters catch it; interviewers like asking about it.",
+        "output": "<bound method Dog.bark of <__main__.Dog object at 0x...>>\nwoof"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Class attribute vs instance attribute: predict all three",
+      "code": "class Dog:\n    legs = 4\n\na = Dog()\nb = Dog()\na.legs = 3\nprint(a.legs)\nprint(b.legs)\nprint(Dog.legs)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "legs = 4 lives on the **class**, shared by every instance that has not said otherwise. Attribute lookup checks the instance first, then the class.\n\na.legs = 3 does not modify the class attribute. It creates a **new instance attribute on a** that shadows the class one. b never did that, so b still sees the class's 4.\n\nMental model: the class is the fallback layer, instances are overlays on top of it.",
+        "output": "3\n4\n4"
+      }
+    },
+    {
+      "id": 6,
+      "question": "The shared list: predict both dogs' tricks",
+      "code": "class Dog:\n    tricks = []\n    def learn(self, trick):\n        self.tricks.append(trick)\n\na = Dog()\nb = Dog()\na.learn(\"sit\")\nprint(a.tricks)\nprint(b.tricks)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "b knows \"sit\" too, and no one taught it. tricks is a **class attribute**, one list shared by every dog. self.tricks.append() finds no instance attribute, falls back to the class list, and mutates the shared one.\n\nCompare with the previous drill: assignment (a.legs = 3) creates an instance overlay, but **mutation reaches through to the shared object**. Mutate vs rebind, deciding everything again.\n\nPer-instance state belongs in __init__, where each object builds its own.",
+        "code": "class Dog:\n    def __init__(self):\n        self.tricks = []",
+        "output": "['sit']\n['sit']"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Inheritance and super(): predict the output",
+      "code": "class Animal:\n    def __init__(self, name):\n        self.name = name\n\nclass Dog(Animal):\n    def __init__(self, name, breed):\n        super().__init__(name)\n        self.breed = breed\n\nd = Dog(\"Rex\", \"husky\")\nprint(d.name, d.breed)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Defining __init__ in Dog **replaces** Animal's entirely; nothing runs automatically. super().__init__(name) is you explicitly running the parent's setup so self.name gets assigned.\n\nForget that line and Dog objects are born without a name: d.name raises AttributeError. Python will not warn you at class-definition time, the crash waits for the first access. Rule: if the parent has an __init__ and the child defines its own, the child calls super().",
+        "output": "Rex husky"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Two parents, one method: who wins?",
+      "code": "class A:\n    def who(self):\n        return \"A\"\n\nclass B(A):\n    def who(self):\n        return \"B\"\n\nclass C(A):\n    def who(self):\n        return \"C\"\n\nclass D(B, C):\n    pass\n\nprint(D().who())\nprint([c.__name__ for c in D.mro()])",
+      "difficulty": "hard",
+      "answer": {
+        "text": "B wins, because method lookup follows the **MRO, Method Resolution Order**: D, then B, then C, then A, then object. Roughly \"left to right in the parent list, parents after children, each class visited once\".\n\nThe algorithm behind it (C3 linearization) guarantees a consistent order or refuses to build the class at all. You rarely need the theory; you do need the tool: **SomeClass.mro()** answers \"who handles this method?\" definitively. super() follows this same chain, which is why it means \"next in MRO\", not \"my parent\".",
+        "output": "B\n['D', 'B', 'C', 'A', 'object']"
+      }
+    },
+    {
+      "id": 9,
+      "question": "__str__ vs __repr__: predict both prints",
+      "code": "class Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n    def __repr__(self):\n        return f\"Point({self.x}, {self.y})\"\n\np = Point(1, 2)\nprint(p)\nprint([p, p])",
+      "difficulty": "medium",
+      "answer": {
+        "text": "__repr__ is the developer-facing view, __str__ the user-facing one. print() prefers __str__ but **falls back to __repr__** when __str__ is missing, which is what happened on line one.\n\nContainers always use __repr__ for their elements, even inside print. That is why the list shows Point(1, 2) too, and why defining only __str__ leaves your debugging output full of <__main__.Point object at 0x...>.\n\nPractical rule: always define __repr__, ideally so it looks like the constructor call. Add __str__ only when users need something prettier.",
+        "output": "Point(1, 2)\n[Point(1, 2), Point(1, 2)]"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Two identical points: are they equal?",
+      "code": "class Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\na = Point(1, 2)\nb = Point(1, 2)\nprint(a == b)\nprint(a == a)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Default == is **identity**: unless you define __eq__, a == b asks \"same object?\", exactly like is. Two separately built points are not equal, no matter how identical their data.\n\nThe fix is defining __eq__ to compare fields. One string attached: defining __eq__ **removes the default hash**, making your objects unusable in sets and as dict keys until you also define __hash__. That pairing is exactly the boilerplate dataclasses generate for you, coming in chapter 11.",
+        "code": "def __eq__(self, other):\n    if not isinstance(other, Point):\n        return NotImplemented\n    return (self.x, self.y) == (other.x, other.y)",
+        "output": "False\nTrue"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Teach len() and [] to your class: predict all three",
+      "code": "class Deck:\n    def __init__(self):\n        self.cards = [\"A\", \"K\", \"Q\", \"J\"]\n    def __len__(self):\n        return len(self.cards)\n    def __getitem__(self, i):\n        return self.cards[i]\n\nd = Deck()\nprint(len(d))\nprint(d[0])\nprint([c for c in d])",
+      "difficulty": "medium",
+      "answer": {
+        "text": "len(d) routes to __len__, d[0] routes to __getitem__. The third line is the surprise: defining __getitem__ makes the object **iterable for free**. Python's fallback iteration calls d[0], d[1], d[2]... until IndexError, so for loops, list(), and even the in operator all start working.\n\nThis is the dunder payoff from drill 1: implement the protocol, inherit the ecosystem. Your Deck now works with random.choice, sorted, sum, anything that expects a sequence, without inheriting from anything.",
+        "output": "4\nA\n['A', 'K', 'Q', 'J']"
+      }
+    },
+    {
+      "id": 12,
+      "question": "Duck typing: no shared parent, does the loop care?",
+      "code": "class Dog:\n    def speak(self):\n        return \"woof\"\n\nclass Robot:\n    def speak(self):\n        return \"beep\"\n\nfor thing in [Dog(), Robot()]:\n    print(thing.speak())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Dog and Robot share no base class, no interface, nothing. The loop works anyway, because Python resolves thing.speak() **at call time by name**. Has the method? It runs. That is duck typing: if it walks like a duck and quacks like a duck, it is a duck.\n\nThis is why Python code has far fewer interface hierarchies than Java or C#. The cost: no compiler catches a missing speak() ahead of time; the crash happens at the call. The typed cure for that, Protocol, arrives in chapter 11.",
+        "output": "woof\nbeep"
+      }
+    },
+    {
+      "id": 13,
+      "question": "@property: why no parentheses? Predict all three lines",
+      "code": "class Circle:\n    def __init__(self, r):\n        self.r = r\n    @property\n    def area(self):\n        return 3.14159 * self.r ** 2\n\nc = Circle(2)\nprint(round(c.area, 2))\nc.r = 3\nprint(round(c.area, 2))\nc.area = 100",
+      "difficulty": "medium",
+      "answer": {
+        "text": "@property turns a method into a **computed attribute**: you read c.area with no parentheses and the method runs behind the scenes. Change r and the next read recomputes, nothing cached, nothing stale.\n\nAssignment fails because a bare property is read-only; allowing writes takes a separate @area.setter.\n\nThe design win: attributes and computations look identical from outside, so you can start with a plain attribute today and swap in logic tomorrow without breaking a single caller. Getter/setter method pairs from Java are unidiomatic here.",
+        "output": "12.57\n28.27\nAttributeError: property 'area' of 'Circle' object has no setter"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Double underscore prefix: predict both accesses",
+      "code": "class Vault:\n    def __init__(self):\n        self._pin = 1234\n        self.__key = \"secret\"\n\nv = Vault()\nprint(v._pin)\nprint(v.__key)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "_pin is pure convention: one underscore says \"internal, please do not touch\", and Python enforces nothing. It reads fine.\n\n__key triggers **name mangling**: inside the class, Python rewrites __key to _Vault__key. The attribute exists under that longer name, so v.__key finds nothing. Try v._Vault__key and it prints \"secret\", so this is not security, just a renamed lock.\n\nMangling's actual purpose is narrow: preventing subclasses from accidentally clobbering a parent's attribute. For ordinary \"private-ish\" fields, the single underscore is the Python way.",
+        "output": "1234\nAttributeError: 'Vault' object has no attribute '__key'"
+      }
+    }
+  ]
+}

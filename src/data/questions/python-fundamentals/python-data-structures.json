@@ -1,0 +1,149 @@
+{
+  "slug": "python-fundamentals/python-data-structures",
+  "title": "Python Data Structures: List, Tuple, Dict, Set",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Slicing warm-up: predict all three",
+      "code": "nums = [10, 20, 30, 40, 50]\nprint(nums[1:3])\nprint(nums[-1])\nprint(nums[::-1])",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Slices are start-inclusive, **stop-exclusive**: [1:3] takes indexes 1 and 2. Negative indexes count from the end, so [-1] is the last element.\n\n[::-1] is the reverse idiom: full range, step -1, and it builds a **new list**, the original is untouched. Every slice does that, which is why nums[:] is the quick way to shallow-copy a list.",
+        "output": "[20, 30]\n50\n[50, 40, 30, 20, 10]"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Slicing past the end: error or not?",
+      "code": "nums = [1, 2, 3]\nprint(nums[10:])\nprint(nums[1:100])\nprint(nums[10])",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Slices are **forgiving**, indexes are not. A slice clamps its bounds to whatever exists, so nums[10:] is an empty list and nums[1:100] just takes what is there.\n\nA plain index past the end raises IndexError immediately. Two access styles, two error policies. The forgiving slice is handy for chunking: [lst[i:i+size] for i in range(0, len(lst), size)] never worries about the ragged last chunk.",
+        "output": "[]\n[2, 3]\nIndexError: list index out of range"
+      }
+    },
+    {
+      "id": 3,
+      "question": "Why is nums suddenly None?",
+      "code": "nums = [3, 1, 2]\nnums = nums.sort()\nprint(nums)",
+      "difficulty": "hard",
+      "answer": {
+        "text": ".sort() sorts **in place** and returns None, by design: Python returns None from mutating methods to make the mutation explicit. Assigning the result throws away your list and keeps the None.\n\nThe same trap exists with .append(), .reverse(), .extend().\n\nTwo correct forms: nums.sort() with no assignment, or nums = sorted(nums) when you want a new list and the original kept. sorted() works on any iterable, .sort() only on lists.",
+        "code": "nums.sort()          # in place\nnums = sorted(nums)  # new list",
+        "output": "None"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Build a 3x3 grid: spot the bug",
+      "code": "grid = [[0] * 3] * 3\ngrid[0][0] = 1\nprint(grid)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "The outer * 3 does not copy the inner list, it makes **three references to the same one**. Change any row and all three \"rows\" change, because there is only one row.\n\n[0] * 3 is fine on its own: ints are immutable so shared references cannot hurt you. The trap only fires when you multiply a list containing something **mutable**.\n\nThe fix builds a fresh inner list per row with a comprehension.",
+        "code": "grid = [[0] * 3 for _ in range(3)]",
+        "output": "[[1, 0, 0], [1, 0, 0], [1, 0, 0]]"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Shallow copy: how deep does .copy() go?",
+      "code": "a = [[1, 2], [3, 4]]\nb = a.copy()\nb[0].append(99)\nb.append([5, 6])\nprint(a)",
+      "difficulty": "hard",
+      "answer": {
+        "text": ".copy() is **shallow**: it builds a new outer list, but the elements inside are the same objects. So b[0] is still a[0], and appending 99 through b shows up in a.\n\nAppending [5, 6] to b only touches the new outer list, which is why a did not grow.\n\nWhen the nesting matters, copy.deepcopy(a) clones all the way down. It costs time and memory, so reach for it deliberately, not by default.",
+        "code": "import copy\nb = copy.deepcopy(a)",
+        "output": "[[1, 2, 99], [3, 4]]"
+      }
+    },
+    {
+      "id": 6,
+      "question": "One-element tuple: predict both types",
+      "code": "a = (1)\nb = (1,)\nprint(type(a), type(b))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "**The comma makes the tuple, not the parentheses.** (1) is just the number 1 wrapped in grouping parens, the same as (2 + 3) is 5. (1,) is a one-element tuple.\n\nThis bites in real code as a trailing comma typo: x = 5, quietly makes x a tuple. If a value mysteriously becomes a tuple, hunt for a stray comma.",
+        "output": "<class 'int'> <class 'tuple'>"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Mutating inside an immutable: predict both steps",
+      "code": "t = ([1, 2], 30)\nt[0].append(3)\nprint(t)\nt[0] += [4]",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Tuple immutability is **one level deep**: the tuple locks which objects it holds, not the objects themselves. So t[0].append(3) is fine, the list inside is still mutable.\n\nThe second line is the famous weird one: t[0] += [4] **raises TypeError and mutates anyway**. += extends the list in place first (that succeeds), then tries to reassign slot 0 of the tuple (that fails). Print t after catching the error and you will see the 4 arrived.\n\nMoral: += on a container element is two operations wearing one trench coat.",
+        "output": "([1, 2, 3], 30)\nTypeError: 'tuple' object does not support item assignment"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Missing dict key: [] vs .get()",
+      "code": "user = {\"name\": \"Obydul\"}\nprint(user.get(\"role\"))\nprint(user.get(\"role\", \"guest\"))\nprint(user[\"role\"])",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Square brackets **raise KeyError** on a missing key. .get() returns None instead, or a default you supply.\n\nRule of thumb: use [] when a missing key is a bug you want to hear about loudly, and .get() when missing is a normal case with a sensible fallback. Blanket .get() everywhere hides real bugs behind silent Nones.",
+        "output": "None\nguest\nKeyError: 'role'"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Why can a tuple be a dict key but a list cannot?",
+      "code": "d = {}\nd[(1, 2)] = \"tuple key\"\nd[[1, 2]] = \"list key\"",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Dict keys and set members must be **hashable**: the object needs a stable hash value for the lookup table to work. If a key could mutate, its hash would change and the dict could never find it again.\n\nSo immutable things (str, int, tuple, frozenset) can be keys, and mutable things (list, dict, set) cannot.\n\nOne asterisk: a tuple is only hashable if everything inside it is. ([1], 2) as a key fails for the same reason a list does.",
+        "output": "TypeError: unhashable type: 'list'"
+      }
+    },
+    {
+      "id": 10,
+      "question": "What is a set actually for? Predict both",
+      "code": "nums = [3, 1, 2, 3, 1]\nunique = set(nums)\nprint(len(unique))\nprint(2 in unique)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Two jobs: **deduplication** and **fast membership**. set(nums) collapses the duplicates, so 5 elements become 3.\n\nThe in check is the quiet superpower: on a list it scans element by element, O(n). On a set it is a hash lookup, O(1). The interview classic \"do these two lists share an element?\" goes from a nested loop to set(a) & set(b).\n\nThe price: sets have no order and no indexing, and unique[0] is a TypeError.",
+        "output": "3\nTrue"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Set algebra: predict all four",
+      "code": "a = {1, 2, 3}\nb = {3, 4, 5}\nprint(a | b)\nprint(a & b)\nprint(a - b)\nprint(a ^ b)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "| is union, & is intersection, - is difference (in a but not b), ^ is symmetric difference (in exactly one of them).\n\nNote a - b and b - a differ: difference is directional. These four operators replace a surprising amount of loop code: \"which users are new\", \"which permissions overlap\", \"what changed between snapshots\" are all one-liners.",
+        "output": "{1, 2, 3, 4, 5}\n{3}\n{1, 2}\n{1, 2, 4, 5}"
+      }
+    },
+    {
+      "id": 12,
+      "question": "Star unpacking: predict all three",
+      "code": "first, *rest = [1, 2, 3, 4]\nprint(first, rest)\n*init, last = [1, 2, 3, 4]\nprint(init, last)\na, *mid, b = [1, 2]\nprint(a, mid, b)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The starred name soaks up **whatever the plain names do not claim**, always as a list. It works at the start, middle, or end, one star per unpacking.\n\nThe third line shows the edge case: with only two values, a and b take them and mid gets an empty list, no error.\n\nHead-and-tail unpacking like first, *rest replaces slicing gymnastics and reads better in queue-processing code.",
+        "output": "1 [2, 3, 4]\n[1, 2, 3] 4\n1 [] 2"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Merging dicts: who wins on a clash?",
+      "code": "defaults = {\"theme\": \"dark\", \"lang\": \"en\"}\nuser = {\"lang\": \"bn\"}\nmerged = defaults | user\nprint(merged)\nprint({**user, **defaults})",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both | (Python 3.9+) and {**a, **b} merge left to right, and on a key clash **the right side wins**.\n\nThat makes argument order the whole semantics: defaults | user means \"user overrides defaults\", the usual intent. The second print flips the order, so defaults stomp the user's choice back to en. Same data, opposite behavior, easy to miss in review.",
+        "output": "{'theme': 'dark', 'lang': 'bn'}\n{'lang': 'en', 'theme': 'dark'}"
+      }
+    },
+    {
+      "id": 14,
+      "question": "append vs extend vs +=: predict all three",
+      "code": "a = [1, 2]\na.append([3, 4])\nprint(a)\nb = [1, 2]\nb.extend([3, 4])\nprint(b)\nc = [1, 2]\nc += \"ab\"\nprint(c)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "append adds its argument as **one element**, nesting the list. extend walks its argument and adds each item.\n\n+= on a list behaves like extend, and that is the trap in line three: a string is iterable, so c += \"ab\" splices in the **individual characters**. c.append(\"ab\") is what you almost certainly meant.\n\nSame family as ch1's aliasing drill: innocent-looking operators doing iteration behind your back.",
+        "output": "[1, 2, [3, 4]]\n[1, 2, 3, 4]\n[1, 2, 'a', 'b']"
+      }
+    }
+  ]
+}

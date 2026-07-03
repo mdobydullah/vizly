@@ -1,0 +1,92 @@
+---
+title: "Python Async, Await & asyncio"
+slug: python-async
+category: python
+series: python-fundamentals
+seriesOrder: 14
+description: "Chapter 14 of Python Fundamentals, the finale. 14 practice drills on async/await, gather, blocking calls, to_thread, and TaskGroup. Predict the output before you run anything."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Async
+  - Interview
+icon: "⚡"
+color: green
+createdAt: "2026-07-03T23:00:00Z"
+updatedAt: "2026-07-03T23:00:00Z"
+author: obydul
+---
+
+## The final chapter
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+Async is where every earlier chapter pays off at once: coroutines behave like chapter 6's generators, `async with` is chapter 8's context manager, and the whole model runs on functions-as-objects from chapter 5. It is also the topic with the widest gap between "uses the keywords" and "understands the machine", and interviews are calibrated to find that gap. These drills live in it.
+
+<Callout type="info" title="Learn the concepts first">
+New to asyncio? Read the official [Coroutines and Tasks](https://docs.python.org/3/library/asyncio-task.html) guide first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Every async drill reduces to one question: who has the loop?
+
+<Definition
+  term="event loop"
+  langs={{
+    en: 'The event loop is a single-threaded scheduler that runs one task at a time. Tasks volunteer to pause at await points, and the loop switches to whoever is ready. Nothing preempts anything: a task that never awaits holds the loop hostage, which is why one blocking call can freeze a thousand coroutines.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first. Timing outputs are approximate; the shape is what you are predicting.
+
+<QuestionList quiz="python-fundamentals/python-async" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: async/await semantics,
+coroutines vs tasks, sequential awaits vs asyncio.gather, blocking
+calls in async code, asyncio.to_thread, return_exceptions, async with,
+TaskGroup, and when async does NOT help (CPU-bound work).
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output, the total elapsed time, or the error.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: forgotten awaits,
+  time.sleep inside async def, awaits in a loop vs gather, tasks
+  garbage-collected mid-flight, asyncio.run inside Jupyter.
+- Occasionally flip the format: show me slow sequential async code and
+  ask me to make it concurrent, then critique my version.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Series complete
+
+That is all fourteen chapters. If you drilled honestly, you now hold the distinctions that actually decide Python interviews: mutate vs rebind, lazy vs eager, blocking vs cooperative, checked vs enforced.
+
+Two habits worth keeping after you close this tab. First, the redo list: anything you mispredicted comes back in three days, that is where the learning consolidates. Second, the drill format itself: whenever you meet a new library or language feature, write five predict-the-output snippets for it. The gap between reading about behavior and predicting it correctly is the gap this whole series was built to close.
+
+Interviews ahead: drill 3 versus drill 4 (sequential vs gather) is the single most useful async answer you can have loaded, and drill 12's IO-bound/CPU-bound taxonomy is the follow-up they always ask. Good luck.

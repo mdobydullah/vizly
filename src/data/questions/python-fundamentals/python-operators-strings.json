@@ -1,0 +1,146 @@
+{
+  "slug": "python-fundamentals/python-operators-strings",
+  "title": "Python Operators & String Formatting",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Chained comparison: predict both",
+      "code": "x = 5\nprint(1 < x < 10)\nprint(10 > x > 1)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Python lets you chain comparisons the way you write them in math. 1 < x < 10 means **(1 < x) and (x < 10)**, with x evaluated only once.\n\nMost languages do not have this. In C or JavaScript, 1 < x < 10 evaluates left to right: (1 < x) becomes true or false, which becomes 1 or 0, and then 1 < 10 is always true. Same syntax, completely different meaning.",
+        "output": "True\nTrue"
+      }
+    },
+    {
+      "id": 2,
+      "question": "A chained comparison trap: predict the output",
+      "code": "print(5 > 1 == True)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "This is chaining too, even though it does not look like it. Python reads it as **(5 > 1) and (1 == True)**.\n\n5 > 1 is True. And 1 == True is also True, because bool is a subclass of int and True is literally 1. Both sides pass, so the whole thing is True.\n\nThe lesson: chaining applies to any mix of comparison operators, including ==. When you mix them, read pairwise from left to right.",
+        "output": "True"
+      }
+    },
+    {
+      "id": 3,
+      "question": "What do and / or actually return?",
+      "code": "print(5 and 3)\nprint(5 or 3)\nprint(0 or \"default\")\nprint(None and \"never\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "and / or return **one of their operands**, not a bool. or returns the first truthy operand, or the last one if none are truthy. and returns the first falsy operand, or the last one if all are truthy.\n\nSo 5 and 3 gives 3 (both truthy, last wins), 5 or 3 gives 5 (first truthy, second never evaluated), 0 or \"default\" gives \"default\", and None and \"never\" stops at None.\n\nThis is why x = value or fallback is a common idiom. It has the same trap as truthiness though: if 0 or \"\" are valid values, they get replaced too.",
+        "output": "3\n5\ndefault\nNone"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Bitwise vs logical: 5 & 3 vs 5 and 3",
+      "code": "print(5 & 3)\nprint(5 and 3)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "& is **bitwise AND**: it lines up the bits. 5 is 101 and 3 is 011, so 101 & 011 gives 001, which is 1.\n\nand is **logical**: 5 is truthy, so it returns the second operand, 3.\n\nDifferent operators, different results. Mixing them up is a classic bug when people come from languages where && is the only option.",
+        "output": "1\n3"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Precedence trap: predict the output",
+      "code": "print(True & False == False)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Feels like it should be (True & False) == False, which is True. It is True, but not for that reason.\n\n**== binds tighter than &.** Python reads this as True & (False == False), which is True & True, which is True.\n\nSame answer by accident here, but change the values and the two readings diverge. This precedence order is also why bitwise flag checks need parentheses: if flags & MASK == MASK: is almost never what you meant. Write if (flags & MASK) == MASK: instead.",
+        "output": "True"
+      }
+    },
+    {
+      "id": 6,
+      "question": "The walrus operator: predict the output",
+      "code": "data = [1, 2, 3, 4, 5]\nif (n := len(data)) > 3:\n    print(f\"too long: {n}\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": ":= (the **walrus operator**, Python 3.8+) assigns and returns the value in one expression. Here it stores len(data) in n and immediately compares it to 3.\n\nWithout it you would call len() once to test and once to print, or add a separate assignment line before the if. The walrus collapses that.\n\nThe parentheses around (n := len(data)) are required in this position. Use it where it removes a duplicate call, skip it where it just makes the line harder to read.",
+        "output": "too long: 5"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Falsy filtering: what survives?",
+      "code": "data = [0, None, 3, \"\", \"hi\"]\nresult = [v for v in data if v]\nprint(result)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The if v clause keeps only **truthy** values. 0 is falsy (zero), None is falsy, \"\" is falsy (empty string). 3 and \"hi\" survive.\n\nHandy for quick cleanup, dangerous when 0 is real data. Filtering out None only? Be explicit: [v for v in data if v is not None] keeps the 0 and the empty string.",
+        "output": "[3, 'hi']"
+      }
+    },
+    {
+      "id": 8,
+      "question": "f-string: format to 2 decimal places",
+      "code": "score = 87.456\nprint(f\"{score:.2f}\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Everything after the colon is a **format spec**. .2f means fixed-point with 2 digits after the decimal.\n\nNote it **rounds**, not truncates: 87.456 becomes 87.46. And the result is a string, the number itself is untouched.",
+        "output": "87.46"
+      }
+    },
+    {
+      "id": 9,
+      "question": "f-string alignment: predict all three",
+      "code": "name = \"Obydul\"\nprint(f\"[{name:>10}]\")\nprint(f\"[{name:<10}]\")\nprint(f\"[{name:*^10}]\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "> right-aligns, < left-aligns, ^ centers, all within the given width. A character before the alignment symbol becomes the **fill character**, like the * in the third line.\n\nGreat for lining up console tables without reaching for a library.",
+        "output": "[    Obydul]\n[Obydul    ]\n[**Obydul**]"
+      }
+    },
+    {
+      "id": 10,
+      "question": "The = debug specifier: predict the output",
+      "code": "x = 42\nprint(f\"{x=}\")\nprint(f\"{x + 1=}\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "f\"{x=}\" (Python 3.8+) prints the **expression itself and its value**. It works with any expression, not just names.\n\nThis is the fastest debug print there is. Instead of print(\"x:\", x) you type three fewer words and get the label for free. Combine with format specs too: f\"{x=:.2f}\".",
+        "output": "x=42\nx + 1=43"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Number formatting: thousands separator and percentage",
+      "code": "big = 1234567\npct = 0.4567\nprint(f\"{big:,}\")\nprint(f\"{pct:.1%}\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": ", adds thousands separators. .1% **multiplies by 100**, adds the % sign, and keeps 1 decimal place, all in one spec.\n\nThe % one surprises people: you store the ratio 0.4567 and the format spec does the times-100 for display. No manual pct * 100 needed. Underscores work as separators too: f\"{big:_}\" gives 1_234_567.",
+        "output": "1,234,567\n45.7%"
+      }
+    },
+    {
+      "id": 12,
+      "question": "print() with custom sep and end",
+      "code": "print(\"a\", \"b\", \"c\", sep=\"-\", end=\"!\\n\")\nprint(\"a\", \"b\", \"c\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "sep is what goes **between** the arguments (default is a space), end is what goes **after** the last one (default is a newline).\n\nend=\"\" is the common trick for printing progress on one line. sep=\"\\n\" prints each argument on its own line without a loop.",
+        "output": "a-b-c!\na b c"
+      }
+    },
+    {
+      "id": 13,
+      "question": "String math: predict both",
+      "code": "print(\"a\" + \"b\" * 3)\nprint(\"3\" * 2, 3 * 2)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "* on a string **repeats** it, and it binds tighter than +, so \"a\" + \"b\" * 3 is \"a\" + \"bbb\".\n\nThe second line is the classic input() bug in miniature: \"3\" * 2 is string repetition giving \"33\", while 3 * 2 is arithmetic giving 6. Same-looking data, completely different result, and input() always hands you the string version.",
+        "output": "abbb\n33 6"
+      }
+    },
+    {
+      "id": 14,
+      "question": "String comparison: predict all three",
+      "code": "print(\"apple\" < \"banana\")\nprint(\"Z\" < \"a\")\nprint(\"10\" < \"9\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Strings compare **lexicographically by Unicode code point**, character by character.\n\n\"apple\" < \"banana\" is True because a comes before b. \"Z\" < \"a\" is True because all uppercase letters sit before lowercase in the character table (Z is 90, a is 97). And \"10\" < \"9\" is True because it compares \"1\" against \"9\" first and stops there. Nobody is parsing numbers.\n\nThat last one is why filenames sort as file10, file1, file9 unless you sort with a numeric key: sorted(names, key=int) for pure numbers, or a natural-sort helper for mixed text.",
+        "output": "True\nTrue\nTrue"
+      }
+    }
+  ]
+}

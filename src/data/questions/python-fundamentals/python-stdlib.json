@@ -1,0 +1,146 @@
+{
+  "slug": "python-fundamentals/python-stdlib",
+  "title": "Python Standard Library Power Tools",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Counter: count words in two lines",
+      "code": "from collections import Counter\n\nwords = [\"a\", \"b\", \"a\", \"c\", \"a\", \"b\"]\nc = Counter(words)\nprint(c.most_common(2))\nprint(c[\"z\"])",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Counter eats any iterable and tallies it; most_common(n) hands back the top n as (item, count) pairs, sorted by count.\n\nThe second print is the quiet feature: **a missing key returns 0, no KeyError**. That kills the if key in d: d[key] += 1 else: d[key] = 1 dance entirely.\n\nInterview relevance is direct: anagrams, character frequency, top-k problems all start with Counter, and writing the manual dict version signals you do not know the toolbox.",
+        "output": "[('a', 3), ('b', 2)]\n0"
+      }
+    },
+    {
+      "id": 2,
+      "question": "defaultdict: group these words by first letter",
+      "code": "from collections import defaultdict\n\nwords = [\"ant\", \"bee\", \"ape\", \"bat\"]\ngroups = defaultdict(list)\nfor w in words:\n    groups[w[0]].append(w)\nprint(dict(groups))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "defaultdict(list) means: on a missing key, **call list() to make the default**, insert it, hand it back. So groups[\"a\"] on first touch is a fresh empty list, ready for append. No key checks anywhere.\n\nThe argument is any zero-argument callable: int for counting, set for dedup-grouping, even a lambda for custom defaults.\n\nThis grouping loop is the same canonical-key pattern as the sock-drawer anagram trick, and it appears in some form in most interview sessions.",
+        "output": "{'a': ['ant', 'ape'], 'b': ['bee', 'bat']}"
+      }
+    },
+    {
+      "id": 3,
+      "question": "The defaultdict trap: predict all three",
+      "code": "from collections import defaultdict\n\nd = defaultdict(list)\nif d[\"x\"]:\n    print(\"x has items\")\nprint(len(d))\nprint(\"x\" in d)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "**Reading a missing key creates it.** The innocent-looking if d[\"x\"]: inserted an empty list under \"x\" as a side effect, so the dict now has length 1 and \"x\" in d is True.\n\nThat is the price of the magic: lookups are writes. Consequences include dicts that grow while you only \"checked\" them, and surprise keys serialized into your JSON output.\n\nWhen you need to peek without creating, use \"x\" in d or d.get(\"x\"), both of which bypass the factory. Or convert to a plain dict(d) before handing it to anyone else.",
+        "output": "1\nTrue"
+      }
+    },
+    {
+      "id": 4,
+      "question": "deque: why not just use a list?",
+      "code": "from collections import deque\n\nq = deque([1, 2, 3])\nq.appendleft(0)\nq.append(4)\nprint(q)\nprint(q.popleft())\nprint(q.pop())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "deque (double-ended queue) does appendleft and popleft in **O(1)**. A list can fake both with insert(0, x) and pop(0), but each one shifts every element, O(n), and a busy queue turns that into quadratic time.\n\nThat makes deque the correct queue for BFS, the interview algorithm where this choice actually shows: bfs_queue.popleft() is idiomatic, visited_list.pop(0) is a red flag.\n\nBonus: deque(maxlen=5) silently drops the oldest item past capacity, a free sliding window / recent-history buffer.",
+        "output": "deque([0, 1, 2, 3, 4])\n0\n4"
+      }
+    },
+    {
+      "id": 5,
+      "question": "namedtuple: a record in one line",
+      "code": "from collections import namedtuple\n\nPoint = namedtuple(\"Point\", [\"x\", \"y\"])\np = Point(3, 4)\nprint(p.x, p[1])\nx, y = p\nprint(p == (3, 4))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "namedtuple builds a tuple subclass with named fields: dot access, index access, and unpacking all work, and equality against a plain tuple holds because it **is** a tuple underneath.\n\nYou get immutability, hashability, and a readable repr for free, everything chapter 4 said tuples give you, plus names.\n\nThe modern successor for most uses is the dataclass (chapter 11), which adds types and mutability control. namedtuple still wins for lightweight records that must remain real tuples, like dict keys or rows unpacked in loops.",
+        "output": "3 4\nTrue"
+      }
+    },
+    {
+      "id": 6,
+      "question": "itertools + infinity: why does this finish instantly?",
+      "code": "from itertools import count, islice, chain\n\nevens = (n for n in count(0) if n % 2 == 0)\nprint(list(islice(evens, 5)))\nprint(list(chain([1, 2], \"ab\")))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "count(0) is an infinite iterator, and the comprehension filtering it is equally infinite. Safe anyway, because **islice takes 5 and stops pulling**, chapter 6's laziness with library support. No list of all evens ever exists.\n\nchain glues iterables end to end without copying, and it happily mixes types: a list, then a string's characters.\n\nitertools is a box of lazy building blocks that compose: islice for slicing what cannot be sliced, chain for concatenation, plus cycle, repeat, takewhile. When a loop feels like plumbing, one of these usually is the plumbing.",
+        "output": "[0, 2, 4, 6, 8]\n[1, 2, 'a', 'b']"
+      }
+    },
+    {
+      "id": 7,
+      "question": "groupby's dirty secret: predict both runs",
+      "code": "from itertools import groupby\n\ndata = [\"apple\", \"ant\", \"bee\", \"ape\"]\nfor k, g in groupby(data, key=lambda w: w[0]):\n    print(k, list(g))",
+      "difficulty": "hard",
+      "answer": {
+        "text": "groupby only merges **consecutive** items with equal keys. \"ape\" arrives after the b-group, so 'a' shows up twice, two separate groups.\n\nThis is not a bug: groupby is built for streaming through pre-sorted data in one lazy pass, like uniq in Unix. The contract is on you: **sort by the same key first** if your data is unordered: groupby(sorted(data, key=keyfn), key=keyfn).\n\nFor plain \"bucket everything by key\" with no sort, chapter's drill 2 defaultdict pattern is simpler and O(n). Choose groupby when data is already sorted or too big to hold.",
+        "output": "a ['apple', 'ant']\nb ['bee']\na ['ape']"
+      }
+    },
+    {
+      "id": 8,
+      "question": "combinations, permutations, product: predict all three counts",
+      "code": "from itertools import combinations, permutations, product\n\nitems = \"ABC\"\nprint(len(list(combinations(items, 2))))\nprint(len(list(permutations(items, 2))))\nprint(len(list(product(items, repeat=2))))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Three questions hiding in one API. combinations: **order ignored, no repeats**, so AB covers BA: 3 pairs. permutations: **order matters, no repeats**: AB and BA both count, 6. product: **order matters, repeats allowed**, the full grid including AA: 9.\n\nPick by question: \"choose a team of 2\" is combinations, \"gold and silver medals\" is permutations, \"two-character PIN\" is product.\n\nAll three are lazy iterators, and the counts explode fast (permutations of 10 items is 3.6 million), so prefer iterating over list()-ing.",
+        "output": "3\n6\n9"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Date arithmetic: how many days until the deadline?",
+      "code": "from datetime import date, timedelta\n\ndeadline = date(2026, 12, 31)\ntoday = date(2026, 7, 3)\nremaining = deadline - today\nprint(remaining.days)\nprint(today + timedelta(weeks=2))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Dates subtract into a **timedelta**, a duration object, and .days extracts the number. Adding a timedelta to a date walks the calendar for you, month lengths and leap years included.\n\nThat is the rule worth tattooing: **never do calendar math by hand**. Every \"just add 30 days of seconds\" shortcut eventually meets a leap year, a DST jump, or February.\n\ntimedelta speaks weeks, days, hours, minutes, seconds. What it does not speak: months and years, because \"one month later\" is genuinely ambiguous. For those, the third-party dateutil's relativedelta is the standard answer.",
+        "output": "181\n2026-07-17"
+      }
+    },
+    {
+      "id": 10,
+      "question": "String to date and back: predict both prints",
+      "code": "from datetime import datetime\n\nraw = \"03/07/2026 14:30\"\ndt = datetime.strptime(raw, \"%d/%m/%Y %H:%M\")\nprint(dt.year, dt.month)\nprint(dt.strftime(\"%A, %d %B\"))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "strptime **parses** text into a datetime using a format recipe (p for parse), strftime **formats** one back out (f for format). Same recipe language both ways: %d day, %m month, %Y four-digit year, %H:%M 24-hour time, %A weekday name, %B month name.\n\nThe drill's real test is reading %d/%m: this is 3 July, not 7 March. Ambiguous formats are how systems corrupt dates silently, which is why machine-facing APIs should use ISO 8601 instead: dt.isoformat() out, datetime.fromisoformat() in, no recipe needed.",
+        "output": "2026 7\nFriday, 03 July"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Naive vs aware: why does the comparison crash?",
+      "code": "from datetime import datetime, timezone\n\nlocal = datetime.now()\nutc = datetime.now(timezone.utc)\nprint(utc.tzinfo)\nprint(local.tzinfo)\nprint(local < utc)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "datetime.now() with no argument returns a **naive** datetime: no timezone attached, tzinfo is None, it is just wall-clock digits. now(timezone.utc) returns an **aware** one that knows where it stands.\n\nComparing the two is meaningless, naive digits could be from any timezone, so Python refuses with a TypeError rather than guess.\n\nProduction rule: store and compute in aware UTC, convert to local timezones only for display. And note utcnow() is deprecated for exactly this reason: it produced naive datetimes that looked like UTC but carried no proof.",
+        "output": "UTC\nNone\nTypeError: can't compare offset-naive and offset-aware datetimes"
+      }
+    },
+    {
+      "id": 12,
+      "question": "re.match vs re.search: predict all three",
+      "code": "import re\n\ntext = \"order id: 4521\"\nprint(re.match(r\"\\d+\", text))\nprint(re.search(r\"\\d+\", text))\nprint(re.search(r\"\\d+\", text).group())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "match anchors at **position 0**: the string starts with \"o\", not a digit, so it returns None. search scans the whole string and finds 4521 wherever it lives.\n\nTwo follow-on traps. A failed match returns None, so chaining .group() straight onto it gives AttributeError: 'NoneType', the most common regex crash in Python. Always check first. And if you want \"the entire string matches\", that is a third function, re.fullmatch, not match.\n\nMost of the time you meant search. match earns its keep for validation-at-the-start, like checking a line's prefix.",
+        "output": "None\n<re.Match object; span=(10, 14), match='4521'>\n4521"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Greedy vs lazy: predict both groups",
+      "code": "import re\n\nhtml = \"<b>bold</b> and <i>italic</i>\"\nprint(re.search(r\"<(.*)>\", html).group(1))\nprint(re.search(r\"<(.*?)>\", html).group(1))",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Quantifiers are **greedy by default**: .* grabs the longest stretch that still lets the pattern succeed, so it runs from the first < to the **last** >, swallowing the entire middle.\n\nAdding ? makes it lazy: .*? takes the shortest stretch, stopping at the first >, giving just b.\n\nGreedy overshoot is the classic regex bug: log parsers that swallow whole lines, quote extractors that merge two quotes into one. When your capture is mysteriously huge, the fix is usually one ? , or better, a negated class like <([^>]*)> which cannot overshoot by construction.",
+        "output": "b>bold</b> and <i>italic</i\nb"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Why the r prefix? Predict what findall returns",
+      "code": "import re\n\ntext = \"cart: 2 apples, 11 pears\"\nnums = re.findall(r\"\\d+\", text)\nprint(nums)\nprint(sum(int(n) for n in nums))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "findall returns **every non-overlapping match as a list of strings**, even when the pattern matches digits. Hence the int() conversion before summing, chapter 1's \"input is always a string\" rule reappearing.\n\nThe r prefix makes a **raw string**: backslashes stay literal, so \\d reaches the regex engine intact. Without it, Python's own escape processing gets the first bite, and while \"\\d\" happens to survive, \"\\b\" (word boundary) silently becomes a backspace character and your pattern stops matching with no error. Raw strings for every regex, no exceptions, is the professional habit.\n\nOne more findall quirk to know: add a capture group and findall returns just the groups, add two and it returns tuples.",
+        "output": "['2', '11']\n13"
+      }
+    }
+  ]
+}

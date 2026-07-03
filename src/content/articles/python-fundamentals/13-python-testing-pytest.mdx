@@ -1,0 +1,90 @@
+---
+title: "Python Testing with pytest"
+slug: python-testing-pytest
+category: python
+series: python-fundamentals
+seriesOrder: 13
+description: "Chapter 13 of Python Fundamentals. 14 practice drills on pytest: assertion introspection, fixtures, parametrize, monkeypatch, and the mock that always says yes."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Testing
+  - Interview
+icon: "🧪"
+color: green
+createdAt: "2026-07-03T22:00:00Z"
+updatedAt: "2026-07-03T22:00:00Z"
+author: obydul
+---
+
+## The rules, again
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+Testing questions in senior interviews are rarely "do you know pytest syntax". They probe judgment: when a mock proves nothing, why fixture scope trades speed against isolation, what makes a test trustworthy. The drills here carry those judgment calls inside predict-the-output questions, and several outputs are pytest reports rather than program output.
+
+<Callout type="info" title="Learn the concepts first">
+New to pytest? Work through the official [Get Started guide](https://docs.pytest.org/en/stable/getting-started.html) and skim [How to use fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html) first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+pytest's whole design hangs on one mechanism, and it is not assert.
+
+<Definition
+  term="fixture"
+  langs={{
+    en: 'A fixture is a function that provides something a test needs: data, a connection, a temp directory. Tests request fixtures by naming them as parameters, and pytest builds them, injects them, and tears them down automatically. It is dependency injection keyed on names, which keeps every test independent and its requirements visible in its signature.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-testing-pytest" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: pytest test discovery,
+assertion introspection, pytest.raises with match, fixtures (scopes,
+yield teardown), parametrize, monkeypatch, Mock pitfalls, capsys,
+and tmp_path.
+
+Rules:
+- Ask ONE question at a time. Show a short test snippet and ask me to
+  predict the outcome: pass, fail, error, or what pytest reports.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: tests that pass
+  while verifying nothing, mis-named files that never run, float
+  equality, DID NOT RAISE, fixture scope leaks, Mock attribute typos.
+- Occasionally flip the format: show me buggy production code and ask
+  me to WRITE the test that would have caught it.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. The drill to internalize deepest is number 12, the mock that always says yes: every experienced engineer has shipped a bug under a green test exactly like it. And drill 2's silent non-discovery is its evil twin: both produce passing CI that protects nothing, which is worse than no tests at all because it feels like safety.
+
+Final chapter next: async and await, where one blocking call freezes a thousand coroutines and `asyncio.gather` makes ten API calls cost one.

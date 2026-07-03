@@ -1,0 +1,147 @@
+{
+  "slug": "python-fundamentals/python-functions",
+  "title": "Python Functions, *args/**kwargs & Scope",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A function with no return: predict the output",
+      "code": "def greet(name):\n    message = f\"hi {name}\"\n\nresult = greet(\"Obydul\")\nprint(result)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Every Python function returns something. No return statement means it returns **None**, silently.\n\nThe bug pattern this creates: you build a value inside the function, forget the return line, and the caller gets None. The error then surfaces somewhere else entirely, as a confusing 'NoneType' object has no attribute complaint two files away. When you see that error, check for a missing return first.",
+        "output": "None"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Returning two values: what actually comes back?",
+      "code": "def min_max(nums):\n    return min(nums), max(nums)\n\nresult = min_max([3, 1, 4])\nprint(result)\nlo, hi = min_max([3, 1, 4])\nprint(lo, hi)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Python does not really return multiple values. return a, b builds a **tuple**, and the caller either keeps it whole or unpacks it.\n\nThat is chapter 1's tuple packing again, wearing a suit. It also means you can ignore parts with underscore: _, hi = min_max(nums) is the idiom for \"I only want the second one\".",
+        "output": "(1, 4)\n1 4"
+      }
+    },
+    {
+      "id": 3,
+      "question": "*args: predict both calls",
+      "code": "def total(*args):\n    print(type(args), sum(args))\n\ntotal(1, 2, 3)\ntotal()",
+      "difficulty": "easy",
+      "answer": {
+        "text": "*args collects **all leftover positional arguments into a tuple**. Zero arguments is fine, you just get an empty tuple, and sum of nothing is 0.\n\nThe name args is convention, the star is the mechanism. This is how print() accepts any number of things.",
+        "output": "<class 'tuple'> 6\n<class 'tuple'> 0"
+      }
+    },
+    {
+      "id": 4,
+      "question": "**kwargs and pass-through: predict the output",
+      "code": "def log_call(func_name, **kwargs):\n    print(func_name, kwargs)\n\ndef wrapper(*args, **kwargs):\n    log_call(\"api\", **kwargs)\n\nwrapper(1, 2, user=\"obydul\", retry=True)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "**kwargs collects leftover **keyword** arguments into a dict. The 1 and 2 land in wrapper's *args and go nowhere further; the keyword ones travel on.\n\nThe pass-through pattern in wrapper, accepting *args, **kwargs and re-spreading them, is the backbone of decorators and any wrap-this-function code. Same stars, opposite direction: in a def they collect, in a call they spread.",
+        "output": "api {'user': 'obydul', 'retry': True}"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Unpacking at the call site: predict both",
+      "code": "def rect(w, h, color):\n    print(w, h, color)\n\nsize = [3, 4]\nstyle = {\"color\": \"red\"}\nrect(*size, **style)\nrect(*size, *size)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "In a call, * spreads a sequence into positional arguments and ** spreads a dict into keyword arguments. So rect(*size, **style) is rect(3, 4, color=\"red\").\n\nThe second call spreads size twice, four positional arguments into a three-parameter function, and Python counts them for you in the error message. Argument count errors from bad unpacking read exactly like this one.",
+        "output": "3 4 red\nTypeError: rect() takes 3 positional arguments but 4 were given"
+      }
+    },
+    {
+      "id": 6,
+      "question": "The lonely star: what does it force?",
+      "code": "def connect(host, *, timeout=10):\n    print(host, timeout)\n\nconnect(\"db.local\", timeout=5)\nconnect(\"db.local\", 5)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "A bare * in the signature marks everything after it as **keyword-only**. connect(\"db.local\", 5) fails because 5 tries to arrive positionally.\n\nWhy do this on purpose? Readability at the call site and safety against reordering: connect(\"db.local\", timeout=5) cannot be broken by someone later inserting a parameter before timeout. You will see this all over modern APIs. The mirror feature, / for positional-only, exists too: def f(x, /) forbids f(x=1).",
+        "output": "db.local 5\nTypeError: connect() takes 1 positional argument but 2 were given"
+      }
+    },
+    {
+      "id": 7,
+      "question": "The most famous Python gotcha: predict all three calls",
+      "code": "def add_item(item, bucket=[]):\n    bucket.append(item)\n    return bucket\n\nprint(add_item(1))\nprint(add_item(2))\nprint(add_item(3, []))",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Default values are evaluated **once, at def time**, not per call. That one list is created when the function is defined and then shared by every call that does not pass its own bucket. So the 1 is still there when the 2 arrives.\n\nThe third call brings its own list, so it starts clean, and the shared default still holds [1, 2] for whoever calls next.\n\nThe idiom: default to None, create inside.",
+        "code": "def add_item(item, bucket=None):\n    if bucket is None:\n        bucket = []\n    bucket.append(item)\n    return bucket",
+        "output": "[1]\n[1, 2]\n[3]"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Same trap, different costume: when does now get stamped?",
+      "code": "from datetime import datetime\n\ndef log(msg, when=datetime.now()):\n    print(msg, when)\n\nlog(\"first\")\n# ... hours pass ...\nlog(\"second\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both lines print **the same timestamp**: the moment the function was defined, not when it was called. datetime.now() ran once, at def time, and its result froze into the signature.\n\nNo mutation involved this time, which is why people who know the mutable-default rule still miss this one. The rule is broader: **any** default expression runs exactly once.\n\nSame fix as the list version: default to None, compute inside.",
+        "code": "def log(msg, when=None):\n    if when is None:\n        when = datetime.now()\n    print(msg, when)"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Can a function change your list?",
+      "code": "def add_bonus(scores):\n    scores.append(100)\n\nmy_scores = [80, 90]\nadd_bonus(my_scores)\nprint(my_scores)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Yes. Arguments are passed as **references to the same objects**, no copying. scores inside the function is another label on your list, so .append() through it is visible to you.\n\nThis is a feature when the mutation is the point (sorting in place, filling a buffer) and a bug when it is a surprise. A function that mutates its arguments should say so in its name or docstring; otherwise accept the list and return a new one.",
+        "output": "[80, 90, 100]"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Then why did this one NOT change?",
+      "code": "def double(nums):\n    nums = nums * 2\n\nmy_nums = [1, 2]\ndouble(my_nums)\nprint(my_nums)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "nums = nums * 2 does not touch your list. nums * 2 builds a **brand-new list**, and the assignment moves the local label nums onto it. Your my_nums label still points at the original.\n\nCompare with the previous drill: .append() mutates the shared object, = rebinds a local name. That single distinction, **mutate vs rebind**, explains both drills, and it is chapter 1's labels-not-boxes rule applied to function calls.\n\nWanted the mutation? nums *= 2 on a list extends in place, or return the new list and let the caller assign.",
+        "output": "[1, 2]"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Why does this crash when the global is right there?",
+      "code": "count = 0\n\ndef increment():\n    count += 1\n\nincrement()",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Python decides at **compile time** that count is local, because the function assigns to it somewhere. Then count += 1 tries to read the local count before it exists. Hence Unbound**Local**Error, not NameError.\n\nReading a global is always fine; **assigning** is what flips the name to local. That is why print(count) inside would have worked.\n\nThe literal fix is declaring global count first. The better fix in real code is not mutating globals at all: take it as a parameter and return the new value, or wrap the state in a class.",
+        "output": "UnboundLocalError: cannot access local variable 'count' where it is not associated with a value"
+      }
+    },
+    {
+      "id": 12,
+      "question": "lambda: sort these people by age",
+      "code": "people = [(\"ana\", 32), (\"bo\", 25), (\"cy\", 41)]\npeople.sort(key=lambda p: p[1])\nprint(people)\nprint(sorted(people, key=lambda p: p[1], reverse=True)[0])",
+      "difficulty": "easy",
+      "answer": {
+        "text": "A lambda is a one-expression function with no name: lambda p: p[1] means \"given p, hand back p[1]\". The key function is called once per element and the sort orders by what it returns.\n\nThis key= pattern is where lambdas belong: sort, min, max, filter. The moment a lambda needs an if or a second line, give it a def and a name. Bonus: for plain field access, operator.itemgetter(1) does the same job and is faster.",
+        "output": "[('bo', 25), ('ana', 32), ('cy', 41)]\n('cy', 41)"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Functions are objects: predict the output",
+      "code": "def shout(text):\n    return text.upper()\n\ndef whisper(text):\n    return text.lower()\n\nfor speak in [shout, whisper]:\n    print(speak(\"Hello\"))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Functions are **first-class objects**: shout without parentheses is the function itself, a value you can put in a list, pass around, or assign. Parentheses are what call it.\n\nThe loop variable speak points at each function in turn and gets called. This one idea underlies everything coming later in the series: key=len, decorators, callbacks, dispatch tables like {\"add\": add_fn}.",
+        "output": "HELLO\nhello"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Spot the crime: why does line 3 fail?",
+      "code": "list = [1, 2, 3]\nnums = list\nchars = list(\"abc\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Line 1 **shadowed the built-in** list with a plain list object. Built-ins live in the outermost scope lookup, so any name you define locally wins. By line 3, list is not a type anymore and calling it is calling a list.\n\nNo warning, no error at assignment time. The crash comes later, wherever list() is next used, possibly far away.\n\nCommon casualties: list, dict, str, sum, max, min, id, type, input. If your editor colors a variable name like a keyword, rename it: items, mapping, text.",
+        "output": "TypeError: 'list' object is not callable"
+      }
+    }
+  ]
+}

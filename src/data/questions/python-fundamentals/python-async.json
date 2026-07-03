@@ -1,0 +1,147 @@
+{
+  "slug": "python-fundamentals/python-async",
+  "title": "Python Async, Await & asyncio",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Calling an async function: predict the output",
+      "code": "async def fetch():\n    return \"data\"\n\nresult = fetch()\nprint(result)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Calling an async function **runs none of its body**. It returns a coroutine object, a recipe for the work, and the print shows that object, not \"data\".\n\nChapter 6 déjà vu on purpose: generator functions behave exactly this way, and coroutines are their descendants. The body runs only when the coroutine is awaited (or scheduled as a task).\n\nPython also nags: a coroutine that gets garbage-collected unawaited triggers RuntimeWarning: coroutine 'fetch' was never awaited, which is the compiler-grade hint that you forgot an await. Treat that warning as an error.",
+        "output": "<coroutine object fetch at 0x...>\nRuntimeWarning: coroutine 'fetch' was never awaited"
+      }
+    },
+    {
+      "id": 2,
+      "question": "The entry point: how does async code actually start?",
+      "code": "import asyncio\n\nasync def main():\n    await asyncio.sleep(0.1)\n    return \"done\"\n\nprint(asyncio.run(main()))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "asyncio.run() is the bridge from the synchronous world: it creates an **event loop**, runs the coroutine to completion, returns its value, and shuts the loop down. One call at the top of your program, and everything async lives inside it.\n\nawait means \"pause me here until this finishes, and let the loop run other work meanwhile\". The pause is free: no thread sits burning CPU.\n\nStructure of every asyncio program: async def all the way down, one asyncio.run() at the very top.",
+        "output": "done"
+      }
+    },
+    {
+      "id": 3,
+      "question": "Two awaits in a row: how long does this take?",
+      "code": "import asyncio, time\n\nasync def call_api(name, secs):\n    await asyncio.sleep(secs)\n    return name\n\nasync def main():\n    start = time.perf_counter()\n    a = await call_api(\"users\", 1)\n    b = await call_api(\"orders\", 2)\n    print(f\"{time.perf_counter() - start:.1f}s\", a, b)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Three seconds, not two. await is **sequential**: the second call does not start until the first finishes. Writing async def everywhere buys nothing by itself; this code has the exact timing of its synchronous twin.\n\nThis is the most common async mistake in real codebases: an async function that awaits its IO calls one by one, paying full price for each, while looking concurrent because of the keywords.\n\nConcurrency needs to be asked for explicitly, which is the next drill.",
+        "output": "3.0s users orders"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Same calls with gather: how long now?",
+      "code": "import asyncio, time\n\nasync def call_api(name, secs):\n    await asyncio.sleep(secs)\n    return name\n\nasync def main():\n    start = time.perf_counter()\n    a, b = await asyncio.gather(\n        call_api(\"users\", 1),\n        call_api(\"orders\", 2),\n    )\n    print(f\"{time.perf_counter() - start:.1f}s\", a, b)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Two seconds: **gather starts all coroutines together** and waits for all to finish, so total time is the slowest one, not the sum. Ten API calls at 200ms each: sequential pays 2 seconds, gather pays 200ms.\n\nThis pair of drills is the entire economic argument for async. IO-bound fan-out, many network calls, many DB queries, is where asyncio earns its complexity.\n\nNothing ran in parallel in the CPU sense: one thread, one loop, overlapping **waits**. The distinction matters and returns in drill 12.",
+        "output": "2.0s users orders"
+      }
+    },
+    {
+      "id": 5,
+      "question": "gather finishing order: which result lands where?",
+      "code": "import asyncio\n\nasync def task(name, secs):\n    await asyncio.sleep(secs)\n    return name\n\nasync def main():\n    results = await asyncio.gather(\n        task(\"slow\", 0.2),\n        task(\"fast\", 0.01),\n        task(\"mid\", 0.1),\n    )\n    print(results)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "**Argument order, not completion order**: results[0] is \"slow\" even though it finished last. gather keeps the positional correspondence, so you can zip inputs to outputs safely.\n\nThat guarantee is what makes the a, b = await gather(...) unpacking idiom from the previous drill correct.\n\nWhen you want results **as they complete**, streaming the fast ones early, that is a different tool: asyncio.as_completed, which yields futures in finish order and forfeits the positional mapping.",
+        "output": "['slow', 'fast', 'mid']"
+      }
+    },
+    {
+      "id": 6,
+      "question": "One blocking call: what happens to everyone else?",
+      "code": "import asyncio, time\n\nasync def heartbeat():\n    for _ in range(3):\n        print(\"beat\")\n        await asyncio.sleep(0.5)\n\nasync def bad_worker():\n    time.sleep(2)          # blocking!\n    print(\"worker done\")\n\nasync def main():\n    await asyncio.gather(heartbeat(), bad_worker())\n\nasyncio.run(main())",
+      "difficulty": "hard",
+      "answer": {
+        "text": "One \"beat\", then two seconds of silence, then everything at once. time.sleep is a **blocking call**: it holds the one and only thread, and the event loop cannot run anything, no heartbeats, no other tasks, until it returns.\n\nThis is the cardinal sin of async code. The loop is cooperative: tasks yield control at await points, and a task that never awaits starves every other task. One blocking call, requests.get, a heavy computation, time.sleep, freezes the entire server.\n\nasyncio.sleep is the cooperative twin: it yields to the loop while waiting. Inside async def, blocking APIs are forbidden; the escape hatch is the next drill.",
+        "output": "beat\n(2 seconds of nothing)\nworker done\nbeat\nbeat"
+      }
+    },
+    {
+      "id": 7,
+      "question": "The escape hatch: running blocking code without freezing the loop",
+      "code": "import asyncio, time\n\ndef legacy_fetch():\n    time.sleep(1)          # blocking library you can't change\n    return \"legacy data\"\n\nasync def heartbeat():\n    for _ in range(3):\n        print(\"beat\")\n        await asyncio.sleep(0.4)\n\nasync def main():\n    data, _ = await asyncio.gather(\n        asyncio.to_thread(legacy_fetch),\n        heartbeat(),\n    )\n    print(data)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "All three beats print on schedule while the legacy call runs, because **asyncio.to_thread pushes the blocking function onto a worker thread** and hands back an awaitable. The loop stays free; the thread does the waiting.\n\nThis is the standard adapter for the real world, where requests, database drivers, and file IO are often blocking: wrap, await, done. (Pre-3.9 code spells it loop.run_in_executor.)\n\nThe judgment call interviews probe: async-native libraries (aiohttp, asyncpg) beat thread-wrapping when available, but to_thread is the honest bridge while a codebase migrates.",
+        "output": "beat\nbeat\nbeat\nlegacy data"
+      }
+    },
+    {
+      "id": 8,
+      "question": "await in the wrong place: predict what happens",
+      "code": "import asyncio\n\nasync def fetch():\n    return 42\n\ndef process():\n    value = await fetch()\n    return value\n\nprint(process())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "This does not even start running: **await is only legal inside async def**, and Python rejects the file at compile time with a SyntaxError.\n\nThe rule gives async its color: any function that awaits must itself be async, so its callers must await it, and so on upward. That is the famous \"async all the way up\" property, async code spreads through call chains by construction.\n\nThe boundary crossings are exactly two: asyncio.run() to enter the async world from sync, and to_thread (previous drill) to visit the sync world from async.",
+        "output": "SyntaxError: 'await' outside async function"
+      }
+    },
+    {
+      "id": 9,
+      "question": "create_task: when does the work actually start?",
+      "code": "import asyncio\n\nasync def job():\n    print(\"job started\")\n    await asyncio.sleep(0.1)\n    return \"result\"\n\nasync def main():\n    t = asyncio.create_task(job())\n    print(\"task created\")\n    await asyncio.sleep(0)      # yield to the loop once\n    print(\"doing other work\")\n    print(await t)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "create_task **schedules the coroutine to run immediately**, in the background, without waiting for you to await it. The task starts at the first opportunity the loop gets, here the sleep(0) yield, which is why \"job started\" prints before \"doing other work\".\n\nCompare: a bare coroutine does nothing until awaited (drill 1). A task is already in motion; awaiting it later just collects the result.\n\nThe production trap: keep a reference to your tasks. A fire-and-forget create_task whose result nobody holds can be **garbage-collected mid-flight**, vanishing without an error. The structured fix is the final drill.",
+        "output": "task created\njob started\ndoing other work\nresult"
+      }
+    },
+    {
+      "id": 10,
+      "question": "One failure in a gather: what happens to the rest?",
+      "code": "import asyncio\n\nasync def ok(n):\n    await asyncio.sleep(0.01)\n    return n\n\nasync def boom():\n    raise ValueError(\"api down\")\n\nasync def main():\n    results = await asyncio.gather(ok(1), boom(), ok(3),\n                                   return_exceptions=True)\n    print(results)\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "With return_exceptions=True, exceptions are **delivered as values in the results list**, position preserved, and the healthy calls complete normally. You then sort survivors from casualties with isinstance(r, Exception).\n\nDefault behavior (False) re-raises the first failure out of the await immediately. The others keep running in the background, unobserved, their own errors silently swallowed, rarely what anyone wants.\n\nRule of thumb: fan-out to independent services wants return_exceptions=True and per-result handling. All-or-nothing batches want TaskGroup (final drill), which cancels the siblings on first failure.",
+        "output": "[1, ValueError('api down'), 3]"
+      }
+    },
+    {
+      "id": 11,
+      "question": "async with: what is it for?",
+      "code": "import asyncio\n\nclass Session:\n    async def __aenter__(self):\n        await asyncio.sleep(0.01)   # handshake\n        print(\"connected\")\n        return self\n    async def __aexit__(self, *exc):\n        await asyncio.sleep(0.01)   # goodbye\n        print(\"closed\")\n\nasync def main():\n    async with Session() as s:\n        print(\"using session\")\n\nasyncio.run(main())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Chapter 8's context manager, async edition: **__aenter__ and __aexit__ are themselves coroutines**, so setup and teardown can await network handshakes without blocking the loop. Cleanup still guaranteed on any exit, exception included.\n\nYou meet this constantly in async libraries: async with aiohttp.ClientSession(), async with db.transaction(), async with lock. Same guarantee as with, same protocol shape, a-prefixed dunders.\n\nIts sibling async for exists too, for iterators that await between items, like streaming rows from a database cursor.",
+        "output": "connected\nusing session\nclosed"
+      }
+    },
+    {
+      "id": 12,
+      "question": "Async for a CPU-bound job: predict the timing",
+      "code": "import asyncio, time\n\nasync def crunch(n):\n    return sum(range(n))     # pure CPU, no await\n\nasync def main():\n    start = time.perf_counter()\n    await asyncio.gather(\n        crunch(50_000_000),\n        crunch(50_000_000),\n    )\n    print(f\"{time.perf_counter() - start:.1f}s\")\n\nasyncio.run(main())",
+      "difficulty": "hard",
+      "answer": {
+        "text": "No speedup, the two crunches run **one after the other** and the total is both, in full. There is no await inside crunch, so each runs to completion before yielding, and even with awaits sprinkled in, asyncio is **one thread**: overlapping waits, never overlapping computation.\n\nasync helps when tasks WAIT (network, disk, DB). It does nothing when tasks COMPUTE.\n\nThe interview taxonomy: IO-bound and many connections, asyncio. IO-bound with blocking libraries, threads. **CPU-bound, multiprocessing**, separate processes, sidestepping the GIL. Naming those three cases cleanly is a senior-signal answer.",
+        "output": "(roughly 2x the single-crunch time: concurrency gained nothing)"
+      }
+    },
+    {
+      "id": 13,
+      "question": "The Jupyter surprise: why does asyncio.run fail in a notebook?",
+      "code": "# in a Jupyter notebook cell\nimport asyncio\n\nasync def fetch():\n    await asyncio.sleep(0.1)\n    return \"data\"\n\nasyncio.run(fetch())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Jupyter already runs an event loop for its own machinery, and **asyncio.run refuses to start a loop inside a running loop**, one loop per thread is the law.\n\nThe fix is delightful: notebooks support **top-level await**. Just write await fetch() directly in the cell, no run, no wrapper. The running loop picks it up.\n\nIn plain scripts, the same error usually means a library entered the loop before your code, or asyncio.run got called twice in a nested call chain. Structure to enter the loop exactly once, at the top.",
+        "code": "result = await fetch()   # valid at top level in a notebook cell",
+        "output": "RuntimeError: asyncio.run() cannot be called from a running event loop"
+      }
+    },
+    {
+      "id": 14,
+      "question": "TaskGroup: modern structured concurrency in one block",
+      "code": "import asyncio\n\nasync def fetch(name, secs):\n    await asyncio.sleep(secs)\n    print(\"got\", name)\n    return name\n\nasync def main():\n    async with asyncio.TaskGroup() as tg:\n        t1 = tg.create_task(fetch(\"users\", 0.1))\n        t2 = tg.create_task(fetch(\"orders\", 0.2))\n    print(t1.result(), t2.result())\n\nasyncio.run(main())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "TaskGroup (Python 3.11+) is gather with a safety harness. The async with block **does not exit until every task inside finishes**, so results are guaranteed ready afterward, and tasks cannot leak or be garbage-collected mid-flight, closing drill 9's trap by construction.\n\nOn failure it is stricter than gather: one task raising **cancels all the others**, and errors surface together as an ExceptionGroup, handled with the except* syntax.\n\nThe series closes where chapter 8 began: scope-based guarantees. with for files, async with for sessions, TaskGroup for concurrency itself. Python keeps rhyming.",
+        "output": "got users\ngot orders\nusers orders"
+      }
+    }
+  ]
+}

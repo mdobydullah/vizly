@@ -1,0 +1,147 @@
+{
+  "slug": "python-fundamentals/python-testing-pytest",
+  "title": "Python Testing with pytest",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Plain assert: what does pytest show when this fails?",
+      "code": "# test_cart.py\ndef apply_discount(price, pct):\n    return price - price * pct / 100\n\ndef test_discount():\n    assert apply_discount(100, 25) == 80",
+      "difficulty": "easy",
+      "answer": {
+        "text": "pytest rewrites assert statements at import time, so a failure shows **the actual values on both sides**, not just \"assertion failed\". You see 75.0 versus 80 and the bug (should be 75, the test expectation is wrong, or the pct math is) is visible without a debugger.\n\nThis assertion introspection is why pytest needs no assertEqual/assertTrue zoo: plain assert with any expression, and the framework makes it readable. Less API to memorize, and the test reads like the claim it makes.",
+        "output": "E    assert 75.0 == 80\nE     +  where 75.0 = apply_discount(100, 25)"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Discovery rules: which of these run?",
+      "code": "# checks.py\ndef test_alpha():\n    assert True\n\n# test_shop.py\ndef test_beta():\n    assert True\n\ndef check_gamma():\n    assert False\n\nclass TestCart:\n    def test_delta(self):\n        assert True\n\nclass Helper:\n    def test_epsilon(self):\n        assert True",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Two tests run: test_beta and TestCart.test_delta.\n\nDiscovery is convention over registration, and every layer must match: **files** named test_*.py (checks.py is invisible, its test_alpha never runs), **functions** prefixed test_ (check_gamma is skipped, its assert False harms nobody), and **classes** prefixed Test without an __init__ (Helper does not qualify).\n\nThe dangerous failure mode is silence: a mis-named file of passing tests reports nothing, and CI stays green while covering nothing. pytest --collect-only lists what was actually found; run it when the test count looks suspicious.",
+        "output": "collected 2 items\ntest_shop.py::test_beta PASSED\ntest_shop.py::TestCart::test_delta PASSED"
+      }
+    },
+    {
+      "id": 3,
+      "question": "The float assert that fails: predict, then fix",
+      "code": "def total(prices):\n    return sum(prices)\n\ndef test_total():\n    assert total([0.1, 0.2]) == 0.3",
+      "difficulty": "hard",
+      "answer": {
+        "text": "0.1 and 0.2 have no exact binary representation, so their sum is 0.30000000000000004 and the == fails. Not a pytest quirk, chapter 1's float types coming due: never == floats, in tests or anywhere.\n\nThe pytest answer is **pytest.approx**, which compares within a relative tolerance (1e-6 by default) and works inside plain assert, even across lists and dicts of floats.\n\nStdlib equivalent for non-pytest code: math.isclose(). For money, the real fix is upstream: decimal.Decimal or integer cents, so the imprecision never enters.",
+        "code": "import pytest\n\ndef test_total():\n    assert total([0.1, 0.2]) == pytest.approx(0.3)",
+        "output": "E    assert 0.30000000000000004 == 0.3"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Testing that code raises: predict both tests",
+      "code": "import pytest\n\ndef divide(a, b):\n    return a / b\n\ndef test_raises():\n    with pytest.raises(ZeroDivisionError):\n        divide(1, 0)\n\ndef test_suspicious():\n    with pytest.raises(ZeroDivisionError):\n        divide(4, 2)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "pytest.raises inverts success: the block **must** raise the named exception. test_raises passes because the error happened, and it was absorbed as expected.\n\ntest_suspicious fails with pytest's special **Failed: DID NOT RAISE**: divide(4, 2) returned 2.0 without incident, and not-raising is exactly the bug this test exists to catch.\n\nKeep the block minimal, one raising line, so setup code cannot raise the expected exception by accident and pass the test for the wrong reason.",
+        "output": "test_raises PASSED\ntest_suspicious FAILED: Failed: DID NOT RAISE <class 'ZeroDivisionError'>"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Right type, wrong reason: what does match= buy you?",
+      "code": "import pytest\n\ndef set_age(age):\n    if age < 0:\n        raise ValueError(\"age cannot be negative\")\n    if age > 150:\n        raise ValueError(\"age is implausible\")\n\ndef test_negative():\n    with pytest.raises(ValueError, match=\"negative\"):\n        set_age(-5)\n\ndef test_wrong_reason():\n    with pytest.raises(ValueError, match=\"negative\"):\n        set_age(200)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both branches raise ValueError, so without match= the second test would pass while testing the wrong branch entirely. match= runs re.search against the exception message, so test_wrong_reason fails, telling you the regex did not match \"age is implausible\".\n\nOne exception type shared by many failure causes is the norm (ValueError especially), and match= is the cheap way to pin which cause you meant.\n\nNeed more than the message? pytest.raises(...) as exc_info: gives the exception object, and exc_info.value opens it up for arbitrary asserts.",
+        "output": "test_negative PASSED\ntest_wrong_reason FAILED: AssertionError: Regex pattern did not match"
+      }
+    },
+    {
+      "id": 6,
+      "question": "Where does db come from? Predict the flow",
+      "code": "import pytest\n\n@pytest.fixture\ndef db():\n    return {\"users\": [\"ana\", \"bo\"]}\n\ndef test_user_count(db):\n    assert len(db[\"users\"]) == 2\n\ndef test_membership(db):\n    assert \"ana\" in db[\"users\"]",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Nobody calls db(). pytest sees a parameter named db, finds the fixture with the same name, runs it, and **injects the return value**. Dependency injection keyed on parameter names, and fixtures can request other fixtures the same way, forming a graph pytest resolves for you.\n\nBoth tests pass. Note each got the dict by asking, not by importing a global or building setup in the test body, which is what keeps tests independent of each other and of definition order.\n\nShared fixtures live in conftest.py, discovered automatically for the whole directory, no import statement needed.",
+        "output": "both tests PASS (pytest calls db() and passes the result in)"
+      }
+    },
+    {
+      "id": 7,
+      "question": "One fixture, two tests: shared or fresh?",
+      "code": "import pytest\n\n@pytest.fixture\ndef basket():\n    return []\n\ndef test_add_one(basket):\n    basket.append(\"apple\")\n    assert len(basket) == 1\n\ndef test_starts_empty(basket):\n    assert len(basket) == 0",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both pass. Default fixture scope is **function**: the fixture runs fresh for every test, so test_starts_empty gets its own new list, unpolluted by the append in the other test.\n\nThat per-test isolation is most of what makes tests trustworthy, and it is why the mutable-state gotchas from chapters 5 and 7 mostly stay out of test suites.\n\nWhen setup is expensive (a database container, a big parse), scope=\"module\" or \"session\" shares one instance, buying speed by **selling isolation**: now one test mutating the fixture can fail another, and only sometimes, depending on order. Widen scope for read-only fixtures; keep anything mutable at function scope.",
+        "output": "both tests PASS (each test gets a brand-new empty list)"
+      }
+    },
+    {
+      "id": 8,
+      "question": "yield in a fixture: predict the print order",
+      "code": "import pytest\n\n@pytest.fixture\ndef conn():\n    print(\"open\")\n    yield \"connection\"\n    print(\"close\")\n\ndef test_query(conn):\n    print(\"using\", conn)\n    assert conn == \"connection\"",
+      "difficulty": "medium",
+      "answer": {
+        "text": "A yield fixture is setup and teardown in one function: everything before the yield runs first, the yielded value goes to the test, and everything **after the yield runs when the test finishes, pass or fail**. Chapter 8's context manager idea, adopted by pytest.\n\nSo: open, using connection, close. Teardown running even on failure is the point, no leaked files, containers, or connections from red tests.\n\nThis pattern replaced the old setup_method/teardown_method pairs: state flows through the yield instead of through self, and each fixture cleans up only what it created.",
+        "output": "open\nusing connection\nclose"
+      }
+    },
+    {
+      "id": 9,
+      "question": "parametrize: how many tests is this?",
+      "code": "import pytest\n\n@pytest.mark.parametrize(\"raw, expected\", [\n    (\"42\", 42),\n    (\" 7 \", 7),\n    (\"-3\", -3),\n])\ndef test_parse(raw, expected):\n    assert int(raw) == expected",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Three tests, not one: each tuple becomes an independent test with its own name, like test_parse[42-42], its own pass/fail, and its own traceback. One case failing does not stop the others, which is the crucial difference from a for loop inside a single test, where the first failure hides the rest.\n\nThis is the tool that turns \"I should probably also test the edge cases\" into three more lines of data instead of three more copied functions. Growing the case list is how regression tests accumulate: bug found, tuple added, forever guarded.",
+        "output": "3 passed: test_parse[42-42], test_parse[ 7 -7], test_parse[-3--3]"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Stacked parametrize: how many now?",
+      "code": "import pytest\n\n@pytest.mark.parametrize(\"browser\", [\"chrome\", \"firefox\", \"safari\"])\n@pytest.mark.parametrize(\"theme\", [\"light\", \"dark\"])\ndef test_render(browser, theme):\n    assert render(browser, theme) is not None",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Six: stacked parametrize decorators multiply into the **full cross product**, 3 browsers times 2 themes, every combination its own test.\n\nPowerful and dangerous in the same way: a third axis with 4 values makes 24 tests, and a slow one makes them slow together. The combinatorial growth is chapter 10's itertools.product wearing a test costume.\n\nWhen you need many axes but not the full grid, keep one parametrize with hand-picked tuples of the combinations that matter.",
+        "output": "6 tests: chrome/firefox/safari, each in light and dark"
+      }
+    },
+    {
+      "id": 11,
+      "question": "monkeypatch: testing without hitting the network",
+      "code": "import requests\n\ndef get_username(uid):\n    resp = requests.get(f\"https://api.example.com/users/{uid}\")\n    return resp.json()[\"name\"].strip().lower()\n\n# test_users.py\nclass FakeResponse:\n    def json(self):\n        return {\"name\": \"  Ana  \"}\n\ndef test_username(monkeypatch):\n    monkeypatch.setattr(requests, \"get\", lambda url: FakeResponse())\n    assert get_username(1) == \"ana\"",
+      "difficulty": "medium",
+      "answer": {
+        "text": "monkeypatch.setattr swaps requests.get for a fake **for the duration of this one test**, restoring the real one automatically afterward, even on failure. The test then verifies the part you own, the strip-and-lower logic, with no network, no flakiness, no API key.\n\nThat scoping is the win over hand-rolled requests.get = fake, which leaks into every later test if you forget to restore it.\n\nThe drill's quiet lesson is design: get_username mixes fetching and formatting. Split the formatting into its own function and most tests need no patching at all. The easier code is to test, the better factored it usually is.",
+        "output": "test_username PASSED (no real HTTP request happens)"
+      }
+    },
+    {
+      "id": 12,
+      "question": "The mock that always says yes: why does this bad test pass?",
+      "code": "from unittest.mock import Mock\n\ndef test_charge():\n    gateway = Mock()\n    result = gateway.charge(100)\n    if result.success:\n        print(\"charged!\")\n    assert result\n    assert gateway.charge.called",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Everything passes, and the test verifies nothing. A Mock **manufactures any attribute or method you touch**, returning more Mocks: gateway.charge(100) is a Mock, result.success is a Mock, and Mocks are truthy. Misspell charge as chrage and the mock happily records the call to that instead.\n\nMocks make tests that cannot fail, the most expensive kind of test: green while the code rots.\n\nDefenses: give mocks explicit behavior (Mock(return_value=...)) and assert on **specific values**, not truthiness; use spec=RealGateway so wrong attribute names raise; prefer assert_called_once_with(100) over .called. And reach for monkeypatch with a small hand-written fake (previous drill) when the fake fits in five lines.",
+        "output": "charged!\ntest_charge PASSED (while checking absolutely nothing)"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Testing print output: what is capsys?",
+      "code": "def report(scores):\n    print(f\"max: {max(scores)}\")\n    print(f\"min: {min(scores)}\")\n\ndef test_report(capsys):\n    report([3, 9, 1])\n    out = capsys.readouterr().out\n    assert \"max: 9\" in out\n    assert \"min: 1\" in out",
+      "difficulty": "easy",
+      "answer": {
+        "text": "capsys is a built-in fixture that **captures stdout and stderr** during the test. readouterr() returns what was printed so far (.out and .err), and the captured text asserts like any string.\n\nreadouterr() also drains the buffer: a second call returns only output printed after the first, occasionally surprising.\n\nSibling built-ins worth knowing by name: tmp_path (next drill), monkeypatch (drill 11), and caplog for asserting on log records, the grown-up version of print-testing once code uses logging properly.",
+        "output": "test_report PASSED"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Testing file code without touching your disk: predict the flow",
+      "code": "import json\n\ndef save_config(path, cfg):\n    path.write_text(json.dumps(cfg))\n\ndef test_save_config(tmp_path):\n    file = tmp_path / \"settings.json\"\n    save_config(file, {\"theme\": \"dark\"})\n    assert json.loads(file.read_text()) == {\"theme\": \"dark\"}",
+      "difficulty": "easy",
+      "answer": {
+        "text": "tmp_path hands the test a **fresh temporary directory** as a pathlib.Path (chapter 9's / joining at work), unique per test and cleaned up by pytest. Real file IO, zero risk to real files, no cleanup code.\n\nThe assert round-trips through json.loads rather than comparing raw strings, so key order and whitespace cannot cause false failures, chapter 9's round-trip lesson applied in reverse.\n\nWith this drill the toolbox is complete: fixtures for setup, parametrize for cases, monkeypatch for boundaries, capsys and tmp_path for the outside world. Most professional suites are these five tools, composed.",
+        "output": "test_save_config PASSED (file created in a throwaway temp dir)"
+      }
+    }
+  ]
+}

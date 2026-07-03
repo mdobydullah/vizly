@@ -1,0 +1,148 @@
+{
+  "slug": "python-fundamentals/python-decorators",
+  "title": "Python Closures & Decorators",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A function factory: predict all three",
+      "code": "def make_adder(n):\n    def add(x):\n        return x + n\n    return add\n\nadd5 = make_adder(5)\nadd100 = make_adder(100)\nprint(add5(3))\nprint(add100(3))\nprint(add5(3))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "make_adder builds and returns a **new function each call**, and each one remembers its own n: add5 carries 5, add100 carries 100, independently.\n\nThe remembering is the closure: add references n from the enclosing scope, so Python keeps that n alive **after make_adder has returned**. The variable outlives its function.\n\nThis is chapter 5's first-class functions plus LEGB scope, composed. Every decorator in this chapter is this exact pattern wearing work clothes.",
+        "output": "8\n103\n8"
+      }
+    },
+    {
+      "id": 2,
+      "question": "The loop of lambdas: predict, then fix",
+      "code": "funcs = [lambda: i for i in range(3)]\nprint([f() for f in funcs])",
+      "difficulty": "hard",
+      "answer": {
+        "text": "All three print 2. Closures capture **the variable, not its value at capture time**. All three lambdas share the same i, and by the time anyone calls them, the loop has finished and i is parked at its final value.\n\nLate binding: the lookup happens at **call** time. Chapter 1's labels rule again, applied to closures.\n\nThe classic fix abuses chapter 5's other famous behavior: a default argument evaluates **at definition time**, freezing the current value per lambda. Two gotchas canceling each other out, and a genuine interview favorite.",
+        "code": "funcs = [lambda i=i: i for i in range(3)]\nprint([f() for f in funcs])   # [0, 1, 2]",
+        "output": "[2, 2, 2]"
+      }
+    },
+    {
+      "id": 3,
+      "question": "A counter that remembers: why does this need nonlocal?",
+      "code": "def make_counter():\n    count = 0\n    def bump():\n        nonlocal count\n        count += 1\n        return count\n    return bump\n\nc = make_counter()\nprint(c(), c(), c())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Without nonlocal, count += 1 dies with UnboundLocalError, chapter 5's rule: assignment makes a name local, and the local count has no value yet. nonlocal declares \"count lives in the enclosing function\", so the closure can **rebind** it, and state accumulates across calls.\n\nnonlocal is to enclosing scope what global is to module scope, one layer less drastic.\n\nA function with private, persistent state and no class in sight: this is the mechanism decorators use to count calls, cache results, and rate-limit, all coming up.",
+        "output": "1 2 3"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Mutating instead of rebinding: why does this one NOT need nonlocal?",
+      "code": "def make_collector():\n    items = []\n    def add(x):\n        items.append(x)\n        return items\n    return add\n\ncollect = make_collector()\ncollect(\"a\")\nprint(collect(\"b\"))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "items.append(x) never **assigns** to items, it calls a method on the object items points to. No assignment means Python never marks items local, the closure lookup finds the enclosing list, and mutation works freely.\n\nnonlocal is only required for **rebinding** (=, +=, on immutables). Mutation of a captured mutable object sails through.\n\nMutate vs rebind, deciding scope behavior this time. It decided function arguments in chapter 5, class attributes in chapter 7, and it decides closures here. One distinction, four chapters of gotchas.",
+        "output": "['a', 'b']"
+      }
+    },
+    {
+      "id": 5,
+      "question": "The @ is just sugar: are these two the same?",
+      "code": "def shout(func):\n    def wrapper():\n        return func().upper()\n    return wrapper\n\n@shout\ndef greet():\n    return \"hi\"\n\ndef greet2():\n    return \"hi\"\ngreet2 = shout(greet2)\n\nprint(greet())\nprint(greet2())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Identical. **@shout above a def is exactly greet = shout(greet)**: call the decorator with the function, rebind the name to whatever comes back. There is no other magic to learn.\n\nEverything follows from this one line: the decorator is a plain function, it runs once, and the name greet now points at wrapper, a closure holding the original func inside.\n\nDemystified this way, reading any decorator is just asking: what does it do with func, and what does it return?",
+        "output": "HI\nHI"
+      }
+    },
+    {
+      "id": 6,
+      "question": "When does decorator code run? Predict the full output",
+      "code": "def register(func):\n    print(\"registering\", func.__name__)\n    return func\n\n@register\ndef alpha():\n    print(\"alpha runs\")\n\n@register\ndef beta():\n    print(\"beta runs\")\n\nprint(\"---\")\nalpha()",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both \"registering\" lines print **before the ---**, at definition time, even though nobody called anything. The decorator runs the moment the def completes, once per function, typically at import.\n\nTwo lessons inside. First: import-time side effects, chapter 9's warning, now with decorators as the vector. Slow decorator logic slows every import.\n\nSecond: this decorator does not wrap, it returns func **unchanged** after a side effect. That is the registry pattern, how Flask's @app.route and pytest fixtures collect functions into a table. Decorators do not have to replace anything.",
+        "output": "registering alpha\nregistering beta\n---\nalpha runs"
+      }
+    },
+    {
+      "id": 7,
+      "question": "The broken wrapper: spot the bug",
+      "code": "def logged(func):\n    def wrapper(*args, **kwargs):\n        print(\"calling\", func.__name__)\n        func(*args, **kwargs)\n    return wrapper\n\n@logged\ndef add(a, b):\n    return a + b\n\nprint(add(2, 3))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "The wrapper calls func but **drops its return value**, so add(2, 3) computes 5, throws it away, and wrapper returns None implicitly, chapter 5's silent None.\n\nThis is the most common bug in hand-written decorators, and it hides well: decorate a function used for side effects and nothing seems wrong, decorate one whose value matters and things break far away.\n\nThe wrapper checklist: accept *args, **kwargs, **return func(...)**, and (next drill) functools.wraps.",
+        "code": "def wrapper(*args, **kwargs):\n    print(\"calling\", func.__name__)\n    return func(*args, **kwargs)",
+        "output": "calling add\nNone"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Who am I? Predict what the decorated function reports",
+      "code": "import functools\n\ndef plain(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\ndef proper(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@plain\ndef alpha():\n    \"\"\"does alpha things\"\"\"\n\n@proper\ndef beta():\n    \"\"\"does beta things\"\"\"\n\nprint(alpha.__name__, alpha.__doc__)\nprint(beta.__name__, beta.__doc__)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "After @plain, the name alpha points at wrapper, so its identity is wrapper's: __name__ says \"wrapper\", the docstring is gone. Multiply that across a codebase and stack traces, debuggers, and help() all start lying.\n\n@functools.wraps(func) copies the original's metadata onto the wrapper, so beta still knows who it is. It also stashes the undecorated function at beta.__wrapped__, which test code occasionally needs.\n\nRule with no exceptions: **every wrapping decorator gets @functools.wraps**. Reviewers look for it; its absence marks a decorator written from memory of a blog post.",
+        "output": "wrapper None\nbeta does beta things"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Stacked decorators: which order do they apply?",
+      "code": "def bold(func):\n    def wrapper():\n        return f\"<b>{func()}</b>\"\n    return wrapper\n\ndef italic(func):\n    def wrapper():\n        return f\"<i>{func()}</i>\"\n    return wrapper\n\n@bold\n@italic\ndef text():\n    return \"hi\"\n\nprint(text())",
+      "difficulty": "hard",
+      "answer": {
+        "text": "**Bottom-up application**: the decorator nearest the def wraps first. text = bold(italic(text)), so italic is the inner layer and bold the outer, giving <b><i>hi</i></b>.\n\nReading tip: it is function composition, and the visual stack IS the nesting: whatever sits on top ends up outermost.\n\nOrder matters in real stacks: @app.route on top of @login_required registers the protected version, flipped, it registers the unprotected one and the guard never runs. Same functions, opposite security.",
+        "output": "<b><i>hi</i></b>"
+      }
+    },
+    {
+      "id": 10,
+      "question": "A decorator that takes arguments: how many layers?",
+      "code": "import functools\n\ndef repeat(times):\n    def decorator(func):\n        @functools.wraps(func)\n        def wrapper(*args, **kwargs):\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef hello():\n    print(\"hello\")\n\nhello()",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Three layers, because @repeat(3) is **two steps**: first repeat(3) is called and returns decorator, then that decorates hello. The factory takes the arguments, the middle takes the function, the wrapper takes the calls. times reaches the wrapper by closure through both layers.\n\nThe telltale in the syntax: @repeat(3) has parentheses, so repeat itself is not the decorator, its return value is. @repeat without them would pass hello in as times and fail confusingly.\n\nEvery parameterized decorator you have used, @retry(attempts=3), @app.route(\"/home\"), @pytest.mark.parametrize(...), is this triple-decker.",
+        "output": "hello\nhello\nhello"
+      }
+    },
+    {
+      "id": 11,
+      "question": "lru_cache: what makes the second call instant?",
+      "code": "import functools\n\n@functools.lru_cache(maxsize=None)\ndef fib(n):\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\n\nprint(fib(35))\nprint(fib.cache_info())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "lru_cache memoizes: results are stored by argument, repeat calls become dict lookups. Naive fib(35) makes about 30 million recursive calls; cached, each fib(k) computes **once**, 36 total, and the misses/hits show up in cache_info().\n\nThis is the dynamic-programming shortcut in interviews: write the clean recursion, add one line, exponential becomes linear.\n\nHousekeeping: maxsize=None means unbounded (spelled @functools.cache since 3.9), a power of two like 128 gives LRU eviction. The cache lives until the process dies, so unbounded caches on unbounded inputs are a slow memory leak.",
+        "output": "9227465\nCacheInfo(hits=33, misses=36, maxsize=None, currsize=36)"
+      }
+    },
+    {
+      "id": 12,
+      "question": "lru_cache meets a list: predict the crash",
+      "code": "import functools\n\n@functools.lru_cache\ndef total(nums):\n    return sum(nums)\n\nprint(total([1, 2, 3]))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "The cache is a dict keyed by the arguments, and dict keys must be **hashable**, chapter 4's rule resurfacing. A list is not, so the call dies before your function even runs.\n\nFix: pass a tuple, total((1, 2, 3)), or accept *nums so callers unpack.\n\nThe subtler sibling traps: lru_cache on functions with side effects (the side effect fires once, then never again) and on methods (the cache keeps self alive forever, a real memory leak). Cache pure functions of hashable arguments, nothing else.",
+        "output": "TypeError: unhashable type: 'list'"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Write-once, time-everything: predict the output shape",
+      "code": "import functools, time\n\ndef timed(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = func(*args, **kwargs)\n        ms = (time.perf_counter() - start) * 1000\n        print(f\"{func.__name__}: {ms:.1f}ms\")\n        return result\n    return wrapper\n\n@timed\ndef slow_sum(n):\n    return sum(range(n))\n\ntotal = slow_sum(10_000_000)\nprint(total)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The timing line prints **before** the total, because the wrapper prints after computing but before returning; the caller's print runs last.\n\nThis little decorator is the complete checklist from this chapter in eleven lines: *args/**kwargs pass-through, result captured and **returned**, @functools.wraps, closure over func. It is also genuinely useful, and being able to write it on a whiteboard from an empty buffer is the standard senior-interview decorator question.\n\nDetail worth mentioning out loud: time.perf_counter(), not time.time(), for measuring durations. It is monotonic and high-resolution.",
+        "output": "slow_sum: 180.3ms   (number varies by machine)\n49999995000000"
+      }
+    },
+    {
+      "id": 14,
+      "question": "You already use these: what do property and staticmethod have in common with @timed?",
+      "code": "class Circle:\n    def __init__(self, r):\n        self.r = r\n\n    @property\n    def area(self):\n        return 3.14159 * self.r ** 2\n\n    @staticmethod\n    def unit():\n        return Circle(1)\n\nprint(round(Circle(2).area, 2))\nprint(Circle.unit().r)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "They ARE decorators, the same mechanism: a callable that takes a function and returns a replacement, applied with @. property returns a descriptor object that intercepts attribute access (chapter 7's drill, now explainable). staticmethod returns one that skips self-binding so unit() is callable on the class.\n\nNothing about @ is reserved for your homemade wrappers; the language's own building blocks use the identical hook. classmethod, functools.cached_property, abstractmethod, dataclass: decorators all the way down.\n\nThat is the closing thought for the chapter: decorators are not a feature bolted onto Python, they are how Python composes behavior.",
+        "output": "12.57\n1"
+      }
+    }
+  ]
+}

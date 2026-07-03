@@ -1,0 +1,90 @@
+---
+title: "Python Closures & Decorators"
+slug: python-decorators
+category: python
+series: python-fundamentals
+seriesOrder: 12
+description: "Chapter 12 of Python Fundamentals. 14 practice drills on closures, nonlocal, the decorator pattern, functools.wraps, stacking, and lru_cache. The most-asked senior interview topic."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Decorators
+  - Interview
+icon: "🎁"
+color: green
+createdAt: "2026-07-03T21:00:00Z"
+updatedAt: "2026-07-03T21:00:00Z"
+author: obydul
+---
+
+## The rules, again
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+If a senior Python interview asks exactly one deep-language question, it is a decorator question. "Write a retry decorator", "why is functools.wraps there", "what order do stacked decorators apply". All of it reduces to two ideas you already hold: functions are objects (chapter 5) and inner functions remember their enclosing scope. This chapter drills the second idea until the first compound naturally.
+
+<Callout type="info" title="Learn the concepts first">
+Rusty on the basics? Work through [Closures](https://www.learnpython.org/en/Closures) and [Decorators](https://www.learnpython.org/en/Decorators) on learnpython.org first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Every drill in this chapter is this definition, applied.
+
+<Definition
+  term="closure"
+  langs={{
+    en: 'A closure is an inner function that references variables from its enclosing function, keeping them alive after the outer function has returned. The inner function does not copy the values; it holds onto the variables themselves, which is both the power (persistent private state) and the trap (late binding in loops).',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-decorators" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: closures, late binding,
+nonlocal, decorators (the @ sugar, wrapper pattern, functools.wraps,
+stacking order, decorators with arguments), and functools.lru_cache.
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output (or the error) before running it.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: lambdas capturing
+  a loop variable, wrappers that forget to return, missing
+  functools.wraps, stacked decorator order, @repeat(3) layer counting,
+  lru_cache with list arguments.
+- Occasionally flip the format: ask me to WRITE a small decorator
+  (retry, timing, logging) and critique it against the checklist.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. Then do the one exercise that beats all fourteen drills: close this page and write the timing decorator from drill 13 in an empty file, from memory, with the full checklist: `*args/**kwargs`, returned result, `functools.wraps`. That blank-buffer version is the actual interview, and drill 2's lambda loop is the actual follow-up.
+
+Next chapter: testing with pytest, where fixtures are dependency injection wearing a plain function costume and `parametrize` turns one test into twenty.

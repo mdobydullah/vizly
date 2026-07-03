@@ -1,0 +1,147 @@
+{
+  "slug": "python-fundamentals/python-modules-files",
+  "title": "Python Modules, File I/O & JSON",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What does import actually do? Predict the output",
+      "code": "# helper.py\nprint(\"helper loading\")\ndef greet():\n    return \"hi\"\n\n# app.py\nimport helper\nimport helper\nprint(helper.greet())",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Importing a module **executes its entire file, top to bottom, once**. The def is just a statement that runs, and so is the print, which is why \"helper loading\" appears.\n\nOnce, not twice: after the first import, the module object is cached in **sys.modules**, and every later import anywhere in the process gets the cached one. That cache is also why module-level state is effectively a singleton.\n\nCorollary: modules should not do real work at top level. Definitions yes, side effects no.",
+        "output": "helper loading\nhi"
+      }
+    },
+    {
+      "id": 2,
+      "question": "The __main__ guard: which lines print when?",
+      "code": "# tool.py\ndef run():\n    print(\"running\")\n\nprint(\"module name is\", __name__)\nif __name__ == \"__main__\":\n    run()\n\n# terminal: python tool.py\n# vs, in another file: import tool",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Python sets __name__ to the string **\"__main__\"** in the file you executed directly, and to the module's own name (\"tool\") when it is imported.\n\nSo python tool.py prints both lines, while import tool prints only the first, with \"tool\" instead. The guard is how one file can be both a script and a library: importable for its functions, runnable for its behavior.\n\nThis idiom is also load-bearing for tooling: test runners and multiprocessing import your file, and without the guard your script's side effects fire during that import.",
+        "output": "python tool.py:\nmodule name is __main__\nrunning\n\nimport tool:\nmodule name is tool"
+      }
+    },
+    {
+      "id": 3,
+      "question": "from-import took a snapshot: predict both prints",
+      "code": "# config.py\nDEBUG = False\ndef enable():\n    global DEBUG\n    DEBUG = True\n\n# app.py\nfrom config import DEBUG, enable\nimport config\n\nenable()\nprint(DEBUG)\nprint(config.DEBUG)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "from config import DEBUG does not create a live link. It **binds a new name in your module to the current value**, chapter 1's labels again. When enable() rebinds config's DEBUG to True, your local DEBUG label still points at the old False.\n\nAccessing it as config.DEBUG looks the attribute up **on the module object at call time**, so it sees the change.\n\nRule: for module-level mutable state or anything reassigned at runtime, import the module and use dotted access. from-import is for things that never rebind: functions, classes, constants.",
+        "output": "False\nTrue"
+      }
+    },
+    {
+      "id": 4,
+      "question": "You named your file random.py: predict the crash",
+      "code": "# random.py  (your script, in the current folder)\nimport random\nprint(random.choice([1, 2, 3]))",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Your own file **shadows the standard library**. The current directory sits at the front of the import search path, so import random finds your random.py, which is already being loaded, gets served from the cache, and it has no choice function.\n\nThe error is maximally confusing because the traceback points at the stdlib name while executing your file. Same crash with test.py, json.py, csv.py, string.py, all popular filename choices.\n\nWhen import errors make no sense, check your filenames first. print(random.__file__) inside the failing code reveals the impostor instantly.",
+        "output": "AttributeError: module 'random' has no attribute 'choice' (partially initialized module, most likely due to a circular import)"
+      }
+    },
+    {
+      "id": 5,
+      "question": "Mode \"w\": when exactly does the data die?",
+      "code": "# notes.txt contains: \"important stuff\"\nf = open(\"notes.txt\", \"w\")\n# program crashes here, before any write\n# what does notes.txt contain now?",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Empty. Mode \"w\" **truncates the file at open time**, not at write time. The moment open() returned, \"important stuff\" was gone, and the crash afterward just means nothing replaced it.\n\nThe mode menu: \"r\" read (default), \"w\" write and truncate, \"a\" append, \"x\" create-only (raises FileExistsError if the file exists), and \"r+\" read-write without truncating. \"x\" is the safety-conscious choice when overwriting would be a bug.\n\nReal-world pattern for precious files: write to a temp file, then os.replace() it over the original, so a crash mid-write never leaves you with half a file.",
+        "output": "notes.txt is now empty (truncated the instant open() ran)"
+      }
+    },
+    {
+      "id": 6,
+      "question": "write() vs print(): predict the file contents",
+      "code": "with open(\"out.txt\", \"w\") as f:\n    f.write(\"one\")\n    f.write(\"two\")\n    print(\"three\", file=f)\n    print(\"four\", file=f)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "f.write() writes **exactly what you give it**, no newline added, so one and two fuse together. print(file=f) is regular print aimed at a file, and print appends its usual newline.\n\nEveryone hits the fused-lines surprise once. Fix by writing f.write(\"one\\n\") or by using print for line-oriented output. Bonus trivia: write() returns the number of characters written, which occasionally startles people in a REPL.",
+        "output": "onetwothree\nfour"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Looping over a file: what is on each line?",
+      "code": "# data.txt:\n# alpha\n# beta\nwith open(\"data.txt\") as f:\n    for line in f:\n        print(repr(line))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Iterating a file yields lines **with their trailing newline still attached**, which repr makes visible as \\n. Print them normally and you get double spacing, the classic symptom.\n\nThe idiom: line.rstrip(\"\\n\") (or .strip() if surrounding whitespace should go too).\n\nIterating line by line is also the memory-safe way to read big files, one line at a time, versus f.read() which loads the whole thing. A file object is a lazy iterator, chapter 6 in the wild.",
+        "output": "'alpha\\n'\n'beta\\n'"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Reading twice: predict both lengths",
+      "code": "# data.txt:\n# alpha\n# beta\nwith open(\"data.txt\") as f:\n    a = f.read()\n    b = f.read()\nprint(len(a), len(b))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "A file object has a **cursor**. read() consumes everything and parks the cursor at the end, so the second read() finds nothing and returns an empty string. No error, just quietly nothing, chapter 6's exhausted generator wearing a file costume.\n\nf.seek(0) rewinds the cursor if you genuinely need a second pass. More often the right move is reading once into a variable and reusing that.",
+        "output": "11 0"
+      }
+    },
+    {
+      "id": 9,
+      "question": "pathlib: predict all four",
+      "code": "from pathlib import Path\n\np = Path(\"data\") / \"reports\" / \"summary.tar.gz\"\nprint(p)\nprint(p.name)\nprint(p.suffix)\nprint(p.stem)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Path overloads / for joining, which reads like the path it builds and handles separators per-OS. name is the final component, suffix is the **last** extension only (.gz, not .tar.gz; use p.suffixes for all of them), and stem is the name minus that last suffix.\n\npathlib also absorbs most of the os.path zoo: p.exists(), p.mkdir(parents=True), p.glob(\"*.csv\"), and p.read_text() / p.write_text() for quick whole-file IO without an explicit open. New code has little reason to touch os.path.",
+        "output": "data/reports/summary.tar.gz\nsummary.tar.gz\n.gz\nsummary.tar"
+      }
+    },
+    {
+      "id": 10,
+      "question": "The s in loads: predict what each call wants",
+      "code": "import json\n\ndata = {\"name\": \"Obydul\", \"score\": 87}\ntext = json.dumps(data)\nprint(type(text))\nback = json.loads(text)\nprint(back[\"score\"] + 1)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The s means **string**. dumps/loads convert between Python objects and JSON text in memory; dump/load (no s) do the same but read and write file objects directly: json.dump(data, f) and json.load(f).\n\ndumps gives you a str, and loads parses one back into dicts, lists, strings, numbers, bools, and None. The score arrives as a real int, hence the arithmetic works. Mixing the pairs up produces instant TypeErrors, so remember: s for string, bare for file.",
+        "output": "<class 'str'>\n88"
+      }
+    },
+    {
+      "id": 11,
+      "question": "JSON round trip: what survives? Predict the output",
+      "code": "import json\n\ndata = {1: \"one\", \"point\": (2, 3)}\nback = json.loads(json.dumps(data))\nprint(back)\nprint(back == data)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "JSON is a smaller world than Python, and dumps **coerces silently**: object keys must be strings, so the int key 1 becomes \"1\". JSON has no tuples, so (2, 3) becomes a list.\n\nThe round trip therefore does not return your original: keys changed type, tuples became lists, and the equality check fails.\n\nThis bites hardest with dicts keyed by ids: after a save/load cycle, d[42] raises KeyError because the key is now \"42\". If exact Python types must survive, JSON is the wrong format; use pickle (trusted data only) or convert explicitly at the boundaries.",
+        "output": "{'1': 'one', 'point': [2, 3]}\nFalse"
+      }
+    },
+    {
+      "id": 12,
+      "question": "JSON meets datetime: predict, then fix",
+      "code": "import json\nfrom datetime import datetime\n\nevent = {\"title\": \"standup\", \"at\": datetime.now()}\nprint(json.dumps(event))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "JSON has six types, and datetime is not one of them, so dumps raises TypeError instead of guessing a format.\n\nThe quick fix: default=str, a fallback called for any non-serializable object. You get ISO-ish text and dumps stops complaining.\n\nThe deliberate fix for APIs: convert explicitly with .isoformat() when building the dict, and parse back with datetime.fromisoformat() on load. default=str is one-way; nothing automatically turns the string back into a datetime, so round-tripping timestamps is your job either way.",
+        "code": "json.dumps(event, default=str)\n# or, explicitly:\nevent = {\"title\": \"standup\", \"at\": datetime.now().isoformat()}",
+        "output": "TypeError: Object of type datetime is not JSON serializable"
+      }
+    },
+    {
+      "id": 13,
+      "question": "The invisible parameter: why does this break on another machine?",
+      "code": "# written on your laptop, works fine\nwith open(\"report.txt\", \"w\") as f:\n    f.write(\"টাকা 500 • ok\")\n\n# same code on a Windows server: UnicodeEncodeError",
+      "difficulty": "medium",
+      "answer": {
+        "text": "open() without an encoding uses **the platform's default**, UTF-8 on your Mac or Linux box, but often cp1252 on Windows, which cannot represent Bengali characters or the bullet. Same code, different machine, crash.\n\nThe fix is one argument: open(\"report.txt\", \"w\", encoding=\"utf-8\"), and the same on every read, or the bytes get decoded wrong even when writing succeeded.\n\nPython 3.15 is scheduled to finally make UTF-8 the default everywhere. Until your code only runs there, spell it out. Run python with -X warn_default_encoding and it will point at every risky open() for you.",
+        "code": "with open(\"report.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"টাকা 500 • ok\")"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Mode sequence: predict the final file contents",
+      "code": "with open(\"log.txt\", \"w\") as f:\n    f.write(\"first\\n\")\nwith open(\"log.txt\", \"w\") as f:\n    f.write(\"second\\n\")\nwith open(\"log.txt\", \"a\") as f:\n    f.write(\"third\\n\")\nprint(open(\"log.txt\").read())",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The second \"w\" truncated everything the first wrote, so \"first\" never made it. The \"a\" appended to what remained.\n\nOne habit worth keeping: logs and anything accumulating over runs get \"a\", one-shot outputs get \"w\", and files that must never be clobbered get \"x\". Choosing between w and a is choosing between \"replace the history\" and \"extend the history\", and picking wrong in a cron job deletes months of data on the next run.",
+        "output": "second\nthird"
+      }
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "slug": "python-fundamentals/python-error-handling",
+  "title": "Python Error Handling & Context Managers",
+  "questions": [
+    {
+      "id": 1,
+      "question": "try/except warm-up: predict the output",
+      "code": "def parse(s):\n    try:\n        return int(s)\n    except ValueError:\n        return None\n\nprint(parse(\"42\"))\nprint(parse(\"4.2\"))\nprint(parse(None))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "int(\"4.2\") raises ValueError (chapter 1's drill), the except catches it, None comes back.\n\nThe third call is the lesson: int(None) raises **TypeError**, not ValueError, and this handler does not catch that. The program crashes.\n\nThat is the point of catching specific types: parse(\"4.2\") is bad data, expected and handled; parse(None) is a bug in the caller, and you want to hear about bugs loudly.",
+        "output": "42\nNone\nTypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Two handlers: which one catches it?",
+      "code": "try:\n    int(\"oops\")\nexcept Exception:\n    print(\"generic\")\nexcept ValueError:\n    print(\"specific\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Handlers are checked **top to bottom, first match wins**, and ValueError is a subclass of Exception, so the generic one matches first. The specific handler is unreachable, and Python does not warn you.\n\nAlways order handlers **narrow to broad**. Put ValueError first and each error type gets its own treatment, with Exception as the last-resort floor.\n\nSame shape as chapter 3's match statement: first pattern that fits, so specificity must come first.",
+        "output": "generic"
+      }
+    },
+    {
+      "id": 3,
+      "question": "One handler, two error types: predict both calls",
+      "code": "def safe_div(a, b):\n    try:\n        return a / b\n    except (ZeroDivisionError, TypeError):\n        return None\n\nprint(safe_div(10, 0))\nprint(safe_div(10, \"2\"))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "A **tuple of types** in one except catches any of them. Both bad calls land in the same handler and return None.\n\nThe parentheses are mandatory. The old Python 2 form except ZeroDivisionError, TypeError: meant \"catch ZeroDivisionError and name it TypeError\", a legendary source of confusion, and Python 3 made it a syntax error.",
+        "output": "None\nNone"
+      }
+    },
+    {
+      "id": 4,
+      "question": "The else nobody knows: when does it run?",
+      "code": "def load(s):\n    try:\n        data = int(s)\n    except ValueError:\n        print(\"bad input\")\n    else:\n        print(\"parsed:\", data)\n    finally:\n        print(\"done\")\n\nload(\"7\")\nload(\"x\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "else runs **only when the try block raised nothing**, and finally runs always. So \"7\" gives parsed then done; \"x\" gives bad input then done.\n\nWhy not just put the print inside the try? Scope of protection. Code in the try is code whose exceptions you are claiming to handle; the else holds follow-up work whose exceptions should **not** be swallowed by this handler. Keep the try block minimal, push success-path code to else.",
+        "output": "parsed: 7\ndone\nbad input\ndone"
+      }
+    },
+    {
+      "id": 5,
+      "question": "finally vs return: predict both calls",
+      "code": "def f():\n    try:\n        return \"from try\"\n    finally:\n        print(\"cleanup\")\n\ndef g():\n    try:\n        return \"from try\"\n    finally:\n        return \"from finally\"\n\nprint(f())\nprint(g())",
+      "difficulty": "hard",
+      "answer": {
+        "text": "finally runs **even when the try block returns**: the return value is computed, parked, the finally executes, then the value leaves. Hence cleanup prints before \"from try\" arrives.\n\ng() is the trap: a **return inside finally overwrites the parked return value**. Worse, a return in finally silently swallows any in-flight exception the same way. The try could raise, and the function would just... return.\n\nRule: finally is for cleanup only. Never return, break, or continue inside one. Linters flag it for good reason.",
+        "output": "cleanup\nfrom try\nfrom finally"
+      }
+    },
+    {
+      "id": 6,
+      "question": "Where did e go? Predict the output",
+      "code": "try:\n    int(\"x\")\nexcept ValueError as e:\n    print(\"caught:\", e)\n\nprint(e)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Inside the handler, e works fine. After the block, **e no longer exists**: Python deletes the name when the except block ends, so the last line raises NameError.\n\nWhy so aggressive? The exception object holds the full traceback, which holds every local variable of every frame, a reference cycle heavy enough that the language special-cased it.\n\nNeed the exception later? Copy it to another name inside the handler: err = e.",
+        "output": "caught: invalid literal for int() with base 10: 'x'\nNameError: name 'e' is not defined"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Log and re-raise: what does the bare raise do?",
+      "code": "def risky():\n    raise ValueError(\"original problem\")\n\ntry:\n    risky()\nexcept ValueError as e:\n    print(\"logging:\", e)\n    raise",
+      "difficulty": "medium",
+      "answer": {
+        "text": "A **bare raise inside an except block re-raises the current exception**, original traceback intact, still pointing at risky() where it was born.\n\nThe tempting alternative, raise e, works but resets the raise location to your handler line, muddying the trail. And catching just to log, then not re-raising at all, is the classic error-swallowing bug.\n\nThe log-and-rethrow pattern is exactly these four lines: observe, then pass it up unchanged.",
+        "output": "logging: original problem\nValueError: original problem"
+      }
+    },
+    {
+      "id": 8,
+      "question": "raise ... from: what shows up in the traceback?",
+      "code": "def load_config(path):\n    try:\n        return open(path).read()\n    except FileNotFoundError as e:\n        raise RuntimeError(\"config missing\") from e\n\nload_config(\"nope.yaml\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "The traceback shows **both exceptions**, linked: the FileNotFoundError first, then \"The above exception was the direct cause of the following exception\", then your RuntimeError. Nothing about the root cause is lost.\n\nRaising a new exception inside an except links them implicitly anyway (\"During handling... another exception occurred\"), but **from makes the causation explicit and intentional**. Use it whenever you translate a low-level error into a domain-level one, which is exactly what wrapping libraries should do. from None is the opt-out that hides the original.",
+        "output": "FileNotFoundError: [Errno 2] No such file or directory: 'nope.yaml'\n\nThe above exception was the direct cause of the following exception:\n\nRuntimeError: config missing"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Custom exceptions: predict the output",
+      "code": "class PaymentError(Exception):\n    pass\n\nclass CardDeclined(PaymentError):\n    pass\n\ntry:\n    raise CardDeclined(\"insufficient funds\")\nexcept PaymentError as e:\n    print(type(e).__name__, e)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "A custom exception is just a class inheriting from Exception, and an empty body is enough: the name **is** the feature.\n\nCatching the parent PaymentError catches the child CardDeclined, ordinary inheritance. That is the design payoff: your library raises precise types, callers choose their catch granularity, one except PaymentError for everything or specific handlers per subtype.\n\nBuild a small hierarchy per domain, and never raise bare Exception: nobody can catch it without catching everything.",
+        "output": "CardDeclined insufficient funds"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Why does except Exception not stop Ctrl+C?",
+      "code": "import time\ntry:\n    while True:\n        time.sleep(1)\nexcept Exception:\n    print(\"caught something\")\n# user presses Ctrl+C ...",
+      "difficulty": "medium",
+      "answer": {
+        "text": "KeyboardInterrupt does not inherit from Exception. The hierarchy splits at the top: BaseException has Exception under it, and **KeyboardInterrupt and SystemExit hang directly off BaseException**, siblings to Exception, not children.\n\nThat is deliberate: \"catch all errors\" should not mean \"ignore the user mashing Ctrl+C\" or \"refuse to exit\". So except Exception lets the interrupt fly through and the program dies properly.\n\nThis is also the argument against bare except: (no type), which catches BaseException and eats interrupts. except Exception is the widest net you should ever cast.",
+        "output": "KeyboardInterrupt (the except does not catch it, the program exits)"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Two styles, same job: which is more Pythonic?",
+      "code": "user = {\"name\": \"Obydul\"}\n\n# style A\nif \"role\" in user:\n    role = user[\"role\"]\nelse:\n    role = \"guest\"\n\n# style B\ntry:\n    role = user[\"role\"]\nexcept KeyError:\n    role = \"guest\"",
+      "difficulty": "medium",
+      "answer": {
+        "text": "A is LBYL, Look Before You Leap. B is EAFP, **Easier to Ask Forgiveness than Permission**, and it is the Python cultural default: just try it, handle the failure.\n\nEAFP has a real correctness edge in concurrent code: between A's check and A's use, another thread can delete the key. The try version has no gap.\n\nThe honest footnote: for this exact case, both lose to role = user.get(\"role\", \"guest\"). The styles matter when no .get() equivalent exists: files, network calls, attribute access. Checking os.path.exists() before open() is the LBYL anti-pattern to unlearn.",
+        "output": "(both produce role = 'guest')"
+      }
+    },
+    {
+      "id": 12,
+      "question": "What does with actually guarantee?",
+      "code": "with open(\"data.txt\") as f:\n    first = f.readline()\n    total = 1 / 0\n\nprint(f.closed)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The ZeroDivisionError still crashes the program, with does not catch anything. What it guarantees: **the file is closed on the way out, no matter how the block exits**. Run this in a REPL, check f.closed after the traceback, and it is True.\n\nwith open(...) as f: is sugar for try/finally with f.close() in the finally, minus the boilerplate and minus the chance of forgetting.\n\nAnything holding a resource speaks this protocol: files, locks, database connections, network sessions. If it has a close(), look for the with form.",
+        "output": "ZeroDivisionError: division by zero\n(but the file IS closed: with ran its cleanup first)"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Build your own context manager: predict the full output",
+      "code": "class Timer:\n    def __enter__(self):\n        print(\"start\")\n        return \"ctx\"\n    def __exit__(self, exc_type, exc_val, tb):\n        print(\"stop, saw:\", exc_type)\n        return False\n\nwith Timer() as t:\n    print(\"inside, got:\", t)\nprint(\"---\")\nwith Timer() as t:\n    raise ValueError(\"boom\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "with calls __enter__ going in (its return value becomes the as target, here the string \"ctx\") and __exit__ going out, always.\n\nOn a clean exit, __exit__ receives (None, None, None). On an exception it receives the type, value, and traceback, so the second block prints saw: <class 'ValueError'>. Then, because __exit__ returned False, the exception **continues on its way**. Returning True would swallow it, which is how contextlib.suppress works.\n\nFor quick cases, the @contextlib.contextmanager decorator turns a generator (setup, yield, cleanup) into one of these without the class.",
+        "output": "start\ninside, got: ctx\nstop, saw: None\n---\nstart\nstop, saw: <class 'ValueError'>\nValueError: boom"
+      }
+    },
+    {
+      "id": 14,
+      "question": "assert in production: spot the danger",
+      "code": "def withdraw(balance, amount):\n    assert amount > 0, \"amount must be positive\"\n    assert amount <= balance, \"insufficient funds\"\n    return balance - amount\n\n# python app.py        -> works as expected\n# python -O app.py     -> ???",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Run with -O (optimize) and **every assert is stripped from the bytecode**. Both checks vanish, and withdraw(100, -50) cheerfully returns 150. Money printed from a command-line flag.\n\nassert is a debugging tool for things that should be impossible, internal invariants, \"this list is sorted by now\". It is not input validation.\n\nValidating real-world input, user data, amounts, permissions? Raise a real exception: if amount <= 0: raise ValueError(...). Those survive every optimization level.",
+        "code": "def withdraw(balance, amount):\n    if amount <= 0:\n        raise ValueError(\"amount must be positive\")\n    if amount > balance:\n        raise ValueError(\"insufficient funds\")\n    return balance - amount"
+      }
+    }
+  ]
+}

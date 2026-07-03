@@ -1,0 +1,88 @@
+---
+title: "Python Error Handling & Context Managers"
+slug: python-error-handling
+category: python
+series: python-fundamentals
+seriesOrder: 8
+description: "Chapter 8 of Python Fundamentals. 14 practice drills on try/except/else/finally, exception hierarchies, re-raising, custom exceptions, and context managers. Predict the output before you run anything."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Beginner
+icon: "🧯"
+color: green
+createdAt: "2026-07-03T17:00:00Z"
+updatedAt: "2026-07-03T17:00:00Z"
+author: obydul
+---
+
+## The rules, again
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+Error handling is where code quality becomes visible. Anyone can write the happy path; the difference between junior and senior shows in what happens when `int()` gets `None`, when the file is missing, when the user hits Ctrl+C. Python gives you sharp tools here, a `try` with four clauses, exception chaining, the `with` statement, and each has a trap the drills below will spring on you.
+
+<Callout type="info" title="Learn the concepts first">
+Rusty on the basics? Work through [Exception Handling](https://www.learnpython.org/en/Exception_Handling) on learnpython.org first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Python's error culture differs from most languages, and one acronym captures it.
+
+<Definition
+  term="EAFP"
+  langs={{
+    en: 'Easier to Ask Forgiveness than Permission: attempt the operation and handle the exception, instead of checking whether it would succeed first. The opposite style, Look Before You Leap, has a gap between the check and the act where the world can change. Python culture leans EAFP, which is why its exception machinery is so developed.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-error-handling" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: try/except/else/finally,
+exception hierarchies and handler order, catching multiple types,
+re-raising (bare raise, raise from), custom exceptions, EAFP vs LBYL,
+the with statement, and writing context managers.
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output (or the error) before running it.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: except Exception
+  before except ValueError, return inside finally, using e after the
+  except block, KeyboardInterrupt vs except Exception, __exit__
+  returning True, assert under python -O.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. Drill 5 (return inside finally) and drill 14 (assert stripped by -O) are the two that pass code review at most companies and then cost real money. If you predicted both, your error handling instincts are production-grade.
+
+Next chapter: modules and files, where imports run code you did not ask for and `pathlib` finally makes paths pleasant.

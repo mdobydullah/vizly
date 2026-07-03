@@ -1,0 +1,150 @@
+{
+  "slug": "python-fundamentals/python-variables-types",
+  "title": "Python Variables, Types & Type Casting",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Swap two variables without a temp variable",
+      "code": "a, b = 5, 10\n# your move",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Python evaluates the whole right side first, building the tuple (10, 5), then unpacks it into the names on the left. No temp variable, no arithmetic tricks.\n\nThis is **tuple packing and unpacking**, and it works for any number of names: a, b, c = c, a, b.",
+        "code": "a, b = b, a"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Predict the type of each expression",
+      "code": "x = 5 / 2\ny = 5 // 2\nz = 5 % 2\nw = 2 ** 10\n\nprint(type(x), type(y), type(z), type(w))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The one that trips people up is /. In Python 3, true division **always returns a float**, even when it divides evenly: 4 / 2 is 2.0, not 2.\n\nFloor division //, modulo %, and power ** keep ints as ints when both operands are ints.",
+        "output": "<class 'float'> <class 'int'> <class 'int'> <class 'int'>"
+      }
+    },
+    {
+      "id": 3,
+      "question": "What does -5 // 2 give: -2 or -3?",
+      "code": "print(-5 // 2)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Floor division rounds **toward negative infinity**, not toward zero. -5 / 2 is -2.5, and the floor of -2.5 is -3.\n\nC and JavaScript truncate toward zero and would give -2. Python does not. Same story with modulo: -5 % 2 is 1 in Python (result takes the sign of the divisor), but -1 in C.",
+        "output": "-3"
+      }
+    },
+    {
+      "id": 4,
+      "question": "Convert \"42.7\" to float, then int, then back to str, without try/except",
+      "code": "s = \"42.7\"\n# float, then int, then str",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Note what happened to the value: int() on a float **truncates toward zero**, it does not round. int(42.7) is 42 and int(-42.7) is -42.\n\nIf you want rounding, say so explicitly with round().",
+        "code": "f = float(s)      # 42.7\ni = int(f)        # 42\nback = str(i)     # \"42\""
+      }
+    },
+    {
+      "id": 5,
+      "question": "Why does int(\"3.14\") fail, and what is the fix?",
+      "code": "int(\"3.14\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "int() on a **string** only accepts something that looks like an integer. It will not parse a decimal point for you. This surprises people because int(3.14) on a **float** works fine.\n\nThe fix is a two-step chain: string parsing first, then float truncation.",
+        "code": "int(float(\"3.14\"))   # 3",
+        "output": "ValueError: invalid literal for int() with base 10: '3.14'"
+      }
+    },
+    {
+      "id": 6,
+      "question": "Truthiness: predict all five outputs",
+      "code": "print(bool(\"\"))\nprint(bool(\"0\"))\nprint(bool([]))\nprint(bool(0.0))\nprint(bool([0]))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "The rule: empty containers, empty strings, zero of any numeric type, and None are falsy. **Everything else is truthy.**\n\nTwo traps here. bool(\"0\") is True because it is a non-empty string; Python does not look inside, it only asks \"is there anything here?\". And bool([0]) is True because the list holds one element. A list of falsy things is still a truthy list.\n\nThis is exactly why if response: and if response is not None: are different checks. If response can legitimately be 0, \"\" or [], the first one silently treats real data as \"no data\".",
+        "output": "False\nTrue\nFalse\nFalse\nTrue"
+      }
+    },
+    {
+      "id": 7,
+      "question": "Same value, same object? Predict both lines",
+      "code": "a = [1, 2, 3]\nb = [1, 2, 3]\nprint(a == b)\nprint(a is b)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "== asks \"do these have equal values?\" and is asks \"are these the **exact same object** in memory?\". Two separately-built lists are equal but not identical.\n\nRule worth internalizing: use is only for None (if x is None:), and == for everything else. Comparing ints or strings with is sometimes appears to work because CPython caches small ints and some strings. That is exactly what makes it dangerous: it works in a demo and breaks in production.",
+        "output": "True\nFalse"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Labels, not boxes: predict both prints",
+      "code": "a = [1, 2, 3]\nb = a\nb.append(4)\nprint(a)\n\nx = 10\ny = x\ny = y + 5\nprint(x)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "b = a does not copy the list. It makes a second label pointing at the **same** list, so b.append(4) is visible through a too.\n\nThe int case looks inconsistent but is not: y = y + 5 does not modify anything. It builds a brand-new int 15 and moves the label y onto it. x still points at 10. Ints are immutable, so no operation on y can ever reach through and change what x sees.\n\nWant an independent copy of a list? b = a.copy(), b = a[:], or b = list(a).",
+        "output": "[1, 2, 3, 4]\n10"
+      }
+    },
+    {
+      "id": 9,
+      "question": "type() vs isinstance(): predict all three",
+      "code": "print(type(True) == int)\nprint(isinstance(True, int))\nprint(isinstance(3.14, (int, float)))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "bool is a **subclass of int** in Python. True is literally 1 and False is 0, try True + True. type() compares exact types, so type(True) == int is False. isinstance() respects inheritance, so isinstance(True, int) is True.\n\nisinstance() also accepts a tuple of types, which reads as \"any of these\".\n\nPrefer isinstance() in real code; reach for type() only when you need to exclude subclasses on purpose.",
+        "output": "False\nTrue\nTrue"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Can you change one character of a string?",
+      "code": "s = \"python\"\ns[0] = \"P\"",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Strings are **immutable**. You never edit a string in place; every \"modification\" builds a new string.\n\nThe fix builds a new one and rebinds the name. This is also why repeated += in a loop is O(n^2), since each concat copies everything, and why the idiom for joining many pieces is \"\".join(parts).",
+        "code": "s = \"P\" + s[1:]      # or s.capitalize()",
+        "output": "TypeError: 'str' object does not support item assignment"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Why does this print fail, and what are two fixes?",
+      "code": "age = 25\nprint(\"I am \" + age + \" years old\")",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Python **never implicitly converts** between str and int. JavaScript would happily turn \"I am \" + 25 into a string, Python refuses. Explicit is better than implicit.\n\nFix 1: cast it yourself with str(age). Fix 2 (the idiomatic one): an f-string, which calls str() for you.",
+        "code": "print(\"I am \" + str(age) + \" years old\")\nprint(f\"I am {age} years old\")",
+        "output": "TypeError: can only concatenate str (not \"int\") to str"
+      }
+    },
+    {
+      "id": 12,
+      "question": "Predict both: round(2.5) and round(3.5)",
+      "code": "print(round(2.5))\nprint(round(3.5))",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Not a bug. Python 3 uses **banker's rounding**: exact halves round to the nearest even number. 2.5 goes down to 2, 3.5 goes up to 4.\n\nWhy: always rounding .5 up biases sums upward; rounding half-to-even cancels the bias across many values. It is the IEEE 754 default.\n\nIf you need classic \"half away from zero\" rounding (money!), use the decimal module with ROUND_HALF_UP.",
+        "output": "2\n4"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Chained assignment: predict the output",
+      "code": "a = b = []\na.append(1)\nprint(a, b)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "a = b = [] creates **one** list and points both names at it. Mutate through either name and both see the change.\n\nChained assignment is fine for immutables (x = y = 0) because rebinding one name later cannot affect the other. For mutables, create them separately: a, b = [], [].",
+        "output": "[1] [1]"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Can NaN equal itself?",
+      "code": "x = float(\"nan\")\nprint(x == x)\nprint(x is x)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "IEEE 754 defines NaN as **not equal to anything, including itself**. So x == x is False even though x is x is True, same object! This is the one value in Python where == and is disagree in this direction.\n\nPractical fallout: nan poisons comparisons and breaks naive membership checks that rely on equality. Detect it with math.isnan(x), never with == float(\"nan\").",
+        "code": "import math\nmath.isnan(x)   # True",
+        "output": "False\nTrue"
+      }
+    }
+  ]
+}

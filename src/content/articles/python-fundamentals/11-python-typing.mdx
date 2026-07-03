@@ -1,0 +1,89 @@
+---
+title: "Python Type Hints, Dataclasses & Protocols"
+slug: python-typing
+category: python
+series: python-fundamentals
+seriesOrder: 11
+description: "Chapter 11 of Python Fundamentals. 14 practice drills on type hints, mypy narrowing, dataclasses, TypedDict, Protocol, and generics. The interview tier starts here."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Typing
+  - Interview
+icon: "🏷️"
+color: green
+createdAt: "2026-07-03T20:00:00Z"
+updatedAt: "2026-07-03T20:00:00Z"
+author: obydul
+---
+
+## The interview tier starts here
+
+Same rules as [chapter 1](/articles/python-variables-types): predict, run, then open the answer. But the stakes change: chapters 11 to 14 cover the four topics that decide senior Python interviews, and typing is first because modern codebases assume it. A senior candidate who cannot read `Callable[[int], int]` or explain why `Optional` does not mean optional gets found out in the first fifteen minutes.
+
+New wrinkle in this chapter: several drills ask what **mypy** says, not what the interpreter prints. Type checking happens before runtime; both moments matter, and the drills show them side by side.
+
+<Callout type="info" title="Learn the concepts first">
+New to type hints? Read the [mypy cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html) and skim the [dataclasses docs](https://docs.python.org/3/library/dataclasses.html) first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Python's whole typing story rests on one design decision.
+
+<Definition
+  term="gradual typing"
+  langs={{
+    en: 'Gradual typing means annotations are optional and checked by external tools, never enforced by the interpreter. Untyped and typed code coexist in one codebase, so you can add types file by file. The trade: the runtime will happily execute what the checker would have rejected, so the safety only exists where you run the checker.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-typing" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: type hints (modern syntax,
+unions, Optional), mypy narrowing, dataclasses (defaults, frozen,
+field order), TypedDict, Protocol vs ABC, Any vs object, Callable,
+and generics with TypeVar.
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output, the error, or what mypy reports.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: hints ignored at
+  runtime, Optional not meaning optional, mutable defaults in
+  dataclasses, frozen and hashability, Any leaking through code,
+  bare annotations creating nothing.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. The three with the highest interview yield: drill 3 (`Optional` means "or None", nothing else), drill 10 (Protocol is duck typing with a checker), and drill 11 (`Any` switches checking off, `object` demands proof). Being crisp on those three is what "knows modern Python" sounds like in a hiring debrief.
+
+Next chapter: closures and decorators, where chapter 5's functions-are-objects idea compounds into the most-asked senior Python interview question there is.

@@ -1,0 +1,88 @@
+---
+title: "Python Control Flow: if, Loops & match"
+slug: python-control-flow
+category: python
+series: python-fundamentals
+seriesOrder: 3
+description: "Chapter 3 of Python Fundamentals. 14 practice drills on if/else, for and while loops, break, continue, for...else, and the match statement. Predict the output before you run anything."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Beginner
+icon: "🔁"
+color: green
+createdAt: "2026-07-03T12:00:00Z"
+updatedAt: "2026-07-03T12:00:00Z"
+author: obydul
+---
+
+## The rules, again
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+Control flow looks like the most boring chapter in any language. Python hides real surprises in it: an `else` that belongs to a loop, a `match` statement that assigns when you thought it compared, and the ancient continue-skips-the-update infinite loop that still catches seniors on whiteboards.
+
+<Callout type="info" title="Learn the concepts first">
+Rusty on the basics? Work through [Conditions](https://www.learnpython.org/en/Conditions) and [Loops](https://www.learnpython.org/en/Loops) on learnpython.org first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Most loop drills in this chapter come down to knowing exactly what a `for` loop consumes.
+
+<Definition
+  term="iterable"
+  langs={{
+    en: 'An iterable is anything a for loop can walk through: lists, strings, dicts, ranges, files, generators. The loop asks it for the next value until it runs out. The loop itself never counts indexes, which is why Python has no classic three-part for loop and why tools like enumerate and zip exist.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-control-flow" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: if/elif/else, ternary
+expressions, for and while loops, break/continue, for...else,
+range() semantics, enumerate, zip, dict iteration, and the match
+statement.
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output (or the error) before running it.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: for...else with
+  and without break, range(5, 0), zip with unequal lengths, removing
+  items from a list while looping, bare-name capture in match cases,
+  continue skipping the update in a while loop.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. The two that catch almost everyone: `for...else` (drill 4) and the `match` capture trap (drill 13). If you got those on the first try, you know Python's control flow better than most people interviewing you.
+
+Next chapter: data structures, where `list`, `tuple`, `dict`, and `set` each hide a gotcha and copying a list does less than you think.

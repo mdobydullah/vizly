@@ -1,0 +1,146 @@
+{
+  "slug": "python-fundamentals/python-control-flow",
+  "title": "Python Control Flow: if, Loops & match",
+  "questions": [
+    {
+      "id": 1,
+      "question": "The one-line if: predict the output",
+      "code": "n = 7\nresult = \"even\" if n % 2 == 0 else \"odd\"\nprint(result)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "This is Python's **conditional expression**, the ternary. Read it middle-out: the condition sits in the middle, the true value comes first, the false value last.\n\nOther languages write cond ? a : b. Python flips the order to read like English: \"even if n is even, else odd\".\n\nUse it for simple picks. If you find yourself nesting them, switch back to a normal if block.",
+        "output": "odd"
+      }
+    },
+    {
+      "id": 2,
+      "question": "range() three ways: predict all three",
+      "code": "print(list(range(5)))\nprint(list(range(1, 10, 2)))\nprint(list(range(5, 0)))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "range(stop) starts at 0 and the stop is **exclusive**, so range(5) gives 0 through 4. range(start, stop, step) walks in steps, so range(1, 10, 2) gives the odd numbers below 10.\n\nThe third one is the trap: range(5, 0) counts **up** by default, and there is nothing going up from 5 to 0, so it is empty. No error, just silence. Counting down needs an explicit negative step: range(5, 0, -1).",
+        "output": "[0, 1, 2, 3, 4]\n[1, 3, 5, 7, 9]\n[]"
+      }
+    },
+    {
+      "id": 3,
+      "question": "break vs continue: predict the output",
+      "code": "for i in range(5):\n    if i == 1:\n        continue\n    if i == 3:\n        break\n    print(i)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "continue skips the **rest of this iteration** and jumps to the next one. break exits the **whole loop** immediately.\n\nSo: 0 prints, 1 gets skipped by continue, 2 prints, and 3 kills the loop before its print. 4 never happens.",
+        "output": "0\n2"
+      }
+    },
+    {
+      "id": 4,
+      "question": "for...else: when does the else run?",
+      "code": "for n in [2, 4, 6]:\n    if n % 2 != 0:\n        print(\"found odd\")\n        break\nelse:\n    print(\"all even\")",
+      "difficulty": "hard",
+      "answer": {
+        "text": "The else on a loop runs when the loop finishes **without hitting break**. It has nothing to do with the if. Nobody guesses this on first read, which is why it makes interview questions.\n\nHere no element triggers the break, so the loop completes and the else fires.\n\nThe mental trick: read it as \"no-break\". It replaces the found = False flag pattern you would write in other languages: search in the loop, break when you find it, and the else is your not-found branch.",
+        "output": "all even"
+      }
+    },
+    {
+      "id": 5,
+      "question": "for...else on an empty list: predict the output",
+      "code": "for item in []:\n    print(\"looping\")\nelse:\n    print(\"else ran\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Zero iterations still counts as \"finished without break\", so the else runs.\n\nThis surprises people who think of else as \"the loop actually did something\". It did not. The only thing that cancels a loop's else is break (or an exception, or return).",
+        "output": "else ran"
+      }
+    },
+    {
+      "id": 6,
+      "question": "Does the loop variable survive the loop?",
+      "code": "for i in range(3):\n    pass\nprint(i)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Python loops do **not create a new scope**. The loop variable is a regular assignment in the enclosing scope, so after the loop ends, i still holds its last value, 2.\n\nHarmless most of the time, but it bites in two ways: a stale i can shadow something you meant to use later, and if the iterable was empty, i was never assigned at all and print(i) raises NameError.",
+        "output": "2"
+      }
+    },
+    {
+      "id": 7,
+      "question": "enumerate: get index and value without range(len(...))",
+      "code": "items = [\"a\", \"b\", \"c\"]\nfor i, item in enumerate(items, start=1):\n    print(i, item)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "enumerate wraps any iterable and yields (index, value) pairs. The start argument offsets the counter without touching the items, handy for 1-based display.\n\nfor i in range(len(items)) followed by items[i] works but reads as a C accent in Python. enumerate is the idiom, and interviewers notice.",
+        "output": "1 a\n2 b\n3 c"
+      }
+    },
+    {
+      "id": 8,
+      "question": "zip with unequal lengths: predict the output",
+      "code": "names = [\"ana\", \"bo\", \"cy\", \"dee\"]\nscores = [90, 85]\nfor name, score in zip(names, scores):\n    print(name, score)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "zip stops at the **shortest** iterable, silently. cy and dee just vanish, no warning.\n\nIf dropped items are a bug in your context, Python 3.10+ has zip(names, scores, strict=True), which raises ValueError on a length mismatch. And when you want the long side padded instead, itertools.zip_longest fills the gaps with None or a default.",
+        "output": "ana 90\nbo 85"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Removing items while looping: predict the output",
+      "code": "nums = [1, 2, 3, 4, 5, 6]\nfor n in nums:\n    if n % 2 == 0:\n        nums.remove(n)\nprint(nums)",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Looks like it should leave [1, 3, 5]. It does here, but by luck, and the mechanism is broken: the loop tracks a position index while remove() shifts everything left, so **the element after each removed one gets skipped without being checked**.\n\nTry it with nums = [1, 2, 2, 3]: the second 2 survives because it slid into the removed one's slot and the cursor moved past it.\n\nNever mutate a list you are iterating. Build a new one instead: [n for n in nums if n % 2 != 0], or iterate over a copy with for n in nums[:] if you must mutate in place.",
+        "output": "[1, 3, 5]"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Nested loops: what does break actually break?",
+      "code": "for i in range(3):\n    for j in range(3):\n        if j == 1:\n            break\n    print(i, j)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "break only exits the **innermost** loop. The outer loop keeps going, so the inner loop starts fresh three times and each time dies at j == 1.\n\nPython has no labeled break like Java or Go. To escape both loops you have three idioms: put the loops in a function and return, raise a sentinel exception, or use for...else to propagate the break outward.",
+        "output": "0 1\n1 1\n2 1"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Looping over a dict: what do you get by default?",
+      "code": "user = {\"name\": \"Obydul\", \"role\": \"engineer\"}\nfor x in user:\n    print(x)\nfor k, v in user.items():\n    print(k, v)",
+      "difficulty": "easy",
+      "answer": {
+        "text": "Iterating a dict directly gives **keys only**. For key-value pairs you ask for .items() and unpack.\n\nBonus fact worth knowing: since Python 3.7, dicts preserve **insertion order** by language guarantee, so these loops print in the order the keys were added. Code that needs older-Python compatibility used collections.OrderedDict for this; today plain dict is enough.",
+        "output": "name\nrole\nname Obydul\nrole engineer"
+      }
+    },
+    {
+      "id": 12,
+      "question": "match: predict the output",
+      "code": "status = 404\nmatch status:\n    case 200:\n        print(\"ok\")\n    case 404 | 410:\n        print(\"gone\")\n    case _:\n        print(\"other\")",
+      "difficulty": "medium",
+      "answer": {
+        "text": "match (Python 3.10+) checks patterns top to bottom and runs the **first** one that fits, no fall-through, no break needed. | means \"or\" inside a pattern, and case _ is the wildcard default.\n\nSo far it looks like a switch. It is more: patterns can destructure. case [x, y]: matches any two-element sequence and binds the pieces, case {\"type\": t}: pulls a key out of a dict. That structural part is where match earns its keep over an if/elif chain.",
+        "output": "gone"
+      }
+    },
+    {
+      "id": 13,
+      "question": "The match trap: why does this print \"ok\" for every status?",
+      "code": "OK = 200\nstatus = 500\nmatch status:\n    case OK:\n        print(\"ok\")\n    case _:\n        print(\"error\")",
+      "difficulty": "hard",
+      "answer": {
+        "text": "A bare name in a case is a **capture pattern**, not a comparison. case OK: does not check status == OK. It matches anything and **assigns** status to a new variable named OK, clobbering your constant. The case _ below it is unreachable.\n\nPython even warns you: this raises SyntaxError, \"name capture 'OK' makes remaining patterns unreachable\", if a later case exists. Without a later case, it silently \"matches\" everything.\n\nThe fix: dotted names are compared, not captured. Put constants in a class or enum and write case HttpStatus.OK: to get the equality check you meant.",
+        "output": "SyntaxError: name capture 'OK' makes remaining patterns unreachable"
+      }
+    },
+    {
+      "id": 14,
+      "question": "Spot the infinite loop",
+      "code": "n = 5\nwhile n > 0:\n    if n % 2 == 0:\n        continue\n    print(n)\n    n -= 1",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Prints 5, decrements to 4, and then hangs forever. When n is 4, continue jumps back to the condition **without reaching the n -= 1 line**. n stays 4, the check passes, continue again, forever.\n\nThis is the classic continue-skips-the-update bug, and it only exists in while loops. A for loop over range() advances by itself, which is one reason to prefer for when you know the iteration count. If you need the while, do the update before the continue.",
+        "output": "5\n(then hangs: n is stuck at 4)"
+      }
+    }
+  ]
+}

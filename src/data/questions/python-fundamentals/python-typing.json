@@ -1,0 +1,148 @@
+{
+  "slug": "python-fundamentals/python-typing",
+  "title": "Python Type Hints, Dataclasses & Protocols",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Do type hints actually do anything? Predict the output",
+      "code": "def double(x: int) -> int:\n    return x * 2\n\nprint(double(5))\nprint(double(\"ha\"))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Both lines run. **Python ignores type hints at runtime**: they are metadata, not checks. \"ha\" * 2 is string repetition from chapter 2, so you get \"haha\", type hint be damned.\n\nHints pay off through tooling: mypy or pyright read them **before the code runs** and flag double(\"ha\") as an error in your editor or CI. Static analysis, zero runtime cost.\n\nThis split surprises people from typed languages: annotations are a contract you choose to enforce with a checker, not a fence the interpreter builds.",
+        "output": "10\nhaha"
+      }
+    },
+    {
+      "id": 2,
+      "question": "Modern hint syntax: which of these need an import?",
+      "code": "def process(\n    items: list[int],\n    lookup: dict[str, float],\n    pair: tuple[int, str],\n    maybe: int | None,\n) -> set[str]:\n    ...",
+      "difficulty": "easy",
+      "answer": {
+        "text": "None of them. Since Python 3.9 the built-in containers subscript directly (list[int], dict[str, float]), and since 3.10 unions use the pipe: int | None. The capitalized List, Dict, Optional from the typing module are the legacy spelling you will still meet in older codebases; new code drops the imports.\n\nReading guide: dict[str, float] is keys then values, tuple[int, str] is position by position (exactly two elements here; variable length is tuple[int, ...]).",
+        "output": "(no output, and no imports needed: this is valid modern Python)"
+      }
+    },
+    {
+      "id": 3,
+      "question": "The Optional misconception: which calls does mypy accept?",
+      "code": "from typing import Optional\n\ndef greet(name: Optional[str]) -> str:\n    return f\"hi {name or 'friend'}\"\n\ngreet(\"ana\")     # A\ngreet(None)      # B\ngreet()          # C",
+      "difficulty": "hard",
+      "answer": {
+        "text": "A and B pass, C fails, at runtime too: greet() is missing a required argument.\n\n**Optional[str] does not mean the argument is optional.** It means str | None, \"a string or the value None\", and that is all. The parameter is still required; you must pass something.\n\nAn argument becomes optional only with a default: def greet(name: str | None = None). The name Optional is widely considered a naming mistake, which is one more reason modern code writes str | None and retires the import.",
+        "output": "A: ok\nB: ok\nC: TypeError: greet() missing 1 required positional argument: 'name'"
+      }
+    },
+    {
+      "id": 4,
+      "question": "What is mypy complaining about?",
+      "code": "def find_user(uid: int) -> str | None:\n    return \"obydul\" if uid == 1 else None\n\nname = find_user(2)\nprint(name.upper())\n# mypy: error: Item \"None\" of \"str | None\" has no attribute \"upper\"",
+      "difficulty": "medium",
+      "answer": {
+        "text": "The return type says this can be None, and calling .upper() on None crashes, so mypy blocks it **before it becomes the 3am AttributeError**.\n\nThe fix is narrowing: prove to the checker (and yourself) that None is handled. After if name is not None:, mypy treats name as plain str inside the block. isinstance checks, early returns, and assert name is not None all narrow the same way.\n\nThis dance is the single biggest day-to-day benefit of typing: every function that can return None becomes impossible to use carelessly.",
+        "code": "name = find_user(2)\nif name is not None:\n    print(name.upper())",
+        "output": "(at runtime: AttributeError: 'NoneType' object has no attribute 'upper')"
+      }
+    },
+    {
+      "id": 5,
+      "question": "What does @dataclass write for you? Predict all three",
+      "code": "from dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: int\n    y: int = 0\n\np = Point(3)\nprint(p)\nprint(p == Point(3, 0))\nprint(p == Point(3, 1))",
+      "difficulty": "easy",
+      "answer": {
+        "text": "The decorator reads the **annotated class attributes** and generates __init__, __repr__, and __eq__ from them. That is chapter 7's boilerplate trio, written for you: a real constructor, a readable repr, and equality that compares fields instead of identity.\n\nNote y = 0 became a default parameter, and the field order is the argument order.\n\nOne line of decorator replacing three dunder methods is why dataclasses took over Python record-keeping. For validation and serialization on top, the third-party step up is pydantic, same idea plus enforcement.",
+        "output": "Point(x=3, y=0)\nTrue\nFalse"
+      }
+    },
+    {
+      "id": 6,
+      "question": "The mutable default, dataclass edition: predict what happens",
+      "code": "from dataclasses import dataclass, field\n\n@dataclass\nclass Basket:\n    items: list = []",
+      "difficulty": "medium",
+      "answer": {
+        "text": "It refuses to even define the class. Dataclasses know chapter 5's shared-mutable-default trap and **ban it at class creation time**, an error at import rather than corrupted state at 3am. Plain functions let you walk into it; dataclasses slam the door.\n\nThe sanctioned form is field(default_factory=list): the factory runs **per instance**, so every Basket gets its own list.\n\ndefault_factory takes any zero-argument callable, same contract as defaultdict in chapter 10.",
+        "code": "@dataclass\nclass Basket:\n    items: list = field(default_factory=list)",
+        "output": "ValueError: mutable default <class 'list'> for field items is not allowed: use default_factory"
+      }
+    },
+    {
+      "id": 7,
+      "question": "frozen=True: what breaks and what unlocks?",
+      "code": "from dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Config:\n    host: str\n    port: int\n\nc = Config(\"db.local\", 5432)\nc.port = 9999\nprint({c: \"primary\"})",
+      "difficulty": "medium",
+      "answer": {
+        "text": "frozen=True makes instances **immutable**: any assignment after __init__ raises FrozenInstanceError, so the port change dies (and the print below it never runs).\n\nWhat you get in exchange: frozen dataclasses are **hashable**, so they work as dict keys and set members. Chapter 7's rule in action: __eq__ normally kills the default hash, but frozen lets the dataclass generate a matching __hash__ safely, because nothing can mutate after hashing.\n\nConfigs, coordinates, cache keys: anything that should never change wants frozen=True.",
+        "output": "dataclasses.FrozenInstanceError: cannot assign to field 'port'"
+      }
+    },
+    {
+      "id": 8,
+      "question": "Field order: why does this class definition fail?",
+      "code": "from dataclasses import dataclass\n\n@dataclass\nclass Job:\n    retries: int = 3\n    name: str",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Dataclass fields become __init__ parameters **in declaration order**, and Python forbids a required parameter after one with a default, the same rule as any function signature: def __init__(self, retries=3, name) is illegal.\n\nSo the class dies at definition time with a TypeError naming both fields.\n\nFixes: put required fields first (name, then retries), give everything defaults, or use field(kw_only=True) on the trailing required ones, which moves them to keyword-only where the ordering rule does not apply.",
+        "output": "TypeError: non-default argument 'name' follows default argument"
+      }
+    },
+    {
+      "id": 9,
+      "question": "TypedDict: what does it check, and when?",
+      "code": "from typing import TypedDict\n\nclass UserRow(TypedDict):\n    name: str\n    age: int\n\nrow: UserRow = {\"name\": \"ana\", \"age\": 30}\nbad: UserRow = {\"name\": \"bo\"}\nprint(type(row))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "TypedDict types the **shape of a plain dict**: which keys exist, what type each value has. mypy flags bad for the missing age key. At runtime, nothing happens: both lines run, and type(row) is plain dict, no special object, no validation, no overhead.\n\nThis is the tool for dicts that cross boundaries with a known shape: JSON payloads, API responses, database rows. The dict stays a dict; only the checker gets stricter.\n\nWhen do you want a dataclass instead? When the object is yours: methods, defaults, identity. TypedDict is for data that arrives as dicts and stays dicts.",
+        "output": "<class 'dict'>"
+      }
+    },
+    {
+      "id": 10,
+      "question": "Protocol: duck typing with a contract. What does mypy say?",
+      "code": "from typing import Protocol\n\nclass Speaker(Protocol):\n    def speak(self) -> str: ...\n\nclass Dog:\n    def speak(self) -> str:\n        return \"woof\"\n\nclass Rock:\n    pass\n\ndef announce(s: Speaker) -> None:\n    print(s.speak())\n\nannounce(Dog())\nannounce(Rock())",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Dog never mentions Speaker, yet announce(Dog()) type-checks. Protocol is **structural**: anything with a matching speak() method satisfies it, no inheritance, no registration. announce(Rock()) fails mypy (and would crash at runtime) because Rock has no speak.\n\nThis is chapter 7's duck typing with the safety net bolted on: the flexibility of \"if it quacks\" plus a checker that verifies the quack **before** runtime.\n\nCompare with ABCs (abstract base classes), which are nominal: subclasses must inherit explicitly. Protocols let you type third-party classes you cannot modify, which is why they became the idiomatic interface tool.",
+        "output": "woof\nAttributeError: 'Rock' object has no attribute 'speak' (and mypy flags it before you run)"
+      }
+    },
+    {
+      "id": 11,
+      "question": "Any vs object: they both accept everything, so what differs?",
+      "code": "from typing import Any\n\ndef f(x: Any) -> None:\n    x.upper()\n    x + 1\n\ndef g(x: object) -> None:\n    x.upper()\n    x + 1",
+      "difficulty": "hard",
+      "answer": {
+        "text": "Both signatures accept any argument. The difference is what you may **do with it inside**. Any switches type checking off: mypy trusts every operation on x, so f passes silently and crashes at runtime as it pleases. object is the opposite: it promises nothing, so mypy rejects both lines in g until you narrow with isinstance.\n\nRule of thumb: object means \"anything, and I will prove what it is before using it\", Any means \"stop checking me\". Every Any is a hole in the safety net, and they spread: values flowing out of an Any expression become Any too. Prefer object, generics, or unions; keep Any for gradual-typing borders you have not migrated yet.",
+        "output": "f: mypy silent, crashes at runtime\ng: mypy errors on both lines (object has no attribute upper, unsupported operand +)"
+      }
+    },
+    {
+      "id": 12,
+      "question": "Typing a callback: read this signature out loud",
+      "code": "from collections.abc import Callable\n\ndef apply_twice(f: Callable[[int], int], x: int) -> int:\n    return f(f(x))\n\nprint(apply_twice(lambda n: n * 3, 2))",
+      "difficulty": "medium",
+      "answer": {
+        "text": "Callable[[int], int] reads \"a function taking one int and returning an int\". The outer brackets hold two slots: the argument list, then the return type. Callable[..., int] is the loose form when you only care about the return.\n\nThis is chapter 5's functions-are-objects made checkable: pass the wrong shape of function and mypy names the mismatch.\n\nSmall modernization note: import Callable from collections.abc, not typing, in new code. Same name, blessed home.",
+        "output": "18"
+      }
+    },
+    {
+      "id": 13,
+      "question": "Generics: why is T better than Any here?",
+      "code": "def first_any(items: list) -> Any:\n    return items[0]\n\ndef first[T](items: list[T]) -> T:\n    return items[0]\n\nname = first([\"ana\", \"bo\"])\nname.upper()          # what does mypy know?\nnum = first([1, 2])\nnum.upper()           # and here?",
+      "difficulty": "hard",
+      "answer": {
+        "text": "The type variable T **links input to output**: give first a list[str] and mypy knows the result is str, so name.upper() checks. Give it list[int] and the result is int, so num.upper() is flagged, exactly the bug it is.\n\nfirst_any returns Any, which upper()s and plus-ones without complaint and crashes at runtime instead. The generic keeps type information flowing **through** the function; Any drops it at the door.\n\nThe def first[T](...) syntax is Python 3.12+. Older code declares T = TypeVar(\"T\") first, same meaning, more ceremony.",
+        "output": "name.upper(): mypy ok (T = str)\nnum.upper(): mypy error: \"int\" has no attribute \"upper\""
+      }
+    },
+    {
+      "id": 14,
+      "question": "The annotation that assigns nothing: predict the output",
+      "code": "x: int\nprint(x)",
+      "difficulty": "medium",
+      "answer": {
+        "text": "NameError. **An annotation alone does not create the variable.** x: int records \"if x ever exists here, it is an int\" in the module's __annotations__ dict and binds nothing. Only x: int = 0 assigns.\n\nThe same syntax behaves differently inside a dataclass, where annotated names become real fields, which is exactly how @dataclass finds them. That contrast trips people in both directions.\n\nLegit use for the bare form: declaring a variable's type before a conditional assignment, so the checker knows what both branches must produce.",
+        "output": "NameError: name 'x' is not defined"
+      }
+    }
+  ]
+}

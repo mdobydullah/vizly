@@ -5,14 +5,16 @@ import { MdxRenderer } from '@/components/articles/MdxRenderer';
 import '@/styles/articles/articles.css';
 
 // MDX components available in articles
-import { Callout, MermaidBlock, Definition } from '@/components/articles/mdx';
+import { Callout, MermaidBlock, Definition, QuestionList, CodeCopyBlock } from '@/components/articles/mdx';
 import { LightboxImage } from '@/components/common/LightboxImage';
 
 const mdxComponents = {
   Callout,
   MermaidBlock,
   Definition,
+  QuestionList,
   LightboxImage,
+  pre: CodeCopyBlock,
 };
 
 interface ArticlePageProps {

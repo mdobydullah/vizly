@@ -1,0 +1,87 @@
+---
+title: "Python Comprehensions & Generators"
+slug: python-comprehensions-generators
+category: python
+series: python-fundamentals
+seriesOrder: 6
+description: "Chapter 6 of Python Fundamentals. 14 practice drills on list/dict/set comprehensions, generator expressions, yield, laziness, and exhaustion. Predict the output before you run anything."
+tags:
+  - Python
+  - Fundamentals
+  - Practice
+  - Beginner
+icon: "🌀"
+color: green
+createdAt: "2026-07-03T15:00:00Z"
+updatedAt: "2026-07-03T15:00:00Z"
+author: obydul
+---
+
+## The rules, again
+
+Same game as [chapter 1](/articles/python-variables-types): read the question, commit to a prediction, run it, and only then open the answer. Wrong prediction means the drill goes on your redo list for three days from now.
+
+This chapter is where Python starts feeling like Python. Comprehensions are the surface: one-line list building that every codebase uses. Generators are the depth: functions that pause mid-thought, sequences that never fit in memory, and the one-shot exhaustion trap that produces the quietest bug in the language.
+
+<Callout type="info" title="Learn the concepts first">
+Rusty on the basics? Work through [List Comprehensions](https://www.learnpython.org/en/List_Comprehensions) and [Generators](https://www.learnpython.org/en/Generators) on learnpython.org first, then come back and drill.
+</Callout>
+
+---
+
+## One idea before you start
+
+Every generator drill in this chapter is the same principle wearing different costumes.
+
+<Definition
+  term="lazy evaluation"
+  langs={{
+    en: 'Lazy evaluation means computing a value only at the moment something asks for it. A list holds all its values right now; a generator holds a recipe and cooks one value per request. That is why generators handle huge or infinite sequences in constant memory, and why they are empty after one pass: the recipe has been used up.',
+  }}
+/>
+
+---
+
+## The drills
+
+Click a question to open it. The answer stays hidden until you ask for it. Predict first.
+
+<QuestionList quiz="python-fundamentals/python-comprehensions-generators" />
+
+---
+
+## Want more drills?
+
+When these stop surprising you, let an AI generate fresh ones. Copy this prompt into ChatGPT, Claude, or any assistant you like:
+
+```text
+You are my Python drill coach. Quiz me on: list, dict, and set
+comprehensions, nested comprehensions, generator expressions, yield,
+next() and StopIteration, generator exhaustion, and any()/all().
+
+Rules:
+- Ask ONE question at a time. Show a short code snippet and ask me to
+  predict the output (or the error) before running it.
+- Wait for my answer. Do not reveal anything until I reply.
+- If I am right, say so in one line and raise the difficulty slightly.
+- If I am wrong, explain the why in 2-3 sentences, then give me a
+  similar question later to check I really got it.
+- Prefer tricky edge cases over textbook questions: if-filter vs
+  if-else transform position, flattening order of nested fors, {} being
+  a dict, consuming a generator twice, print statements inside a
+  generator function, all([]) being True.
+- Keep score. After 10 questions, list the concepts I missed so I can
+  add them to my redo list.
+
+Start with a medium question.
+```
+
+The predict-first rule matters more than the tool. Whatever generates the questions, always commit to an answer before you look.
+
+---
+
+## Done?
+
+Score yourself honestly and queue up your misses. The two career-savers here: drill 7 (nothing runs until you ask) and drill 8 (one pass and it is gone). Between them they explain most "my data disappeared" bugs involving generators, and drill 13's `all([])` is a real production incident wearing a quiz costume.
+
+Next chapter: object-oriented Python, where `self` stops being mysterious and dunder methods let your objects speak the language's native tongue.

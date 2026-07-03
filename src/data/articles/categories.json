@@ -58,5 +58,11 @@
     "name": "Math",
     "color": "blue",
     "icon": "sigma"
+  },
+  {
+    "slug": "python",
+    "name": "Python",
+    "color": "green",
+    "icon": "code"
   }
 ]
