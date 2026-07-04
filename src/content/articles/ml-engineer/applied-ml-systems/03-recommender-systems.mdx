@@ -1,0 +1,159 @@
+---
+title: "Recommender Systems"
+slug: recommender-systems
+category: machine-learning
+series: applied-ml-systems
+seriesOrder: 3
+description: "How do you guess what someone wants from a table that is 99 percent empty? Inside the two-stage machinery behind every 'you might also like'."
+tags:
+  - ML
+  - Recommenders
+  - Embeddings
+icon: "🎯"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The problem hiding behind "you might also like"
+
+Every shopping app, streaming service, and food delivery platform faces the same puzzle. You have a million users, a million items, and a tiny sliver of evidence about who likes what. From that sliver, you have to guess what each person wants next.
+
+Fraud detection and credit scoring, the systems we've covered so far, are about preventing losses. Recommenders are the revenue side of the house. In a fintech app, they decide which merchant cashback offer you see when you open the app, whether the checkout suggests an installment plan, and which card or savings product gets cross-sold to which customer.
+
+Get it right and users feel understood. Get it wrong and your app feels like spam.
+
+There are two classic ways to attack the problem, and they think in completely different directions.
+
+---
+
+## Collaborative filtering vs content-based: two ways to guess
+
+**Content-based filtering** reasons about items. You bought running shoes, so here are more sports products. It matches item attributes (category, brand, price range, description) against your history. Simple, explainable, and it works for brand new items the moment they get a description.
+
+**Collaborative filtering** reasons about people. It ignores what items *are* entirely. It just notices that users who behave like you also bought a protein shaker, so maybe you want one too. No item descriptions needed, only behavior.
+
+Collaborative filtering is the one that produces the magic moments, the recommendation that feels weirdly perceptive. That's because it can discover connections nobody would tag. There's no attribute linking diapers to a particular energy drink, but if thousands of new parents buy both, collaborative filtering finds it.
+
+| | Content-based | Collaborative |
+|---|---|---|
+| Uses | Item attributes | Behavior of similar users |
+| New items | Handles them fine | Struggles until interactions arrive |
+| New users | Struggles without history | Struggles without history |
+| Surprises | Rare, stays in your lane | Yes, cross-category discovery |
+| Needs | Good item metadata | Lots of interaction data |
+
+Production systems almost always blend both. But to understand the collaborative side, you need to meet the data structure at the heart of it all.
+
+---
+
+## The user-item matrix, and its enormous emptiness
+
+Picture a giant table. One row per user, one column per item, and each cell holds that user's interaction with that item: a rating, a purchase, a click.
+
+Now the punchline: almost every cell is empty.
+
+A user might interact with a few hundred items out of a million. That's 99.9 percent of the row blank. This is called **sparsity**, and it's the defining constraint of the whole field. The recommendation problem is literally "fill in the blanks of a matrix that is almost entirely blanks."
+
+Early systems tried direct comparison: find users whose filled-in cells overlap with yours, recommend what they liked. This works at small scale and collapses at large scale. With extreme sparsity, most pairs of users share almost nothing, so who counts as "similar" gets noisy and computing similarities across millions of users gets expensive.
+
+The breakthrough was to stop comparing rows directly and start compressing them.
+
+---
+
+## Embeddings: give everyone coordinates
+
+Here's the idea that carries modern recommenders, and honestly much of modern ML.
+
+Instead of describing a user by a million-column row, describe them by a short list of numbers, maybe 64 of them. Do the same for every item. These compact number lists are called **embeddings**, and you can think of them as coordinates in a shared space.
+
+The rule of the space is simple: a user's predicted affinity for an item is how well their coordinates align, computed with a dot product. Users end up near items they'd like. Similar items end up near each other.
+
+Where do the coordinates come from? The classic technique is **matrix factorization**. You start with random embeddings, predict the cells of the matrix you *do* know, measure the error, and nudge the numbers to shrink it. Guess, check, adjust, repeat. The same training loop as every other model, just aimed at filling in a matrix.
+
+Nobody tells the model what the 64 dimensions mean. They emerge from the data. One direction might end up loosely encoding "premium vs budget," another "electronics vs fashion." Usually they're not that interpretable, and that's fine. The geometry works even when the axes have no names.
+
+The payoff for sparsity is huge. Even if you and another user never touched the same item, the model can still relate you through the shared space. Your purchases pull your embedding somewhere, theirs pull them nearby, and suddenly their favorite merchant is a sensible suggestion for you.
+
+---
+
+## What about brand new users and items?
+
+Embeddings are learned from interactions. So what happens when there are no interactions yet?
+
+This is the **cold start problem**, and every recommender team fights it on two fronts.
+
+A new user signs up and their embedding is a shrug. Common fixes: recommend popular items as a safe default, use signup signals like location and device, or ask directly ("pick three categories you like"). In a fintech app you have a nice extra: transaction history often arrives before any browsing behavior, so you know a lot about a new user's tastes from day one of card usage.
+
+A new item, say a merchant offer launched today, has no interactions either. Here content saves you: build its starting embedding from attributes like category, price band, and description text, then let real interactions refine it.
+
+<Callout type="tip" title="Cold start is a business problem too">
+Whoever onboards new users and merchants will ask why new listings get no traffic. "The model hasn't seen interactions yet" is true but unhelpful. Good systems deliberately give fresh items some exposure, a bit like an exploration budget, so they can earn their embedding.
+</Callout>
+
+---
+
+## Implicit vs explicit feedback: what counts as a signal?
+
+**Explicit feedback** is a user telling you what they think: a star rating, a thumbs up. It's clean, direct, and extremely rare. Most people never rate anything.
+
+**Implicit feedback** is behavior: clicks, views, purchases, dwell time, adding to a wishlist. It's abundant, it's what nearly all production systems run on, and it's tricky in one specific way.
+
+Implicit data has no negatives. A purchase is a positive signal, but a non-purchase is not a negative one. Maybe they disliked the item. Maybe they never saw it. Silence is ambiguous, so models treat unobserved items as weak, uncertain negatives rather than firm dislikes, and weight confirmed positives much more heavily.
+
+One more trap: signal strength varies wildly. A click is a whisper, a purchase is a shout, a refund is a retraction. In payments, a transaction is about the strongest implicit signal there is. Someone paid at that merchant with their own money. Treating all signals equally is a classic beginner mistake.
+
+---
+
+## Why production recommenders have two stages
+
+Now the systems part. Suppose your ranking model is accurate but takes a few milliseconds per item it scores. You have a million candidate items and a page to render in 100 milliseconds. Scoring everything is off the table by orders of magnitude.
+
+Production systems solve this with a funnel.
+
+**Stage one, retrieval:** cheaply narrow a million items to a few hundred plausible candidates. This is where embeddings shine. Approximate nearest neighbor search finds the few hundred items closest to the user's embedding in a handful of milliseconds. Several retrievers usually run in parallel: embedding similarity, trending items, new arrivals, repeat-purchase candidates.
+
+**Stage two, ranking:** run a heavier model, very often gradient boosted trees or a neural ranker, over just those few hundred. Now you can afford rich features: user history, item stats, time of day, device, how well this user historically responds to offers like this. The ranker orders the shortlist and the top handful get shown.
+
+<MermaidBlock>
+graph LR
+    A["Item catalog\n1M items"] --> B["Retrieval\nembedding ANN search\nplus trending, new"]
+    B --> C["Candidates\n~500 items"]
+    C --> D["Ranking model\nrich features\nscores each one"]
+    D --> E["Business rules\nfilter, diversify,\nboost sponsored"]
+    E --> F["Top 10 shown\nto the user"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Cheap-but-broad, then expensive-but-narrow. If you've ever put a bloom filter or a cache in front of a database, you already understand the architecture. And notice the rules layer at the end, doing filtering and business overrides. Sound familiar? Fraud systems ended the same way. Models propose, rules dispose.
+
+---
+
+## Accuracy isn't the whole scoreboard
+
+Offline, teams measure things like precision-at-10: of the ten items we showed, how many did the user actually engage with? Useful, but optimizing it alone produces a system users grow to hate.
+
+Pure accuracy-chasing recommends the obvious. You bought a phone case, here are eleven more phone cases. Technically "relevant," practically useless, and over time the app feels like it has one idea.
+
+So mature teams also track **diversity**, whether one page of results spans different categories, and **serendipity**, whether the system ever surprises you with something you didn't know you wanted but loved. A little controlled randomness and some exploration slots typically buy long-term engagement at a small cost in short-term clicks.
+
+The real scoreboard is the A/B test. Offline metrics decide what's worth testing; live experiments on retention and revenue decide what ships.
+
+<Callout type="info" title="The fintech version of relevance">
+For merchant offers and product cross-sell, "accurate" isn't enough either. An offer the user would have used anyway earns nothing incremental, and cross-selling a credit product still has to pass the risk models from the previous article. Recommenders in fintech sit inside a web of constraints that pure e-commerce never worries about.
+</Callout>
+
+---
+
+## What's next?
+
+Fraud, credit, and recommendations all predict something about a person or a transaction. The next system predicts something about *time itself*: how many transactions will we process next Friday, how much cash does this product line need next quarter?
+
+That's **Time-Series Forecasting**, where the data has a memory, seasonality rules everything, and the humble baseline of "predict the same as last week" is embarrassingly hard to beat.

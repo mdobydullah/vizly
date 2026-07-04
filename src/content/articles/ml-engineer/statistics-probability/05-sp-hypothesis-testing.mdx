@@ -1,0 +1,182 @@
+---
+title: "Hypothesis Testing & Confidence Intervals"
+slug: sp-hypothesis-testing
+category: machine-learning
+series: statistics-probability
+seriesOrder: 5
+description: "Your new checkout flow converted 0.4% better. Real improvement, or just luck? Here's how to actually tell the difference."
+tags:
+  - ML
+  - Statistics
+  - A/B Testing
+icon: "⚖️"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The question every experiment comes down to
+
+Your team just shipped a new checkout flow for your BNPL app. The old flow converted at 3.1%. Two weeks after launch, the new one sits at 3.5%.
+
+Someone posts a chart in Slack. The product manager is already drafting the announcement.
+
+But hold on. Is that 0.4% a real improvement, or did you just get lucky with the users who happened to show up those two weeks?
+
+That question, "real effect or random noise?", is the entire point of hypothesis testing. Once you see the pattern, you'll notice it everywhere: model comparisons, fraud rule changes, pricing experiments, all of it.
+
+---
+
+## Start by assuming nothing changed
+
+Here's the mental move that makes everything click. Instead of asking "did my change work?", you flip it around and play devil's advocate against yourself.
+
+You assume the change did absolutely nothing.
+
+That assumption has a formal name: the **null hypothesis**. In our checkout example, the null hypothesis says "the new flow converts exactly as well as the old one, and any difference you see is random fluctuation."
+
+Then you ask one question: *if the null hypothesis were true, how surprising would my data be?*
+
+If the data would be really surprising under "nothing changed," then maybe something actually changed. If the data looks pretty normal under "nothing changed," you have no business claiming victory.
+
+It's the same logic as a courtroom. The defendant is presumed innocent, and you need strong evidence to convict. The null hypothesis is presumed true, and you need surprising data to reject it.
+
+<MermaidBlock>
+graph TB
+    A["Assume nothing changed\nnull hypothesis"] --> B["Run the experiment\ncollect conversion data"]
+    B --> C["Ask: how surprising is\nthis data if nothing changed?"]
+    C --> D["Very surprising\nreject the null\nchange probably worked"]
+    C --> E["Not surprising\nkeep the null\nno evidence of a change"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+---
+
+## So what is a p-value, really?
+
+The p-value is just the answer to that "how surprising?" question, written as a probability.
+
+Say you run the numbers on your checkout experiment and get p = 0.03. Here's what that means, in plain words:
+
+*If the new flow truly made no difference, you'd see a gap this big (or bigger) only about 3% of the time, purely by chance.*
+
+That's it. That's the whole definition. The data is pretty surprising under "nothing changed," so you lean toward "something changed."
+
+Now here's the part people get wrong constantly, including people with years of experience.
+
+**p = 0.03 does NOT mean there's a 97% chance your new flow is better.**
+
+It also doesn't mean there's a 3% chance the null hypothesis is true. The p-value says nothing directly about your hypothesis. It only describes your data: how weird this data would be *in a world where nothing changed*.
+
+The difference sounds pedantic but it matters. The p-value is "probability of this data, given no effect." What you actually want is "probability of an effect, given this data." Those are different quantities, and confusing them is like confusing "probability a transaction is flagged, given it's fraud" with "probability it's fraud, given it's flagged." If you read the Bayes article earlier in this series, you know those two can be wildly different numbers.
+
+<Callout type="warning" title="The 0.05 threshold is a convention, not a law of nature">
+The famous cutoff of p &lt; 0.05 for "statistically significant" was basically an arbitrary choice made by statistician Ronald Fisher in the 1920s that stuck. There is nothing magical about it. A p-value of 0.049 and 0.051 are telling you almost exactly the same thing, yet one gets celebrated and the other gets buried. Treat p-values as a continuous measure of surprise, not a pass/fail exam.
+</Callout>
+
+---
+
+## Confidence intervals: the more honest cousin
+
+A p-value gives you a yes/no signal. A **confidence interval** gives you a range, and honestly, it's usually the more useful of the two.
+
+Back to the checkout flow. Instead of just saying "the improvement is significant," you compute a 95% confidence interval for the lift and get something like:
+
+**+0.1% to +0.7%**
+
+Read that as: "given the data, the true improvement is plausibly somewhere between a barely-there 0.1% and a solid 0.7%."
+
+The precise definition is a bit slippery. It's *not* "there's a 95% chance the true value is in this range." Technically it means: if you reran this exact experiment many times and built an interval each time, about 95% of those intervals would contain the true value. Your one interval either contains it or it doesn't, you just don't know which.
+
+For day-to-day work, though, the practical reading is fine: the interval is the set of values your data is compatible with.
+
+And it carries information a p-value hides. Compare these two results:
+
+| Result | p-value | 95% CI for lift | What it actually tells you |
+|--------|---------|-----------------|----------------------------|
+| Experiment A | 0.03 | +0.1% to +0.7% | Real but possibly tiny effect |
+| Experiment B | 0.03 | +2.0% to +14.0% | Real and possibly huge, but very uncertain |
+| Experiment C | 0.40 | -0.5% to +1.2% | No idea yet, could be anything |
+
+Same p-value for A and B, completely different business decisions. That's why interviewers at fintech companies love asking about confidence intervals: they reveal whether you think about *effect size*, not just significance.
+
+If the interval includes zero, like Experiment C, you can't rule out "no effect at all." That's exactly equivalent to a non-significant p-value, just displayed in a way that shows how much you don't know.
+
+---
+
+## How this plays out in a real A/B test
+
+Let me walk through the checkout experiment properly, the way you'd actually run it.
+
+**Before launch**, you decide three things:
+
+1. The metric: conversion rate from cart to completed payment.
+2. The minimum effect you care about: say, an absolute lift of 0.3%. Anything smaller isn't worth the engineering maintenance.
+3. The sample size needed to detect that effect. For rates around 3%, that works out to tens of thousands of users per group. You commit to that number *up front*.
+
+**During the test**, you randomly split traffic. Half see the old flow, half see the new one. Randomization is doing the heavy lifting here: it makes both groups statistically identical in every way except the thing you changed.
+
+**After** the predetermined sample size is reached, you run the test once. Suppose you get p = 0.02 and a confidence interval of +0.15% to +0.65%.
+
+Now you can say something defensible: the improvement is probably real, and it's probably somewhere in that range. Whether +0.15% justifies keeping the new flow is a business call, but at least it's an informed one.
+
+Notice how much of the rigor happened *before* any data arrived. That's not an accident.
+
+---
+
+## The ways people cheat (often without realizing it)
+
+Here's the uncomfortable truth: the machinery of hypothesis testing only works if you follow the rules, and the rules are surprisingly easy to break by accident.
+
+**Peeking.** You launch the test, and every morning you check the dashboard. On day 6, p dips to 0.04. You call it, ship it, celebrate.
+
+The problem: p-values wobble around as data comes in. If you check every day and stop the moment p crosses 0.05, you're not running one test, you're running many, and taking the best one. Do this routinely and your false positive rate can climb from 5% to 30% or more. The "significant" result was often just you catching the p-value on a lucky bounce.
+
+**p-hacking.** You test the new flow overall: not significant. So you slice: Android users? iOS users? New customers? Weekend traffic? Eventually, iOS users aged 25 to 34 show p = 0.04, and that becomes the headline.
+
+Run 20 slices and, even if the flow does nothing, you *expect* one of them to hit p &lt; 0.05 by pure chance. That's literally what "5% false positive rate" means. Fishing through subgroups until something bites isn't discovery, it's noise mining.
+
+<MermaidBlock>
+graph LR
+    A["Run 20 subgroup\ntests on null data"] --> B["Expect about 1\nfalse positive"]
+    B --> C["Report only\nthe hit"]
+    C --> D["Looks like a finding\nis actually noise"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+The fix for both is the same: decide your metric, your sample size, and your subgroups *before* the experiment, then stick to the plan. If you genuinely need to monitor a test continuously, there are sequential testing methods built for that, but the default dashboard-watching workflow is not one of them.
+
+<Callout type="tip" title="A smell test for any A/B result">
+When someone shows you a significant result, ask two questions. One: was the sample size fixed in advance, or did the test stop when it looked good? Two: how many metrics and segments were checked? If the answers are "we stopped when it hit significance" and "we looked at everything," treat the result as a hypothesis to re-test, not a conclusion.
+</Callout>
+
+---
+
+## Why this matters for ML work specifically
+
+You might be thinking this is product-analytics stuff, not ML. But the same logic runs through model work.
+
+Comparing a new fraud model against the old one on a validation set? That difference in AUC is a sample statistic with noise around it, exactly like the conversion rates. A 0.002 AUC bump on one validation split might vanish on the next.
+
+Rolling out a new credit scoring model behind an experiment? That's an A/B test with money on the line, and peeking is just as dangerous there.
+
+Hyperparameter searches are p-hacking's twin: try 200 configurations, and the best one's validation score is partly skill, partly luck of the split. That's exactly why the test set exists, and why you touch it once.
+
+The habit to build is simple: whenever you see a difference between two numbers computed from data, your first question should be "could this be noise?" Hypothesis testing is just that question, made rigorous.
+
+---
+
+## Where this goes next
+
+So far we've been judging claims about data: is this effect real or not? But there's a deeper question hiding underneath. When you fit a model, how do you find the parameter values that best explain the data you've got?
+
+It turns out there's one beautiful principle behind almost all of it, and it explains why loss functions look the way they do. Next up: **Maximum Likelihood Estimation**, the idea that secretly powers every model training run you've ever launched.

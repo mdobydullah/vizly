@@ -1,0 +1,185 @@
+---
+title: "Maximum Likelihood Estimation"
+slug: sp-maximum-likelihood-estimation
+category: machine-learning
+series: statistics-probability
+seriesOrder: 6
+description: "MSE, cross-entropy, log loss. They all look arbitrary until you meet the single idea they fall out of: make your data least surprising."
+tags:
+  - ML
+  - Statistics
+  - Loss Functions
+icon: "🎯"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## One question, asked backwards
+
+Most of probability works forwards. You know the setup, you predict the data. "This coin is fair, so what's the chance of getting 7 heads in 10 flips?"
+
+Maximum likelihood estimation flips the direction. You already *have* the data. What you don't know is the setup that produced it.
+
+"I got 7 heads in 10 flips. What kind of coin was I most likely flipping?"
+
+That's the whole idea. You have data, and you're searching for the parameters that make that data **least surprising**. Whichever parameter values would have produced your data with the highest probability, those are your estimate.
+
+It sounds almost too simple to matter. But by the end of this article you'll see that every time you train a model with MSE or cross-entropy, you're doing exactly this. Every single time.
+
+---
+
+## The coin flip, worked out properly
+
+Say you flip a coin 10 times and get 7 heads. Let p be the probability of heads, the one unknown parameter of this tiny "model."
+
+If the flips are independent, the probability of any specific sequence with 7 heads and 3 tails is:
+
+```
+P(data | p) = p^7 × (1 - p)^3
+```
+
+Now try some candidate values of p and see how probable your actual data becomes under each:
+
+| Candidate p | p^7 × (1-p)^3 | How surprising is 7 heads? |
+|-------------|----------------|----------------------------|
+| 0.3 | 0.000075 | Very surprising |
+| 0.5 | 0.00098 | Somewhat surprising |
+| 0.7 | 0.00222 | Least surprising |
+| 0.9 | 0.00048 | Surprising again |
+
+The value p = 0.7 makes your data more probable than any other choice. Not a coincidence: 7 heads out of 10 flips, and the maximum likelihood estimate is exactly 7/10. If you take the formula, differentiate, and set the derivative to zero, p = 0.7 falls out.
+
+MLE just formalized what your gut already said. "The coin that best explains 70% heads is a coin that lands heads 70% of the time."
+
+Notice what p = 0.7 being the maximum does *not* mean. It doesn't mean the coin is definitely biased. A fair coin gives 7 heads reasonably often. MLE hands you the single best-fitting parameter, not a statement of certainty. With 10 flips the estimate is shaky, with 10,000 flips it gets sharp. If you read the hypothesis testing article, you already know how to quantify that shakiness.
+
+<MermaidBlock>
+graph LR
+    A["Observed data\n7 heads in 10 flips"] --> B["Try many values of p\ncompute likelihood of data"]
+    B --> C["p = 0.5 gives 0.00098"]
+    B --> D["p = 0.7 gives 0.00222"]
+    B --> E["p = 0.9 gives 0.00048"]
+    D --> F["Pick the peak\nMLE estimate p = 0.7"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Likelihood vs probability: same formula, different question
+
+Here's a distinction that trips people up in interviews, so let's nail it.
+
+The expression `p^7 × (1-p)^3` can be read two ways.
+
+**As probability**: fix the parameter, ask about data. "Given p = 0.5, how likely is 7 heads?" The parameter is known, the data varies.
+
+**As likelihood**: fix the data, ask about parameters. "Given that I saw 7 heads, how well does p = 0.5 explain it?" The data is known, the parameter varies.
+
+Same formula. Opposite direction of the question. When you treat it as a function of the parameter with the data held fixed, it's called the **likelihood function**, and its peak is the maximum likelihood estimate.
+
+One subtle consequence: likelihoods aren't probabilities of the parameters. They don't sum to 1 across parameter values, and a likelihood of 0.00222 isn't "a 0.222% chance p equals 0.7." Likelihood is only meaningful for *comparison*: p = 0.7 explains this data about 2.3 times better than p = 0.5 does. That's all it claims.
+
+<Callout type="info" title="A fintech version of the same move">
+Suppose 12 out of 400 BNPL loans in a new customer segment defaulted. What's your best single estimate of that segment's default rate? The MLE answer is 12/400 = 3%. Every time you've computed a rate from data and used it as an estimate, you were doing maximum likelihood without calling it that.
+</Callout>
+
+---
+
+## Why everyone works with log-likelihood instead
+
+Real datasets aren't 10 coin flips. A fraud model might see millions of transactions, and the likelihood of the whole dataset is the product of millions of individual probabilities, each one a number below 1.
+
+Multiply a million numbers below 1 together and you get something absurdly tiny, far smaller than a computer's floating point can represent. The likelihood underflows to zero and everything breaks.
+
+The fix is to take the logarithm. Logs turn products into sums:
+
+```
+log(a × b × c) = log(a) + log(b) + log(c)
+```
+
+So instead of multiplying a million tiny probabilities, you add a million manageable log-probabilities. And because log is an increasing function, whatever parameters maximize the likelihood also maximize the log-likelihood. Same peak, same answer, no numerical explosion.
+
+There's a bonus: sums are far nicer to differentiate than products, and gradient-based optimization lives on derivatives. So log-likelihood isn't a compromise, it's an upgrade.
+
+One last cosmetic step. Optimizers conventionally *minimize* things, so instead of maximizing log-likelihood, we minimize the **negative** log-likelihood. Keep that phrase in mind. You're about to see it wearing a disguise.
+
+---
+
+## The reveal: your loss functions were MLE all along
+
+Here's where it gets fun. Take the two most common loss functions in machine learning and look at where they actually come from.
+
+**Mean squared error is MLE with Gaussian noise.**
+
+Suppose you're predicting transaction amounts, and you assume each true value is your model's prediction plus some Gaussian noise. Write down the likelihood of the data under that assumption, take the log, flip the sign, and simplify.
+
+What drops out, up to constants that don't affect the optimum, is:
+
+```
+sum of (actual - predicted)^2
+```
+
+That's MSE. Minimizing squared error *is* maximizing the likelihood of your data under the assumption that errors are Gaussian. MSE was never an arbitrary choice, it's a probabilistic assumption in disguise. It also explains a famous weakness: Gaussians make huge errors nearly impossible, so MSE panics over outliers. One whale transaction can drag your whole fit. If your errors have heavy tails, the Gaussian assumption is wrong, and a different noise assumption gives you a different loss (Laplace noise gives you mean absolute error, for instance).
+
+**Cross-entropy is MLE for classification.**
+
+Now suppose you're building a fraud classifier that outputs a probability for each transaction. The likelihood of your labeled dataset is: for each fraudulent transaction, the probability your model assigned to fraud, and for each legit one, the probability it assigned to legit, all multiplied together.
+
+Take the log, flip the sign, and you get exactly the cross-entropy loss (also called log loss):
+
+```python
+# negative log-likelihood of the labels = cross-entropy
+loss = -sum(
+    log(p_i) if y_i == 1 else log(1 - p_i)
+    for p_i, y_i in zip(predictions, labels)
+)
+```
+
+This is why cross-entropy punishes confident wrong answers so brutally. If your model says "0.1% chance of fraud" and the transaction is fraud, the likelihood of that observation is 0.001, and its negative log blows up. The loss isn't being dramatic. It's reporting, honestly, just how surprised your model was.
+
+<MermaidBlock>
+graph TB
+    A["One principle\nmaximize likelihood of the data"] --> B["Assume Gaussian noise\non a regression target"]
+    A --> C["Assume Bernoulli labels\nfor classification"]
+    B --> D["Negative log-likelihood\nsimplifies to MSE"]
+    C --> E["Negative log-likelihood\nis exactly cross-entropy"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Every training run is secretly MLE
+
+Step back and look at what this means.
+
+When you train a model, you pick a loss function and run gradient descent to minimize it. But we just saw that the standard losses *are* negative log-likelihoods under specific assumptions about your data. So the training loop is really doing this:
+
+Search over all possible parameter values. Find the ones under which the training data would have been least surprising.
+
+That's maximum likelihood estimation, executed by gradient descent instead of calculus. The coin flip example and a billion-parameter neural network are running the same play. The coin had one parameter and we could solve for the peak by hand. The network has too many parameters for that, so we walk uphill on the log-likelihood surface step by step. Different search method, identical objective.
+
+This framing pays off in practice, not just in interviews. When a loss behaves badly, you can now ask *why* in probabilistic terms. MSE getting wrecked by outliers means your Gaussian noise assumption is wrong. Cross-entropy spiking means your model is confidently wrong, which is a calibration problem. Choosing a loss stops being ritual and becomes a modeling decision: what do I actually believe about how this data was generated?
+
+<Callout type="tip" title="The interview one-liner">
+If someone asks why we use cross-entropy for classification, the strong answer is one sentence: "It's the negative log-likelihood of the labels under the model, so minimizing it is maximum likelihood estimation." That single line signals you understand where loss functions come from, not just how to import them.
+</Callout>
+
+---
+
+## What's next?
+
+MLE finds the parameters that fit your training data best. But here's the catch, and it's a big one: fitting your training data *too* well is one of the classic ways models fail in production. A fraud model that perfectly explains last year's fraud can be useless against next month's.
+
+Next, the series finale: **The Bias-Variance Tradeoff**, the framework for understanding why models fail, which direction they're failing in, and which knob to turn to fix it.

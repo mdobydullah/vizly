@@ -1,0 +1,177 @@
+---
+title: "Time-Series Forecasting"
+slug: time-series-forecasting
+category: machine-learning
+series: applied-ml-systems
+seriesOrder: 4
+description: "Why does a model that aces every offline test fall apart on next month's data? Because time breaks the rules you learned everywhere else."
+tags:
+  - ML
+  - Forecasting
+  - Time Series
+icon: "📈"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Why is time data so different?
+
+Every ML problem we've covered so far had one comforting property: the rows were independent. One fraud case doesn't care about the fraud case before it. One borrower's default doesn't depend on the previous borrower.
+
+Time series throws that out the window.
+
+Today's transaction volume depends on yesterday's. Yesterday's depended on the day before. The rows are chained together, and the order of the chain is the whole point. Shuffle a fraud dataset and nothing changes. Shuffle a time series and you've destroyed the signal you were trying to learn.
+
+There's a second twist. In normal ML, you predict a hidden label for data you already have. In forecasting, you predict values that literally do not exist yet. The future hasn't happened. That single fact changes how you build features, how you validate, and how you report results.
+
+If you've built backend systems, you already have decent intuition here. You've stared at traffic graphs. You know Mondays look different from Sundays and that a marketing push makes everything spike. Forecasting is just turning that intuition into a model.
+
+---
+
+## What's actually inside a time series?
+
+Take a payments company processing card transactions. Plot daily transaction volume for two years and you'll see a messy wiggly line. But that mess is really three simpler signals stacked on top of each other.
+
+**Trend** is the long, slow direction. The company is growing, so volume drifts upward month after month. Zoom out far enough and the wiggle disappears, leaving a slope.
+
+**Seasonality** is the repeating pattern. Volume peaks on Fridays when salaries land, dips on Sundays, explodes near holidays and shopping festivals, and sags in the quiet weeks after. Same shape, every cycle, like clockwork.
+
+**Noise** is everything left over. A payment gateway outage. A viral merchant. Weather. Stuff no model will ever predict, and you shouldn't pretend otherwise.
+
+<MermaidBlock>
+graph TB
+    A["Daily transaction volume\nthe messy line you observe"] --> B["Trend\nsteady growth, up 3 percent monthly"]
+    A --> C["Seasonality\nFriday peaks, Sunday dips\nholiday spikes"]
+    A --> D["Noise\noutages, one-off events\nunpredictable leftovers"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+This decomposition isn't just a pretty picture. It tells you what's learnable. Trend and seasonality can be modeled. Noise cannot. A good forecast captures the first two and stays honest about the third.
+
+---
+
+## The baseline you must never skip
+
+Here's the most embarrassing failure mode in forecasting, and I've watched experienced engineers walk straight into it. You build a fancy model, it looks accurate, everyone claps. Then someone checks what "just predict the same as last week" would have scored.
+
+The dumb rule wins.
+
+These dumb rules are called **naive baselines**:
+
+- **Naive forecast**: tomorrow equals today.
+- **Seasonal naive**: next Friday equals last Friday.
+- **Drift**: continue the recent average slope.
+
+They cost nothing to build and they are shockingly hard to beat, because trend plus strong seasonality is most of the signal in a lot of business data. If your gradient boosting model beats seasonal naive by two percent, that two percent is your actual contribution. Everything else was already free.
+
+<Callout type="warning" title="Always report skill, not just accuracy">
+A forecast is only as good as its margin over the naive baseline. If nobody on the team knows what seasonal naive scores on your data, nobody knows whether the model is doing anything at all.
+</Callout>
+
+---
+
+## Classical methods, in plain words
+
+Before machine learning got involved, statisticians spent decades on this problem, and their tools still earn their keep.
+
+A **moving average** smooths the series by averaging the last N points. It kills noise and reveals trend, but it always lags behind reality, because it treats a point from 30 days ago the same as yesterday.
+
+**Exponential smoothing** fixes that with a simple idea: recent points matter more. Yesterday gets the biggest weight, the day before slightly less, and so on, fading exponentially into the past. Extensions of it handle trend and seasonality too, and for many business series this family is still competitive with anything modern.
+
+**ARIMA** deserves one honest paragraph. It models the next value as a weighted combination of recent past values and recent past errors, after differencing the series to remove trend. It's principled, it's interpretable, and it powered forecasting for decades. In practice it needs per-series tuning and struggles when you have thousands of related series, which is exactly the situation most companies are in. Know what it is, respect it, and don't feel guilty reaching for something else.
+
+---
+
+## How do you turn forecasting into a normal ML problem?
+
+Here's the move that makes forecasting click for backend engineers: reshape the problem into a plain table, then use models you already know.
+
+The trick is **lag features**. To predict tomorrow's volume, build a row where the target is tomorrow and the features are things known today:
+
+| Feature | Example value |
+|---------|---------------|
+| Volume yesterday (lag 1) | 812k |
+| Volume 7 days ago (lag 7) | 798k |
+| Rolling 7-day mean | 805k |
+| Rolling 28-day std | 41k |
+| Day of week | Friday |
+| Days until next public holiday | 3 |
+
+Rolling windows summarize recent history. Calendar features hand the model the seasonality on a plate. Then you feed this table to **gradient boosting**, the same workhorse from our fraud and credit articles, and it learns the interactions: Fridays are big, but Fridays before a holiday are bigger, unless volume has been sagging all week.
+
+This approach dominates industrial forecasting for a simple reason: one model can learn across thousands of series at once, and you can throw in external signals like promotions or merchant onboarding numbers, which classical methods handle awkwardly.
+
+---
+
+## The cardinal sin: training on the future
+
+Now the part that ruins careers. In every previous article we split data randomly into train and test. Do that with a time series and you have quietly committed fraud against yourself.
+
+A random split scatters future days into your training set. The model gets to peek at March while being tested on February. Rolling averages computed over the full series leak future values into past rows. Your offline metrics look glorious. Then you deploy, the future stays stubbornly hidden like it always does, and accuracy collapses.
+
+This is called **leakage**, and time series is where it bites hardest, because the leak is invisible in the code. Nothing crashes. No warning fires. The only symptom is a model that looks brilliant offline and useless online.
+
+The rule is absolute: every feature in a training row must be computable using only information available at that row's timestamp. When you validate, train on the past and test on the future. Always in that order.
+
+---
+
+## Backtesting: how forecasters actually validate
+
+The honest version of cross-validation for time series is called **backtesting**, or walk-forward validation. You pretend to be yourself in the past, repeatedly.
+
+<MermaidBlock>
+graph TB
+    A["Fold 1\nTrain: Jan to Jun\nTest: Jul"] --> B["Fold 2\nTrain: Jan to Jul\nTest: Aug"]
+    B --> C["Fold 3\nTrain: Jan to Aug\nTest: Sep"]
+    C --> D["Average the errors\nacross all folds"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Train on January through June, forecast July, score it. Slide forward: train through July, forecast August. Repeat until you run out of history, then average the errors. Each fold simulates a real deployment moment where the model knew nothing about its test period.
+
+It's slower than a random split and it gives you worse-looking numbers. Both facts are features, not bugs. The worse-looking numbers are the true ones.
+
+---
+
+## Why a single number is a lie
+
+A forecast of "next Friday's volume will be 830k" sounds confident and is almost certainly wrong. Not wrong by a mile, but wrong. The honest output is an interval: "between 790k and 875k with 90 percent confidence."
+
+This matters because downstream decisions care about the range, not the point. If you're sizing infrastructure for peak load, you plan for the top of the interval. If you're forecasting cash, the bottom of the interval is what keeps you solvent. A point forecast forces someone else to guess the uncertainty, and they'll guess worse than your model can estimate it.
+
+Gradient boosting gives you intervals almost for free through quantile loss: train one model to predict the 5th percentile, one for the median, one for the 95th. Three models, one honest picture.
+
+<Callout type="tip" title="Widening intervals are a message">
+Uncertainty grows with horizon. Tomorrow's interval is narrow, next month's is wide. If a stakeholder asks for a precise number 90 days out, the widening interval is your professional way of saying "nobody knows, and here is exactly how much nobody knows."
+</Callout>
+
+---
+
+## Where fintech lives and dies by this
+
+Forecasting sounds less glamorous than fraud detection, but in a fintech company it's plumbing that touches real money daily.
+
+**Cash-flow forecasting.** A payments platform must settle merchants on schedule while money is still in transit from card networks. Forecast the inflows and outflows wrong and you either park idle capital doing nothing or scramble for expensive short-term funding.
+
+**Lending capital demand.** A BNPL or lending product needs to know how much loan volume is coming next month, because that money has to be raised, allocated, and priced ahead of time. Underestimate and you decline good customers. Overestimate and you pay interest on capital that sits unused.
+
+**Capacity planning.** Transaction volume forecasts drive infrastructure scaling, fraud-review staffing, and customer support headcount. The Friday salary spike is predictable, so being surprised by it is a choice.
+
+Notice what these share: the cost of a bad forecast is asymmetric. Running out of settlement cash is catastrophic, holding a little extra is merely wasteful. Which is exactly why intervals beat points. You pick which side of the distribution to protect.
+
+---
+
+## Where this leaves you
+
+You now know the shape of the problem: decompose the series, beat the naive baseline or go home, respect the arrow of time when you split, backtest instead of cross-validate, and ship intervals instead of points.
+
+That completes the tour of the big four applied ML systems: fraud, credit, recommendations, and forecasting. Next comes the article that ties them all together: **The ML System Design Interview**, where you learn the framework interviewers actually grade you on, and we run a fraud detection design through it from first question to rollout plan.

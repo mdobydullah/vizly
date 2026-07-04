@@ -1,0 +1,181 @@
+---
+title: "Cross-Validation & Imbalanced Data"
+slug: cross-validation-imbalanced-data
+category: machine-learning
+series: classical-ml
+seriesOrder: 10
+description: "One lucky train/test split can make a bad model look great. Here's how to evaluate honestly when fraud is 1 in 1000."
+tags:
+  - ML
+  - Cross-Validation
+  - Imbalanced Data
+icon: "⚖️"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## One split can lie to you
+
+You split your data 80/20, train on the big chunk, test on the small one, and get a beautiful score. Ship it?
+
+Not so fast. Run the exact same code with a different random seed and watch the score move. Sometimes a lot.
+
+Why? Because a single test set is a single sample. Maybe the easy fraud cases happened to land in your test set. Maybe the weird ones did. With 20% of a small dataset, luck plays a real role, and you have no way to tell a good model from a lucky split.
+
+One number from one split isn't an evaluation. It's an anecdote.
+
+---
+
+## K-fold: test on everything, train on everything
+
+**K-fold cross-validation** fixes this with a simple rotation trick.
+
+Chop the data into k equal folds, say 5. Train on folds 2 through 5, test on fold 1. Then train on folds 1, 3, 4, 5 and test on fold 2. Keep rotating until every fold has had its turn as the test set.
+
+You end up with 5 scores instead of 1. The mean tells you how good the model is. The spread tells you how much to trust that number. A model scoring 0.82, 0.83, 0.81, 0.84, 0.82 is a very different beast from one scoring 0.95, 0.71, 0.88, 0.65, 0.90, even if their averages look similar.
+
+<MermaidBlock>
+graph TB
+    A["Full dataset\nsplit into 5 folds"] --> B["Round 1\nTest: fold 1\nTrain: folds 2 3 4 5"]
+    A --> C["Round 2\nTest: fold 2\nTrain: folds 1 3 4 5"]
+    A --> D["Round 3\nTest: fold 3\nTrain: folds 1 2 4 5"]
+    A --> E["Round 4\nTest: fold 4\nTrain: folds 1 2 3 5"]
+    A --> F["Round 5\nTest: fold 5\nTrain: folds 1 2 3 4"]
+    B --> G["5 scores\nmean plus spread"]
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The cost is compute: you train the model k times. For classical models on tabular data, that's usually minutes, and it buys you an evaluation you can actually defend in a review.
+
+---
+
+## Why stratify?
+
+Now add fraud-level imbalance to the picture. If only 1% of rows are fraud and you split randomly, some folds might end up with almost no fraud cases at all. Testing a fraud model on a fold with 3 fraud examples is meaningless. One flipped prediction swings recall by 33 points.
+
+**Stratified k-fold** fixes this: it splits so every fold keeps the same class ratio as the full dataset. 1% fraud overall means 1% fraud in every fold. Nothing clever, just bookkeeping, and for classification it should be your default.
+
+```python
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring="average_precision")
+print(scores.mean(), scores.std())
+```
+
+---
+
+## Never let the model see the future
+
+Here's where fintech data breaks the standard playbook.
+
+K-fold shuffles rows randomly. But transactions happen in time. Shuffle them and you'll routinely train on March data and test on January data. Your model gets to peek at the future and predict the past.
+
+That's cheating, even if it doesn't feel like it. Fraud patterns drift constantly: new fraud rings, new attack tools, new merchant scams every month. A model that trains on future data learns patterns that hadn't emerged yet at prediction time, and its offline score becomes a fantasy. The same applies to credit models, where economic conditions shift under your feet.
+
+The fix is **time-series split**: always train on the past, test on the future, sliding forward.
+
+<MermaidBlock>
+graph TB
+    A["Round 1\nTrain: Jan\nTest: Feb"] --> B["Round 2\nTrain: Jan Feb\nTest: Mar"]
+    B --> C["Round 3\nTrain: Jan Feb Mar\nTest: Apr"]
+    C --> D["Round 4\nTrain: Jan to Apr\nTest: May"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+This mirrors production reality: your deployed model is always a model trained on the past scoring the present. Your evaluation should look exactly like that. In sklearn it's `TimeSeriesSplit`, and in any fraud or credit context it's not optional.
+
+<Callout type="warning" title="The most common evaluation bug in fintech ML">
+Random k-fold on time-ordered transaction data leaks the future into training. Scores look great offline and collapse in production. If your rows have timestamps, split by time. Every time.
+</Callout>
+
+---
+
+## When fraud is 1 in 1000
+
+Now the second half of our problem. Real fraud rates aren't the tidy 1% from textbook examples. Card fraud often runs around 0.1%: one fraud per thousand transactions.
+
+Feel what that means for training. In a dataset of 1 million transactions, you have 999,000 legit examples and 1,000 fraud examples. The model sees a thousand legit cases for every fraud case. Gradient descent barely notices the fraud rows; getting the majority class right already makes the loss tiny. Left alone, most models respond by predicting "legit" nearly always, the exact useless model from the previous article.
+
+There are three standard responses. Two of them modify the data, one modifies the model. And there's a fourth response that matters more than all of them.
+
+---
+
+## Resampling: rebalancing the data, with traps
+
+**Undersampling** throws away majority-class rows until the classes balance. Simple and fast, but you're discarding 99% of your legit examples, and with them, a lot of the subtle "what normal looks like" knowledge your model needs to avoid false positives.
+
+**Oversampling** duplicates fraud rows so they appear more often. The risk is memorization: the model sees the same 1,000 frauds again and again and learns those specific transactions rather than fraud in general.
+
+**SMOTE** is the famous middle path. Instead of duplicating, it creates synthetic fraud examples by interpolating between real fraud cases and their nearest fraud neighbors: new points on the line segments between real ones.
+
+SMOTE has traps of its own, though:
+
+- Interpolated points aren't real transactions. Blend two frauds and you can get a synthetic point that resembles neither, or worse, sits in a legit region of feature space.
+- On high-dimensional tabular data with one-hot columns, "interpolating" often produces nonsense rows.
+- The deadly one: if you apply SMOTE **before** splitting, synthetic points built from test-set frauds leak into training. Your cross-validation scores inflate and you won't know until production. Resample inside each training fold only, never on the whole dataset.
+
+<Callout type="tip" title="Resample the training folds only">
+Any resampling, SMOTE included, must happen after the split, on training data alone. Use an imblearn Pipeline inside cross-validation and this happens automatically. The test fold must stay as imbalanced as reality, because reality is what you're trying to predict.
+</Callout>
+
+---
+
+## Class weights: the boring option that usually wins
+
+Instead of changing the data, tell the model that fraud mistakes cost more.
+
+Almost every sklearn classifier accepts `class_weight="balanced"`, which scales the loss so each fraud example counts as much as roughly a thousand legit ones (at a 0.1% fraud rate). XGBoost has `scale_pos_weight` for the same idea. One parameter, no synthetic data, no leakage risk, no thrown-away rows.
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression(class_weight="balanced")
+```
+
+In practice, on tabular fintech data, class weights plus a strong model like gradient boosting is very hard to beat. Reach for SMOTE when you've tried weights and have evidence they're not enough, not as a reflex.
+
+---
+
+## The metric matters more than the resampling
+
+Here's the takeaway I most want you to carry out of this series.
+
+Teams often obsess over resampling tricks while evaluating with the wrong metric, which is like tuning a race car while timing laps with a broken stopwatch. Get the measurement right first.
+
+If you evaluate with accuracy at 0.1% fraud, everything looks fine and nothing works. If you evaluate with precision-recall AUC on a time-based split, with a threshold priced in real business costs, you can see clearly, and often you'll discover the "imbalance problem" was really a measurement problem. A ranking metric like PR-AUC doesn't care that positives are rare. It only cares whether your model scores fraud above legit.
+
+The honest evaluation stack for imbalanced fintech data looks like this:
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Split | Time-based, stratified where applicable | No future leakage, every fold testable |
+| Metric | PR-AUC, recall at fixed precision | Sees rare positives clearly |
+| Imbalance fix | Class weights first, resampling if proven needed | Simple, leak-proof |
+| Threshold | Priced from business costs | Money decides, not math |
+
+Fix those in that order. Resampling is the last knob, not the first.
+
+---
+
+## Where to next?
+
+That closes out Classical Machine Learning. You can now train regressions, trees, and boosted ensembles, engineer features that expose fraud, and, just as important, evaluate all of it without fooling yourself.
+
+Everything so far had one quiet limitation: we hand-crafted every feature. The next series in the ML Engineer path, **AI Fundamentals**, crosses into neural networks, models that learn their own features from raw data, and it starts with the single artificial neuron that everything else is built from.

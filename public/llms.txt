@@ -4,7 +4,8 @@
 
 ## Learning Paths
 
-- [Become an AI Engineer](/learning-paths/ai-engineer): A complete learning path from zero to shipping AI in production. 7 series, ~10 weeks.
+- [Become an AI Engineer](/learning-paths/ai-engineer): A complete learning path from zero to shipping AI in production. 9 series, ~12 weeks.
+- [Become an ML Engineer](/learning-paths/ml-engineer): Math foundations to production ML systems — statistics, classical ML, fraud detection, credit scoring, and ML system design. 8 series, ~14 weeks.
 - [DSA Quest](/learning-paths/dsa-quest): Learn DSA the fun way. Story-framed problems, boss fights, one pattern per dungeon. Two Pointers available now, more coming.
 
 ## Series
@@ -16,6 +17,11 @@
 - [Agents & Reasoning](/series/agents-reasoning): LLMs that think, plan, and act — tool-calling to multi-step reasoning agents. 4 articles.
 - [Multimodal & Generative AI](/series/multimodal-generative-ai): How AI creates images, videos, and more — diffusion models to the cutting edge. 4 articles.
 - [Production AI Engineering](/series/production-ai-engineering): Build, serve, evaluate, and maintain AI systems in production. 8 articles.
+- [Essence of Linear Algebra](/series/essence-of-linear-algebra): Geometric, intuition-first linear algebra inspired by 3Blue1Brown. 16 chapters.
+- [Essence of Calculus](/series/essence-of-calculus): Geometric, intuition-first calculus inspired by 3Blue1Brown. 12 chapters.
+- [Statistics & Probability](/series/statistics-probability): The language of uncertainty every ML model speaks — probability, distributions, Bayes, hypothesis testing, bias-variance. 7 articles.
+- [Classical Machine Learning](/series/classical-ml): Regression, trees, gradient boosting, clustering, and honest evaluation — the models production ML actually runs on. 10 articles.
+- [Applied ML Systems](/series/applied-ml-systems): Fraud detection, credit scoring, recommenders, forecasting, and the ML system design interview. 5 articles.
 - [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
 - [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Full Two Pointers pattern across 6 story-framed bosses. Complete.
 - [Stack (DSA Quest)](/series/stack): Dungeon 3 of DSA Quest. LIFO, monotonic stacks, bracket matching, histograms across 7 bosses. Complete.
@@ -58,6 +64,28 @@
 - [MLOps: Shipping AI Like Software](/articles/mlops-shipping-ai-like-software): Experiment tracking, model registries, CI/CD for models, dataset versioning.
 - [Evaluating LLMs at Scale](/articles/evaluating-llms-at-scale): LLM-as-judge, eval frameworks, red-teaming, regression testing.
 - [Cost, Latency & Context Management](/articles/cost-latency-and-context-management): Token budgets, semantic caching, streaming, context window strategies.
+- [Probability: The Language of Uncertainty](/articles/sp-probability-basics): Sample spaces, independence, expected value, why models output probabilities.
+- [Random Variables & Distributions](/articles/sp-random-variables-distributions): Uniform, normal, binomial, Poisson, CLT intuition, heavy tails in finance.
+- [Bayes' Theorem & Conditional Probability](/articles/sp-bayes-theorem): Base-rate fallacy, prior/likelihood/posterior, belief updating, naive Bayes.
+- [Descriptive Statistics & Sampling](/articles/sp-descriptive-statistics-sampling): Mean vs median, variance, percentiles, why samples lie.
+- [Hypothesis Testing & Confidence Intervals](/articles/sp-hypothesis-testing): Null hypothesis, p-values without jargon, A/B testing, p-hacking.
+- [Maximum Likelihood Estimation](/articles/sp-maximum-likelihood-estimation): Likelihood vs probability, log-likelihood, why MSE and cross-entropy are secretly MLE.
+- [The Bias-Variance Tradeoff](/articles/sp-bias-variance-tradeoff): Underfitting vs overfitting, complexity curve, regularization as the knob.
+- [Linear Regression: Where ML Begins](/articles/linear-regression): Least squares intuition, coefficients, assumptions that break in the real world.
+- [Logistic Regression & Classification](/articles/logistic-regression-classification): Sigmoid, decision thresholds, log-loss, the credit-scoring baseline.
+- [Decision Trees](/articles/decision-trees): Splits, impurity, overfitting, pruning, interpretability wins.
+- [Ensembles: Random Forest to XGBoost](/articles/ensembles-random-forest-xgboost): Bagging vs boosting, gradient boosting intuition, why trees rule tabular data.
+- [SVM & k-Nearest Neighbors](/articles/svm-and-knn): Distance metrics, curse of dimensionality, margins, the kernel trick.
+- [Clustering: k-Means & Beyond](/articles/clustering-kmeans): The k-means loop, choosing k, DBSCAN, customer segmentation, anomaly discovery.
+- [PCA & Dimensionality Reduction](/articles/pca-dimensionality-reduction): Directions of most variance, variance explained, eigenvector connection, t-SNE/UMAP.
+- [Feature Engineering](/articles/feature-engineering): Encoding, scaling, velocity features, leakage traps, missing values as signal.
+- [Model Evaluation: Precision, Recall & ROC-AUC](/articles/model-evaluation-metrics): Why accuracy lies, confusion matrix, ROC and PR curves, thresholds as business decisions.
+- [Cross-Validation & Imbalanced Data](/articles/cross-validation-imbalanced-data): K-fold, stratification, time-series splits, SMOTE and class weights.
+- [Fraud Detection with ML](/articles/fraud-detection-with-ml): Real-time scoring pipelines, velocity features, extreme imbalance, adversarial drift.
+- [Credit Scoring & Risk Models](/articles/credit-scoring-risk-models): Probability of default, calibration, reject inference, explainability for regulators.
+- [Recommender Systems](/articles/recommender-systems): Collaborative vs content-based filtering, embeddings, cold start, two-stage architecture.
+- [Time-Series Forecasting](/articles/time-series-forecasting): Trend and seasonality, lag features, backtesting, never train on the future.
+- [The ML System Design Interview](/articles/ml-system-design-interview): A reusable framework from business problem to monitoring, walked through fraud detection.
 - [Contains Duplicate — The Coat Check](/articles/contains-duplicate-coat-check): Hash set pattern, O(n²) → O(n) speedup, story-framed.
 - [Valid Anagram — The Scrabble Swap](/articles/valid-anagram-scrabble-swap): Hash map counter, compare two strings without sorting.
 - [Two Sum — The Lunch Bill Split](/articles/two-sum-lunch-bill): Complement lookup, one-pass hash map, the classic interview problem.

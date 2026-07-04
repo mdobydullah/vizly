@@ -1,0 +1,138 @@
+---
+title: "Clustering: k-Means & Beyond"
+slug: clustering-kmeans
+category: machine-learning
+series: classical-ml
+seriesOrder: 6
+description: "No labels, no answers, no teacher. Can a model still find your customer segments and your fraudsters? Surprisingly, yes."
+tags:
+  - ML
+  - Clustering
+  - Unsupervised Learning
+icon: "🫧"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## What happens when nobody gives you the answers?
+
+Every model in this series so far learned from labeled examples. Here's a transaction, it was fraud. Here's a customer, they defaulted. The label was the teacher, and the model's job was imitation.
+
+Now take the labels away.
+
+You run a BNPL product with two million users. Nobody has sorted them into types. There is no "correct" segmentation sitting in a spreadsheet somewhere. But you're certain the users aren't all the same: some pay early every time, some max out limits and pay minimums, some went quiet months ago, some signed up last week.
+
+Finding those groups without being told what they are is **unsupervised learning**. It's a genuinely different mindset. There's no accuracy score to chase, because there's no right answer to compare against. The model isn't imitating anymore. It's exploring.
+
+Clustering is the workhorse of this world, and k-means is the workhorse of clustering.
+
+---
+
+## The k-means loop
+
+k-means finds k groups in your data through a loop so simple you could run it by hand.
+
+Say you pick k=4 and your features are things like average purchase size, payment punctuality, and months since signup. Each customer becomes a point in that space.
+
+**Step 1: Drop k centroids at random.** A centroid is just a point that will become the center of a cluster. At the start, the positions are guesses.
+
+**Step 2: Assign.** Every customer joins the cluster of whichever centroid is closest to them.
+
+**Step 3: Move.** Each centroid relocates to the average position of the customers assigned to it. It moves to the middle of its own crowd.
+
+**Step 4: Repeat.** With centroids in new spots, some customers are now closer to a different centroid. Reassign everyone, move the centroids again. Keep looping until nothing changes.
+
+<MermaidBlock>
+graph TB
+    A["Pick k, drop k centroids\nat random positions"] --> B["Assign each customer\nto nearest centroid"]
+    B --> C["Move each centroid to the\naverage of its customers"]
+    C --> D{"Did any\nassignment change?"}
+    D -->|Yes| B
+    D -->|No| E["Done, k clusters found"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That's it. Assign, move, repeat. It usually settles within a few dozen loops, and it's fast enough to run on millions of customers without drama.
+
+One quirk worth knowing: the final clusters depend on where the random centroids started. Run it twice, get slightly different answers. Standard practice is to run it several times and keep the best result, which sklearn does for you by default.
+
+```python
+from sklearn.cluster import KMeans
+
+model = KMeans(n_clusters=4, n_init=10)
+segments = model.fit_predict(X_scaled)  # scale first, k-means uses distances
+```
+
+---
+
+## How do you choose k?
+
+Here's the awkward part. You told the algorithm k=4. Why 4? Why not 3, or 9?
+
+Nobody knows the "true" number of customer types. But two tools give you a defensible answer.
+
+The **elbow method**: run k-means for k=1 through 10 and plot how tight the clusters are at each k. Tightness always improves as k grows, but at some point the improvement suddenly flattens, forming an elbow in the plot. That bend is your candidate, the point where extra clusters stop earning their keep.
+
+The **silhouette score** condenses "points are close to their own cluster and far from other clusters" into one number, so you just pick the k that scores highest.
+
+Both are guides, not oracles. In practice, the business decides too. Marketing can act on 4 segments. They cannot act on 23.
+
+<Callout type="info" title="There is no ground truth">
+Resist the urge to ask "is this clustering correct?" Wrong question. Ask "is it useful?" A segmentation that changes how your team treats customers is a good one, whatever the silhouette score says.
+</Callout>
+
+---
+
+## When does k-means fail?
+
+k-means has a hidden assumption baked into its geometry: because every point simply joins the nearest centroid, clusters come out as compact, roundish blobs of similar size.
+
+Real data doesn't always cooperate. Two crescent moons interlocking? k-means slices straight through both. A dense core wrapped in a sparse ring? It carves the ring into wedges. Long, stretched clusters get chopped in half, and one huge segment next to a tiny one gets awkwardly rebalanced.
+
+The failure is silent, too. k-means always returns exactly k clusters, looking perfectly confident, whether or not the groups it found mean anything. Always plot your clusters, or at least inspect samples from each, before believing them.
+
+When the shapes are wrong for k-means, two classic alternatives pick up the slack.
+
+**DBSCAN** thinks in density instead of distance-to-center. A cluster is any region where points are tightly packed, whatever its shape, and points that sit in sparse no-man's-land get labeled as noise rather than forced into a group. You don't even tell it how many clusters to find, it discovers that on its own. The price is two touchy density parameters and trouble when different clusters have very different densities.
+
+**Hierarchical clustering** doesn't commit to any k at all. It starts with every point as its own cluster and repeatedly merges the two closest clusters until only one remains, recording every merge in a tree called a dendrogram. Cut the tree high, get a few broad segments. Cut low, get many fine-grained ones. This is lovely for exploration and for presenting to stakeholders, but it's expensive, so it fits thousands of rows better than millions.
+
+| | k-means | DBSCAN | Hierarchical |
+|---|---|---|---|
+| Choose k upfront? | Yes | No | No, cut the tree later |
+| Cluster shapes | Round blobs | Arbitrary | Arbitrary |
+| Handles noise points | No, everyone gets a cluster | Yes, labels them noise | No |
+| Scales to millions of rows | Yes | Moderately | Poorly |
+
+---
+
+## Clustering as a fraud discovery tool
+
+Segmentation is the famous use case, but in fintech, clustering earns its keep somewhere darker: finding fraud you didn't know existed.
+
+Supervised fraud models have a blind spot. They learn from labeled past fraud, so they catch patterns someone already caught. A brand-new fraud scheme has no labels yet, by definition. Your XGBoost model can't imitate an answer nobody has given it.
+
+Clustering doesn't need labels, so it can surface the new stuff. Two patterns show up in practice.
+
+First, **outliers**. Cluster your transactions and look at what fits nowhere, the points far from every centroid, or the ones DBSCAN tags as noise. Normal behavior is common by definition, so the stragglers deserve a human look.
+
+Second, and sneakier, **suspiciously tight clusters**. Organized fraud is often industrialized: hundreds of synthetic accounts created by the same script, with eerily similar signup times, device fingerprints, and transaction rhythms. Real humans are messy and spread out. Bots are consistent. A small, unnaturally dense cluster of "different customers" behaving identically is a classic fraud-ring signature.
+
+<Callout type="tip" title="Unsupervised finds it, supervised catches it">
+A common production pattern: clustering flags a weird pocket of behavior, analysts investigate and confirm it's a new fraud scheme, those cases get labeled, and the labels feed the next training run of the supervised model. Clustering is the scout, boosting is the army.
+</Callout>
+
+---
+
+## What's next?
+
+There's a problem we keep bumping into. Clustering runs on distances, and you saw in the kNN article what high dimensions do to distances. Segment customers using 300 features and "nearest centroid" starts to lose meaning, plus you can't visualize any of it.
+
+What if you could squeeze those 300 features down to the handful of directions that actually matter? Next up: **PCA and Dimensionality Reduction**.

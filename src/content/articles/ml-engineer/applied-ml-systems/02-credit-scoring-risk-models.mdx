@@ -1,0 +1,153 @@
+---
+title: "Credit Scoring & Risk Models"
+slug: credit-scoring-risk-models
+category: machine-learning
+series: applied-ml-systems
+seriesOrder: 2
+description: "Why does a 70-year-old algorithm still decide who gets a loan? Because in credit risk, explaining a decision matters as much as making it."
+tags:
+  - ML
+  - Credit Risk
+  - Fintech
+icon: "📈"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## What is a credit model actually predicting?
+
+Strip away the jargon and a credit risk model answers one question: if we lend this person money, what's the probability they don't pay it back?
+
+That probability has a name: **probability of default**, or PD. Default usually means something concrete like "90 or more days past due within 12 months." A PD of 0.08 means the model believes 8 out of 100 applicants who look like this person will default.
+
+If you've used a buy-now-pay-later checkout, you've been scored by one of these models. You tapped "pay in 4 installments," and somewhere in the background a model estimated your PD in under a second and a decision engine compared it to a cutoff. Approved or declined, right there at checkout.
+
+Fraud detection, which we covered last time, asks "is this transaction bad right now?" Credit asks "will this relationship go bad over the next year?" Slower question, longer feedback loop, and a whole regulatory apparatus watching how you answer it.
+
+---
+
+## What features actually predict repayment?
+
+The single strongest signal, unsurprisingly, is history. People who repaid before tend to repay again.
+
+**Repayment history.** Past loans, late payments, how late, how often, how recently. A payment missed two years ago matters less than one missed last month. Credit bureau data packages much of this, where bureaus exist and cover the person.
+
+**Income and affordability signals.** Stated salary, verified bank inflows, employment tenure. The classic ratio is debt burden: monthly obligations divided by monthly income. Someone earning well but already stretched across five other lenders is riskier than the raw salary suggests.
+
+**Behavioral data.** This is where BNPL and digital lenders differ from old-school banks. How the person uses the product itself: order sizes, repayment timing on previous installments, how long they've been a customer, even whether they pay early. A customer who has cleared eight small purchases on time is telling you something no bureau file captures.
+
+For thin-file customers, people with little or no bureau history, behavioral data is often all you have. That's most young customers in emerging markets, and it's exactly why BNPL players invest so heavily in their own data.
+
+<Callout type="info" title="Start small, learn fast">
+Lenders often handle unknown customers with a low starting limit. Approve a 50 dollar purchase, watch what happens, and let good repayment unlock higher limits. Each small loan is both revenue and a data-gathering experiment.
+</Callout>
+
+---
+
+## Why is logistic regression still the king here?
+
+Fraud teams reach for gradient boosting. Credit teams, to the surprise of many newcomers, still ship logistic regression and scorecards. Deliberately.
+
+A scorecard is logistic regression dressed up for humans. Features get binned into ranges, each bin gets points, and the points sum to a score. Income between X and Y? Add 40 points. Two late payments last year? Subtract 65. Anyone, including the applicant, can trace exactly where a score came from.
+
+Why does this ancient approach survive? Regulation, mostly.
+
+When you decline someone credit, many jurisdictions require you to tell them why, with specific reasons like "too many recent late payments." Regulators audit models and expect every input's effect to be justifiable and monotonic. More late payments should never increase a score, and a scorecard makes that guarantee trivial to enforce and to prove.
+
+There's a subtler reason too. Credit data is often smallish and noisy, and default is rare. The accuracy gap between logistic regression and boosted trees on this kind of tabular data is frequently modest. Teams that do use gradient boosting often pair it with explainability tooling like SHAP, or use the fancy model to discover features that then get folded into a scorecard. The scorecard remains the thing that faces the regulator.
+
+| | Scorecard / logistic regression | Gradient boosting |
+|---|---|---|
+| Explaining a decline | Trivial, point-by-point | Needs SHAP or similar |
+| Monotonicity guarantees | Built in | Needs constraints |
+| Regulator comfort | Decades of precedent | Improving, still harder |
+| Raw accuracy | Good | Usually somewhat better |
+| Typical role | The decision model | Feature discovery, challenger |
+
+---
+
+## Why calibration matters more than accuracy
+
+Here's a mindset shift from most ML work. In credit, the model's output is not a ranking gadget. It's a number you do arithmetic with.
+
+Expected loss on a loan is roughly PD times the amount at risk times how much you lose if things go wrong. Pricing, provisioning, and capital requirements all consume PD as a real probability. So when your model says 0.2, roughly 20 percent of those applicants had better actually default. If the truth is 35 percent, every downstream calculation is wrong and you are systematically underpricing risk.
+
+That property is called **calibration**, and it's checked constantly: bucket predictions, compare each bucket's average prediction to its observed default rate, and investigate any gap.
+
+A model can rank applicants brilliantly while being miscalibrated everywhere. Ranking gets you a good approval order. Calibration gets you a business that doesn't quietly lose money.
+
+<Callout type="warning" title="A 0.2 must mean 20 percent">
+If your model's probabilities drift from reality, everything built on them drifts too: pricing, credit limits, loss forecasts, regulatory capital. Calibration monitoring is not optional hygiene in credit. It is the job.
+</Callout>
+
+---
+
+## The reject inference problem
+
+Now for the trap that makes credit modeling philosophically weird.
+
+You want to train on labeled data: who repaid, who defaulted. But you only observe repayment for people you approved. The applicants you rejected walked away, and you will never know whether they would have paid you back.
+
+Your training data is a filtered sample, filtered by your own previous model.
+
+Think about what happens over time. Model version 1 rejects a group of people. Version 2 trains only on version 1's approvals, so it never sees evidence about the rejected group. Maybe some of them were actually fine. You'll never learn that, and the bias compounds with every retrain. The model becomes increasingly confident about the population it approves and increasingly ignorant about everyone else.
+
+<MermaidBlock>
+graph TB
+    A["All applicants"] --> B{"Current model\ndecides"}
+    B --> C["Approved\nrepayment observed\nlabels exist"]
+    B --> D["Rejected\nno outcome ever seen\nno labels"]
+    C --> E["Next model trains\non approved only"]
+    E --> B
+    D -.->|"blind spot feeds itself"| E
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The mitigation is called **reject inference**, and none of the techniques are perfect. You can infer likely outcomes for rejects using the model itself, which is circular but common. You can buy bureau data to see how your rejects performed on loans from other lenders. Or you can do the honest, expensive thing: approve a small random sample of applicants you would normally reject, and eat the losses as the price of unbiased labels.
+
+If that last trick sounds familiar, it should. Fraud teams let a slice of risky transactions through for exactly the same reason. When your decisions determine your labels, you sometimes have to pay for the truth.
+
+---
+
+## Whose fault is it when the model is unfair?
+
+Credit decisions change lives, so fairness here is law, not just ethics. Discriminating on protected attributes like gender, religion, or ethnicity is illegal in most markets.
+
+Removing those columns from your data does not solve the problem. Models are excellent at reconstructing protected attributes from correlated features. Postal code can proxy for ethnicity. Shopping patterns can proxy for gender. The model discriminates anyway, just less visibly, which is worse.
+
+So credit teams test outcomes, not intentions. They compare approval rates and error rates across demographic groups, check that similar applicants receive similar scores regardless of group, and document all of it for auditors. Sometimes a feature that genuinely predicts default gets dropped because it leans too hard on a proxy. Accuracy is sacrificed for fairness, on purpose, and the trade-off is written down.
+
+This is another reason simple models persist. Proving a scorecard treats groups consistently is tractable. Proving it for an opaque model is much harder.
+
+---
+
+## Setting the cutoff is portfolio economics
+
+The model hands you a PD. Someone still has to decide where to draw the approval line, and that decision belongs to economics, not data science.
+
+Every cutoff is a trade. Approve more people and revenue grows, but so do defaults, because the extra approvals come from the riskier end of the queue. Each incremental approval is worth less and costs more than the one before it.
+
+| Cutoff strategy | Approval rate | Revenue | Default losses |
+|-----------------|--------------|---------|----------------|
+| Conservative | Low | Low | Minimal |
+| Balanced | Medium | Solid | Manageable |
+| Aggressive | High | Highest | May exceed the gains |
+
+The cutoff also moves with strategy and season. A lender chasing market share accepts higher losses to grow. The same lender bracing for a downturn tightens. The model can stay identical while the business slides the threshold, which is exactly why PD and the decision rule are kept as separate components.
+
+In practice it's rarely one cutoff anyway. It's a decision engine: PD bands crossed with limits, pricing, and tenor. Marginal applicants might get approved with a smaller limit rather than declined. The model estimates risk. The engine decides what to do about it.
+
+---
+
+## What's next?
+
+Fraud and credit are both about stopping bad outcomes. The next system in our tour has the opposite personality: it exists to make good things happen.
+
+Recommender systems power "you might also like" everywhere, and in fintech they decide which merchant offers and products land in front of which customers. The core puzzle is lovely: how do you predict what someone wants from a giant table that is 99 percent empty? That's **Recommender Systems**, coming up next.

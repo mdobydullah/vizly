@@ -1,0 +1,147 @@
+---
+title: "Descriptive Statistics & Sampling"
+slug: sp-descriptive-statistics-sampling
+category: machine-learning
+series: statistics-probability
+seriesOrder: 4
+description: "The average salary at a startup jumps 40% when the founder pays herself. Nobody got a raise. Welcome to the mean vs median problem."
+tags:
+  - ML
+  - Statistics
+  - Data Analysis
+icon: "📊"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## One number to describe a million rows
+
+You have a table with ten million transactions. Your manager asks: "What's the typical transaction size?"
+
+You can't read ten million rows aloud. You need to compress them into one or two honest numbers. That compression is what **descriptive statistics** is, and doing it badly is one of the easiest ways to fool yourself, your dashboard, and your ML model all at once.
+
+Let's start with the most famous trap.
+
+---
+
+## Mean vs median: the salary story
+
+Picture a 10-person startup. Nine engineers each earn 10k SAR a month. Then the founder starts paying herself 200k.
+
+The **mean** salary is (9 × 10k + 200k) / 10 = 29k SAR.
+
+Is 29k "typical"? Not one person at the company earns anywhere near it. Nine out of ten earn a third of it. The mean answered a question nobody asked.
+
+The **median** is the middle value when you sort everything. Sort the ten salaries, take the middle: 10k SAR. That's what a typical person actually earns.
+
+Here's the rule hiding in this story. The mean is sensitive to extreme values. The median doesn't care. One outlier dragged the mean up 19k, while the median didn't move at all.
+
+Income, house prices, transaction amounts, hospital bills, insurance claims: all heavy-tailed, as we saw in the distributions article. For any of them, mean and median tell different stories, and the gap between them is itself a signal.
+
+| Situation | Mean | Median | Which to trust |
+|-----------|------|--------|----------------|
+| Symmetric data (heights) | 170cm | 170cm | Same thing, either |
+| Skewed data (income) | 29k | 10k | Median for "typical" |
+| Total revenue planning | Useful | Misleading | Mean, since totals = mean × count |
+
+That last row matters. The mean isn't wrong, it just answers a different question. For "what will a million transactions add up to," the mean is exactly right, because total = mean × count. For "what does a typical customer spend," use the median.
+
+**Quick self-check:** if mean is far above median, your data has a heavy right tail. You can diagnose skew from just two numbers on a dashboard.
+
+---
+
+## Variance and standard deviation: how spread out is it?
+
+Two lenders both have a mean loan size of 5k SAR.
+
+Lender A gives everyone almost exactly 5k. Lender B gives out a mix of 500 SAR micro-loans and 50k SAR big-ticket loans. Same mean. Completely different businesses, completely different risk.
+
+The missing ingredient is **spread**, and that's what variance measures. Take each value's distance from the mean, square it (so negative and positive gaps don't cancel), and average those squared distances. That's the **variance**.
+
+The problem: variance comes out in squared units. "Squared SAR" means nothing to anyone. So we take the square root and get the **standard deviation**, which is back in normal units and has a beautifully plain reading: **roughly how far a typical value sits from the mean.**
+
+Lender A might have a standard deviation of 200 SAR. Lender B's might be 12k. Now the two businesses look as different in your metrics as they are in reality.
+
+```python
+amounts = [480, 520, 4900, 5100, 5000, 49000, 510, 5050]
+
+mean = sum(amounts) / len(amounts)                       # 8820
+var  = sum((x - mean) ** 2 for x in amounts) / len(amounts)
+std  = var ** 0.5                                        # about 15330
+
+# std > mean is a loud hint: heavy tail, look at percentiles instead
+```
+
+And remember the shortcut from the distributions article: for bell-shaped data, about 68% of values sit within one standard deviation of the mean and 95% within two. That's what turns standard deviation from trivia into an anomaly detector.
+
+---
+
+## Percentiles: the language of production systems
+
+The **90th percentile** is the value that 90% of your data sits below. Median is just the 50th percentile.
+
+Backend engineers already live this. Nobody reports mean API latency, because one garbage-collection pause poisons the average. You report p50, p95, p99, because they answer the real question: "how bad is it for the unluckiest customers?"
+
+The same instinct transfers straight into ML and fintech work. "Transactions above the customer's own p99 amount" is a great fraud feature. "Cap this feature at its p99 value" (winsorizing) stops one whale from dominating model training. Credit scores are basically percentiles wearing a suit: "this applicant is in the riskiest 5%."
+
+<Callout type="tip" title="Report the pair, not the point">
+A single number hides too much. Get in the habit of reporting a center and a spread together: median with p95, or mean with standard deviation. "Median 85 SAR, p95 2100 SAR" tells a story that "average 240 SAR" completely buries.
+</Callout>
+
+---
+
+## Sampling: why you almost never see the whole truth
+
+Everything above assumed you have all the data. Usually you don't. You have a **sample**, a slice of some bigger **population**, and you're hoping the slice looks like the whole.
+
+Sometimes it does. Often it doesn't, and the scary part is that a biased sample doesn't announce itself. The numbers compute fine. The dashboard renders. Everything looks rigorous and is quietly wrong.
+
+The two classic ways samples lie:
+
+**Selection bias: who ends up in your data is not random.** Survey "customer satisfaction" via an in-app prompt and you only hear from people still using the app. The furious ones deleted it last month. Their opinions exist, your sample just can't see them. Fintech version: train a credit default model on approved loans only. Rejected applicants never got the chance to default, so they're invisible to the model. The model learns "people like our approved customers rarely default" and becomes dangerously optimistic the moment you loosen approval rules.
+
+**Survivorship bias: you only see what made it through a filter.** The famous case is from World War II. Analysts mapped bullet holes on bombers that returned and wanted to armor the bullet-riddled spots. Statistician Abraham Wald flipped it: armor the places with **no** holes. Planes shot there never came back to be counted. Business version: "study successful startups to learn what works" ignores the thousand dead startups that did the exact same things. Trading version: today's fund performance databases mostly contain funds that survived; the blown-up ones got delisted, so average historical returns look rosier than reality.
+
+<MermaidBlock>
+graph TB
+    A["Population\neveryone you care about"] --> B{"How was the\nsample selected?"}
+    B -->|Random draw| C["Representative sample\nstats generalize"]
+    B -->|Self-selected\nrespondents| D["Selection bias\nangry users invisible"]
+    B -->|Filtered by\nsurvival| E["Survivorship bias\nfailures invisible"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+Both biases share one root cause: the data you have is not a random draw from the population you care about. And no amount of fancy modeling downstream fixes a corrupted sample upstream. A model trained on biased data learns the bias, at scale, with confidence.
+
+<Callout type="warning" title="The question that saves ML projects">
+Before trusting any dataset, ask: "who or what could never appear in this data?" Rejected applicants, churned users, delisted funds, crashed planes. If the answer overlaps with the population your model will score in production, you have a bias problem no algorithm will fix.
+</Callout>
+
+---
+
+## Sample size: when is enough, enough?
+
+Suppose your sample is honestly random. How big does it need to be?
+
+The core intuition: **estimates from small samples swing wildly, and the swing shrinks slowly as samples grow.** Flip a fair coin 10 times and getting 70% heads is unremarkable. Flip it 10000 times and 70% heads means the coin is rigged, no doubt about it.
+
+The catch is the "slowly." The noise in your estimate shrinks with the **square root** of the sample size. To make an estimate twice as precise, you need four times the data. Ten times more precise? A hundred times the data.
+
+This one fact explains a lot of everyday weirdness. Why does the smallest branch office top the fraud-rate leaderboard one month and bottom it the next? Small sample, wild swings. Why does your A/B test look like a huge win after one day and boring after three weeks? Day one was a small sample; the "effect" was mostly noise wearing a costume.
+
+Two habits to take away. First, never compare rates across groups without noticing group sizes; a 12% fraud rate from 25 transactions is a shrug, while 3% from 50000 is a fact. Second, decide your sample size before looking at results, because stopping an experiment the moment it looks good is a machine for harvesting noise.
+
+---
+
+## What's next?
+
+You can now summarize a dataset honestly: median and percentiles for skewed data, standard deviation for spread, and a healthy paranoia about who's missing from your sample.
+
+But one question is still open, and it's the one every A/B test and every "is the new model actually better?" debate hangs on: how do you tell a real effect from a lucky sample? That's **Hypothesis Testing and Confidence Intervals**, and it's next.

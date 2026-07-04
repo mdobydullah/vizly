@@ -1,0 +1,22 @@
+{
+  "slug": "classical-ml",
+  "title": "Classical Machine Learning",
+  "description": "The models that run most production ML today — regression, trees, gradient boosting, clustering, and how to evaluate them honestly. What fintech and enterprise ML teams actually ship.",
+  "icon": "📊",
+  "color": "green",
+  "tags": ["ML"],
+  "createdAt": "2026-07-04T10:30:00Z",
+  "updatedAt": "2026-07-04T10:30:00Z",
+  "articles": [
+    { "order": 1, "slug": "linear-regression", "title": "Linear Regression: Where ML Begins", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 2, "slug": "logistic-regression-classification", "title": "Logistic Regression & Classification", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 3, "slug": "decision-trees", "title": "Decision Trees", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 4, "slug": "ensembles-random-forest-xgboost", "title": "Ensembles: Random Forest to XGBoost", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 5, "slug": "svm-and-knn", "title": "SVM & k-Nearest Neighbors" },
+    { "order": 6, "slug": "clustering-kmeans", "title": "Clustering: k-Means & Beyond", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 7, "slug": "pca-dimensionality-reduction", "title": "PCA & Dimensionality Reduction", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 8, "slug": "feature-engineering", "title": "Feature Engineering", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 9, "slug": "model-evaluation-metrics", "title": "Model Evaluation: Precision, Recall & ROC-AUC", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 10, "slug": "cross-validation-imbalanced-data", "title": "Cross-Validation & Imbalanced Data", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] }
+  ]
+}

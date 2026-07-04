@@ -6,6 +6,12 @@
     "icon": "brain"
   },
   {
+    "slug": "machine-learning",
+    "name": "Machine Learning",
+    "color": "green",
+    "icon": "bar-chart"
+  },
+  {
     "slug": "deep-learning",
     "name": "Deep Learning",
     "color": "blue",

@@ -1,0 +1,19 @@
+{
+  "slug": "statistics-probability",
+  "title": "Statistics & Probability",
+  "description": "The language of uncertainty that every ML model speaks — probability, distributions, Bayes, hypothesis testing, and the bias-variance tradeoff. The screening layer of every ML engineer interview.",
+  "icon": "🎲",
+  "color": "green",
+  "tags": ["Math", "ML", "Fundamentals"],
+  "createdAt": "2026-07-04T10:00:00Z",
+  "updatedAt": "2026-07-04T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "sp-probability-basics", "title": "Probability: The Language of Uncertainty", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 2, "slug": "sp-random-variables-distributions", "title": "Random Variables & Distributions", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 3, "slug": "sp-bayes-theorem", "title": "Bayes' Theorem & Conditional Probability", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 4, "slug": "sp-descriptive-statistics-sampling", "title": "Descriptive Statistics & Sampling" },
+    { "order": 5, "slug": "sp-hypothesis-testing", "title": "Hypothesis Testing & Confidence Intervals", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 6, "slug": "sp-maximum-likelihood-estimation", "title": "Maximum Likelihood Estimation", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] },
+    { "order": 7, "slug": "sp-bias-variance-tradeoff", "title": "The Bias-Variance Tradeoff", "badges": [{ "label": "Fundamental" }, { "icon": "📊", "label": "ML Engineer", "color": "green" }] }
+  ]
+}

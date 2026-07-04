@@ -1,0 +1,168 @@
+---
+title: "Feature Engineering"
+slug: feature-engineering
+category: machine-learning
+series: classical-ml
+seriesOrder: 8
+description: "Why the best fraud models are built in the data prep step, and how one leaked column can make a useless model look perfect."
+tags:
+  - ML
+  - Feature Engineering
+  - Fraud Detection
+icon: "🛠️"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Your model is only as smart as its inputs
+
+Here's a secret that surprises most engineers coming into ML: the algorithm usually isn't the bottleneck.
+
+Give XGBoost mediocre features and you get a mediocre model. Give plain old logistic regression brilliant features and it can beat a fancy model trained on raw data. The features are where the intelligence lives.
+
+Think about it from the model's perspective. It never sees the real world. It only sees the columns you hand it. If "this card just made 15 purchases in 10 minutes" isn't a column, the model literally cannot know it, no matter how clever the algorithm is.
+
+Feature engineering is the craft of turning raw data into columns that make the pattern obvious. In fraud detection and credit scoring, it's where teams spend most of their time. Let's walk through the moves that matter.
+
+<MermaidBlock>
+graph LR
+    A["Raw data\ntransactions, users, devices"] --> B["Feature engineering\nencode, scale, aggregate"]
+    B --> C["Feature table\nmodel-ready columns"]
+    C --> D["Model\nfinds the pattern"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+---
+
+## What do you do with categories?
+
+Models eat numbers. But half your data is text categories: merchant type, country, card network, device OS.
+
+The classic fix is **one-hot encoding**. Take a column like `merchant_type` with values "grocery", "electronics", "travel", and turn it into three yes/no columns: `is_grocery`, `is_electronics`, `is_travel`. Each row gets a 1 in exactly one of them.
+
+Simple. Safe. And it falls apart when the category has thousands of values. One-hot encoding `merchant_id` with 50,000 merchants gives you 50,000 mostly-zero columns. Your model drowns.
+
+That's where **target encoding** comes in. Instead of exploding the column, replace each category with a number that summarizes it: the historical fraud rate for that merchant. "Merchant 4412" becomes 0.031, meaning 3.1% of its past transactions were fraud. One column, packed with signal.
+
+But there's a trap.
+
+If you compute that fraud rate using the same rows you train on, each row's own label sneaks into its own feature. The model partly learns "the answer is hidden in this column" and looks brilliant in training. In production, where the answer isn't baked in, it stumbles. The fix: compute the encoding on past data only, or use out-of-fold averages so no row ever sees its own label.
+
+<Callout type="warning" title="Target encoding done wrong is self-grading homework">
+If a row's label influences that row's feature value, your validation score is fiction. Always compute target encodings from data the row itself is not part of.
+</Callout>
+
+---
+
+## When does scaling actually matter?
+
+Scaling means squashing features into comparable ranges, for example turning "transaction amount from 1 to 50000" and "hour from 0 to 23" into similar scales.
+
+Whether you need it depends entirely on the model:
+
+| Model | Needs scaling? | Why |
+|-------|---------------|-----|
+| kNN | Yes | Distances are dominated by big-range features |
+| SVM | Yes | Margins are measured in raw feature units |
+| Logistic regression | Usually | Helps optimization and regularization behave |
+| Decision trees, Random Forest, XGBoost | No | Splits only care about order, not magnitude |
+
+Remember kNN from earlier in this series? It measures distance between points. If amount ranges up to 50000 and hour only goes to 23, the amount completely drowns out the hour. Every "nearest neighbor" is really just "nearest amount." Scaling fixes that.
+
+Trees don't care. A split like "amount > 900" works the same whether amount is in dollars, cents, or log-dollars. Order is all that matters. This is one reason gradient boosting is so popular in fintech: less preprocessing to get wrong.
+
+---
+
+## Timestamps are features in disguise
+
+A raw timestamp like `2026-03-14T03:47:00Z` is nearly useless to a model. But unpack it and it turns to gold.
+
+Hour of day is the classic fraud feature. A cardholder who buys groceries at 6pm suddenly making purchases at 3:47am? That's a signal. Fraudsters often operate from other time zones, or run bots overnight when victims are asleep and won't see the alert.
+
+Day of week, is-it-a-weekend, days since the account was created, seconds since the last transaction. Each of these is one line of pandas and each can move a fraud model more than swapping algorithms would.
+
+```python
+df["hour"] = df["timestamp"].dt.hour
+df["is_night"] = df["hour"].between(0, 5).astype(int)
+df["secs_since_last_txn"] = df.groupby("card_id")["timestamp"].diff().dt.total_seconds()
+```
+
+---
+
+## Aggregations: where fraud models get their power
+
+Individual transactions rarely look fraudulent on their own. A 40 dollar purchase at an electronics store? Totally normal.
+
+Fraud lives in behavior over time. So the strongest features are **aggregations**: numbers computed across a window of history.
+
+- Transactions on this card in the last hour
+- Total amount spent in the last 24 hours vs the card's 30-day average
+- Number of distinct merchants in the last 10 minutes
+- Number of countries this card appeared in today
+
+These are often called **velocity features**, because they measure how fast something is happening. A stolen card almost always shows a velocity spike: fraudsters race to extract value before the card gets blocked. Fifteen transactions in ten minutes across five merchants is a screaming siren, even if every individual transaction looks innocent.
+
+If you're a backend engineer, this should feel familiar. Velocity features are basically rate limiting counters, except instead of blocking requests, they feed a model.
+
+One rule keeps you safe here: every aggregation must only use data from **before** the transaction you're scoring. Which brings us to the scary part.
+
+---
+
+## The leakage horror story
+
+**Feature leakage** means a feature contains information that won't exist at prediction time. It's the most expensive mistake in applied ML, and everyone who works in this field long enough has a story.
+
+Here's a classic one from fraud. A team builds a chargeback prediction model and includes a column called `account_status`. Offline, the model is stunning: 0.98 AUC. Champagne is ordered.
+
+Then someone notices what `account_status` actually is. When the fraud ops team confirms fraud, they suspend the account. So "suspended" in that column doesn't predict fraud. It records that fraud was **already discovered**. The model had learned to read the answer key.
+
+At scoring time, mid-transaction, the account isn't suspended yet. The feature is useless exactly when it's needed. The production model performed barely better than a coin flip, and weeks of work went in the bin.
+
+The test for every feature is one question: at the exact moment I need this prediction, would this value already exist? If the answer is "no" or "only after the outcome happened," it's leakage.
+
+<Callout type="tip" title="The time machine test">
+For every feature, ask: could my API have computed this value at the millisecond the prediction was requested? If computing it requires knowledge from the future, even one second of future, cut it.
+</Callout>
+
+---
+
+## Missing values can be a feature
+
+The reflex when you see nulls is to fill them in with a mean or median and move on. Sometimes that throws away signal.
+
+**Why** a value is missing often matters. A loan applicant who leaves the income field blank is different from one who filled it in, and not randomly so. A transaction with no device fingerprint might come from an emulator or a scripted client, which is exactly the traffic a fraud model should worry about.
+
+So before you impute, add a flag: `income_is_missing`, `device_id_is_missing`. Then fill the original column however you like. The model gets both the value and the fact that it was absent. In credit scoring, those missingness flags regularly rank among the top features.
+
+---
+
+## Feature stores, in one paragraph
+
+Once you have good features, a new problem shows up: the same feature must be computed identically in two places. Your training pipeline computes "transactions in the last hour" from a warehouse in batch. Your live API must compute the exact same number in milliseconds from a stream. If the two definitions drift apart, your model trains on one world and predicts in another. This is called training-serving skew. A **feature store** (Feast, Tecton, and the built-in offerings from SageMaker and Vertex) solves it by making each feature a single definition with two synchronized faces: an offline table for training and a low-latency online lookup for serving. If you hear "feature store" in an interview, that's the whole idea: define once, serve everywhere.
+
+<MermaidBlock>
+graph TB
+    A["Feature definition\ntxns per card last hour"] --> B["Offline store\nbatch, for training"]
+    A --> C["Online store\nmilliseconds, for live scoring"]
+    B --> D["Model training"]
+    C --> E["Fraud API\nscores in real time"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+---
+
+## What's next?
+
+You can now turn raw transactions into features that expose fraud: encoded categories, unpacked timestamps, velocity counters, and missingness flags, all without leaking the future.
+
+But say you build that model and it comes back "99% accurate." Is that good? For fraud, it might be completely worthless, and the reason why is one of the most important lessons in ML. Next up: **Model Evaluation: Precision, Recall & ROC-AUC**, where we learn why accuracy lies and what to measure instead.

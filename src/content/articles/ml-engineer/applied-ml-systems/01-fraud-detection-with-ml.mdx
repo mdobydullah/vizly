@@ -1,0 +1,173 @@
+---
+title: "Fraud Detection with ML"
+slug: fraud-detection-with-ml
+category: machine-learning
+series: applied-ml-systems
+seriesOrder: 1
+description: "A card gets swiped and you have 200 milliseconds to decide if it's stolen. Here's how real fraud systems make that call."
+tags:
+  - ML
+  - Fraud Detection
+  - Fintech
+icon: "🕵️"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## You have 200 milliseconds. Go.
+
+Someone just tapped their card at a checkout. Somewhere between that tap and the "approved" beep, a system has to answer one question: is this person who they claim to be?
+
+It can't take a coffee break to think about it. Payment networks give you a latency budget, often 100 to 300 milliseconds for the entire decision. Miss it and the transaction times out, which usually means it gets approved by default or declined by default. Both are bad.
+
+This is fraud detection. It's one of the oldest and most battle-tested ML problems in industry, and if you're a backend engineer moving into fintech, it's probably the first ML system you'll touch.
+
+The good news: your backend instincts transfer beautifully here. This is a low-latency distributed systems problem that happens to have a model in the middle.
+
+---
+
+## What does the pipeline actually look like?
+
+Let me walk you through what happens in those milliseconds.
+
+A transaction event arrives: card number (tokenized), amount, merchant, device fingerprint, IP, timestamp. Raw fields like these aren't enough on their own. A 500 dollar purchase means nothing in isolation. A 500 dollar purchase from a user whose average is 20 dollars, at 3am, from a device never seen before? That's a story.
+
+So the first job is feature computation. The system looks up precomputed aggregates from a feature store, usually something Redis-like, because you cannot run SQL aggregations over months of history in real time.
+
+Then the model scores the transaction, typically outputting a probability between 0 and 1. And then, and this surprises people, the model's score is not the final word.
+
+<MermaidBlock>
+graph LR
+    A["Transaction\ncard, amount,\nmerchant, device"] --> B["Feature Store\nlookup aggregates\nin ~10ms"]
+    B --> C["Model\nscores risk\n0.0 to 1.0"]
+    C --> D["Rules Engine\nhard blocks and\nbusiness overrides"]
+    D --> E{"Decision"}
+    E --> F["Approve"]
+    E --> G["Decline"]
+    E --> H["Step-up\nask for OTP"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style H fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+Notice the third outcome. Real systems don't just approve or decline. They can step up: send an OTP, ask for a selfie, route to manual review. That middle option is where a lot of the cleverness lives, because it lets you be suspicious without being rude.
+
+---
+
+## Why do rules still exist if we have a model?
+
+Every fraud team runs a rules engine alongside the model, and it's not legacy cruft.
+
+Rules handle things a model shouldn't have to learn. Sanctioned country? Block. Card reported stolen an hour ago? Block. There's no reason to let a model "figure out" a hard compliance requirement from data.
+
+Rules also react faster than models. When a new fraud pattern erupts on a Friday night, an analyst can ship a rule in minutes. Retraining and redeploying a model takes hours or days. The rule stops the bleeding while the model catches up.
+
+The model earns its keep on everything else: the subtle, high-dimensional patterns no human could write a rule for. In practice the two are teammates, not rivals.
+
+---
+
+## Velocity features, the secret sauce
+
+If I had to pick one feature family that carries fraud models, it's velocity features. These count behavior over sliding time windows:
+
+| Feature | Window | Why it matters |
+|---------|--------|----------------|
+| Transactions from this card | last 10 minutes | Stolen cards get drained fast |
+| Distinct cards on this device | last 24 hours | One phone, ten cards = card testing |
+| Total amount for this user | last 1 hour | Sudden spending spikes |
+| Failed attempts at this merchant | last 30 minutes | Bots probing for valid cards |
+
+Fraudsters are in a hurry. A stolen card is a melting ice cube, so they move fast, and speed leaves fingerprints. Velocity features are how you capture that.
+
+The engineering challenge is keeping these fresh. A streaming job (Kafka plus Flink is a common pairing) updates counters as events flow in, and the scoring service reads them with a single low-latency lookup. If your "transactions in the last 10 minutes" counter is 5 minutes stale, it's nearly useless.
+
+<Callout type="tip" title="Backend engineers, this is your edge">
+Most of the difficulty in fraud detection is not modeling. It's building feature pipelines that are fast, fresh, and identical between training and serving. If your model trains on one definition of "transactions in the last hour" and serves on a slightly different one, accuracy quietly collapses. This bug even has a name: training-serving skew.
+</Callout>
+
+---
+
+## How bad is the class imbalance, really?
+
+Bad. In a typical card portfolio, fraud might be 0.1 to 0.5 percent of transactions. For every fraudulent payment, there are hundreds or thousands of legitimate ones.
+
+This breaks naive thinking immediately. A model that predicts "not fraud" for everything is 99.8 percent accurate and completely worthless. Accuracy is a meaningless metric here, full stop.
+
+Instead, fraud teams live and breathe precision and recall. And in this domain, they aren't abstract numbers. They're money.
+
+**A false positive is a blocked good customer.** Their dinner payment gets declined in front of friends. They're embarrassed, they call support (that call costs you real money), and there's a decent chance they move that card to the back of their wallet forever. The lifetime value you just torched often exceeds the fraud you were worried about.
+
+**A false negative is a chargeback.** The real cardholder disputes the transaction, you eat the loss plus a chargeback fee, and if your chargeback rate climbs too high, the card networks fine you or cut you off entirely.
+
+So the threshold you pick isn't a modeling decision. It's a business decision about which kind of loss you'd rather take, and it usually gets tuned per segment. High-value electronics? Lower the threshold, be paranoid. A loyal customer's usual grocery store? Relax.
+
+---
+
+## The feedback loop problem
+
+Here's something that makes fraud different from most ML problems: your labels are broken, and they're broken in a sneaky way.
+
+You only learn about fraud through two channels. Either your system flagged it and an analyst confirmed it, or the real cardholder noticed and reported it. Fraud that slips through unnoticed, and unreported, gets labeled as a legitimate transaction in your training data.
+
+Think about what that does. The exact fraud your model is worst at catching is the fraud most likely to be mislabeled as "good" in your next training set. Your blind spots feed themselves.
+
+There's a mirror-image problem too. When you block a transaction, you never find out if it was actually fraud. You prevented the outcome you needed to observe. Some teams deliberately let a tiny random slice of risky transactions through, just to get honest labels. Yes, they knowingly eat some fraud to keep the model's view of reality calibrated. That trade-off shocks newcomers, but flying blind costs more.
+
+And labels are slow. A chargeback can take 30 to 90 days to arrive. Your training data for "last month" isn't complete until months later.
+
+---
+
+## Fraudsters read your model too
+
+Most ML problems have a stationary target. Cat photos don't rearrange themselves to avoid classifiers.
+
+Fraudsters do exactly that. They probe your system constantly with small test transactions, learn where your thresholds sit, and route around them. Deploy a model that catches the current scheme, and within weeks the scheme mutates. This is called adversarial drift, and it means a fraud model is never "done."
+
+The practical consequence: fraud teams retrain constantly, sometimes weekly or even daily, and they watch score distributions like hawks. A sudden shift in the distribution of incoming scores often means the enemy changed tactics before any human noticed.
+
+<Callout type="warning" title="Yesterday's model fights yesterday's fraud">
+A fraud model that isn't retrained regularly doesn't stay mediocre. It decays toward useless, because the adversary is actively optimizing against it. Budget for retraining infrastructure from day one, not as a phase-two nicety.
+</Callout>
+
+---
+
+## Why gradient boosting wins here
+
+Walk into most fraud teams and you'll find gradient boosted trees, usually XGBoost or LightGBM, doing the heavy lifting. Not deep learning. There are solid reasons.
+
+Fraud features are tabular: counts, amounts, ratios, categories. Boosted trees dominate on tabular data and handle messy, missing, weirdly-scaled features without ceremony. They train in minutes, which matters enormously when you're retraining weekly against an adversary. They score in single-digit milliseconds on a CPU, which fits the latency budget without GPU serving infrastructure. And they offer decent explainability, so an analyst can see why a transaction scored high, which regulators and dispute processes demand.
+
+Deep learning shows up in supporting roles, like learning embeddings for devices or merchant sequences, but the final decision layer is very often trees. Boring, fast, and hard to beat.
+
+---
+
+## Where does the latency go?
+
+A rough budget for a 150ms decision might look like this:
+
+| Stage | Budget |
+|-------|--------|
+| Network and parsing | ~20ms |
+| Feature store lookups | ~30ms |
+| Model inference | ~10ms |
+| Rules evaluation | ~10ms |
+| Response and logging | ~20ms |
+| Headroom for spikes | ~60ms |
+
+Notice the model is one of the cheapest lines. The expensive parts are I/O, which is exactly the world backend engineers already know how to optimize. Batching lookups, caching hot users, keeping tail latencies down under load. Same game, higher stakes.
+
+---
+
+## What's next?
+
+Fraud detection asks "is this transaction bad right now?" But fintech has a slower, arguably harder question: "if I lend this person money, will they pay it back?"
+
+That's credit scoring, and it plays by very different rules. Regulators get a vote, explainability becomes law rather than nice-to-have, and a humble model from the 1950s still beats fancy alternatives in ways that will surprise you. That's where we go next in **Credit Scoring & Risk Models**.

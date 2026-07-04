@@ -1,0 +1,190 @@
+---
+title: "Ensembles: Random Forest to XGBoost"
+slug: ensembles-random-forest-xgboost
+category: machine-learning
+series: classical-ml
+seriesOrder: 4
+description: "One decision tree is mediocre. A thousand of them somehow beat deep learning on fraud data. Here's why."
+tags:
+  - ML
+  - XGBoost
+  - Ensembles
+icon: "🌲"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Why would a crowd of bad models beat one good model?
+
+In 1906, a statistician named Francis Galton watched 800 people at a county fair guess the weight of an ox. Individually, the guesses were all over the place. But the average of all the guesses? Off by less than one percent.
+
+Nobody in the crowd was an expert. The crowd itself was.
+
+This is the entire idea behind ensembles. One decision tree is a mediocre predictor. It overfits, it's twitchy, small changes in data give you a completely different tree. But average the votes of hundreds of trees, each one wrong in its own way, and the individual mistakes cancel out.
+
+The catch is that this only works if the models disagree with each other. A crowd of 800 people who all read the same guess off a whiteboard is just one guess, repeated. You need diversity.
+
+Every ensemble method is really just a different answer to one question: how do we force the trees to disagree?
+
+---
+
+## Bagging: parallel voters
+
+The first answer is called **bagging**, short for bootstrap aggregating. The recipe is simple.
+
+Take your training data, say 100,000 credit card transactions. Now create 500 slightly different datasets by sampling from it randomly, with replacement. Each new dataset has the same size but a different mix: some transactions appear twice, some not at all.
+
+Train one tree on each dataset. Now you have 500 trees that each saw a slightly different version of reality, so they each learned slightly different rules.
+
+To classify a new transaction, ask all 500 trees and take a vote. Fraud or not fraud, majority wins.
+
+Each individual tree still overfits its own sample. That's fine. They all overfit *differently*, and the voting averages the noise away while keeping the signal. Bagging is a variance-reduction machine.
+
+---
+
+## Random forest: bagging with one clever twist
+
+A random forest is bagging plus one extra trick, and the trick is what made it famous.
+
+Even with bootstrap sampling, bagged trees tend to look alike. If one feature is very strong, say `transaction_amount` in a fraud model, every single tree will grab it for the top split. Correlated trees means less disagreement, and less disagreement means the crowd effect weakens.
+
+So random forest adds a rule: at every split, each tree is only allowed to consider a **random subset of features**. Maybe this split can only look at `merchant_category`, `hour_of_day`, and `days_since_signup`. The obvious best feature isn't even on the menu.
+
+It sounds like sabotage. It works brilliantly. Forcing trees to explore second-best features makes them genuinely diverse, and diverse voters make a smarter crowd.
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(n_estimators=500, max_features="sqrt")
+model.fit(X_train, y_train)
+```
+
+That's it. Random forests are famously hard to mess up. They barely need tuning, they don't care much about feature scaling, and they give you feature importances for free.
+
+<Callout type="tip" title="Why random forest is a great first model">
+When you get a new tabular dataset, train a random forest before anything fancy. It gives you a strong baseline in five minutes, and its feature importances tell you which columns actually matter. If your fancy model later can't beat it, you learned something important.
+</Callout>
+
+---
+
+## Boosting: sequential error-fixers
+
+Bagging trains its trees in parallel, all independent, then votes. **Boosting** takes the opposite approach: train the trees one after another, and make each new tree focus on the mistakes of the ones before it.
+
+Think of it like a team reviewing a loan application. The first reviewer makes a rough call. The second reviewer doesn't start over, they look at where the first one went wrong and correct just that. The third one corrects what's still wrong. Each specialist is weak alone, but the chain of corrections adds up to something sharp.
+
+<MermaidBlock>
+graph TB
+    subgraph Bagging
+    D1["Random sample 1"] --> T1["Tree 1"]
+    D2["Random sample 2"] --> T2["Tree 2"]
+    D3["Random sample 3"] --> T3["Tree 3"]
+    T1 --> V["Vote or average\nall trees equal"]
+    T2 --> V
+    T3 --> V
+    end
+    subgraph Boosting
+    B1["Tree 1\nrough guess"] --> E1["Measure errors"]
+    E1 --> B2["Tree 2\nfixes those errors"]
+    B2 --> E2["Measure remaining errors"]
+    E2 --> B3["Tree 3\nfixes what is left"]
+    B3 --> S["Weighted sum\nof all trees"]
+    end
+    style D1 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D2 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D3 fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style T1 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style T2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style T3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style V fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B1 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B2 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B3 fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E1 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E2 fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style S fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The two philosophies fix opposite problems. Bagging tames models that are too jumpy (high variance). Boosting sharpens models that are too crude (high bias).
+
+| | Bagging / Random Forest | Boosting / XGBoost |
+|---|---|---|
+| Trees trained | In parallel, independently | Sequentially, each fixes the last |
+| Each tree sees | A random sample of the data | The errors left by previous trees |
+| Combines by | Voting or averaging, all equal | Weighted sum, trees build on each other |
+| Main effect | Reduces variance | Reduces bias |
+| Overfitting risk | Low, hard to overfit | Higher, needs tuning and early stopping |
+| Typical trees | Deep | Shallow (stumps to depth 6 or so) |
+
+---
+
+## How does gradient boosting actually work?
+
+Here's the step-by-step intuition, no calculus required. Say you're predicting credit risk scores.
+
+**Step 1.** Start with a dumb prediction for everyone, like the average default rate. Boring, but it's a starting point.
+
+**Step 2.** For each customer, compute the error, called the **residual**. If your model says 5% risk and the customer actually defaulted, you were badly under. That residual is large.
+
+**Step 3.** Train a small tree to predict the *residuals*, not the original target. This tree's whole job is "where is the current model wrong, and by how much?"
+
+**Step 4.** Add that tree's output to the running prediction, but scaled down by a **learning rate** like 0.1. You only take a small step in the correction's direction. This should feel familiar. It's gradient descent, except instead of nudging weights, you nudge predictions by adding whole trees.
+
+**Step 5.** Recompute residuals, train another tree on them, add it. Repeat a few hundred times. Each tree cleans up whatever error is still left over.
+
+The final model is the sum of all these small corrections. Individually, each tree is weak. Stacked, they're the strongest thing in classical ML.
+
+---
+
+## XGBoost and LightGBM: the workhorses of fintech
+
+Gradient boosting the idea dates back to the 1990s. What changed everything was **XGBoost** in 2014: a brutally optimized implementation with built-in regularization, smart handling of missing values, and speed that made it practical on real data. **LightGBM** from Microsoft followed with an even faster histogram-based approach that eats datasets with millions of rows. CatBoost rounds out the trio with best-in-class handling of categorical features.
+
+Here's the part that surprises people coming from the deep learning hype cycle.
+
+Walk into almost any fintech company, look at the model actually scoring transactions in production, and it's gradient boosting. Fraud detection at payment processors. Credit scoring at banks and BNPL providers. Loan default prediction, churn models, collections prioritization. Boosted trees, boosted trees, boosted trees.
+
+```python
+import xgboost as xgb
+
+model = xgb.XGBClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    max_depth=6,
+    early_stopping_rounds=50,
+)
+model.fit(X_train, y_train, eval_set=[(X_val, y_val)])
+```
+
+Not because these teams are behind the times. Because on this kind of data, boosting wins.
+
+---
+
+## Why do trees still beat neural nets on tabular data?
+
+Fraud and credit data is **tabular**: rows of customers, columns of features like income, transaction count, account age, merchant category. And on tabular data, benchmark studies have repeatedly found that gradient boosted trees match or beat deep learning, while training in minutes instead of hours.
+
+A few reasons why.
+
+Tabular features are heterogeneous. Income in dollars, age in years, a category code, a boolean flag. Neural nets love smooth, uniform inputs like pixels or audio samples. Trees don't care, a split is a split.
+
+The useful patterns are often sharp thresholds, not smooth curves. "More than 3 declined transactions in 24 hours" is a hard cliff. Trees express cliffs natively. Neural nets have to approximate them.
+
+Tabular datasets are small by deep learning standards. A million rows is a big fraud dataset and a rounding error for a neural net's appetite.
+
+And in regulated finance you must explain decisions to auditors and to customers you decline. Tree ensembles come with mature explanation tooling like SHAP, which regulators have grown comfortable with.
+
+<Callout type="info" title="When neural nets win instead">
+Images, audio, and free text are where deep learning dominates, and there's no contest there. Many production fraud systems are hybrids: a neural net turns raw text or device signals into features, and XGBoost makes the final call on the tabular result.
+</Callout>
+
+---
+
+## What's next?
+
+Ensembles are the "many weak models" philosophy. But there's an older school of thought that tried to build one geometrically perfect model instead: find the single best boundary between classes, with maximum breathing room on each side.
+
+Next up: **SVM and k-Nearest Neighbors**. Two classic algorithms, one lazy and one elegant, and both interview favorites you'll want in your pocket.

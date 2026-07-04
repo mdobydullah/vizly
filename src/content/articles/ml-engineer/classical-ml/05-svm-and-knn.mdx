@@ -1,0 +1,150 @@
+---
+title: "SVM & k-Nearest Neighbors"
+slug: svm-and-knn
+category: machine-learning
+series: classical-ml
+seriesOrder: 5
+description: "One algorithm never studies and still passes. The other draws the widest possible street between classes. Both show up in interviews."
+tags:
+  - ML
+  - SVM
+  - kNN
+icon: "📐"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## What if the model never actually learned anything?
+
+Every model we've covered so far does its hard work during training. Fit the line, grow the tree, boost the ensemble. Prediction is then cheap.
+
+k-Nearest Neighbors flips that completely. Training is nothing. It just stores the data.
+
+When a new transaction shows up and you ask "is this fraud?", kNN says: let me find the k most similar transactions I've seen before, say the 5 closest ones, and check what they were. Four were fraud? Then this is probably fraud too. Majority vote of the neighbors, done.
+
+That's the whole algorithm. Ask your neighbors.
+
+It's called **lazy learning** because all the work happens at prediction time, not training time. There's no model in the usual sense, no weights, no learned rules. The data *is* the model.
+
+This laziness is a real cost in production. A model that must scan stored examples for every prediction gets slower as your data grows, which is exactly backwards from what you want in a payment flow with a 50 millisecond budget.
+
+---
+
+## What does "nearest" even mean?
+
+kNN lives or dies by its **distance metric**, the definition of "similar."
+
+The default is straight-line distance, called Euclidean. Treat each transaction as a point in space, one dimension per feature, and measure the gap. There's also Manhattan distance, which moves along a grid like a taxi in a city, and cosine similarity, which compares direction instead of magnitude and works well for text.
+
+But here's the trap that catches every beginner. Say your fraud features are transaction amount in dollars (0 to 10,000) and hour of day (0 to 23). A 500 dollar difference in amount and a 5 hour difference in time both matter, but Euclidean distance sees 500 versus 5. The amount completely drowns out the hour.
+
+**You must scale your features before using kNN.** Squash everything to a comparable range first, or your distance metric is quietly ignoring most of your columns.
+
+<Callout type="warning" title="Scale first, always">
+kNN and SVM both depend on distances, so both need feature scaling. Tree models don't care, which is one reason trees are so forgiving. If your kNN results look bizarre, unscaled features are the first suspect.
+</Callout>
+
+The choice of k matters too. k=1 means you copy your single closest neighbor, which is jumpy and overfits. k=1000 means you average over a huge crowd and smooth away real patterns. Odd, smallish values like 5 or 11 are typical starting points, tuned by cross-validation.
+
+---
+
+## The curse of dimensionality
+
+kNN has a deeper problem, and it has a suitably dramatic name.
+
+In 2 or 3 dimensions, "nearest neighbor" means what you'd expect. But add features, 50 of them, 500 of them, and space gets *huge*. Your data points end up spread so thin that everything is far from everything. The distance to your nearest neighbor and your farthest neighbor become nearly the same number.
+
+When everyone is roughly equally far away, "ask your nearest neighbors" stops meaning anything. Your neighbors aren't meaningfully similar to you, they're just the least-dissimilar strangers in an empty desert.
+
+This is the **curse of dimensionality**, and it's why kNN quietly degrades on wide datasets with hundreds of features, exactly the kind fintech feature stores produce. Keep this problem in mind. It's the whole reason the PCA article exists later in this series.
+
+---
+
+## SVM: find the widest street
+
+Support Vector Machines come from the opposite philosophical corner. Instead of storing everything and staying lazy, SVM works hard up front to find one geometrically ideal boundary.
+
+Picture your good transactions and fraud transactions as two crowds of points. Plenty of lines could separate them. Which one is best?
+
+SVM's answer: the line with the **widest street** around it. Not just any separator, but the one that keeps maximum empty margin between itself and the closest points on each side.
+
+<MermaidBlock>
+graph LR
+    A["Legit transactions\nleft side of street"] --> M["Margin\nempty buffer zone"]
+    M --> B["Decision boundary\nmiddle of the street"]
+    B --> N["Margin\nempty buffer zone"]
+    N --> C["Fraud transactions\nright side of street"]
+    S["Support vectors\nthe points touching the curb\nonly these define the boundary"] --> B
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style M fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style N fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style S fill:#1a1f2b,stroke:#ffb347,color:#fff
+</MermaidBlock>
+
+Why the widest street? Because a boundary that barely squeaks past the training points is fragile. New data lands slightly differently, and points fall on the wrong side. A wide margin is a safety buffer, and buffers generalize better.
+
+The points sitting right on the curb, the ones that would move the boundary if you nudged them, are called **support vectors**. They're the only points that matter. You could delete every other training example and get the exact same boundary. The whole model is defined by a handful of edge cases.
+
+There's something pleasingly honest about that. The model is literally built from its hardest examples.
+
+---
+
+## What's the kernel trick, in plain words?
+
+A straight line is great until your data isn't linearly separable. Imagine fraud transactions forming a cluster in the middle with legit ones surrounding them in a ring. No straight line on earth separates a ring from its center.
+
+Here's the beautiful idea. If you can't separate the data in the dimensions you have, **lift it into more dimensions** where you can.
+
+Take that ring. Add a third dimension: each point's distance from the center. Now the fraud cluster sits low and the legit ring sits high, and a flat sheet slides cleanly between them. A boundary that was impossible in 2D is trivial in 3D. Project that flat sheet back down to 2D and it becomes a circle, exactly the curved boundary you needed.
+
+The **kernel trick** is what makes this affordable. Actually computing coordinates in high-dimensional space, sometimes infinite-dimensional space, would be absurdly expensive. Kernels are shortcut functions that compute what the similarity *would be* up there without ever going there. You get the benefits of the lift while never paying for the elevator.
+
+Popular kernels: linear (no lift), polynomial (curved boundaries), and RBF (very flexible, the usual default).
+
+```python
+from sklearn.svm import SVC
+
+model = SVC(kernel="rbf", C=1.0)  # C trades margin width vs mistakes
+model.fit(X_train_scaled, y_train)
+```
+
+---
+
+## Where are they now?
+
+Honest answer: mostly retired from the main event, still employed in the corners.
+
+Through the 1990s and 2000s, SVMs were the state of the art and the default serious choice. Then gradient boosting took over tabular data and deep learning took over everything perceptual. Kernel SVMs also scale badly, training cost grows roughly with the square of your row count, which is disqualifying at fintech data volumes.
+
+But retired doesn't mean useless.
+
+kNN thrives wherever "find similar things" *is* the product. Recommendation systems, image lookup, and retrieval systems that power modern AI search are approximate nearest-neighbor search at heart. A card-testing fraud pattern often looks like a burst of transactions that are near-duplicates of each other, and similarity search finds that directly. kNN also remains a respectable baseline and a great data-exploration tool.
+
+SVMs still make sense for small, clean, high-dimensional datasets, think a few thousand rows of text or bioinformatics features, where they can beat boosting. Linear SVMs stay competitive for text classification. And SVM concepts, margins and kernels and support vectors, remain interview staples because they test whether you actually understand geometry in ML.
+
+| | kNN | SVM |
+|---|---|---|
+| Training | None, just store the data | Slow, solves an optimization problem |
+| Prediction | Slow, searches stored points | Fast, checks one boundary |
+| Boundary shape | Local and irregular | Maximum-margin, kernels add curves |
+| Feature scaling | Required | Required |
+| High dimensions | Suffers badly | Handles them well |
+| Big datasets | Slow to query | Slow to train (kernel version) |
+| Probability outputs | Crude (neighbor fractions) | Not native, needs calibration |
+
+<Callout type="tip" title="The interview classic">
+"Compare kNN and SVM" is a perennial interview question because they're perfect opposites: lazy versus eager, local versus global, all points versus only support vectors, slow-predict versus slow-train. Nail that contrast in four sentences and you've demonstrated real understanding.
+</Callout>
+
+---
+
+## What's next?
+
+Everything so far, trees, boosting, SVM, kNN, had one thing in common: labeled data. Someone told us which transactions were fraud, and we learned to imitate those labels.
+
+But what happens when nobody labels anything? Next up: **Clustering: k-Means and Beyond**, where the model has to find the structure in your customer data entirely on its own.

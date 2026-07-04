@@ -1,0 +1,140 @@
+---
+title: "PCA & Dimensionality Reduction"
+slug: pca-dimensionality-reduction
+category: machine-learning
+series: classical-ml
+seriesOrder: 7
+description: "Your dataset has 300 columns and most of them are echoing each other. Here's how to find the few directions that actually matter."
+tags:
+  - ML
+  - PCA
+  - Dimensionality Reduction
+icon: "🔦"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Do you really need all 300 features?
+
+A mature credit risk model doesn't have five tidy features. It has hundreds. Transaction counts over 7, 30, and 90 days. Average amounts over the same windows. Ratios of those to each other. Device signals, merchant mixes, repayment velocities.
+
+Look closely and you'll notice most of these columns are echoing each other. A customer with high 30-day spend almost always has high 90-day spend. Their average and total transaction amounts move together. You have 300 columns, but nowhere near 300 independent pieces of information.
+
+That redundancy isn't free. High-dimensional data trains slower, overfits easier, and breaks distance-based methods like kNN and k-means (the curse of dimensionality from two articles ago). And it's impossible to look at. Nobody can visualize 300 dimensions.
+
+So here's the question dimensionality reduction asks: how few numbers per customer could you keep and still preserve most of what makes customers different from each other?
+
+---
+
+## The shadow trick
+
+Here's the intuition, and it's the one to remember.
+
+Imagine holding a wireframe model of a bird between a lamp and a wall. The bird is a 3D object, but its shadow is 2D. You've reduced dimensions. The question is whether the shadow still looks like a bird.
+
+That depends entirely on the angle. Light it head-on and the shadow is a confusing blob, wings and body collapsed on top of each other. Light it from the side and the shadow shows the full silhouette, beak to tail. Same bird, same wall, wildly different information kept.
+
+Photographers know this instinctively. There's a best angle for every subject, the one where the frame captures the most shape.
+
+**PCA is the algorithm that finds the best angle.** Given your 300-dimensional data, it finds the projection down to fewer dimensions that keeps the points as spread out, as distinguishable, as possible. The most informative shadow.
+
+---
+
+## What does PCA actually do?
+
+Principal Component Analysis looks for the **directions where your data varies most**.
+
+Picture customers plotted on just two correlated features, 30-day spend and 90-day spend. The cloud of points forms a stretched, tilted ellipse. Points hug a diagonal line, because the two features mostly agree.
+
+PCA finds that diagonal. The long axis of the ellipse, the direction along which customers differ the most, becomes **principal component 1**. It's a new axis, a blend of the original two, and you could call it something like "overall spending level." The short axis of the ellipse, perpendicular to the first, becomes **component 2**, capturing the little that's left, something like "spending faster or slower lately."
+
+Drop component 2 and describe each customer by their position along component 1 alone. Two features become one, and you've kept most of what distinguished the customers.
+
+Now scale the idea up. With 300 features, PCA finds component 1 (the single strongest direction of variation), then component 2 (the strongest remaining direction, perpendicular to the first), then component 3, and so on. Each new component captures less than the one before. The first 20 or 30 often carry nearly all the story, and the remaining 270 are mostly correlated echo and noise.
+
+<MermaidBlock>
+graph LR
+    A["300 original features\ncorrelated, redundant\nimpossible to visualize"] --> B["PCA finds the directions\nwhere customers\ndiffer the most"]
+    B --> C["Component 1\ncaptures the biggest\nshare of variation"]
+    B --> D["Component 2\nbiggest remaining share"]
+    B --> E["Components 3 to 30\nshrinking slices"]
+    C --> F["Keep top 30 components\nsay 95 percent of variance\ndrop the other 270"]
+    D --> F
+    E --> F
+    style A fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+How do you decide how many to keep? Each component comes with a receipt called **explained variance**, its percentage share of the total variation. Keep adding components until the running total hits a threshold you're comfortable with, 90% or 95% is typical. It's a compression dial: how much fidelity do you want to pay for?
+
+```python
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=0.95)   # keep 95 percent of the variance
+X_reduced = pca.fit_transform(X_scaled)  # scale first, always
+print(X_reduced.shape)  # maybe (100000, 28) instead of (100000, 300)
+```
+
+<Callout type="warning" title="Scale before PCA, no exceptions">
+PCA hunts for variance, and variance depends on units. Leave transaction amounts in the thousands next to ratios between 0 and 1, and PCA will decide the amounts are the only interesting direction. Standardize every feature first so each starts on equal footing.
+</Callout>
+
+---
+
+## Where do eigenvectors fit in?
+
+If you've watched the Essence of Linear Algebra series, or read our articles on it, here's the payoff moment.
+
+The recipe is: compute the covariance matrix of your data, the grid that records how every feature varies with every other feature. The **eigenvectors** of that matrix are the principal components. The **eigenvalues** are the variance along each one.
+
+Remember the geometric meaning of an eigenvector: a direction that a transformation doesn't knock off course, only stretches. The covariance matrix is a transformation that describes your data's shape, and its eigenvectors are that shape's natural axes, the true skeleton of the point cloud, ignoring the arbitrary feature axes you happened to measure along. The eigenvalue says how much the cloud stretches along each axis.
+
+So PCA isn't a new algorithm with new machinery. It's eigenvectors doing honest work: sort the covariance matrix's eigenvectors by eigenvalue, keep the top few, project your data onto them. That abstract chapter of linear algebra is a compression tool with a job in production.
+
+---
+
+## When should you NOT use PCA?
+
+Here's the section that matters most if you work in fintech, because PCA has a serious cost: **it destroys interpretability**.
+
+Your original features meant something. `days_since_last_payment` is a concrete fact about a customer. After PCA, your model runs on component 7, which is 0.3 times spending velocity minus 0.2 times account age plus small slices of 200 other things. What is component 7? Nothing a human can name.
+
+Now imagine your credit model declines someone. Regulations in most markets require you to give real reasons for that decision. "Your component 7 was too high" is not a reason any regulator, auditor, or customer will accept. Model risk teams at banks need to validate every input. Adverse action notices need plain-language explanations.
+
+So the rule of thumb in regulated ML is blunt.
+
+| Situation | PCA? |
+|---|---|
+| Regulated decisions (credit scoring, lending) | Avoid, interpretability is a legal requirement |
+| Fraud models needing analyst-readable reasons | Usually avoid, explanations drive investigations |
+| Preprocessing for kNN or k-means on wide data | Good fit, fights the curse of dimensionality |
+| Hundreds of correlated sensor or embedding features | Good fit, that redundancy is what PCA eats |
+| Visualizing high-dimensional data | Great fit, that's the classic use |
+| Speeding up experiments on huge feature sets | Good fit, compress first, iterate faster |
+
+There's a second limitation worth knowing: PCA is a *linear* method, it only finds straight-line directions. If your data's structure is a curve or a swirl, PCA's flat shadow misses it. And maximum variance isn't always maximum relevance. Occasionally the small component PCA throws away is exactly the one that separates fraud from legit.
+
+<Callout type="tip" title="The fintech pattern">
+A common compromise: use PCA freely for exploration, visualization, and clustering preprocessing, where no individual customer decision depends on it. For the regulated scoring model itself, do the dimension-cutting with feature selection instead, which drops columns but keeps the survivors nameable.
+</Callout>
+
+---
+
+## What about t-SNE and UMAP?
+
+For one specific job, making 2D pictures of high-dimensional data, two younger tools usually beat PCA. **t-SNE** and **UMAP** are nonlinear: instead of finding one global camera angle, they try to keep each point's neighbors close in the 2D picture, bending and folding space as needed. Feed them your 300-dimensional customer data and they'll often paint separated islands where PCA shows one smeared blob, which makes them wonderful for eyeballing whether cluster structure exists at all. But the axes of those pictures mean nothing, distances between islands aren't trustworthy, and the output isn't a stable transformation you can apply to tomorrow's data. Treat them as visualization instruments, not preprocessing steps. PCA remains the tool when you need components you can actually feed into a model.
+
+---
+
+## What's next?
+
+PCA compresses features you already have. But where did those 300 features come from in the first place? Someone had to decide that "declined transactions in the last 24 hours" was worth computing, and that decision probably moved the model more than any algorithm choice in this series.
+
+Next up: **Feature Engineering**, the unglamorous craft that wins Kaggle competitions and production fraud fights alike.

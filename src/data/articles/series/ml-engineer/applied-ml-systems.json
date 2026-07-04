@@ -1,0 +1,17 @@
+{
+  "slug": "applied-ml-systems",
+  "title": "Applied ML Systems",
+  "description": "Real ML systems that companies hire for — fraud detection, credit scoring, recommenders, and forecasting. The problems fintech and government AI teams solve every day, plus how to reason about them in system design interviews.",
+  "icon": "🏦",
+  "color": "green",
+  "tags": ["ML"],
+  "createdAt": "2026-07-04T11:00:00Z",
+  "updatedAt": "2026-07-04T11:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "fraud-detection-with-ml", "title": "Fraud Detection with ML", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 2, "slug": "credit-scoring-risk-models", "title": "Credit Scoring & Risk Models", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 3, "slug": "recommender-systems", "title": "Recommender Systems", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 4, "slug": "time-series-forecasting", "title": "Time-Series Forecasting", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }] },
+    { "order": 5, "slug": "ml-system-design-interview", "title": "The ML System Design Interview", "badges": [{ "icon": "📊", "label": "ML Engineer", "color": "green" }, { "icon": "🤖", "label": "AI Engineer", "color": "purple" }] }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "slug": "ml-engineer",
+  "title": "Become an ML Engineer",
+  "description": "A complete learning path from math foundations to production ML systems. Built for roles at fintech and applied-AI companies where classical ML, statistics, and ML system design matter as much as LLMs. Shares foundations with the AI Engineer path — badges mark which articles matter most for each role.",
+  "icon": "📊",
+  "color": "green",
+  "tags": ["ML"],
+  "createdAt": "2026-07-04T11:30:00Z",
+  "updatedAt": "2026-07-04T11:30:00Z",
+  "estimatedWeeks": 14,
+  "series": [
+    "statistics-probability",
+    "essence-of-linear-algebra",
+    "essence-of-calculus",
+    "classical-ml",
+    "ai-fundamentals",
+    "applied-ml-systems",
+    "transformers-llms",
+    "production-ai-engineering"
+  ]
+}

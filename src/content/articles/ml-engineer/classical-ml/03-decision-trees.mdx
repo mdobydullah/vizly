@@ -1,0 +1,169 @@
+---
+title: "Decision Trees"
+slug: decision-trees
+category: machine-learning
+series: classical-ml
+seriesOrder: 3
+description: "You already write nested if-statements for a living. Decision trees are what happens when the machine writes them itself, and the results are brilliant but fragile."
+tags:
+  - ML
+  - Decision Trees
+  - Interpretability
+icon: "🌳"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The model you've been writing all along
+
+If you've ever written fraud rules by hand, you've built a decision tree without knowing it:
+
+```python
+if amount > 5000:
+    if account_age_days < 30:
+        return "block"
+    else:
+        return "review"
+else:
+    return "allow"
+```
+
+That's it. A decision tree is nested if-statements. The nodes are questions about a feature, the branches are the answers, and the leaves are decisions.
+
+The difference between your hand-written rules and a decision tree model is just this: the machine picks the questions, the split values, and the order, by learning them from data instead of from a fraud analyst's gut.
+
+That one difference changes everything, so let's see how it works.
+
+---
+
+## What does a learned tree look like?
+
+Here's a small tree a model might learn for loan approvals:
+
+<MermaidBlock>
+graph TB
+    A["monthly income\nabove 4k?"] -->|no| B["late payments\nmore than 2?"]
+    A -->|yes| C["debt to income\nabove 40 percent?"]
+    B -->|yes| D["Reject\n82 percent default rate"]
+    B -->|no| E["Manual review\n34 percent default rate"]
+    C -->|yes| F["Manual review\n28 percent default rate"]
+    C -->|no| G["Approve\n3 percent default rate"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+To classify a new applicant, you start at the top and answer questions until you hit a leaf. Every applicant lands in exactly one leaf, and the leaf's historical default rate becomes your prediction.
+
+Notice something logistic regression couldn't do: the tree treats late payments as critical for low-income applicants and doesn't even ask about them for high-income ones. That's an interaction between features, expressed naturally, for free.
+
+---
+
+## How does the machine choose the splits?
+
+This is the heart of the algorithm, and you can get the whole idea without a single formula.
+
+Imagine all your training applicants in one big bucket, defaulters and repayers mixed together. A mixed bucket is unhelpful. You can't make a confident decision about a group that's half good and half bad. The technical word for this mixedness is **impurity**.
+
+Now the algorithm goes shopping for a question. It tries every feature and every possible cut point: income above 3k? Above 4k? Late payments above 1? Above 2? For each candidate question, it splits the bucket in two and checks: are the two resulting buckets purer than the one I started with?
+
+The question that produces the biggest purity improvement wins. That improvement is what people mean by **information gain**. A split that lands 90 percent of defaulters on one side has taught you a lot. A split that leaves both sides 50/50 has taught you nothing.
+
+Then it recurses. Take each child bucket, run the same search again, split again. Keep going until the buckets are pure, or too small to bother with.
+
+<Callout type="info" title="Greedy, and fine with it">
+The tree picks the best split right now, at each step, without ever looking ahead. It might miss a mediocre first split that would have enabled two brilliant ones below it. Finding the truly optimal tree is computationally hopeless, so everyone accepts the greedy version. In practice it works remarkably well.
+</Callout>
+
+---
+
+## What happens when the tree grows too deep?
+
+Left unsupervised, a tree will keep splitting until every leaf is perfectly pure. That sounds like success. It's actually the failure mode.
+
+Think about what a perfectly pure leaf means with real data. Somewhere down at depth 14 there's a leaf that says: income between 3200 and 3350, account created on a Tuesday, exactly one late payment, merchant category 7995. One training customer matched this. They defaulted. So the tree now predicts default for everyone in that hyper-specific bucket.
+
+That's not a pattern. That's a memorized anecdote.
+
+Deep trees carve the feature space into thousands of tiny cells, one per training quirk, and score flawlessly on training data. Show them new data and accuracy falls off a cliff. This is overfitting in its purest, most visual form.
+
+The practical fixes are refreshingly blunt:
+
+| Control | What it does | Typical starting point |
+|---------|--------------|------------------------|
+| `max_depth` | Stops splitting after N levels | 3 to 8 |
+| `min_samples_leaf` | Refuses leaves smaller than N customers | 50 or more for risk data |
+| Pruning | Grow deep first, then cut back branches that don't pay for themselves | sklearn's `ccp_alpha` |
+
+The first two prevent the tree from growing wild. Pruning is the opposite philosophy: let it grow, then walk back up and remove every split whose accuracy gain doesn't justify the added complexity. Like editing a first draft.
+
+```python
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+
+model = DecisionTreeClassifier(max_depth=4, min_samples_leaf=100)
+model.fit(X_train, y_train)
+
+plot_tree(model, feature_names=X.columns, filled=True)  # draw the actual rules
+```
+
+That `plot_tree` call is not a gimmick. It renders the real, complete decision logic of your production model on one screen. Very few model families can make that offer.
+
+<Callout type="warning" title="A pure leaf is a red flag, not a victory">
+If your fitted tree has leaves containing a handful of samples with 100 percent purity, it has memorized individuals. In credit scoring that can even become a compliance problem: a leaf isolating three specific customers is dangerously close to making decisions about individuals rather than patterns.
+</Callout>
+
+---
+
+## The dirty secret: single trees are unstable
+
+Here's the flaw that keeps lone decision trees out of most production systems.
+
+Retrain the same tree on 95 percent of your data, randomly resampled, and you can get a visibly different tree. Different root question, different structure, different predictions for the same applicant.
+
+Why so twitchy? Blame the greedy recursion. Suppose income and debt-to-income are nearly tied as the best first split. A few removed rows tip the contest the other way, the root question changes, and every decision below the root now happens in a different context. The tiny wobble at the top cascades into a completely different rulebook.
+
+Statisticians say trees have **high variance**. The everyday translation: a single tree's opinion depends uncomfortably much on which data it happened to see.
+
+<MermaidBlock>
+graph TB
+    A["Same problem\nslightly different training sample"] --> B["Tree 1\nroot splits on income"]
+    A --> C["Tree 2\nroot splits on debt ratio"]
+    B --> D["Same applicant\npredicted approve"]
+    C --> E["Same applicant\npredicted reject"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+Hold that thought. This exact weakness is about to become the setup for one of the best ideas in all of machine learning.
+
+---
+
+## So why use them at all?
+
+Because when interpretability matters, nothing else comes close.
+
+A shallow decision tree is the only model you can print out, hand to a loan officer, and have them execute with a pen. "Income above 4k, debt ratio under 40 percent, approve." Compliance can audit it line by line. A rejected applicant can be told exactly which branch they fell down, and exactly what would need to change.
+
+Trees also forgive messy inputs. Features on wildly different scales, skewed distributions, a mix of numbers and categories: all fine, because the tree only ever asks "above or below this value." No scaling, no normalization, none of the preprocessing rituals other models demand.
+
+And they surface structure you didn't know about. Fit a quick tree, look at the top two or three splits, and you've learned which features actually drive your outcome and where the natural cut points are. Many teams use trees as an exploration tool even when they ship something else.
+
+One honest model, readable rules, unstable temperament. That's the trade.
+
+---
+
+## What's next?
+
+A single tree is readable but jittery. Here's the twist: what if you trained hundreds of jittery trees on random slices of the data and let them vote? Individual wobbles cancel out, and the crowd becomes far more accurate than any single tree, at the price of that beautiful readability.
+
+That idea, pushed to its limit, produces the models that win most tabular ML competitions and power most production fraud scores. Next up: **Ensembles: Random Forest to XGBoost**.

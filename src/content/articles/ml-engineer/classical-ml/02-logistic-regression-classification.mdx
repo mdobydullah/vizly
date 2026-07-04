@@ -1,0 +1,149 @@
+---
+title: "Logistic Regression & Classification"
+slug: logistic-regression-classification
+category: machine-learning
+series: classical-ml
+seriesOrder: 2
+description: "How one small squashing function turned a straight line into the model that still decides who gets credit and which transactions get blocked."
+tags:
+  - ML
+  - Classification
+  - Logistic Regression
+icon: "🎯"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## A different kind of question
+
+Linear regression answered "how much." Most of the money questions in tech are not "how much." They're "yes or no."
+
+Is this transaction fraudulent? Will this borrower default? Is this account a bot?
+
+These are **classification** problems, and they need a different tool. Not a completely different tool, though. As you'll see, we keep almost everything from linear regression and change one thing.
+
+---
+
+## Why can't the straight line do this?
+
+Let's try it and watch it fail.
+
+Say you're building a fraud detector. Your label is 1 for fraud, 0 for legit. You fit a linear regression on transaction features and get predictions out.
+
+The first problem shows up immediately: the line outputs things like 1.7 and -0.3. What does a fraud score of negative 0.3 mean? A transaction that's 30 percent less than completely innocent? The output has no sensible interpretation because a line is unbounded. It happily shoots past 1 and below 0 forever.
+
+The second problem is sneakier. Suppose your data has a cluster of obvious mega-frauds, transactions 50x bigger than anything else. Least squares hates big errors, so the line tilts hard toward those extreme points. In doing so it shifts its predictions for all the normal, borderline cases. The obvious frauds you'd have caught anyway just made you worse at the hard ones.
+
+A straight line is the wrong shape for a yes/no world.
+
+---
+
+## Enter the sigmoid
+
+Here's the fix, and it's beautifully small. Keep the linear part exactly as it was:
+
+```
+score = w1×amount + w2×hour_of_day + w3×merchant_risk + ... + bias
+```
+
+Then pass that score through one extra function, the **sigmoid**, which squashes any number into the range 0 to 1:
+
+- A hugely negative score squashes to nearly 0
+- A hugely positive score squashes to nearly 1
+- A score of exactly 0 lands on 0.5
+
+The output now reads as a **probability**. A transaction scoring 0.93 means "the model thinks there's a 93 percent chance this is fraud." That is a number a human, a dashboard, and a regulator can all understand.
+
+<MermaidBlock>
+graph LR
+    A["Transaction features\namount, time, merchant"] --> B["Linear score\nweights x features + bias"]
+    B --> C["Sigmoid\nsquash to 0 to 1"]
+    C --> D["Probability\n0.93 fraud"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+That's logistic regression. Linear regression wearing a squashing function. Despite the name, it's a classifier, and the name confuses every newcomer, so consider yourself warned.
+
+---
+
+## Who decides what counts as "fraud enough"?
+
+The model gives you 0.93. It does not give you a decision. Someone has to pick a **threshold**: above this number we block, below it we allow.
+
+The lazy default is 0.5. In fraud, the default is almost always wrong.
+
+Think about the two mistakes you can make. Block a legit customer's card at a checkout and you've embarrassed them, lost the sale, and maybe lost the customer. Let a fraudulent transaction through and you eat the chargeback. Those two costs are almost never equal, so the threshold shouldn't sit neutrally in the middle.
+
+| Threshold | Behavior | You get more of | You get more of |
+|-----------|----------|-----------------|-----------------|
+| 0.3 (aggressive) | Block anything remotely suspicious | Fraud caught | Angry legit customers |
+| 0.5 (default) | Balanced | A bit of both | A bit of both |
+| 0.9 (relaxed) | Block only near-certain fraud | Smooth checkouts | Chargebacks |
+
+<Callout type="tip" title="The threshold is a business decision, not an ML decision">
+The model's job is to produce honest probabilities. Where you draw the block/allow line depends on chargeback costs, customer lifetime value, and how much friction your product can tolerate. Fraud teams tune this number constantly, sometimes per country or per merchant category, without retraining anything.
+</Callout>
+
+---
+
+## How does it learn? Log-loss in one intuition
+
+Squared error made sense for predicting amounts. For probabilities we use **log-loss**, and the intuition fits in one sentence:
+
+Being confidently wrong is catastrophically expensive.
+
+If the true answer is "fraud" and your model said 0.6, log-loss charges you a mild penalty. Said 0.3? Bigger penalty. Said 0.01, basically swearing the transaction was clean when it wasn't? The penalty explodes toward infinity.
+
+This shape trains exactly the behavior you want from a risk model. It's allowed to be unsure. It is severely punished for being cocky and wrong. A model trained on log-loss learns to say 0.55 when the evidence is genuinely murky, rather than rounding its opinion to a confident 0.99.
+
+Training itself works like everything else in ML: start with random weights, measure the log-loss, nudge the weights downhill with gradient descent, repeat. No exact formula this time, but the loop converges fast.
+
+---
+
+## Why is this old model still running the world's money?
+
+Logistic regression is a technique from the mid-1900s. Gradient boosting and deep learning routinely beat it on raw accuracy. And yet, walk into a bank's credit risk department in 2026 and it's there, in production, making real lending decisions.
+
+Three reasons, and none of them are nostalgia.
+
+**It explains itself.** Each feature has one weight, and the weight tells you which direction and how strongly it pushes the probability. When a lending law requires you to tell a rejected applicant the principal reasons for the decision, you can read them straight off the model. Credit scorecards, the point systems behind credit scores, are essentially dressed-up logistic regressions for exactly this reason.
+
+**It's absurdly fast.** Scoring a transaction is a dot product and one squash. Microseconds. When your fraud check sits in the payment path and the checkout has a strict latency budget, that speed is a feature no accuracy gain easily buys back.
+
+**Regulators and auditors trust it.** A model validation team can inspect every weight, test every assumption, and sign off. A 2000-tree ensemble makes that conversation much longer and much more painful. In regulated finance, "we can prove why it did that" beats "it's 2 percent more accurate" surprisingly often.
+
+<Callout type="info" title="The baseline rule">
+In fraud and credit shops, a common working rule: any complex model must beat the logistic regression baseline by a meaningful margin to justify its operational and compliance cost. Plenty of proposed deep learning systems have died in that meeting.
+</Callout>
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+probs = model.predict_proba(X_test)[:, 1]  # fraud probability per transaction
+blocked = probs >= 0.80                    # your threshold, your business call
+```
+
+Notice `predict_proba`. Serious teams almost never use plain `predict`, because that silently applies the 0.5 threshold you specifically didn't want.
+
+---
+
+## What about more than two classes?
+
+Sometimes the question isn't yes/no but "which one": is this transaction card-present fraud, account takeover, friendly fraud, or legit? The standard trick is **one-vs-rest**. Train one logistic regression per class, each answering "is it this class or anything else," then run all of them and pick the class whose model shouts the highest probability. It feels like duct tape, but it works well and keeps every individual model as interpretable as before.
+
+---
+
+## What's next?
+
+Logistic regression still draws a single straight boundary through your feature space. One side leans fraud, the other leans legit. But what if the truth is "risky if the amount is high AND the account is new, unless the merchant is trusted"? No single line expresses rules with that shape.
+
+For that we need a model built out of the thing you already write every day: if-statements. Next up: **Decision Trees**.

@@ -1,0 +1,167 @@
+---
+title: "Random Variables & Distributions"
+slug: sp-random-variables-distributions
+category: machine-learning
+series: statistics-probability
+seriesOrder: 2
+description: "Transaction amounts, fraud counts, login times: every messy real-world quantity has a shape, and learning to recognize those shapes is a superpower."
+tags:
+  - ML
+  - Distributions
+  - Math Foundations
+icon: "📈"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## A number you can't predict, but can describe
+
+Pick a random transaction from your payments platform tomorrow. What's the amount?
+
+You have no idea. It could be 12 SAR for coffee or 40k SAR for a used car. But you're not completely clueless either. You know small amounts are common and huge amounts are rare. You know the amount can't be negative. You could sketch, roughly, how likely each range is.
+
+That's the whole idea of a **random variable**: a quantity whose exact value you can't predict, but whose overall behavior you can describe.
+
+And the description of that behavior, the full map of "which values show up how often," is called a **distribution**.
+
+---
+
+## Discrete vs continuous: counting vs measuring
+
+Random variables come in two flavors, and the split is intuitive.
+
+**Discrete** random variables are things you count. Number of fraudulent transactions today. Number of failed login attempts before a user gives up. Number of chargebacks this month. The answers are whole numbers: 0, 1, 2, 3.
+
+**Continuous** random variables are things you measure. A transaction amount. API response time. The exact minute a customer repays their installment. Between any two values there's always another possible value.
+
+Why care? Because the split decides which distributions apply. Counting problems and measuring problems have different characteristic shapes.
+
+---
+
+## Meet the four shapes you'll actually see
+
+There are dozens of named distributions. In practice, four of them cover most of what you'll meet in ML work and interviews.
+
+<MermaidBlock>
+graph TB
+    A["Which distribution?"] --> B{"Counting or\nmeasuring?"}
+    B -->|Counting| C{"Fixed number\nof attempts?"}
+    C -->|Yes| D["Binomial\nfrauds in 1000 txns"]
+    C -->|No, events over time| E["Poisson\nchargebacks per day"]
+    B -->|Measuring| F{"All values\nequally likely?"}
+    F -->|Yes| G["Uniform\nrandom number generator"]
+    F -->|No, clustered| H["Normal\nsums and averages"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style H fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+**Uniform: everything equally likely.** Roll a die, every face has probability 1/6. Call `random()` in Python, every value between 0 and 1 is equally likely. The shape is a flat line. Honest uniform distributions are rare in nature, but they're everywhere in code: random sampling, shuffling training data, A/B test assignment.
+
+**Binomial: counting successes in a fixed number of tries.** You process 1000 transactions, each has a 2% chance of being fraud. How many frauds do you get? Usually around 20, sometimes 14, sometimes 27, almost never 60. The binomial distribution gives you the exact probability of each count. Any "n independent yes/no trials" situation is binomial: emails opened out of emails sent, loans defaulting out of loans issued.
+
+**Poisson: counting events over time.** How many chargebacks arrive per day? There's no fixed number of "attempts," just events trickling in at some average rate. If you average 4 chargebacks a day, Poisson tells you how often you'll see a quiet day with 0 and how often a nasty day with 10. It's the go-to model for arrivals: support tickets per hour, requests per second, fraud alerts per shift.
+
+**Normal: the bell curve.** Values cluster around a center and taper off symmetrically. Heights, measurement errors, averages of almost anything. More on this one in a second, because its story is the best part of this article.
+
+| Distribution | Type | Shape | Fintech example |
+|--------------|------|-------|-----------------|
+| Uniform | Either | Flat | A/B test bucket assignment |
+| Binomial | Discrete | Bump around n×p | Defaults out of 10k loans |
+| Poisson | Discrete | Bump around the rate, skewed for small rates | Chargebacks per day |
+| Normal | Continuous | Symmetric bell | Average transaction value across branches |
+
+---
+
+## Why does the normal distribution show up everywhere?
+
+Here's the puzzle. Heights are normal. Blood pressure is roughly normal. Averages of dice rolls are normal. Model prediction errors are often normal. Why would wildly unrelated things share the same shape?
+
+The answer is one of the most beautiful results in all of math: the **Central Limit Theorem**.
+
+Here's the intuition, no proof needed. Take any random variable at all, even a weird lumpy one. Now instead of looking at single values, look at **sums or averages of many of them**. Those sums follow a bell curve. Always. It doesn't matter what shape you started with.
+
+Try it yourself in ten lines:
+
+```python
+import random
+
+# A single die roll is uniform: flat, nothing bell-like about it
+one_roll = [random.randint(1, 6) for _ in range(10000)]
+
+# But the SUM of 50 rolls? Plot this and you get a clean bell curve
+sums = [sum(random.randint(1, 6) for _ in range(50)) for _ in range(10000)]
+```
+
+The first histogram is flat. The second is unmistakably a bell. Nothing about a die is "normal," yet the bell emerged anyway.
+
+Now the payoff. Why are human heights normal? Because your height is roughly the sum of thousands of small effects: many genes, nutrition, sleep, and so on. Sum of many small independent influences equals bell curve. The normal distribution isn't a law of nature. It's what happens when lots of little random things add up.
+
+That's also why it's stamped all over ML. Averages of gradients, sums of independent errors, aggregated metrics across servers: anything built by adding up many small pieces drifts toward normal.
+
+<Callout type="tip" title="The 68-95-99.7 shortcut">
+For anything normally distributed, about 68% of values fall within 1 standard deviation of the mean, 95% within 2, and 99.7% within 3. This is why "that's a 3-sigma event" means "that's really unusual." It's the fastest sanity check in statistics, and interviewers love it.
+</Callout>
+
+---
+
+## Where the bell curve lies to you
+
+Now for the warning label, and in fintech it's a big one.
+
+Look at real transaction amounts on any payments platform. The bulk are small: coffee, groceries, mobile top-ups. But there's a long stretch of rare, huge values: cars, tuition, jewelry. The distribution isn't a symmetric bell. It's skewed hard to the right, with a **heavy tail**.
+
+Heavy tails mean extreme values are far more common than the normal distribution would ever predict.
+
+Here's how badly the normal assumption fails. Under a bell curve, a 5-sigma event should happen roughly once in 3.5 million observations. Daily stock market returns produce moves that size every few years. The October 1987 crash was, by the normal model, something like a 20-sigma event. A bell-curve world would not see that in the lifetime of the universe. It happened anyway.
+
+<MermaidBlock>
+graph LR
+    A["Normal assumption\nextremes almost impossible"] --> C["Reality check"]
+    B["Heavy-tailed reality\nextremes rare but expected"] --> C
+    C --> D["Underpriced risk\nblown risk limits\nfraud losses"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+Why does finance data break the bell curve? Remember what makes things normal: many **small, independent** effects adding up. Markets and fraud break the independence part. Panic spreads, one seller triggers another, fraudsters coordinate attacks in bursts. When effects feed on each other instead of averaging out, tails get fat.
+
+<Callout type="warning" title="The most expensive assumption in finance">
+Risk models that assumed normal returns were at the heart of the 2008 financial crisis. Correlated defaults piled up in the tail that the models said was practically impossible. When you build fraud or credit models, always plot the raw distribution before assuming anything about its shape.
+</Callout>
+
+What do you do about it in practice? Often a log transform: take the log of transaction amounts and the skewed monster frequently becomes approximately normal, which is friendlier for many models. That single trick, log-transform the money columns, quietly improves a lot of real-world fintech models.
+
+---
+
+## What this buys you as an ML engineer
+
+Distributions are not academic trivia. They're working tools:
+
+**Feature engineering.** Knowing amounts are log-normal tells you to transform them. Knowing counts are Poisson tells you how to normalize daily fraud tallies.
+
+**Anomaly detection.** "Is 9 chargebacks in one day alarming if we average 4?" Poisson answers that with an exact probability. That number is your alerting threshold.
+
+**Reading model outputs.** Prediction errors should usually look roughly normal and centered at zero. If they're skewed or lumpy, your model is systematically missing something.
+
+**Simulation.** Want to stress-test your risk engine? Generate a million synthetic days of transactions by sampling from the right distributions. Pick the wrong ones and the whole test is fiction.
+
+Once you start seeing data as "samples from a distribution," a lot of ML stops being magic. Training a model is largely an attempt to learn the distribution that generated your data.
+
+---
+
+## What's next?
+
+You can now name the shape of your data: flat, bell, counted, or heavy-tailed, and you know why the bell shows up everywhere sums are involved.
+
+But there's a question distributions alone can't answer: how should a probability **change** when new evidence arrives? Your fraud alert fired. Given that, what's the chance it's actually fraud? The answer surprises almost everyone the first time. Next up: **Bayes' Theorem and Conditional Probability**.

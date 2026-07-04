@@ -1,0 +1,166 @@
+---
+title: "Model Evaluation: Precision, Recall & ROC-AUC"
+slug: model-evaluation-metrics
+category: machine-learning
+series: classical-ml
+seriesOrder: 9
+description: "A fraud model can be 99% accurate and catch zero fraud. Here's how to measure what actually matters."
+tags:
+  - ML
+  - Metrics
+  - Fraud Detection
+icon: "🎯"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## The 99% accurate model that catches nothing
+
+Let me show you the most important trap in machine learning.
+
+You're building a fraud detector. In your data, 1 transaction out of every 100 is fraud. The other 99 are legit. Now consider a "model" that does exactly one thing: it predicts "not fraud" for everything. Every single transaction, approved.
+
+Its accuracy? 99%.
+
+It catches zero fraud. It provides zero value. A cron job that returns `false` would perform identically. And yet by the accuracy metric, it looks like an A+ student.
+
+Accuracy answers "what fraction of predictions were right?" When 99% of your data is one class, being right is trivially easy. You just vote for the majority. This is why nobody serious evaluates a fraud model, a credit default model, or any imbalanced problem by accuracy alone.
+
+So what do we use instead? It all starts with a small table.
+
+---
+
+## The confusion matrix, with real money attached
+
+Take a binary fraud model. Each prediction lands in one of four buckets, depending on what the model said and what was actually true.
+
+Say we score 10,000 transactions, of which 100 are actually fraud. Our model flags 150 as suspicious. Here's how it played out:
+
+| | Model says fraud | Model says legit |
+|---|---|---|
+| **Actually fraud** | 70 (true positives) | 30 (false negatives) |
+| **Actually legit** | 80 (false positives) | 9820 (true negatives) |
+
+Each cell has a price tag:
+
+- **True positive (70)**: we caught real fraud. Money saved.
+- **False negative (30)**: fraud slipped through. We eat the chargeback, roughly the full transaction amount each time.
+- **False positive (80)**: we blocked a real customer's legitimate purchase. They're embarrassed at checkout, they call support, some never come back.
+- **True negative (9820)**: normal life. Legit transaction, approved.
+
+<MermaidBlock>
+graph TB
+    A["Transaction scored\nby the model"] --> B{"Model prediction"}
+    B -->|Flag as fraud| C{"Actually fraud?"}
+    B -->|Approve| D{"Actually fraud?"}
+    C -->|Yes| E["True positive\nfraud caught, money saved"]
+    C -->|No| F["False positive\ngood customer blocked"]
+    D -->|Yes| G["False negative\nfraud slips through, chargeback"]
+    D -->|No| H["True negative\nnormal purchase, all good"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style G fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style H fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Every serious metric is just arithmetic on these four numbers. Once you can read this table, the rest is easy.
+
+---
+
+## Precision and recall: two questions, two costs
+
+**Precision** asks: of everything we flagged, how much was actually fraud?
+
+From our table: 70 true positives out of 150 flags. Precision = 70 / 150 = 47%. So when our model screams "fraud," it's right about half the time. The other half, we just blocked an innocent customer.
+
+**Recall** asks: of all the fraud that existed, how much did we catch?
+
+70 caught out of 100 real frauds. Recall = 70%. Thirty frauds walked right past us.
+
+Here's the uncomfortable truth: these two pull against each other. Want higher recall? Flag more aggressively. But flagging more means more innocent customers caught in the net, so precision drops. Want pristine precision? Only flag the absolute slam dunks. But now subtle fraud sails through, and recall tanks.
+
+This is not a math problem. It's a business tradeoff.
+
+A bank issuing credit cards might accept lower recall because falsely declining cards infuriates customers and drives them to a competitor. A BNPL company bleeding money to fraud rings might crank recall up and accept the support tickets. Same math, opposite choices, both correct for their business.
+
+<Callout type="info" title="A memory trick">
+Precision: when we point the finger, how often are we right? Recall: of all the guilty, how many did we find? Precision protects your customers from false accusations. Recall protects your company from losses.
+</Callout>
+
+---
+
+## F1: one number, when you're forced to pick one
+
+Sometimes you need a single number to compare models, and reporting two feels clumsy. **F1 score** is the harmonic mean of precision and recall.
+
+Why harmonic instead of a plain average? Because the harmonic mean punishes imbalance. A model with 90% precision and 10% recall has a plain average of 50%, which sounds okay. Its F1 is about 18%, which correctly says "this model is broken on one side."
+
+For our example: precision 0.47, recall 0.70, F1 comes out around 0.56.
+
+Useful for comparing models quickly. But remember what F1 quietly assumes: that precision and recall matter equally to you. In fraud they usually don't, because a missed fraud and a blocked customer rarely cost the same. Treat F1 as a summary, not a verdict.
+
+---
+
+## What is ROC-AUC actually telling you?
+
+Your model doesn't really output "fraud" or "legit." It outputs a score, something like 0.83, meaning "83% confident this is fraud." You choose a threshold: above it, flag; below it, approve.
+
+Every threshold gives a different confusion matrix. Slide the threshold from strict to lenient and you trace a curve: at each point, how much fraud you catch (true positive rate) versus how many legit transactions you falsely flag (false positive rate). That curve is the **ROC curve**.
+
+**AUC** is the area under it, a single number from 0.5 to 1.0.
+
+The intuition I like best: grab one random fraudulent transaction and one random legit one. AUC is the probability your model scores the fraud higher than the legit one.
+
+- AUC 0.5: coin flip. The model has learned nothing.
+- AUC 0.75: decent. Picks the fraud 3 times out of 4.
+- AUC 0.95: strong. Almost always ranks fraud above legit.
+
+The beauty of AUC is that it evaluates the model's ranking ability across all thresholds at once, before you've committed to any single one.
+
+---
+
+## Why imbalanced data prefers the precision-recall curve
+
+ROC-AUC has a blind spot, and it shows up exactly in fraud-land.
+
+The false positive rate divides by the number of legit transactions, which is enormous. With 9,900 legit transactions, going from 80 false positives to 800 barely moves the false positive rate (0.8% to 8%). The ROC curve shrugs. Your support team, drowning in ten times more angry customers, does not shrug.
+
+The **precision-recall curve** plots precision against recall across thresholds instead. Precision divides by the number of flags you raised, not the number of legit transactions, so it feels every false positive keenly. On heavily imbalanced data, two models can have nearly identical ROC-AUC and wildly different PR curves. The PR curve is the honest one.
+
+Rule of thumb: the rarer the positive class, the more you should trust the precision-recall view.
+
+```python
+from sklearn.metrics import roc_auc_score, average_precision_score
+
+print(roc_auc_score(y_true, y_scores))          # ROC-AUC
+print(average_precision_score(y_true, y_scores)) # area under PR curve
+```
+
+---
+
+## Picking the threshold is a business meeting, not a math problem
+
+Here's where evaluation stops being a data science exercise. The model gives you scores. Somebody has to decide the cutoff. That decision is about money, not math.
+
+Put real numbers on the four cells. Say the average fraud loss is 120 dollars, and a falsely blocked customer costs you 15 dollars in support time and lost lifetime value. Now every threshold has a total cost, and you can pick the one that minimizes it. Change those cost estimates and the "best" threshold moves. No amount of modeling changes that. It's a business input.
+
+Mature fraud teams often skip the single threshold entirely and use bands: high scores get auto-blocked, mid scores get a step-up challenge like an OTP or 3DS check, low scores flow straight through. The model ranks; the business decides what happens at each level.
+
+<Callout type="tip" title="Where the threshold conversation belongs">
+Bring the confusion matrix at three candidate thresholds to the people who own fraud losses and customer experience, with costs attached. Let them argue. That argument is the threshold decision, and it's supposed to happen outside the notebook.
+</Callout>
+
+---
+
+## What's next?
+
+You now know why accuracy lies, how to read a confusion matrix like a P&L statement, and why the threshold belongs to the business.
+
+But all of this assumed something sneaky: that your one test set tells the truth. What if you just got lucky with the split? And what do you do when fraud is not 1% of your data but 0.1%? Next up: **Cross-Validation & Imbalanced Data**, where we make sure your evaluation numbers survive contact with reality.

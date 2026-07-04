@@ -1,0 +1,152 @@
+---
+title: "Bayes' Theorem & Conditional Probability"
+slug: sp-bayes-theorem
+category: machine-learning
+series: statistics-probability
+seriesOrder: 3
+description: "Your fraud detector is 99% accurate and just flagged a transaction. The chance it's actually fraud might be under 10%. Here's why."
+tags:
+  - ML
+  - Bayes
+  - Probability
+icon: "🔄"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## A question that fools almost everyone
+
+Your fraud detection system is good. Really good. It catches 99% of fraudulent transactions, and it only wrongly flags 1% of legitimate ones.
+
+An alert just fired on a transaction.
+
+What's the probability it's actually fraud?
+
+Most people, including plenty of engineers and doctors, say something close to 99%. The real answer, for a typical fraud rate, is under 10%. If that sounds impossible, good. By the end of this article the correct answer will feel obvious, and you'll have the single most useful mental tool in all of probability.
+
+---
+
+## First, what does "given" mean?
+
+**Conditional probability** is the probability of one thing given that you already know another thing happened. We write it P(A given B), or in math notation, P(A | B).
+
+You use it constantly without noticing. The probability that a random person is asleep right now is maybe 30%. The probability they're asleep **given** it's 3 AM in their city? More like 95%. Same person, same question. New information changed the answer.
+
+One trap to burn into your memory right now: **P(A given B) is not the same as P(B given A).**
+
+The probability that someone speaks Arabic given they live in Riyadh is very high. The probability someone lives in Riyadh given they speak Arabic is quite low, because Arabic speakers are spread across dozens of countries. Flipping the direction of "given" completely changes the number.
+
+Hold onto that, because the fraud puzzle above is exactly this trap.
+
+---
+
+## Let's solve the fraud alert puzzle with real numbers
+
+Forget formulas for a moment. Let's just count.
+
+Suppose your platform processes 100000 transactions a day, and the true fraud rate is 0.5%. That's the number everyone forgets, the **base rate**. Out of 100000 transactions:
+
+- **500** are fraud
+- **99500** are legitimate
+
+Now run the detector over all of them:
+
+- Of the 500 frauds, it catches 99%: **495 true alerts**
+- Of the 99500 legit transactions, it wrongly flags 1%: **995 false alerts**
+
+Total alerts today: 495 + 995 = 1490. And of those, only 495 are real fraud.
+
+<MermaidBlock>
+graph TB
+    A["100000 transactions"] --> B["500 fraud\n0.5 percent base rate"]
+    A --> C["99500 legitimate"]
+    B --> D["495 flagged\ntrue alerts"]
+    B --> E["5 missed"]
+    C --> F["995 flagged\nfalse alerts"]
+    C --> G["98505 passed"]
+    D --> H["1490 total alerts\nonly 495 are real\nabout 33 percent"]
+    F --> H
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+    style E fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style F fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+P(fraud given alert) = 495 / 1490 ≈ **33%**.
+
+Your "99% accurate" system produces alerts that are wrong two times out of three. And if the fraud rate were 0.1% instead of 0.5%, the math gives you about 9%. Nine. Not ninety-nine.
+
+Nothing is broken. The detector really is 99% accurate. The issue is that legitimate transactions outnumber frauds 200 to 1, so even a tiny false-positive rate on a huge pile of legit traffic swamps the true alerts.
+
+This mistake has a name: the **base rate fallacy**. You were told P(alert given fraud) = 99% and your brain quietly swapped it for P(fraud given alert). Different direction, wildly different number. This same arithmetic is why a positive result on a rare-disease screening test usually does not mean you have the disease.
+
+<Callout type="warning" title="Why your ops team hates the model">
+This is the number one conversation between ML engineers and fraud ops teams. "The model is 99% accurate, why is my review queue full of garbage?" Because precision on alerts is governed by the base rate, not by accuracy. When fraud is rare, even excellent models produce mostly false alarms. Plan review capacity around P(fraud given alert), never around accuracy.
+</Callout>
+
+---
+
+## Bayes' theorem: the counting trick as a formula
+
+Everything we just did by counting, Bayes' theorem does in one line:
+
+```
+P(fraud | alert) = P(alert | fraud) × P(fraud) / P(alert)
+```
+
+Plug in our numbers: 0.99 × 0.005 / 0.0149 ≈ 0.33. Same answer as the counting.
+
+The formula is just the counting argument compressed. If the symbols ever confuse you, go back to counting a population of 100000. It always works.
+
+The real power move is reading the formula as a story about **updating beliefs**. Each piece has a name:
+
+| Piece | Name | Meaning |
+|-------|------|---------|
+| P(fraud) | **Prior** | Your belief before seeing evidence. The base rate: 0.5% |
+| P(alert given fraud) | **Likelihood** | How strongly the evidence points to fraud |
+| P(fraud given alert) | **Posterior** | Your updated belief after the evidence: 33% |
+
+Read it as: **posterior = prior, reshaped by evidence.**
+
+The alert moved your belief from 0.5% to 33%. That's a 66x jump, huge. But because the starting point was so low, even a 66x jump lands well short of certainty. Evidence doesn't replace your prior. It updates it.
+
+And updating chains beautifully. Today's posterior becomes tomorrow's prior. Alert fires: 0.5% becomes 33%. Then you see the device is brand new: 33% becomes maybe 70%. Then a mismatched shipping country: 70% becomes 95%. Each piece of evidence ratchets the belief. That loop, prior in, evidence applied, posterior out, is Bayesian reasoning, and it's arguably the correct way to think about any uncertain situation.
+
+<Callout type="tip" title="Bayes in one sentence">
+Start with the base rate, then let each piece of evidence pull your belief up or down in proportion to how much more likely that evidence is under one hypothesis than the other. Strong evidence plus rare event can still equal "probably not."
+</Callout>
+
+---
+
+## Where you'll meet Bayes in production
+
+**Spam filters** are the classic. Since the early 2000s, filters have worked by learning how much more often each word appears in spam than in legit mail. "Congratulations" and "wire transfer" push the posterior up. Your colleague's name pushes it down. Multiply the evidence from every word against a prior spam rate, and out comes P(spam given this email). Cheap, fast, and shockingly effective.
+
+**Fraud systems** run the same logic at transaction speed. The prior is the base fraud rate for that merchant category. Then evidence streams in: device fingerprint, hour of day, distance from home, velocity of recent purchases. Each signal nudges the posterior. Even fraud systems built on gradient-boosted trees or neural networks are, at their core, learning P(fraud given evidence), and the base rate fallacy applies to their alerts just the same.
+
+**Naive Bayes**, in one paragraph. It's a classifier that applies Bayes' theorem with one bold simplification: it pretends all features are independent of each other given the class. That's obviously false ("free" and "offer" clearly travel together in spam), which is why it's called naive. But the lie is forgiving in practice. Naive Bayes trains in seconds on modest hardware, needs little data, and remains a respectable baseline for text classification. When you spin up any new classification project, it's a fine first model to beat.
+
+---
+
+## The habit worth keeping
+
+Bayes' theorem is one line of math, but it encodes a discipline: **never evaluate evidence without asking about the base rate.**
+
+A model flags a transaction: how rare is fraud here? A candidate aces an interview question: how many weak candidates also ace it? A test comes back positive: how common is the condition? In every case the impressive-sounding evidence means much less, or much more, depending on the prior.
+
+Engineers who internalize this stop being fooled by their own dashboards. It's a genuinely unfair advantage in ML work, because most people never learn it.
+
+---
+
+## What's next?
+
+You can now update probabilities the honest way: prior, likelihood, posterior, with the base rate always in the room.
+
+But everything so far assumed we already know the numbers, like the true fraud rate. In reality you estimate those from data, and data can mislead you in sneaky ways. Next up: **Descriptive Statistics and Sampling**, where we cover mean versus median, why standard deviation matters, and how samples quietly lie to you.

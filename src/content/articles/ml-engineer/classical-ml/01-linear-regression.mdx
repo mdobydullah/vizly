@@ -1,0 +1,184 @@
+---
+title: "Linear Regression: Where ML Begins"
+slug: linear-regression
+category: machine-learning
+series: classical-ml
+seriesOrder: 1
+description: "The oldest trick in machine learning is still running inside credit scoring systems today. Here is why a straight line refuses to retire."
+tags:
+  - ML
+  - Linear Regression
+  - Regression
+icon: "📈"
+color: green
+createdAt: "2026-07-04T12:00:00Z"
+updatedAt: "2026-07-04T12:00:00Z"
+author: obydul
+mermaid: true
+---
+
+## Why start with a boring straight line?
+
+Because it's not boring. It's the skeleton key.
+
+Linear regression is where the core ideas of machine learning show up for the first time: weights, bias, a loss function, fitting to data. Every fancy model you'll meet later, from gradient boosting to neural networks, is a remix of ideas you can fully understand right here.
+
+And here's the part that surprises backend engineers moving into ML: banks and fintech companies still ship this model to production. Not because they can't afford fancier ones. Because this one can explain itself.
+
+Let's build the intuition properly.
+
+---
+
+## The model is just a line
+
+Say you work at a BNPL company and you want to predict how much a customer will spend next month. You have one piece of data: their average spend over the past six months.
+
+Plot past spend on the x-axis, next month's spend on the y-axis, one dot per customer. You'll see a rough trend. Customers who spent more before tend to spend more next month.
+
+Now draw a straight line through the cloud of dots.
+
+That line is your entire model.
+
+```
+predicted_spend = weight × past_spend + bias
+```
+
+Two numbers control everything:
+
+- **Weight** is the slope. It says "for every extra dollar of past spend, predict this much more future spend."
+- **Bias** is the intercept. It's the baseline prediction when past spend is zero.
+
+Training means finding the weight and bias that make the line fit the dots as well as possible. Nothing more mysterious than that.
+
+<MermaidBlock>
+graph LR
+    A["Input\npast spend 420"] --> B["Model\nweight x input + bias"]
+    B --> C["Prediction\nnext month 465"]
+    C --> D["Compare to actual\n510"]
+    D --> E["Error\n45 too low"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style D fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style E fill:#1a1f2b,stroke:#ff6b6b,color:#fff
+</MermaidBlock>
+
+---
+
+## What makes one line "better" than another?
+
+You could draw infinitely many lines through those dots. You need a way to score them.
+
+The natural idea: for each customer, measure the vertical gap between the line's prediction and the actual value. That gap is called the **residual**. A good line has small residuals overall.
+
+So why not just add up all the residuals? Two problems.
+
+First, some residuals are positive (you predicted too low) and some are negative (too high). Add them up and they cancel out. A terrible line could score a perfect zero by being wildly wrong in both directions equally.
+
+Second, you probably care more about big misses than small ones. Being off by 5 on a hundred customers is annoying. Being off by 500 on one customer might mean you gave someone a credit line they'll never repay.
+
+Squaring fixes both. Negative errors become positive, so nothing cancels. And big errors get punished disproportionately: an error of 10 costs 100, but an error of 100 costs 10000. The line that minimizes the average of these squared errors is the **least squares** fit.
+
+<Callout type="info" title="Why squared and not absolute value?">
+Absolute error would also stop the canceling problem. But squared error has a lovely bonus: the math becomes smooth and solvable. For plain linear regression there's an exact formula for the best weights, no iterative training loop needed. That's why it fits in milliseconds even on millions of rows.
+</Callout>
+
+---
+
+## One feature is cute. Real problems have fifty.
+
+Past spend alone won't predict much. A real model at a fintech would also look at income, account age, number of late payments, current outstanding balance, and so on.
+
+Linear regression handles this without breaking a sweat. Instead of one weight, you get one weight per feature:
+
+```
+prediction = w1×income + w2×account_age + w3×late_payments + w4×balance + bias
+```
+
+Geometrically you're no longer fitting a line through 2D dots. You're fitting a flat plane (or its higher-dimensional cousin) through points in feature space. The mechanics stay identical: find the weights that minimize the squared errors.
+
+The model is still "linear" because each feature contributes independently, scaled by its weight, and everything just gets added up. No feature can interact with another. Keep that limitation in mind. It comes back to bite later.
+
+---
+
+## Why do fintech risk teams love the coefficients?
+
+Here's where linear regression earns its permanent seat at the table.
+
+Each weight has a plain-English reading. If the weight on `late_payments` is -180, the model is saying: holding everything else constant, each additional late payment drops the predicted spend by 180.
+
+That single sentence is gold in a regulated industry.
+
+When a regulator asks "why did your model lower this customer's limit," a risk team with a linear model can answer precisely. Two extra late payments, that's minus 360, here's the arithmetic. Try doing that with a 400-tree gradient boosting ensemble.
+
+| Feature | Weight | Plain-English meaning |
+|---------|--------|----------------------|
+| income | +0.04 | Each extra 1000 of income adds 40 to predicted spend |
+| late_payments | -180 | Each late payment cuts prediction by 180 |
+| account_age | +12 | Each extra month of history adds 12 |
+
+<Callout type="warning" title="Coefficients lie when features are correlated">
+If income and account balance move together in your data, the model can't tell which one deserves the credit. It might put a huge positive weight on one and a negative weight on the other, and both readings become meaningless. This is called multicollinearity. Always check feature correlations before you narrate your coefficients to a risk committee.
+</Callout>
+
+---
+
+## Where does the straight line break?
+
+Linear regression makes quiet assumptions, and real-world data loves violating them.
+
+**The relationship isn't actually linear.** Spending doesn't grow forever as income grows. It flattens out. A straight line can't flatten. It will overpredict for high earners and there's nothing the training process can do about it, because a line is all it has.
+
+**Outliers hijack the fit.** Remember, squared error punishes big misses brutally. One whale customer who spends 100x the median will drag the whole line toward themselves, wrecking predictions for everyone else. In payments data, whales and fraud rings are everywhere.
+
+**Errors aren't uniform.** The model assumes its misses are roughly the same size across the board. In money data, errors usually grow with the amounts. Your predictions for small accounts might be tight while big accounts are basically noise, and the single line hides that.
+
+**Features interact.** A high balance means something different for a two-month-old account than a ten-year-old one. Linear regression literally cannot express "it depends." Each feature gets one fixed weight, end of story.
+
+None of this makes the model useless. It makes it a baseline. You fit it first, see what it captures, and every fancier model must beat it to justify its complexity. In a lot of production systems, the fancy model never beats it by enough to matter.
+
+---
+
+## Ten lines of sklearn
+
+Here's the whole thing in code. Predicting next-month spend from three features:
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
+X = df[["income", "account_age", "late_payments"]]
+y = df["next_month_spend"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+print(model.coef_)       # the weights, one per feature
+print(model.intercept_)  # the bias
+print(model.score(X_test, y_test))  # how much variance we explain
+```
+
+The `fit` call runs in milliseconds. The `coef_` array is your explanation to the risk team. That's the whole workflow.
+
+<MermaidBlock>
+graph TB
+    A["Historical data\ncustomers with known outcomes"] --> B["Fit\nfind best weights and bias"]
+    B --> C["Inspect coefficients\ndo they make business sense?"]
+    C --> D["Evaluate on held-out data"]
+    D --> E["Baseline established\nevery future model must beat this"]
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ffb347,color:#fff
+    style D fill:#1a1f2b,stroke:#00e5ff,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## What's next?
+
+Linear regression predicts a number. But the questions fintech actually asks are mostly yes-or-no. Is this transaction fraud? Will this borrower default? Should we approve this application?
+
+You'd think you could reuse the straight line for that. You can't, and the reason why is genuinely interesting. Next up: **Logistic Regression & Classification**, where a small squashing function turns our line into the most trusted fraud and credit model in the industry.
