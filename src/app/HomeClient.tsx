@@ -93,20 +93,36 @@ export default function HomeClient({ articles }: Readonly<Props>) {
                     animation: 'fadeUp .6s ease .4s both'
                 }}>
                     <button onClick={() => {
-                        router.push('/guides');
+                        router.push('/articles');
                     }} style={{
-                        background: 'var(--cyan)',
-                        color: '#000',
+                        background: 'transparent',
+                        color: 'var(--text)',
                         fontWeight: 700,
                         fontFamily: 'var(--font-mono)',
                         fontSize: '.8rem',
-                        border: 'none',
+                        border: '1px solid var(--border2)',
                         padding: '.6rem 1.4rem',
                         borderRadius: '8px',
                         cursor: 'pointer',
                         transition: 'all .2s'
-                    }} className="btn-primary">
-                        All Guides →
+                    }} className="btn-ghost">
+                        Articles →
+                    </button>
+                    <button onClick={() => {
+                        router.push('/guides');
+                    }} style={{
+                        background: 'transparent',
+                        color: 'var(--text)',
+                        fontWeight: 700,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '.8rem',
+                        border: '1px solid var(--border2)',
+                        padding: '.6rem 1.4rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all .2s'
+                    }} className="btn-ghost">
+                        Guides →
                     </button>
                     <button
                         onClick={() => window.open(config.urls.githubRepo, '_blank')}
@@ -189,6 +205,34 @@ export default function HomeClient({ articles }: Readonly<Props>) {
                 </div>
             </div>
 
+            {/* ── LATEST ARTICLES SECTION ── */}
+            {articles.length > 0 && (
+                <>
+                    <div className="viz-section-header">
+                        <h2 className="viz-section-title">Latest Articles</h2>
+                        <p className="viz-section-hint">In-depth reads on AI, systems, and engineering concepts.</p>
+                    </div>
+
+                    <div className="viz-grid">
+                        {articles.slice(0, 6).map((article, index) => (
+                            <ArticleCard key={article.slug} article={article} index={index} />
+                        ))}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                        <Link href="/articles" style={{
+                            color: 'var(--text-dim)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '.8rem',
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '3px',
+                        }} className="show-all-link">
+                            Show All Articles →
+                        </Link>
+                    </div>
+                </>
+            )}
+
             {/* Section Title */}
             <div className="viz-section-header">
                 <h2 className="viz-section-title">Latest Guides</h2>
@@ -224,34 +268,6 @@ export default function HomeClient({ articles }: Readonly<Props>) {
                     Show All Guides →
                 </Link>
             </div>
-
-            {/* ── LATEST ARTICLES SECTION ── */}
-            {articles.length > 0 && (
-                <>
-                    <div className="viz-section-header">
-                        <h2 className="viz-section-title">Latest Articles</h2>
-                        <p className="viz-section-hint">In-depth reads on AI, systems, and engineering concepts.</p>
-                    </div>
-
-                    <div className="viz-grid">
-                        {articles.slice(0, 6).map((article, index) => (
-                            <ArticleCard key={article.slug} article={article} index={index} />
-                        ))}
-                    </div>
-
-                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                        <Link href="/articles" style={{
-                            color: 'var(--text-dim)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '.8rem',
-                            textDecoration: 'underline',
-                            textUnderlineOffset: '3px',
-                        }} className="show-all-link">
-                            Show All Articles →
-                        </Link>
-                    </div>
-                </>
-            )}
 
         </div>
     );
