@@ -19,26 +19,26 @@ Why lean first:
 Dependencies are real (Sliding Window needs Two Pointers, Trees need recursion, DP needs trees/graphs). We follow NeetCode's 18-pattern order as the dungeon map, reinvent the *experience*, not the order.
 
 Full dungeon list (ship in order):
-1. **Arrays & Hashing** — Dungeon 1 (next to build)
+1. **Arrays & Hashing** — Dungeon 1 (COMPLETE)
 2. **Two Pointers** — Dungeon 2 (COMPLETE)
 3. **Stack** — Dungeon 3 (COMPLETE)
-4. Binary Search
-5. Sliding Window
-6. Linked List
-7. Trees
-8. Tries
-9. Backtracking
-10. Heap / Priority Queue
-11. Graphs
-12. 1-D DP
-13. Intervals
-14. Greedy
-15. Advanced Graphs
-16. 2-D DP
-17. Bit Manipulation
-18. Math & Geometry
+4. **Binary Search** — Dungeon 4 (COMPLETE)
+5. **Sliding Window** — Dungeon 5 (next to build)
+6. **Linked List** — Dungeon 6
+7. **Trees** — Dungeon 7
+8. **Tries** — Dungeon 8
+9. **Backtracking** — Dungeon 9
+10. **Heap / Priority Queue** — Dungeon 10
+11. **Graphs** — Dungeon 11
+12. **1-D DP** — Dungeon 12
+13. **Intervals** — Dungeon 13
+14. **Greedy** — Dungeon 14
+15. **Advanced Graphs** — Dungeon 15
+16. **2-D DP** — Dungeon 16
+17. **Bit Manipulation** — Dungeon 17
+18. **Math & Geometry** — Dungeon 18
 
-Note: Two Pointers was built out of order as MVP validation. That's fine — it's self-contained. Going forward, build remaining dungeons in strict NeetCode order starting from Arrays & Hashing.
+Note: Two Pointers was built out of order as MVP validation. That's fine — it's self-contained. Going forward, build remaining dungeons in strict NeetCode order starting from Sliding Window.
 
 ## File Structure
 Canonical nested layout (see Rule 01 §6):
@@ -125,8 +125,18 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 6: Car Fleet (Highway Convoy)
 - [x] Boss 7: Largest Rectangle in Histogram (Billboard Builder)
 
-### Dungeons 4-18
-- [ ] Binary Search, Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 4 — Binary Search (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Binary Search (Librarian's Ledger)
+- [x] Boss 2: Search a 2D Matrix (Archive Grid)
+- [x] Boss 3: Koko Eating Bananas (Warehouse Deadline)
+- [x] Boss 4: Find Minimum in Rotated Sorted Array (Night Shift Logbook)
+- [x] Boss 5: Search in Rotated Sorted Array (Shifted Vault Codes)
+- [x] Boss 6: Time Based Key-Value Store (Ticker Tape)
+- [x] Boss 7: Median of Two Sorted Arrays (Twin Libraries)
+
+### Dungeons 5-18
+- [ ] Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

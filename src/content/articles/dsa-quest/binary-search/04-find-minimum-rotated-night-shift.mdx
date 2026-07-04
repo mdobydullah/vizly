@@ -1,0 +1,209 @@
+---
+title: "Find Minimum in Rotated Sorted Array — The Night Shift Logbook"
+slug: find-minimum-rotated-night-shift
+category: dsa
+series: binary-search
+seriesOrder: 4
+description: "Dungeon 4, Boss 4. A factory logbook got dropped and re-clipped starting from the middle. Find the earliest entry in a rotated sorted array without reading every page."
+tags:
+  - DSA
+  - Binary Search
+  - Rotated Array
+icon: "📓"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You work the night shift at a bottling factory. Someone dropped the logbook binder and clipped it back together starting from a page in the middle. Every entry is still in order, the whole book is just rotated. Your supervisor says "find me the earliest entry, and you are not reading all 5000 pages." One comparison per step and Binary Search lands on it in about 12 flips.
+  bn: |
+    আপনি একটা কারখানায় নাইট শিফটে কাজ করেন। কেউ একজন লগবুকের বাইন্ডার ফেলে দিয়ে মাঝখানের একটা পাতা থেকে আবার আটকে ফেলেছে। সব এন্ট্রি এখনো ক্রমেই আছে, শুধু পুরো খাতাটা ঘুরে গেছে। সুপারভাইজার বললেন "সবচেয়ে পুরনো এন্ট্রিটা বের করো, কিন্তু ৫০০০ পাতা পড়া চলবে না।" প্রতি ধাপে একটা তুলনা, আর Binary Search মাত্র ১২ বারের মতো পাতা উল্টেই সেটা খুঁজে দেয়।
+  hi: |
+    आप एक फैक्ट्री में नाइट शिफ्ट करते हैं। किसी ने लॉगबुक का बाइंडर गिरा दिया और उसे बीच के किसी पन्ने से दोबारा जोड़ दिया। हर एंट्री अब भी क्रम में है, बस पूरी किताब घूम गई है। सुपरवाइज़र कहते हैं "सबसे पुरानी एंट्री ढूंढो, और 5000 पन्ने पढ़ने की इजाज़त नहीं है।" हर कदम पर बस एक तुलना, और Binary Search करीब 12 बार पन्ना पलटकर जवाब निकाल देता है।
+  ar: |
+    تعمل في الوردية الليلية بمصنع تعبئة. أسقط أحدهم ملف السجل ثم أعاد تثبيته بدءاً من صفحة في المنتصف. كل الإدخالات ما زالت مرتبة، لكن الدفتر كله أصبح مدوراً. يقول لك المشرف "أحضر لي أقدم إدخال، ولن تقرأ خمسة آلاف صفحة." مقارنة واحدة في كل خطوة، وسيصل Binary Search إلى الجواب في نحو 12 قلبة صفحة فقط.
+---
+
+## Three bosses down
+
+You binary searched a sorted ledger, flattened a 2D grid, and forced Koko to reveal her eating speed by searching an answer space. Every one of those had a clean sorted line to cut in half.
+
+This boss bends the line. The array is still sorted, but someone spun it.
+
+Today's boss: **The Night Shift Logbook**.
+
+---
+
+## The story
+
+You're on the night shift at a bottling plant. The supervisor, Nadia, drops a fat binder on your desk. It's the machine logbook: one page per entry, each stamped with a sequence number, logged in strict time order.
+
+"Someone knocked this off the shelf," she says. "The pages fell out, and whoever re-clipped it started from somewhere in the middle. Nothing is shuffled. It's just rotated."
+
+She flips through a small section to show you. The sequence numbers read:
+
+```
+[4, 5, 6, 7, 0, 1, 2]
+```
+
+See it? The order is intact. It climbs 4, 5, 6, 7, then wraps around to 0 and keeps climbing. Entry 0 is the earliest, hiding in the middle of the book.
+
+"The real binder has 5000 pages," Nadia says. "I need the first entry of the night. Find it. And no, you're not reading every page, the shift ends in an hour."
+
+---
+
+## The problem, dressed up properly
+
+> Suppose an array of length `n` sorted in ascending order is rotated between 1 and `n` times. Given the rotated array `nums` of **unique** elements, return the minimum element of this array.
+>
+> You must write an algorithm that runs in `O(log n)` time.
+
+That's [LeetCode 153, Find Minimum in Rotated Sorted Array](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/). Medium.
+
+---
+
+## The naive attempt
+
+The honest first move: read every page, keep the smallest.
+
+```python
+def find_min(nums):
+    smallest = nums[0]
+    for x in nums:
+        if x < smallest:
+            smallest = x
+    return smallest
+```
+
+Or just `min(nums)`. Both are O(n). For 5000 pages that's 5000 looks.
+
+It works, but it ignores the one gift this problem gives you. The book isn't shuffled. It's **rotated**, which means it's two sorted runs glued together:
+
+```
+[4, 5, 6, 7 | 0, 1, 2]
+ first run     second run
+```
+
+Both runs climb. The minimum sits exactly where the sequence "drops", right at the start of the second run. That drop is called the **pivot**. Structure like this is begging for Binary Search.
+
+---
+
+## The weapon: compare mid to the right edge
+
+Here's the whole trick. Pick the middle page and compare it to the **last** page.
+
+- If `nums[mid] > nums[hi]`, the middle page is bigger than the last page. A sorted run can't do that, so the drop happens **after** mid. The minimum lives to the right: `lo = mid + 1`.
+- Otherwise `nums[mid] < nums[hi]`, which means mid through hi is one smooth sorted run. The minimum can't be hiding inside it anywhere past mid, so it's at mid or to the left: `hi = mid`.
+
+Notice the asymmetry. When we go right we skip mid entirely, because mid was proven too big to be the minimum. When we go left we **keep** mid, because mid itself might be the answer.
+
+<MermaidBlock>
+graph TB
+    A["Look at the middle page\nmid = (lo + hi) / 2"]
+    B["nums[mid] > nums[hi]?\ncompare middle to last page"]
+    C["Yes: the drop is after mid\nminimum is to the right\nlo = mid + 1"]
+    D["No: mid to hi is smooth\nminimum is at mid or left\nhi = mid"]
+    E["lo meets hi\nthat page is the minimum"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+### Why not compare to nums[lo]?
+
+Tempting, and wrong. Try it on a book that was rotated `n` times, meaning it landed back in plain sorted order:
+
+```
+[1, 2, 3, 4, 5]
+```
+
+Here `nums[mid] = 3 > nums[lo] = 1`. If "mid bigger than the left edge" sends you right, you just walked away from the minimum sitting at index 0. Comparing to `nums[hi]` never has this problem: `3 < 5` correctly says "the right side is smooth, stay left."
+
+The right edge is the reliable anchor. Burn that in.
+
+---
+
+## Watching it work
+
+Trace `[4, 5, 6, 7, 0, 1, 2]`:
+
+```
+step  lo  hi  mid  nums[mid]  nums[hi]  decision
+1     0   6   3    7          2         7 > 2  → drop is right → lo = 4
+2     4   6   5    1          2         1 < 2  → smooth → hi = 5
+3     4   5   4    0          1         0 < 1  → smooth → hi = 4
+4     lo == hi == 4 → answer nums[4] = 0  ✓
+```
+
+Three comparisons for seven pages. For Nadia's 5000-page binder, about 12. That's O(log n) doing its thing.
+
+---
+
+## The code
+
+```python
+def find_min(nums: list[int]) -> int:
+    lo, hi = 0, len(nums) - 1
+
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if nums[mid] > nums[hi]:
+            lo = mid + 1      # drop is after mid
+        else:
+            hi = mid          # mid could be the minimum
+
+    return nums[lo]
+```
+
+Short, but every character earns its place.
+
+Notice what's **missing** compared to classic Binary Search. There's no target, so there's no `nums[mid] == target: return` early exit. This is the same `while lo < hi` boundary template you used on Koko last boss: instead of hunting for a value, you shrink the window until `lo` and `hi` pinch together on the answer. When the loop ends, `lo == hi` and that index **is** the minimum. No final check needed.
+
+---
+
+## Gotchas
+
+**1. `hi = mid`, never `hi = mid - 1`.**
+When `nums[mid] < nums[hi]`, mid itself might be the minimum. Step past it and you can skip the answer forever. On `[2, 1]`: mid is 0, `nums[0]=2 > nums[1]=1`, so `lo = 1`, answer 1. Now flip the array to `[1, 2]`: mid is 0, `1 < 2`, and `hi = mid = 0` keeps index 0 alive. With `hi = mid - 1` you'd get `hi = -1`. Broken.
+
+**2. `lo = mid + 1` is safe.**
+If `nums[mid] > nums[hi]`, mid is provably not the minimum, since something smaller exists to its right. Skipping it is free progress and guarantees the loop shrinks.
+
+**3. `while lo < hi`, not `<=`.**
+With `hi = mid` in play, a `<=` condition never terminates once `lo == hi`. Infinite loop, time limit exceeded, sad interview.
+
+**4. Already-sorted input is a valid rotation.**
+"Rotated between 1 and n times" includes rotating exactly `n` times, which lands back at sorted. Your code must return `nums[0]` there, and the `nums[hi]` comparison handles it without any special case.
+
+**5. Duplicates break the guarantee.**
+This version promises unique elements. If duplicates sneak in, `nums[mid] == nums[hi]` tells you nothing about which side holds the minimum, and that's a different boss: LeetCode 154, where worst case degrades to O(n).
+
+---
+
+## Complexity
+
+- **Time**: O(log n). Every comparison discards half the remaining pages.
+- **Space**: O(1). Two indices, nothing else.
+
+Nadia gets her earliest entry in 12 page-flips instead of 5000. She slides you a coffee from the good machine.
+
+---
+
+## Boss down. XP gained.
+
+What you walked away with:
+
+- A rotated sorted array is two sorted runs, and the minimum sits at the pivot between them
+- Compare `nums[mid]` to `nums[hi]`, because comparing to `nums[lo]` lies on sorted input
+- The `while lo < hi` shrink-to-answer template, with `hi = mid` keeping candidates alive
+
+Next up: **Boss 5 — The Shifted Vault Codes.** Same rotated mess, but now a bank alarm is counting down and you're not looking for the smallest entry. You're hunting one specific code somewhere in the spin.

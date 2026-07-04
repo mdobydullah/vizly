@@ -1,0 +1,226 @@
+---
+title: "Binary Search — The Librarian's Ledger"
+slug: binary-search-librarians-ledger
+category: dsa
+series: binary-search
+seriesOrder: 1
+description: "Dungeon 4, Boss 1. A village librarian finds any name in a 10,000-entry ledger in seconds by opening the exact middle and halving. Your first taste of O(log n) thinking."
+tags:
+  - DSA
+  - Binary Search
+  - Arrays
+  - Beginner
+icon: "📖"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    There's an old librarian in a small village who keeps one giant ledger with 10,000 borrower names, all sorted alphabetically. A visitor walks in and asks "is my grandfather's name in here?" She doesn't read page by page. She opens the exact middle, checks one name, and instantly knows which half to throw away. That trick of halving the problem every step is Binary Search, and it finds any name in about 14 checks.
+  bn: |
+    এক গ্রামের বুড়ো লাইব্রেরিয়ানের কাছে একটাই বিশাল খাতা, তাতে ১০ হাজার মানুষের নাম বর্ণমালার ক্রমে সাজানো। একদিন একজন এসে জিজ্ঞেস করল "আমার দাদুর নাম কি এই খাতায় আছে?" তিনি কিন্তু পাতা উল্টে উল্টে খোঁজেন না। খাতার একদম মাঝখানটা খুলে একটা নাম দেখেই বুঝে যান কোন অর্ধেকটা বাদ দেওয়া যায়। প্রতি ধাপে সমস্যা অর্ধেক করে ফেলার এই কৌশলটাই Binary Search, আর মাত্র ১৪টা চেকেই যেকোনো নাম বের হয়ে আসে।
+  hi: |
+    एक गांव की बूढ़ी लाइब्रेरियन के पास एक ही बड़ा रजिस्टर है, जिसमें 10 हजार नाम alphabetical क्रम में लिखे हैं। एक दिन कोई आकर पूछता है "क्या मेरे दादाजी का नाम इसमें है?" वह पन्ने पलट-पलट कर नहीं ढूंढतीं। रजिस्टर को ठीक बीच से खोलती हैं, एक नाम देखती हैं, और तुरंत समझ जाती हैं कि कौन सा आधा हिस्सा फेंकना है। हर कदम पर समस्या को आधा करने की यही चाल Binary Search है, और कोई भी नाम बस 14 चेक में मिल जाता है।
+  ar: |
+    في قرية صغيرة تحتفظ أمينة مكتبة عجوز بسجل ضخم واحد فيه عشرة آلاف اسم مرتبة أبجدياً. يدخل زائر ويسأل "هل اسم جدي موجود هنا؟" لكنها لا تقرأ صفحة بعد صفحة. تفتح منتصف السجل تماماً، تنظر إلى اسم واحد، وتعرف فوراً أي نصف يمكن تجاهله. حيلة تقسيم المشكلة إلى النصف في كل خطوة هي Binary Search، وتجد أي اسم في حوالي 14 محاولة فقط.
+---
+
+## Welcome to Dungeon 4
+
+Three dungeons cleared. You left Dungeon 1 with hashing, the "trade memory for speed" trick. Dungeon 2 gave you two pointers, walking fingers through data instead of nesting loops. Dungeon 3 handed you the stack and its "last opened, first closed" discipline.
+
+This dungeon gives you something different. Not a data structure. A way of thinking.
+
+**Halve the search space.** Every step, throw away half of what's left. That single move turns a million checks into twenty. It's called binary search, its cost is O(log n), and it hides in far more problems than "find a number in a sorted array."
+
+Seven bosses in this dungeon. The first one lives in a library.
+
+---
+
+## The story
+
+There's a small village library run by an old librarian named Mariam. She keeps a single giant ledger: 10,000 borrower names, one per line, sorted alphabetically. It's been maintained that way for forty years.
+
+A visitor walks in.
+
+"My grandfather borrowed books here in the sixties. His name was Rahim Talukder. Is he in the ledger?"
+
+Now, you or I might start at page one and read every name. Mariam does something else. She opens the ledger at the exact middle and reads one name.
+
+"Mahmud. Your grandfather's name starts with R, so he's after this. Forget the entire first half."
+
+She opens the middle of the remaining half. "Sadia. R comes before S. Forget the back half too."
+
+Each time, one glance kills half of what's left. 10,000 names become 5,000, then 2,500, then 1,250... within about 14 checks she either lands on "Rahim Talukder" or runs out of pages to split, which means he was never there.
+
+"Forty years of practice," she shrugs. "Or you could just say the ledger is sorted, so I never need to look at most of it."
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of integers `nums` which is sorted in ascending order, and an integer `target`, write a function to search `target` in `nums`. If `target` exists, return its index. Otherwise, return `-1`.
+>
+> You must write an algorithm with O(log n) runtime complexity.
+
+That last line is the problem telling you exactly which weapon to bring.
+
+---
+
+## The naive attempt (and why it's slow)
+
+Check every element, front to back.
+
+```python
+def search(nums, target):
+    for i, num in enumerate(nums):
+        if num == target:
+            return i
+    return -1
+```
+
+This works. It's also O(n). For Mariam's ledger, that's up to 10,000 name checks for a single visitor. For an array of a billion sorted numbers, it's up to a billion checks.
+
+And here's the crime: it completely ignores the fact that the data is **sorted**. The linear scan would work the same on a shuffled array. When your algorithm doesn't use a guarantee the problem gives you, you're usually leaving speed on the table.
+
+---
+
+## The weapon: halve the search space
+
+Keep two markers, `lo` and `hi`, for the range that could still contain the target. Start with the whole array. Then loop:
+
+1. Look at the middle element, `nums[mid]`.
+2. If it equals the target, done.
+3. If it's **less** than the target, the target can only be to the right. Move `lo` to `mid + 1`.
+4. If it's **greater**, the target can only be to the left. Move `hi` to `mid - 1`.
+5. If `lo` passes `hi`, the range is empty. The target isn't here. Return -1.
+
+<MermaidBlock>
+graph TB
+    A["Search range lo..hi\npick mid in the middle"]
+    B["nums mid equals target\nfound it, return mid"]
+    C["nums mid less than target\ntarget must be right\nlo = mid + 1"]
+    D["nums mid greater than target\ntarget must be left\nhi = mid - 1"]
+    E["lo passes hi\nrange is empty\nreturn -1"]
+    A --> B
+    A --> C
+    A --> D
+    C --> A
+    D --> A
+    C --> E
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Every pass through that loop shrinks the range by at least half. That's the whole weapon.
+
+---
+
+## Watching it work
+
+Let's search for `19` in `[3, 7, 11, 15, 19, 24, 31]` (indices 0 to 6).
+
+```
+step   lo   hi   mid   nums[mid]   decision
+1      0    6    3     15          15 < 19 → go right, lo = 4
+2      4    6    5     24          24 > 19 → go left,  hi = 4
+3      4    4    4     19          match → return 4 ✓
+```
+
+Three checks for seven elements. Now watch it fail gracefully, searching for `20` in the same array:
+
+```
+step   lo   hi   mid   nums[mid]   decision
+1      0    6    3     15          15 < 20 → lo = 4
+2      4    6    5     24          24 > 20 → hi = 4
+3      4    4    4     19          19 < 20 → lo = 5
+4      5    4    -     -           lo > hi → return -1 ✗
+```
+
+The range squeezed down to nothing, so we know for certain 20 isn't there. No wasted checks.
+
+---
+
+## The code
+
+```python
+def search(nums: list[int], target: int) -> int:
+    lo, hi = 0, len(nums) - 1
+
+    while lo <= hi:
+        mid = lo + (hi - lo) // 2
+        if nums[mid] == target:
+            return mid
+        elif nums[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+
+    return -1
+```
+
+Two details deserve a closer look.
+
+**Why `lo <= hi` and not `lo < hi`?** Because both `lo` and `hi` are *inclusive*. A range like `lo = 4, hi = 4` still contains one unchecked element. If you stop at `lo < hi`, you skip that last element and miss targets sitting exactly there.
+
+**Why `mid = lo + (hi - lo) // 2` instead of `(lo + hi) // 2`?** In Python it honestly doesn't matter, integers never overflow. But in Java, C++, and most fixed-width languages, `lo + hi` can exceed the maximum int value when both are huge, and the sum silently wraps around into garbage. `lo + (hi - lo) // 2` computes the same midpoint without ever adding two big numbers. Interviewers notice this. Write it this way everywhere and you never have to think about it again.
+
+<Callout type="tip" title="The invariant to hold onto">
+At every moment, the target (if it exists) lives inside `lo..hi`. Every line of the loop protects that promise. When you move `lo` or `hi`, you're only ever discarding elements you have *proven* can't be the target.
+</Callout>
+
+---
+
+## Why O(log n) is absurdly fast
+
+Each check halves the range. So the real question is: how many times can you halve n before hitting 1?
+
+That number is log₂(n), and it grows painfully slowly:
+
+| Array size | Worst-case checks |
+|---|---|
+| 100 | 7 |
+| 10,000 (Mariam's ledger) | 14 |
+| 1,000,000 | 20 |
+| 1,000,000,000 | 30 |
+
+Read that last row again. A **billion** sorted items, and binary search needs at most 30 looks. Double the billion to two billion? That costs you exactly one extra check. This is why "can I binary search this?" should fire in your head whenever the input is sorted, or even just *ordered in some exploitable way*. Later bosses in this dungeon will stretch that idea a lot further than plain arrays.
+
+---
+
+## Gotchas
+
+**1. The `mid + 1` and `mid - 1` matter.**
+If you write `lo = mid` instead of `lo = mid + 1`, a two-element range like `lo = 4, hi = 5` gives `mid = 4`, and if the answer is to the right, `lo` stays 4 forever. Infinite loop. You already checked `mid`, so always exclude it when you move.
+
+**2. `while lo < hi` silently drops the last element.**
+With inclusive bounds, the loop must run while the range has at least one element, and `lo == hi` is exactly that case. (There is a legit `lo < hi` template with different rules. We'll meet it at Boss 3. Don't mix the two.)
+
+**3. The array must actually be sorted.**
+Binary search on unsorted data doesn't crash. It just confidently returns wrong answers, which is worse.
+
+**4. Empty array.**
+`lo = 0, hi = -1` means the loop never runs and you return -1 immediately. The template handles it for free, but check your bounds if you ever adapt it.
+
+---
+
+## Boss down. XP gained.
+
+Mariam's ledger holds no secrets from you now.
+
+What you walked away with:
+
+- The `lo`, `hi`, `mid` loop with inclusive bounds and `while lo <= hi`
+- The overflow-safe midpoint, `lo + (hi - lo) // 2`
+- The invariant mindset: only discard what you've proven wrong
+- O(log n) intuition: a billion items, thirty checks
+
+Next up: **Boss 2 — The Archive Grid.** A city archive stores documents in a wall of cabinets, rows and columns, and every row picks up where the previous one ended. It looks like a 2D problem. It isn't. You'll learn to see one long sorted shelf hiding inside a grid.
+
+Bring a flashlight.

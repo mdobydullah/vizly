@@ -1,0 +1,222 @@
+---
+title: "Search in Rotated Sorted Array — The Shifted Vault Codes"
+slug: search-rotated-array-shifted-vault
+category: dsa
+series: binary-search
+seriesOrder: 5
+description: "Dungeon 4, Boss 5. A bank's sorted vault codes got printed rotated and the alarm is counting down. Learn the one-pass trick: at every mid, one half is always sorted."
+tags:
+  - DSA
+  - Binary Search
+  - Rotated Array
+icon: "🏦"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A bank vault prints its access codes as one sorted list, but the printout got rotated somewhere in the middle. Now the alarm is counting down and security needs to know if one specific code is on that sheet. There is no time to read every line. The trick is that at any midpoint, one half of the list is still perfectly sorted. Check that half's range, jump the right way, and Binary Search finds the code in O(log n).
+  bn: |
+    একটা ব্যাংকের ভল্ট তার অ্যাক্সেস কোডগুলো সাজানো তালিকা হিসেবে প্রিন্ট করে, কিন্তু প্রিন্টআউটটা মাঝখান থেকে ঘুরে গেছে। এদিকে অ্যালার্ম বাজছে, আর সিকিউরিটির জানা দরকার একটা নির্দিষ্ট কোড ওই কাগজে আছে কি না। সব লাইন পড়ার সময় নেই। মজার ব্যাপার হলো, যেকোনো মাঝের পয়েন্টে তালিকার এক পাশ সবসময় ঠিকঠাক সাজানো থাকে। সেই সাজানো পাশের রেঞ্জটা দেখে ঠিক দিকে লাফ দিন, আর Binary Search কোডটা খুঁজে দেবে O(log n) সময়ে।
+  hi: |
+    एक बैंक की वॉल्ट अपने एक्सेस कोड एक सॉर्टेड लिस्ट में प्रिंट करती है, लेकिन प्रिंटआउट बीच से घूम गया है। उधर अलार्म बज रहा है और सिक्योरिटी को जानना है कि एक खास कोड उस शीट पर है या नहीं। हर लाइन पढ़ने का वक्त नहीं है। कमाल की बात यह है कि किसी भी बीच के पॉइंट पर लिस्ट का एक हिस्सा हमेशा पूरी तरह सॉर्टेड रहता है। उस सॉर्टेड हिस्से की रेंज देखकर सही तरफ कूदिए, और Binary Search वह कोड O(log n) में ढूंढ निकालता है।
+  ar: |
+    تطبع خزنة البنك رموز الدخول في قائمة مرتبة واحدة، لكن الورقة المطبوعة دارت من مكان ما في المنتصف. الآن الإنذار يعد تنازلياً ويحتاج الأمن إلى معرفة ما إذا كان رمز معين موجوداً على تلك الورقة. لا وقت لقراءة كل سطر. الحيلة أن أحد نصفي القائمة عند أي نقطة منتصف يبقى مرتباً تماماً. افحص نطاق ذلك النصف واقفز في الاتجاه الصحيح، وسيجد Binary Search الرمز في O(log n).
+---
+
+## Four bosses down
+
+Last boss, you untangled Nadia's rotated logbook and pinned the minimum at the pivot. Good, because this boss is the same rotated mess with higher stakes. You're not looking for the smallest value anymore. You're hunting one specific value inside the spin.
+
+Today's boss: **The Shifted Vault Codes**.
+
+---
+
+## The story
+
+Meridian Bank, 2 a.m. The vault prints its rotating access codes every night as a single sorted list. Tonight the printer jammed halfway, someone re-fed the paper, and the list came out rotated. Same binder accident energy as last boss.
+
+The security chief, Idris, slaps the printout on the desk. A test strip on top reads:
+
+```
+[4, 5, 6, 7, 0, 1, 2]
+```
+
+"Silent alarm just tripped," he says. "Someone punched in code 0 at the side door. I need to know if 0 is even on tonight's sheet, or if we've got a forged code. You have thirty seconds, and the real sheet has 10,000 codes."
+
+Thirty seconds. Ten thousand lines. Reading every line is not happening.
+
+---
+
+## The problem, dressed up properly
+
+> There is an integer array `nums` sorted in ascending order with **distinct** values. Prior to being passed to your function, `nums` is possibly rotated at an unknown pivot index.
+>
+> Given the array `nums` after the possible rotation and an integer `target`, return the index of `target` if it is in `nums`, or `-1` if it is not.
+>
+> You must write an algorithm with `O(log n)` runtime complexity.
+
+That's [LeetCode 33, Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/). Medium, and a genuine interview classic.
+
+---
+
+## The naive attempt
+
+Panic mode says scan the sheet top to bottom:
+
+```python
+def search(nums, target):
+    for i, x in enumerate(nums):
+        if x == target:
+            return i
+    return -1
+```
+
+O(n). For 10,000 codes at human reading speed, Idris's thirty seconds are long gone. And plain Binary Search won't run as-is, because the rotation broke the single sorted line it depends on. Aim for the middle of `[4, 5, 6, 7, 0, 1, 2]` hunting 0, and the usual "target smaller than mid, go left" logic walks you straight away from it.
+
+But you cleared Boss 4. You know this array isn't chaos. It's two sorted runs. There has to be a way to cut it in half anyway.
+
+---
+
+## The weapon: one half is always sorted
+
+Here's the observation that cracks the vault. Pick any mid in a rotated sorted array. The pivot, the one place where order breaks, lives on **one** side of mid. Which means the **other** side is a perfectly sorted run. Every single time.
+
+```
+[4, 5, 6, 7, 0, 1, 2]
+          ^
+         mid
+ [4,5,6,7] sorted     [0,1,2] also fine here
+```
+
+So at every step, ask two questions:
+
+**Question 1: which half is sorted?**
+If `nums[lo] <= nums[mid]`, the left half climbs smoothly from lo to mid. Otherwise the pivot is in the left half, so the right half is the sorted one.
+
+**Question 2: is the target inside the sorted half's range?**
+A sorted half is the only region you can interrogate with a simple range check. If `target` falls between its endpoints, go there. If not, the target must be in the other, messier half. Toss the sorted half and recurse into the mess.
+
+Either way, half the sheet is gone. That's Binary Search with one extra question bolted on.
+
+<MermaidBlock>
+graph TB
+    A["Check nums[mid]\nis it the target?"]
+    B["Is nums[lo] at most nums[mid]?\nfind the sorted half"]
+    C["Left half sorted\nnums[lo] to nums[mid] climbs"]
+    D["Right half sorted\nnums[mid] to nums[hi] climbs"]
+    E["Is target between\nnums[lo] and nums[mid]?"]
+    F["Is target between\nnums[mid] and nums[hi]?"]
+    G["Yes: search left\nhi = mid - 1"]
+    H["No: search right\nlo = mid + 1"]
+    I["Yes: search right\nlo = mid + 1"]
+    J["No: search left\nhi = mid - 1"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> F
+    E --> G
+    E --> H
+    F --> I
+    F --> J
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style H fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style I fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style J fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+Hunt `target = 0` in `[4, 5, 6, 7, 0, 1, 2]`:
+
+```
+step  lo  hi  mid  nums[mid]  which half sorted?      target in it?         move
+1     0   6   3    7          nums[0]=4 <= 7 → left   0 in [4..7)? no       lo = 4
+2     4   6   5    1          nums[4]=0 <= 1 → left   0 in [0..1)? yes      hi = 4
+3     4   4   4    0          nums[4] == 0 → found, return 4  ✓
+```
+
+Three steps for seven codes. For the full 10,000-code sheet, about 14. Idris gets his answer with twenty seconds to spare: code 0 is real, index 4, no forgery.
+
+Look at step 2 for a second. The "left half" was just `[0, 1]`, two elements, and the range check `0 <= 0 < 1` calmly pointed left. The logic doesn't care how lopsided the halves get.
+
+---
+
+## The code
+
+```python
+def search(nums: list[int], target: int) -> int:
+    lo, hi = 0, len(nums) - 1
+
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+
+        if nums[lo] <= nums[mid]:            # left half is sorted
+            if nums[lo] <= target < nums[mid]:
+                hi = mid - 1                 # target inside it
+            else:
+                lo = mid + 1                 # target in the other half
+        else:                                # right half is sorted
+            if nums[mid] < target <= nums[hi]:
+                lo = mid + 1                 # target inside it
+            else:
+                hi = mid - 1                 # target in the other half
+
+    return -1
+```
+
+Unlike last boss, this is the classic `while lo <= hi` template with an early return, because we're hunting an exact value that might not exist. The only new muscle is the sorted-half check wrapping the range test.
+
+### The two-pass alternative
+
+You could also solve this with tools you already own. Pass one: find the pivot with Boss 4's technique. Pass two: the pivot splits the array into two sorted runs, so pick the run whose range covers `target` and hit it with vanilla Binary Search. Two O(log n) passes, still O(log n) total, completely legitimate.
+
+So why bother with one-pass? Because in an interview, the one-pass version shows you actually understand **why** the rotation is survivable, not just that you can chain two memorized routines. It's less code, one loop, no pivot bookkeeping. That's the flex.
+
+---
+
+## Gotchas
+
+**1. The `<=` in `nums[lo] <= nums[mid]` matters.**
+When the window shrinks to where `lo == mid`, the "left half" is a single element, and a single element is sorted. With a strict `<` you'd misclassify it, branch into the wrong half, and miss targets on two-element windows like `[3, 1]`. Equality must count as sorted.
+
+**2. Get the range checks' strictness right.**
+`nums[lo] <= target < nums[mid]` is strict on the mid side because `nums[mid] == target` already returned. Make it `<=` on both ends and you'll loop on windows that should shrink.
+
+**3. Don't forget the miss case.**
+The loop can exhaust without finding anything. Hunting a forged code that isn't on the sheet must return `-1`, not crash or loop forever. `while lo <= hi` with `mid ± 1` moves guarantees termination.
+
+**4. Duplicates break it.**
+With distinct values, `nums[lo] <= nums[mid]` cleanly identifies the sorted half. Allow duplicates and `nums[lo] == nums[mid]` becomes ambiguous, which is LeetCode 81 territory with an O(n) worst case.
+
+---
+
+## Complexity
+
+- **Time**: O(log n). One extra comparison per step, still half the codes discarded each round.
+- **Space**: O(1).
+
+---
+
+## Boss down. XP gained.
+
+What you walked away with:
+
+- At any mid of a rotated sorted array, one half is guaranteed sorted
+- Identify it with `nums[lo] <= nums[mid]`, then range-check the target against the sorted half only
+- One-pass beats two-pass in an interview, even though both are O(log n)
+
+Next up: **Boss 6 — The Ticker Tape.** A key-value store where every write is stamped with a timestamp, and reads ask "what was the value at time t?" Binary Search is about to leave arrays behind and start searching time itself.

@@ -1,0 +1,220 @@
+---
+title: "Koko Eating Bananas — The Warehouse Deadline"
+slug: koko-eating-bananas-warehouse-deadline
+category: dsa
+series: binary-search
+seriesOrder: 3
+description: "Dungeon 4, Boss 3. Koko must clear every banana pile before the truck leaves, at the laziest speed possible. There is no array to search, so you Binary Search the answer itself."
+tags:
+  - DSA
+  - Binary Search
+  - Search on Answer
+icon: "🍌"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Koko works in a fruit warehouse with piles of banana crates, and the truck leaves in 8 hours. Each hour she can clear crates from only one pile, at a fixed speed of k crates per hour. She wants the slowest speed that still gets every pile done before the truck rolls out. Here's the twist: there is no sorted array anywhere. You Binary Search the possible speeds instead, because if some speed works, every faster speed works too.
+  bn: |
+    কোকো একটা ফলের গুদামে কাজ করে, সামনে কলার ক্রেটের কয়েকটা স্তূপ, আর ৮ ঘণ্টা পরেই ট্রাক ছেড়ে দেবে। প্রতি ঘণ্টায় সে মাত্র একটা স্তূপ থেকে ক্রেট সরাতে পারে, ঘণ্টায় ঠিক k টা করে। সে চায় এমন সবচেয়ে ধীর গতি, যাতে ট্রাক ছাড়ার আগেই সব স্তূপ শেষ হয়ে যায়। মজার ব্যাপার হলো এখানে কোনো sorted array নেই। তাই সম্ভাব্য গতিগুলোর উপরেই Binary Search চালাতে হয়, কারণ কোনো গতিতে কাজ হলে তার চেয়ে দ্রুত সব গতিতেও হবে।
+  hi: |
+    कोको एक फलों के गोदाम में काम करती है। सामने केले की पेटियों के ढेर हैं और ट्रक 8 घंटे में निकल जाएगा। हर घंटे वह सिर्फ एक ढेर से पेटियां हटा सकती है, एक तय रफ्तार k पेटी प्रति घंटा से। वह सबसे धीमी रफ्तार चाहती है जिससे ट्रक जाने से पहले सारे ढेर खत्म हो जाएं। मजेदार बात यह है कि यहां कोई sorted array है ही नहीं। इसलिए मुमकिन रफ्तारों पर ही Binary Search चलाते हैं, क्योंकि अगर कोई रफ्तार काम करती है तो उससे तेज हर रफ्तार भी करेगी।
+  ar: |
+    تعمل كوكو في مستودع فواكه أمامها أكوام من صناديق الموز، والشاحنة ستغادر بعد 8 ساعات. في كل ساعة تستطيع تفريغ صناديق من كومة واحدة فقط، بسرعة ثابتة k صندوقاً في الساعة. تريد أبطأ سرعة تنهي بها كل الأكوام قبل تحرك الشاحنة. المفاجأة أنه لا يوجد أي مصفوفة مرتبة هنا. لذلك نطبق Binary Search على السرعات الممكنة نفسها، لأنه إذا نجحت سرعة ما فكل سرعة أعلى منها ستنجح أيضاً.
+---
+
+## Boss 3: The Warehouse Deadline
+
+Bosses 1 and 2 had something in common: a sorted collection sat in front of you, and you searched it.
+
+This boss hands you a few piles of bananas and a clock. No sorted array. Nothing to index into. And yet the fastest solution is binary search.
+
+If that sounds impossible, good. This is the boss where the weapon changes shape.
+
+---
+
+## The story
+
+Koko works the night shift at a fruit warehouse. Tonight's job: four piles of banana crates sitting on the dock.
+
+```
+piles = [3, 6, 7, 11]
+```
+
+The truck leaves in **8 hours**. Rules of the warehouse:
+
+- Koko picks one speed `k` and sticks with it all night. `k` crates per hour, no changing mid-shift.
+- Each hour, she works on **one pile only**. If the pile has fewer than `k` crates left, she finishes it and, well, the rest of that hour is hers. She can't start the next pile early.
+
+Koko is efficient, but she's not a fan of rushing.
+
+"If I set k to 11, I clear one pile per hour and finish in 4. But why sweat? The truck doesn't leave for 8 hours. What's the *laziest* speed that still gets everything on the truck?"
+
+Try `k = 4` in your head. Pile of 3 takes 1 hour. Pile of 6 takes 2 hours (4, then the last 2). Pile of 7 takes 2. Pile of 11 takes 3. Total: 8 hours. Exactly on time.
+
+Try `k = 3`: that's 1 + 2 + 3 + 4 = 10 hours. Truck's gone. So for this dock, the answer is 4.
+
+Fine for four piles. Now imagine fifty piles, some holding a million crates. How does Koko find her number?
+
+---
+
+## The problem, dressed up properly
+
+> Koko loves to eat bananas. There are `n` piles of bananas, the `i`-th pile has `piles[i]` bananas. The guards have gone and will come back in `h` hours.
+>
+> Koko can decide her bananas-per-hour eating speed of `k`. Each hour, she chooses some pile and eats `k` bananas from it. If the pile has fewer than `k` bananas, she eats all of them instead and will not eat any more bananas during this hour.
+>
+> Return the minimum integer `k` such that she can eat all the bananas within `h` hours.
+
+Same math, more bananas, fewer crates. LeetCode 875.
+
+---
+
+## The naive attempt
+
+Try every speed starting from 1, return the first one that works.
+
+```python
+import math
+
+def min_eating_speed(piles, h):
+    k = 1
+    while True:
+        hours = sum(math.ceil(pile / k) for pile in piles)
+        if hours <= h:
+            return k
+        k += 1
+```
+
+Correct, and doomed. If the biggest pile has a billion crates and the deadline is tight, this crawls through up to a billion candidate speeds, each costing a full O(n) pass. That's O(n * max(piles)). The warehouse shift ends before your program does.
+
+---
+
+## The weapon: search the answer space
+
+Here's the mental flip. Stop looking for an array. Ask two questions instead.
+
+**Question 1: for a given speed k, can Koko finish in time?** That's cheap to check:
+
+```python
+def can_finish(k):
+    return sum((pile + k - 1) // k for pile in piles) <= h
+```
+
+**Question 2: how does that answer behave as k grows?** Faster speeds never hurt. If speed 4 works, speed 5 works, and 6, and every speed after. If speed 3 fails, so did 2 and 1. Line up all speeds from 1 to max(piles) and label each one:
+
+```
+k:           1      2      3      4      5      6  ...  11
+can_finish:  false  false  false  true   true   true ... true
+```
+
+One unbroken run of `false`, then one unbroken run of `true`. That's called **monotonic**, and it's the only license binary search ever needed. Sorted arrays were just the most famous example. Koko's answer is the first `true`, the boundary between the two runs, and you can find a boundary by halving.
+
+<MermaidBlock>
+graph TB
+    A["Answer space\nspeeds 1 to max pile"]
+    B["Feasibility check\ncan_finish of k\nO of n per call"]
+    C["Monotonic pattern\nfalse false false\ntrue true true"]
+    D["Binary Search\nthe boundary\nfirst true"]
+    E["Feasible mid\nkeep it, hi = mid"]
+    F["Infeasible mid\ndiscard it, lo = mid + 1"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+`piles = [3, 6, 7, 11]`, `h = 8`. Speeds range from 1 to 11.
+
+```
+step   lo   hi   mid   hours at mid          feasible?   move
+1      1    11   6     1+1+2+2 = 6  ≤ 8      yes         hi = 6
+2      1    6    3     1+2+3+4 = 10 > 8      no          lo = 4
+3      4    6    5     1+2+2+3 = 8  ≤ 8      yes         hi = 5
+4      4    5    4     1+2+2+3 = 8  ≤ 8      yes         hi = 4
+       lo == hi == 4 → answer is 4 ✓
+```
+
+Watch what the moves mean. When `mid` works, we don't throw it away, it might *be* the answer, so `hi = mid` keeps it in range while discarding everything faster. When `mid` fails, it's dead for sure, so `lo = mid + 1`. The range shrinks until one speed remains: the slowest feasible one.
+
+---
+
+## The code
+
+```python
+def min_eating_speed(piles: list[int], h: int) -> int:
+    def can_finish(k: int) -> bool:
+        return sum((pile + k - 1) // k for pile in piles) <= h
+
+    lo, hi = 1, max(piles)
+    while lo < hi:
+        mid = lo + (hi - lo) // 2
+        if can_finish(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+Why is `hi = max(piles)` enough? Because at that speed every pile takes exactly one hour, and speed beyond that buys nothing, one pile per hour is the ceiling anyway. And `lo = 1` because zero crates per hour finishes nothing.
+
+<Callout type="info" title="Wait, this template looks different">
+Boss 1 used `while lo <= hi` with `return mid` inside and `mid - 1` / `mid + 1` moves. That template hunts for an *exact match* and bails the moment it finds one. This one is `while lo < hi` with `hi = mid`, no early return. It hunts for a *boundary*, the leftmost true. A feasible `mid` isn't proof of being the minimum, so we can't return early, and we can't do `hi = mid - 1` because that might discard the answer itself. Two templates, two jobs. Learn both, never blend them.
+</Callout>
+
+The loop can't get stuck, by the way. `mid = lo + (hi - lo) // 2` rounds down, so `mid < hi` always holds inside the loop, meaning both branches strictly shrink the range.
+
+---
+
+## Gotchas
+
+**1. Ceiling division, not floor.**
+A pile of 7 at speed 4 takes 2 hours, not 1. Writing `pile // k` undercounts and makes impossible schedules look fine. Use `math.ceil(pile / k)` or the integer trick `(pile + k - 1) // k`. The trick is preferred in most languages: no floats, no precision surprises on giant numbers.
+
+**2. Returning `mid` the first time something is feasible.**
+Feasible means "fast enough", not "slowest possible". In the trace above, speed 6 was feasible on step 1, but the answer was 4. The loop must run until the range collapses.
+
+**3. Starting `lo` at 0.**
+Speed zero divides by zero in the feasibility check, or loops forever, depending on how you wrote it. Answer-space bounds deserve a second of thought: smallest *meaningful* candidate, smallest *sufficient* ceiling.
+
+**4. Off-by-one in the moves.**
+In this template it's always `hi = mid` and `lo = mid + 1`. Flip either one and you'll either discard the answer or spin forever on a two-element range.
+
+---
+
+## Complexity
+
+The search space has `max(piles)` candidate speeds, so the loop runs O(log max) times. Each iteration calls `can_finish`, a single O(n) pass over the piles.
+
+**Total: O(n log max(piles))**. For 50 piles topping out at a billion crates, that's 50 * 30 = 1,500 operations. The naive version wanted tens of billions.
+
+---
+
+## Boss down. XP gained.
+
+Koko sets the dial to 4 and enjoys her spare minutes.
+
+What you walked away with:
+
+- Binary search doesn't need an array, it needs a **monotonic yes/no question**
+- The recipe: define the answer range, write `can_finish(k)`, search for the boundary
+- The boundary template: `while lo < hi`, feasible means `hi = mid`, infeasible means `lo = mid + 1`
+- Ceiling division without floats: `(pile + k - 1) // k`
+
+This pattern is called **search on answer**, and once you see it, you see it everywhere: smallest ship capacity to clear cargo in d days, minimum days for bouquets, split array to minimize the largest sum. Different costumes, same monotonic boundary.
+
+Next up: **Boss 4 — The Night Shift Logbook.** A guard's logbook is sorted by hour, but someone tore it at a random page and taped it back in the wrong order. Find the smallest entry without reading the whole thing. Binary search, on an array that's only *mostly* sorted.

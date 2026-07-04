@@ -1,0 +1,241 @@
+---
+title: "Search a 2D Matrix — The Archive Grid"
+slug: search-2d-matrix-archive-grid
+category: dsa
+series: binary-search
+seriesOrder: 2
+description: "Dungeon 4, Boss 2. A city archive stores files in a grid of cabinets where every row continues the last. The grid is secretly one long sorted shelf, so one Binary Search finds any file."
+tags:
+  - DSA
+  - Binary Search
+  - Matrix
+icon: "🗄️"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You start a job at the city archive, a huge hall with cabinets arranged in a grid. Every row of files is sorted left to right, and each new row starts right where the row above ended. The head archivist asks you to find one document number out of thousands. The trick is realizing the grid is secretly one long sorted shelf that someone folded into rows. So you run a single Binary Search over the whole thing and unfold positions with simple division.
+  bn: |
+    আপনি শহরের আর্কাইভে নতুন চাকরি নিয়েছেন, বিশাল এক হলঘর জুড়ে গ্রিডের মতো সাজানো ক্যাবিনেট। প্রতিটি সারির ফাইল বাঁ থেকে ডানে সাজানো, আর নতুন সারি শুরু হয় ঠিক আগের সারি যেখানে শেষ, তার পর থেকে। প্রধান আর্কিভিস্ট আপনাকে হাজার হাজার ফাইলের মধ্য থেকে একটা নম্বর খুঁজে দিতে বললেন। আসল চালাকিটা হলো বুঝে ফেলা যে এই গ্রিড আসলে একটাই লম্বা সাজানো তাক, কেউ ভাঁজ করে সারিতে রেখেছে। তাই পুরোটার উপর একটাই Binary Search চালান, আর ভাগ করে position বের করে নিন।
+  hi: |
+    आपकी नई नौकरी शहर के archive में लगी है, एक बड़ा हॉल जहां अलमारियां grid की तरह सजी हैं। हर लाइन की फाइलें बाएं से दाएं क्रम में हैं, और हर नई लाइन ठीक वहीं से शुरू होती है जहां ऊपर वाली खत्म हुई थी। हेड archivist आपसे हजारों में से एक document नंबर ढूंढने को कहते हैं। असली चाल यह समझना है कि यह grid दरअसल एक ही लंबी sorted शेल्फ है, जिसे किसी ने मोड़कर लाइनों में रख दिया है। तो पूरे पर बस एक Binary Search चलाइए और division से position निकाल लीजिए।
+  ar: |
+    بدأت عملك في أرشيف المدينة، قاعة ضخمة فيها خزائن مرتبة على شكل شبكة. كل صف من الملفات مرتب من اليسار إلى اليمين، وكل صف جديد يبدأ من حيث انتهى الصف الذي فوقه. يطلب منك رئيس الأرشيف إيجاد رقم مستند واحد بين الآلاف. السر هو أن تدرك أن الشبكة في الحقيقة رف واحد طويل مرتب قام أحدهم بطيه إلى صفوف. لذلك تشغل Binary Search واحداً على كل شيء وتستخرج الموقع بقسمة بسيطة.
+---
+
+## Boss 2: The Archive Grid
+
+Boss 1 taught you the core move: keep a `lo..hi` range, check the middle, throw away half. That worked on a flat sorted list.
+
+This boss hands you a grid instead. Two dimensions. Rows and columns. Your instinct might say "that's a different shape, I need a different weapon."
+
+Your instinct is wrong, and that's the whole lesson.
+
+---
+
+## The story
+
+Your first day at the city archive. The head archivist, Farid, walks you into a hall the size of a gymnasium. One wall is nothing but filing cabinets: rows of them, each row holding a run of numbered documents.
+
+"House deeds," Farid says. "Every file has a number. Each row is sorted left to right. And here's the part I'm proud of: the first file in every row comes right after the last file of the row above it. No overlaps, no gaps in the ordering. Forty years, never broken."
+
+A courier arrives. "I need document 16."
+
+Farid turns to you. "Wall's yours. Twelve cabinets in this section, three rows of four."
+
+```
+row 0:  [ 1   3   5   7 ]
+row 1:  [10  11  16  20 ]
+row 2:  [23  30  34  60 ]
+```
+
+You could walk the wall cabinet by cabinet. Or you could notice what Farid actually told you. If every row continues exactly where the previous one ended, then this isn't really a grid. It's one long sorted shelf that somebody folded to fit the wall:
+
+```
+1  3  5  7  10  11  16  20  23  30  34  60
+```
+
+And you already own a weapon for one long sorted shelf.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `m x n` integer matrix `matrix` with the following two properties:
+>
+> 1. Each row is sorted in non-decreasing order.
+> 2. The first integer of each row is greater than the last integer of the previous row.
+>
+> Given an integer `target`, return `true` if `target` is in `matrix` or `false` otherwise.
+>
+> You must write a solution in O(log(m * n)) time complexity.
+
+Again the complexity requirement names the weapon for you. `log(m * n)` means one binary search over all `m * n` cells.
+
+---
+
+## The naive attempt
+
+Check every cell.
+
+```python
+def search_matrix(matrix, target):
+    for row in matrix:
+        for value in row:
+            if value == target:
+                return True
+    return False
+```
+
+O(m * n). For a 1000 x 1000 archive that's up to a million cabinet checks per courier, and it ignores both sorting guarantees completely. Same crime as Boss 1's linear scan, just in two dimensions.
+
+---
+
+## The weapon: unfold the grid in your head
+
+Here's the insight. You don't need to physically flatten anything. You just need a way to *pretend* the grid is flat.
+
+Number every cell 0 through `m * n - 1`, reading left to right, top to bottom. For a grid with `cols` columns, any virtual index `i` maps back to a real cell with two tiny formulas:
+
+- `row = i // cols` (how many full rows fit before position i)
+- `col = i % cols` (how far into that row you are)
+
+So virtual index 6 in our 3 x 4 grid is `row = 6 // 4 = 1`, `col = 6 % 4 = 2`. That's the cell holding 16. The mapping costs nothing, and suddenly your binary search from Boss 1 works unchanged. Only the "read the middle element" line is different.
+
+<MermaidBlock>
+graph TB
+    A["Grid m x n\nrows sorted, each row\ncontinues the previous"]
+    B["Pretend it is one\nsorted list of m times n items\nvirtual index 0 to mn - 1"]
+    C["Binary Search on\nvirtual indices\nlo, hi, mid as usual"]
+    D["Read the middle:\nrow = mid // cols\ncol = mid % cols"]
+    E["Compare and halve\nsame as Boss 1"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> C
+    style A fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+Search for `16` in the 3 x 4 archive. Twelve cells, virtual indices 0 to 11, `cols = 4`.
+
+```
+step   lo   hi   mid   row,col   value   decision
+1      0    11   5     1,1       11      11 < 16 → lo = 6
+2      6    11   8     2,0       23      23 > 16 → hi = 7
+3      6    7    6     1,2       16      match → True ✓
+```
+
+Three checks for twelve cells. Now a miss, searching for `13`:
+
+```
+step   lo   hi   mid   row,col   value   decision
+1      0    11   5     1,1       11      11 < 13 → lo = 6
+2      6    11   8     2,0       23      23 > 13 → hi = 7
+3      6    7    6     1,2       16      16 > 13 → hi = 5
+4      6    5    -     -         -       lo > hi → False ✗
+```
+
+Notice the trace looks *identical in shape* to Boss 1. The grid never mattered.
+
+---
+
+## The code
+
+```python
+def search_matrix(matrix: list[list[int]], target: int) -> bool:
+    rows, cols = len(matrix), len(matrix[0])
+    lo, hi = 0, rows * cols - 1
+
+    while lo <= hi:
+        mid = lo + (hi - lo) // 2
+        value = matrix[mid // cols][mid % cols]
+        if value == target:
+            return True
+        elif value < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+
+    return False
+```
+
+One binary search, O(log(m * n)) time, O(1) space. Compare it line by line with Boss 1's code. The only new thing is `matrix[mid // cols][mid % cols]`. That's the entire cost of going from 1D to 2D.
+
+<Callout type="tip" title="The transferable trick">
+"Map a virtual index onto a real structure" shows up all over the place: treating a 1D array as a heap, addressing pixels in a flat image buffer, paging through database results. Whenever a structure is *logically* ordered but *physically* folded, look for the index formula that unfolds it.
+</Callout>
+
+---
+
+## The two-search alternative (and why one is cleaner)
+
+There's another correct approach. First binary search the row: find the row whose first element is at most the target and whose last element is at least the target. Then binary search inside that row.
+
+```python
+def search_matrix_two_pass(matrix, target):
+    lo, hi = 0, len(matrix) - 1
+    while lo <= hi:                      # find the candidate row
+        mid = lo + (hi - lo) // 2
+        if matrix[mid][-1] < target:
+            lo = mid + 1
+        elif matrix[mid][0] > target:
+            hi = mid - 1
+        else:
+            row = matrix[mid]            # target could only live here
+            l, h = 0, len(row) - 1
+            while l <= h:                # ordinary search inside it
+                m = l + (h - l) // 2
+                if row[m] == target:
+                    return True
+                elif row[m] < target:
+                    l = m + 1
+                else:
+                    h = m - 1
+            return False
+    return False
+```
+
+Same complexity: log(m) + log(n) equals log(m * n). So why prefer the one-pass version? Fewer moving parts. The two-pass version has two loops, two sets of bounds, and a subtle "row found but target absent" exit path in the middle. More places for off-by-one bugs to hide. When two solutions tie on complexity, pick the one with fewer opportunities to be wrong.
+
+---
+
+## Gotchas
+
+**1. This only works because of property 2.**
+"First of each row is greater than last of the previous row" is what makes the flattened list sorted. There's a *different* famous problem (LeetCode 240) where rows and columns are each sorted but rows can overlap, like row 0 ending in 15 while row 1 starts at 2. Flattening that gives you an unsorted list and your search quietly returns wrong answers. That cousin needs a different weapon, a staircase walk from a corner. Read the guarantees before you flatten.
+
+**2. Swapping `//` and `%`.**
+`row = mid % cols` compiles fine and returns nonsense. Division gives the row, remainder gives the column. If you blank on it, test with `mid = 5, cols = 4`: five files in, you've filled one full row of four and stepped one into the next, so row 1, col 1.
+
+**3. Divide by `cols`, not `rows`.**
+In a non-square matrix using `rows` in the formulas scrambles everything, and square test cases won't catch it. Always sanity-check on a rectangular example.
+
+**4. Degenerate shapes.**
+A single row, a single column, or a 1 x 1 matrix all work with the same code, precisely because we never wrote row-specific logic. Nice bonus of thinking flat.
+
+---
+
+## Boss down. XP gained.
+
+The courier has document 16, and Farid is quietly impressed.
+
+What you walked away with:
+
+- A 2D matrix with the "rows continue each other" guarantee is just a folded sorted array
+- `row = mid // cols`, `col = mid % cols` unfolds any virtual index for free
+- One search beats two stacked searches when complexity ties: fewer parts, fewer bugs
+- Check the sorting *guarantee* before flattening, not every sorted-ish grid qualifies
+
+Next up: **Boss 3 — The Warehouse Deadline.** A worker named Koko has piles of banana crates and a truck that leaves in a few hours. Nothing in that problem is a sorted array, and you'll binary search it anyway. That boss changes what you think this weapon even is.

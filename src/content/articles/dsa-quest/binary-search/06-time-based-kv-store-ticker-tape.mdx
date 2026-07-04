@@ -1,0 +1,226 @@
+---
+title: "Time Based Key-Value Store — The Ticker Tape"
+slug: time-based-kv-store-ticker-tape
+category: dsa
+series: binary-search
+seriesOrder: 6
+description: "Dungeon 4, Boss 6. A trading floor archive stamps every price on a ticker tape, and a trader wants the price at a moment nobody recorded. Predecessor search: find the rightmost entry at or before a timestamp."
+tags:
+  - DSA
+  - Binary Search
+  - Design
+icon: "📼"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run the archive room on a trading floor. Every price update gets punched onto a ticker tape with the exact time it happened. A trader bursts in and asks what GOLD was worth at 2:47pm, but nothing was punched at exactly 2:47pm. So you need the latest entry at or before that moment. The tape is already in time order, which means one Binary Search finds it in O(log n).
+  bn: |
+    আপনি একটা ট্রেডিং ফ্লোরের আর্কাইভ রুম চালান। প্রতিটা দামের আপডেট সঠিক সময়সহ একটা টিকার টেপে ছাপা হয়ে যায়। হঠাৎ এক ট্রেডার দৌড়ে এসে জিজ্ঞেস করলেন দুপুর ২টা ৪৭ মিনিটে GOLD এর দাম কত ছিল, অথচ ঠিক ওই মুহূর্তে কোনো এন্ট্রিই নেই। তাই আপনাকে খুঁজতে হবে ওই সময়ের আগের সর্বশেষ এন্ট্রিটা। টেপটা এমনিতেই সময়ের ক্রমে সাজানো, ফলে একটা Binary Search দিয়েই O(log n) সময়ে উত্তর বেরিয়ে আসে।
+  hi: |
+    आप एक ट्रेडिंग फ्लोर का आर्काइव रूम संभालते हैं। हर प्राइस अपडेट सही समय के साथ एक टिकर टेप पर छप जाता है। अचानक एक ट्रेडर भागता हुआ आता है और पूछता है कि दोपहर 2:47 बजे GOLD का भाव क्या था, जबकि ठीक उसी पल की कोई एंट्री ही नहीं है। तो आपको उस समय से पहले की सबसे ताज़ा एंट्री ढूंढनी होगी। टेप पहले से ही समय के क्रम में है, इसलिए एक Binary Search उसे O(log n) में खोज निकालती है।
+  ar: |
+    أنت مسؤول عن غرفة الأرشيف في قاعة تداول. كل تحديث للسعر يُطبع على شريط الأسعار مع وقت حدوثه بالضبط. يندفع أحد المتداولين إليك ويسأل عن سعر GOLD في الساعة 2:47 ظهراً، لكن لا يوجد أي تسجيل في تلك اللحظة بالذات. لذلك تحتاج إلى آخر تسجيل عند ذلك الوقت أو قبله. الشريط مرتب زمنياً من الأساس، وبالتالي يكفي Binary Search واحد ليجد الإجابة في O(log n).
+---
+
+## Five bosses down
+
+Quick roll call. You searched a sorted ledger, flattened a 2D archive grid, found Koko's eating speed by searching an answer space, and cracked two rotated-array puzzles in a row. Five bosses, one weapon, sharpened five different ways.
+
+Boss 6 changes the shape of the fight. For the first time in this quest, nobody hands you an array. You build the whole thing yourself. This is a **design problem**, and it's the first one you'll meet in interviews too.
+
+Today's boss: **The Ticker Tape**.
+
+---
+
+## The story
+
+You work the archive room at the Meridian Exchange. Along one wall, a machine punches every price update onto a long paper ticker tape. Each punch has three parts: the symbol, the price, and the exact minute it happened.
+
+The machine never lies and never goes backward. Minute 301 always comes after minute 299. The tape is in time order by construction.
+
+One afternoon, a trader named Reyes slams through the door.
+
+"GOLD. What was it worth at 2:47?"
+
+You pull the GOLD tape. There's a punch at 2:41. Another at 2:45. The next one is 2:52. Nothing at exactly 2:47.
+
+"There's no entry at 2:47," you start to say.
+
+"I don't care," Reyes cuts in. "Whatever it was at 2:45 was still the price at 2:47. Give me the latest punch at or before my time."
+
+That's the whole job. Store every update as it arrives. Answer any "what was it worth at time t" question with the most recent value at or before t. And Reyes is not a patient man, so answers need to be fast.
+
+---
+
+## The problem, dressed up properly
+
+> Design a time-based key-value data structure that can store multiple values for the same key at different timestamps and retrieve the key's value at a certain timestamp.
+>
+> Implement the `TimeMap` class:
+> - `set(key, value, timestamp)` stores the key with the value at the given timestamp.
+> - `get(key, timestamp)` returns a value such that `set` was previously called with `timestamp_prev <= timestamp`. If there are multiple such values, return the one with the **largest** `timestamp_prev`. If there are none, return `""`.
+>
+> All timestamps passed to `set` are **strictly increasing**.
+
+Read that last line twice. It's not a footnote. It's a gift.
+
+---
+
+## The naive attempt
+
+The obvious storage: a dictionary mapping each key to a list of `(timestamp, value)` pairs. For `get`, walk the list from the end until you find a timestamp that's small enough.
+
+```python
+class TimeMap:
+    def __init__(self):
+        self.store = {}
+
+    def set(self, key, value, timestamp):
+        self.store.setdefault(key, []).append((timestamp, value))
+
+    def get(self, key, timestamp):
+        for ts, val in reversed(self.store.get(key, [])):
+            if ts <= timestamp:
+                return val
+        return ""
+```
+
+Correct, but `get` is O(n) per call. If GOLD has a million punches and Reyes asks about a time from this morning, you're walking almost the entire tape. Thousands of queries against millions of updates, and the archive room grinds to a halt.
+
+We can do better, because of that gift.
+
+---
+
+## The weapon: predecessor search
+
+Timestamps arrive strictly increasing. That means each key's list is **already sorted** the moment you append to it. No sorting step. No maintenance. The data structure keeps itself in order for free.
+
+And "latest entry at or before time t" on a sorted list has a name: **predecessor search**. You're not looking for an exact match. You're looking for the **rightmost** entry whose timestamp is `<= t`.
+
+The trick is a tiny change to the classic loop. Whenever `mid` is at or before the target, it's a *candidate*. Save it, then keep searching to the **right**, because a later candidate might exist. Whenever `mid` is after the target, it's useless, so search left.
+
+<MermaidBlock>
+graph TB
+    M["Look at the mid entry\non the tape"]
+    A["Its time is at or before target\nvalid candidate\nsave it and search right"]
+    B["Its time is after target\ntoo late to help\nsearch left"]
+    E["Loop ends\nthe last saved candidate\nis the answer"]
+    M --> A
+    M --> B
+    A --> E
+    B --> E
+    style M fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+When the loop ends, the last candidate you saved is the rightmost one. That's Reyes's answer.
+
+---
+
+## Watching it work
+
+Here's a small GOLD tape, timestamps in minutes:
+
+```
+index:      0           1           2           3
+entry:  (1, "180")  (5, "184")  (9, "179")  (12, "186")
+```
+
+Reyes asks: `get("GOLD", 10)`. The right answer is `"179"`, punched at minute 9.
+
+```
+step   lo  hi  mid  ts[mid]  ts <= 10?   action                 ans
+1      0   3   1    5        yes         save "184", lo = 2     "184"
+2      2   3   2    9        yes         save "179", lo = 3     "179"
+3      3   3   3    12       no          hi = 2                 "179"
+
+lo(3) > hi(2) → loop ends → return "179" ✓
+```
+
+Notice step 2. We already had a valid answer, but we still pushed right, hunting for something later. Step 3 proved nothing later qualifies, so the saved candidate stands.
+
+---
+
+## The code
+
+```python
+class TimeMap:
+    def __init__(self):
+        self.store = {}  # key -> list of (timestamp, value)
+
+    def set(self, key: str, value: str, timestamp: int) -> None:
+        self.store.setdefault(key, []).append((timestamp, value))
+
+    def get(self, key: str, timestamp: int) -> str:
+        entries = self.store.get(key, [])
+        lo, hi = 0, len(entries) - 1
+        ans = ""
+
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if entries[mid][0] <= timestamp:
+                ans = entries[mid][1]   # candidate, maybe not the last one
+                lo = mid + 1            # look for a later candidate
+            else:
+                hi = mid - 1            # mid is too late, go earlier
+
+        return ans
+```
+
+`set` is one append. `get` is one binary search with a memory. That `ans` variable is the entire predecessor trick.
+
+<Callout type="tip" title="The one-liner, for later">
+Python's standard library does predecessor search for you. If you keep timestamps in their own list, `bisect_right(times, timestamp) - 1` gives the rightmost index with `ts <= timestamp` (or -1 if none exists). Great for real code. But in an interview, write the loop. The loop is what they're testing.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The key doesn't exist at all.**
+`get("SILVER", 100)` when nobody ever set SILVER. With `self.store.get(key, [])`, the entries list is empty, the loop never runs, and `ans` stays `""`. Handled for free, but only because we initialized `ans = ""` before the loop.
+
+**2. Target earlier than the first punch.**
+`get("GOLD", 0)` on our tape, where the earliest entry is minute 1. Every `mid` fails the `<=` check, no candidate is ever saved, and we correctly return `""`. This is why the "save a candidate" pattern beats returning `entries[mid]` directly.
+
+**3. One global list is a trap.**
+It's tempting to keep a single list of `(key, timestamp, value)` for everything. Don't. The entries for GOLD would be scattered between entries for other symbols, so a binary search over the global list is meaningless. One sorted list **per key** keeps each search clean and each list small.
+
+**4. Don't sort. Ever.**
+If you catch yourself writing `entries.sort()` inside `set`, stop and reread the problem. Strictly increasing timestamps mean sorted-by-construction. Sorting on every set turns an O(1) operation into O(n log n) for no reason.
+
+---
+
+## Complexity
+
+- **set**: O(1) amortized. One dictionary lookup, one list append.
+- **get**: O(log n), where n is the number of entries for that one key.
+- **Space**: O(total number of sets). Every punch is stored once.
+
+| | Reverse scan | Binary search |
+|---|---|---|
+| set | O(1) | O(1) |
+| get | O(n) | **O(log n)** |
+
+A million punches, about 20 comparisons per query. Reyes gets his price before he finishes yelling.
+
+---
+
+## Boss down. XP gained.
+
+You cleared Boss 6, and picked up two things at once:
+
+- **Design instincts**: choose storage per key, exploit guarantees in the input, keep operations cheap
+- **Predecessor search**: the rightmost element `<= target`, found by saving candidates and pushing right
+
+One boss left.
+
+And I won't sugarcoat it: **Boss 7 — Median of Two Sorted Arrays — The Twin Libraries** is the final boss of this dungeon and the hardest fight in it. It's a genuine LeetCode Hard, the kind that ends interview loops. Two sorted collections, one median, and a time limit that forbids merging them.
+
+Rest up. Bring everything you've learned. See you at the twin libraries.

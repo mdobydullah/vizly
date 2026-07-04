@@ -1,0 +1,233 @@
+---
+title: "Median of Two Sorted Arrays — The Twin Libraries"
+slug: median-two-sorted-arrays-twin-libraries
+category: dsa
+series: binary-search
+seriesOrder: 7
+description: "Dungeon 4, Boss 7. The final boss. Two rival libraries, two sorted catalogs, one median needed by morning. Binary search the partition, not the elements."
+tags:
+  - DSA
+  - Binary Search
+  - Hard
+icon: "📚"
+color: orange
+createdAt: "2026-07-04T14:00:00Z"
+updatedAt: "2026-07-04T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Two rival libraries sit on opposite sides of town, and each keeps a perfectly sorted catalog of its books. The city wants the median across both collections, tonight. Merging two warehouses of index cards would take until sunrise, so that plan is dead on arrival. Instead you cut each catalog in one clever spot and read just four numbers at the cut. That is the final boss of this dungeon, and Binary Search beats it in O(log n).
+  bn: |
+    শহরের দুই প্রান্তে দুটো প্রতিদ্বন্দ্বী লাইব্রেরি, আর দুটোরই বইয়ের ক্যাটালগ নিখুঁতভাবে সাজানো। সিটি অফিস চায় দুই সংগ্রহ মিলিয়ে median, আজ রাতের মধ্যেই। দুই গুদামভর্তি ইনডেক্স কার্ড মেশাতে গেলে ভোর হয়ে যাবে, তাই সে পথ বন্ধ। বরং দুটো ক্যাটালগকে একটা চালাক জায়গায় কেটে কাটার পাশের মাত্র চারটা সংখ্যা দেখলেই চলে। এটাই এই ডানজিয়নের ফাইনাল বস, আর Binary Search এটাকে O(log n) সময়ে হারিয়ে দেয়।
+  hi: |
+    शहर के दो छोर पर दो प्रतिद्वंद्वी लाइब्रेरी हैं, और दोनों के पास अपनी किताबों का पूरी तरह sorted कैटलॉग है। शहर को दोनों संग्रहों को मिलाकर median चाहिए, वो भी आज रात तक। दो गोदाम भर इंडेक्स कार्ड मिलाने बैठे तो सुबह हो जाएगी, इसलिए वह रास्ता बंद है। इसके बजाय आप दोनों कैटलॉग को एक चालाक जगह पर काटते हैं और कट के पास के सिर्फ चार नंबर देखते हैं। यही इस डंजन का फाइनल बॉस है, और Binary Search इसे O(log n) में हरा देती है।
+  ar: |
+    مكتبتان متنافستان تقعان على طرفي المدينة، ولدى كل منهما فهرس كتب مرتب ترتيباً مثالياً. تريد البلدية حساب الـ median لكلا المجموعتين معاً، والمطلوب الليلة. دمج مستودعين كاملين من بطاقات الفهرسة سيستغرق حتى الفجر، لذلك هذه الخطة مرفوضة من البداية. بدلاً من ذلك تقطع كل فهرس عند نقطة ذكية واحدة وتقرأ أربعة أرقام فقط حول القطع. هذا هو الزعيم الأخير في هذا الديماس، وتهزمه Binary Search في O(log n).
+---
+
+## The final boss
+
+Six bosses down. One fight left.
+
+This is Median of Two Sorted Arrays, LeetCode problem number 4, and it has a reputation. It's the Hard problem people whisper about, the one that shows up in interview horror stories. The naive solution is easy. The required solution asks you to think about binary search in a way none of the previous six bosses did.
+
+But you've earned every tool this fight needs. Deep breath.
+
+Today's boss: **The Twin Libraries**.
+
+---
+
+## The story
+
+Two rival libraries face each other across the town square. The East Library, run by Vera, catalogs every book by page count. The West Library, run by her brother Tomas, does exactly the same. Both catalogs are perfectly sorted. The siblings agree on nothing else.
+
+One evening, a clerk from city hall arrives with a demand.
+
+"The annual report needs the **median** page count across both collections. Combined. By morning."
+
+Vera pulls her catalog: `[1, 3, 8]` (in hundreds of pages). Tomas pulls his: `[2, 4, 6, 10]`. Seven books total, so the median is the 4th smallest.
+
+Tomas shrugs. "Easy. We merge the catalogs and read the middle card."
+
+"With what time?" Vera snaps. "You have forty thousand cards. I have sixty thousand. We are not merging warehouses at midnight."
+
+She taps the two catalogs. "They're both sorted. There has to be a way to find the middle without touching more than a handful of cards."
+
+There is. It's the sharpest binary search you'll ever swing.
+
+---
+
+## The problem, dressed up properly
+
+> Given two sorted arrays `nums1` and `nums2` of size `m` and `n` respectively, return the **median** of the two sorted arrays.
+>
+> The overall run time complexity should be **O(log (m+n))**.
+
+That complexity line is the boss's armor. Anything that walks the arrays is dead on arrival.
+
+---
+
+## The naive attempt
+
+Merge, then index the middle. Tomas's plan.
+
+```python
+def find_median(a, b):
+    merged = sorted(a + b)          # or a proper two-pointer merge
+    n = len(merged)
+    if n % 2 == 1:
+        return float(merged[n // 2])
+    return (merged[n // 2 - 1] + merged[n // 2]) / 2
+```
+
+A two-pointer merge makes this O(m+n) time. Perfectly fine in real life, and worth mentioning in an interview as your baseline. But the problem demands O(log(m+n)). Linear is not logarithmic. The armor holds.
+
+To break it, we need to stop thinking about *elements* and start thinking about *cuts*.
+
+---
+
+## The weapon: search the partition
+
+Here's the reframe that wins the fight.
+
+Forget "the middle element." The median is really a **dividing line**: it splits all m+n numbers into a left half and a right half, where every number on the left is `<=` every number on the right, and the halves are equal in size (left gets the extra one if the total is odd).
+
+So instead of hunting for a value, hunt for the line. Cut array A at position `i` (i elements go left). Cut array B at position `j`. If we force `i + j = (m + n + 1) // 2`, the combined left side always has exactly the right size. Choose `i`, and `j` is decided for you. **One unknown.** And one unknown with a sorted structure means binary search.
+
+Is a given cut correct? You only need the four numbers touching the line:
+
+- `L1` = last element on A's left side, `R1` = first on A's right side
+- `L2` = last element on B's left side, `R2` = first on B's right side
+
+The cut is valid when nothing on the left exceeds anything on the right, which boils down to just two checks: `L1 <= R2` and `L2 <= R1`. (Within each array, `L1 <= R1` is free, they're sorted.)
+
+<MermaidBlock>
+graph TB
+    C["Cut smaller array at i\nj = half minus i\nread L1 R1 L2 R2"]
+    W["L1 bigger than R2\ni took too much\nmove hi left"]
+    E["L2 bigger than R1\ni took too little\nmove lo right"]
+    F["both checks pass\npartition found\nmedian sits at the cut"]
+    C --> W
+    C --> E
+    C --> F
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style W fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+When both checks pass:
+
+- **Odd total**: the median is `max(L1, L2)`, the biggest thing on the left.
+- **Even total**: the median is the average of `max(L1, L2)` and `min(R1, R2)`.
+
+Two more details complete the weapon. First, binary search over the **smaller** array, so `i` can range from 0 to m safely and `j` never goes negative. Second, a cut can sit at the very edge of an array. If a side is empty, substitute a sentinel: `-infinity` for a missing L, `+infinity` for a missing R. Sentinels never win a max or a min, so the math just works.
+
+---
+
+## Watching it work
+
+Vera's catalog `A = [1, 3, 8]` (m=3), Tomas's `B = [2, 4, 6, 10]` (n=4). Total 7, odd. `half = (3 + 4 + 1) // 2 = 4`. We binary search `i` over A, the smaller catalog, with `lo=0, hi=3`.
+
+```
+step 1:  i = (0+3)//2 = 1,  j = 4-1 = 3
+
+    A:  [1 | 3, 8]          L1=1,  R1=3
+    B:  [2, 4, 6 | 10]      L2=6,  R2=10
+
+    L1 <= R2?  1 <= 10  yes
+    L2 <= R1?  6 <= 3   NO  → left side has a 6 that belongs right
+                             → i took too little, lo = 2
+
+step 2:  i = (2+3)//2 = 2,  j = 4-2 = 2
+
+    A:  [1, 3 | 8]          L1=3,  R1=8
+    B:  [2, 4 | 6, 10]      L2=4,  R2=6
+
+    L1 <= R2?  3 <= 6   yes
+    L2 <= R1?  4 <= 8   yes  → partition found!
+
+    left half  = {1, 3, 2, 4}   right half = {8, 6, 10}
+    odd total → median = max(L1, L2) = max(3, 4) = 4
+```
+
+Sanity check against the merge: `[1, 2, 3, 4, 6, 8, 10]`, middle element is 4. Two steps, four numbers read per step, and the clerk gets the answer before the kettle boils.
+
+---
+
+## The code
+
+```python
+def find_median_sorted_arrays(a: list[int], b: list[int]) -> float:
+    if len(a) > len(b):
+        a, b = b, a                      # always cut the smaller array
+
+    m, n = len(a), len(b)
+    half = (m + n + 1) // 2
+    lo, hi = 0, m
+
+    while lo <= hi:
+        i = (lo + hi) // 2               # cut position in a
+        j = half - i                     # forced cut position in b
+
+        L1 = a[i - 1] if i > 0 else float("-inf")
+        R1 = a[i]     if i < m else float("inf")
+        L2 = b[j - 1] if j > 0 else float("-inf")
+        R2 = b[j]     if j < n else float("inf")
+
+        if L1 > R2:
+            hi = i - 1                   # a gave too much to the left
+        elif L2 > R1:
+            lo = i + 1                   # a gave too little to the left
+        else:
+            if (m + n) % 2 == 1:
+                return float(max(L1, L2))
+            return (max(L1, L2) + min(R1, R2)) / 2
+```
+
+Same skeleton as every fight in this dungeon: `lo`, `hi`, a mid, a decision. The only new muscle is *what* the decision inspects. Not "is this element the target" but "is this partition balanced."
+
+---
+
+## Gotchas
+
+**1. Not searching the smaller array.**
+If you binary search the larger array, `j = half - i` can go negative or past the end of the smaller one, and your border reads explode. Swapping first also gives the true O(log(min(m, n))) bound.
+
+**2. Forgetting the sentinels.**
+`i = 0` means A contributes nothing to the left half, and `a[i - 1]` would silently read `a[-1]`, the *last* element. In Python that's a wrong answer, not a crash, which makes it evil to debug. Guard every one of the four border reads.
+
+**3. One array is empty.**
+`a = []`, `b = [5]` must still work. With the code above it does: `m = 0`, the loop runs once with `i = 0`, sentinels fill in, and B's cut answers alone. But test it, because hand-rolled variants often break here.
+
+**4. Integer versus float.**
+The median of `[1, 2]` is `1.5`, not `1`. Use true division for the even case and return a float in the odd case too, so callers always get one type.
+
+---
+
+## Dungeon cleared
+
+That was the hardest swing of the sword this dungeon asked for. Look back at what you actually learned across seven bosses, because it's really **three faces of one weapon**:
+
+1. **Search an index.** The ledger, the 2D grid, the rotated logbook and vault, the ticker tape. The answer lives at some position in the data, and each comparison discards half the positions.
+2. **Search an answer space.** Koko's bananas. The answer isn't in the array at all. It's a number in a range, checked by a yes/no question that flips exactly once.
+3. **Search a partition.** The twin libraries. The answer is a *dividing line*, validated by peeking at the handful of values that touch it.
+
+Same loop every time. `lo`, `hi`, a mid, and one honest question that kills half the possibilities. What changes is only what you're pointing it at.
+
+---
+
+## Boss down. Dungeon down. XP gained.
+
+What you're carrying out of Dungeon 4:
+
+- The lo/hi template and the discipline to never off-by-one it
+- Boundary searches: leftmost, rightmost, predecessor
+- Answer-space search with a monotonic yes/no check
+- Rotated-array reasoning: one sorted half always survives
+- Partition search with border values and infinity sentinels
+
+**Next dungeon: Sliding Window.** Back to arrays and strings, but with a new kind of motion. Instead of cutting the search space in half, you'll slide a window across the data, growing and shrinking it as rules break and recover. Longest substrings, minimum windows, and a pace that feels completely different after all this halving.
+
+See you in Dungeon 5.

@@ -6,6 +6,14 @@
   "color": "orange",
   "tags": ["DSA", "Binary Search"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-04T14:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "binary-search-librarians-ledger", "title": "Binary Search — The Librarian's Ledger" },
+    { "order": 2, "slug": "search-2d-matrix-archive-grid", "title": "Search a 2D Matrix — The Archive Grid" },
+    { "order": 3, "slug": "koko-eating-bananas-warehouse-deadline", "title": "Koko Eating Bananas — The Warehouse Deadline" },
+    { "order": 4, "slug": "find-minimum-rotated-night-shift", "title": "Find Minimum in Rotated Sorted Array — The Night Shift Logbook" },
+    { "order": 5, "slug": "search-rotated-array-shifted-vault", "title": "Search in Rotated Sorted Array — The Shifted Vault Codes" },
+    { "order": 6, "slug": "time-based-kv-store-ticker-tape", "title": "Time Based Key-Value Store — The Ticker Tape" },
+    { "order": 7, "slug": "median-two-sorted-arrays-twin-libraries", "title": "Median of Two Sorted Arrays — The Twin Libraries" }
+  ]
 }

@@ -25,6 +25,7 @@
 - [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
 - [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Full Two Pointers pattern across 6 story-framed bosses. Complete.
 - [Stack (DSA Quest)](/series/stack): Dungeon 3 of DSA Quest. LIFO, monotonic stacks, bracket matching, histograms across 7 bosses. Complete.
+- [Binary Search (DSA Quest)](/series/binary-search): Dungeon 4 of DSA Quest. Halving the search space — classic search, search-on-answer, rotated arrays, partition tricks across 7 bosses. Complete.
 
 ## Articles
 
@@ -106,6 +107,13 @@
 - [Daily Temperatures — The Weather Station](/articles/daily-temperatures-weather-station): Monotonic decreasing stack, next greater element in O(n).
 - [Car Fleet — The Highway Convoy](/articles/car-fleet-highway-convoy): Sort by position, compute arrival times, stack-count fleets.
 - [Largest Rectangle in Histogram — The Billboard Builder](/articles/largest-rectangle-histogram-billboard): Monotonic increasing stack, nearest smaller element, O(n) max rectangle.
+- [Binary Search — The Librarian's Ledger](/articles/binary-search-librarians-ledger): The lo/hi/mid loop, O(log n) intuition, off-by-one gotchas.
+- [Search a 2D Matrix — The Archive Grid](/articles/search-2d-matrix-archive-grid): Treat a sorted grid as one virtual sorted list, row/col index math.
+- [Koko Eating Bananas — The Warehouse Deadline](/articles/koko-eating-bananas-warehouse-deadline): Binary search on the answer space, monotonic feasibility functions.
+- [Find Minimum in Rotated Sorted Array — The Night Shift Logbook](/articles/find-minimum-rotated-night-shift): Compare mid vs right, shrink toward the unsorted half.
+- [Search in Rotated Sorted Array — The Shifted Vault Codes](/articles/search-rotated-array-shifted-vault): One half is always sorted, pick the half that can hold the target.
+- [Time Based Key-Value Store — The Ticker Tape](/articles/time-based-kv-store-ticker-tape): Predecessor search, rightmost timestamp at or before target.
+- [Median of Two Sorted Arrays — The Twin Libraries](/articles/median-two-sorted-arrays-twin-libraries): Partition binary search on the smaller array, O(log min(m,n)).
 
 ## Guides — System Design
 
