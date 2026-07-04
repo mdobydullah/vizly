@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getAllArticles, getArticleBySlug, getSeriesBySlug } from '@/lib/articles';
+import { getAllArticles, getArticleBySlug, getSeriesBySlug, getParentPathLabel } from '@/lib/articles';
 import { ArticlePageClient } from './ArticlePageClient';
 import { MdxRenderer } from '@/components/articles/MdxRenderer';
 import '@/styles/articles/articles.css';
@@ -33,8 +33,11 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   const article = getArticleBySlug(slug);
   if (!article) return { title: 'Article Not Found' };
 
+  const pathLabel = article.series ? getParentPathLabel(article.series) : null;
   return {
-    title: `${article.title} — Vizly`,
+    title: pathLabel
+      ? `${article.title} · ${pathLabel} — Vizly`
+      : `${article.title} — Vizly`,
     description: article.description,
   };
 }

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { config } from "@/lib/config";
-import { getAllArticles, getAllSeries, getAllPaths } from '@/lib/articles';
+import { getAllArticles, getAllSeries, getAllPaths, getParentPathLabel } from '@/lib/articles';
 import SeriesDetailClient from './SeriesDetailClient';
 
 interface Props {
@@ -21,8 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `Series Not Found — ${config.app.name}` };
   }
 
+  const pathLabel = getParentPathLabel(series.slug);
   return {
-    title: `${series.title} — ${config.app.name}`,
+    title: pathLabel
+      ? `${series.title} · ${pathLabel} — ${config.app.name}`
+      : `${series.title} — ${config.app.name}`,
     description: series.description,
   };
 }

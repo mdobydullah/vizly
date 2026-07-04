@@ -86,6 +86,12 @@ export function getSeriesBySlug(slug: string): ArticleSeries | null {
   return getAllSeries().find(s => s.slug === slug) ?? null;
 }
 
+/** Short path label for meta titles: "Become an AI Engineer" → "AI Engineer", "DSA Quest" stays. */
+export function getParentPathLabel(seriesSlug: string): string | null {
+  const parent = getAllPaths().find(p => p.series.includes(seriesSlug));
+  return parent ? parent.title.replace(/^Become an? /, '') : null;
+}
+
 export function getAllPaths(): ArticlePath[] {
   if (!fs.existsSync(PATHS_DIR)) return [];
 
