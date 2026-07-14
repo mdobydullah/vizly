@@ -1,0 +1,196 @@
+---
+title: "Palindrome Partitioning — The Banner Cuts"
+slug: palindrome-partitioning-banner-cuts
+category: dsa
+series: backtracking
+seriesOrder: 7
+description: "Dungeon 9, Boss 7. One ribbon of letters, one pair of scissors: cut it into pieces that each read the same forwards and backwards. The choices become cut positions, and a two-pointer guard from Dungeon 2 blesses every snip."
+tags:
+  - DSA
+  - Backtracking
+  - Strings
+  - Two Pointers
+icon: "🎀"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A print shop is cutting a lettered ribbon into pieces for a wall display, and the artistic director has one demand: every piece must read the same forwards and backwards. The ribbon says AAB. You could cut it into A, A, B, three tiny palindromes, or into AA and B. But AAB whole is not a palindrome, and neither is AB, so no other cutting works. The method at the cutting table: snip off a front piece, but only if it passes the mirror test, then cut the rest of the ribbon by the same rule, and when a line of cutting dead-ends, tape the last snip back on and try a longer front piece.
+  bn: |
+    এক ছাপাখানা দেয়ালের ডিসপ্লের জন্য অক্ষর লেখা একটা রিবন টুকরো করছে, আর আর্ট ডিরেক্টরের দাবি একটাই: প্রতিটা টুকরো সামনে থেকে আর পেছন থেকে পড়লে একই হতে হবে। রিবনে লেখা AAB। কাটতে পারেন A, A, B করে, তিনটা ছোট্ট প্যালিনড্রোম, নয়তো AA আর B করে। কিন্তু গোটা AAB প্যালিনড্রোম না, AB-ও না, তাই আর কোনো কাটা চলে না। কাটার টেবিলের পদ্ধতিটা হলো: সামনের একটা টুকরো কাটুন, তবে সেটা আয়না-পরীক্ষায় পাস করলে তবেই, তারপর বাকি রিবনটা একই নিয়মে কাটুন, আর কোনো কাটার লাইন মরা গলিতে ঠেকলে শেষ কাটাটা টেপ দিয়ে জোড়া লাগিয়ে আরেকটু লম্বা সামনের টুকরো চেষ্টা করুন।
+  hi: |
+    एक प्रिंट शॉप दीवार की सजावट के लिए अक्षरों वाली रिबन टुकड़ों में काट रही है, और आर्ट डायरेक्टर की एक ही मांग है: हर टुकड़ा आगे से और पीछे से पढ़ने पर एक जैसा हो। रिबन पर लिखा है AAB। काट सकते हो A, A, B में, तीन नन्हे पैलिंड्रोम, या AA और B में। पर पूरा AAB पैलिंड्रोम नहीं है, AB भी नहीं, इसलिए कोई और कटाई नहीं चलती। कटाई की मेज का तरीका: आगे का एक टुकड़ा काटो, पर तभी जब वह आईने का टेस्ट पास करे, फिर बाकी रिबन उसी नियम से काटो, और जब कटाई की कोई लाइन बंद गली में पहुंचे, तो आखिरी कट को टेप से वापस जोड़कर आगे का लंबा टुकड़ा आजमाओ।
+  ar: |
+    يقصّ محل طباعة شريطاً مكتوباً بالحروف قطعاً لعرض جداري، وللمدير الفني مطلب واحد: كل قطعة تُقرأ من الأمام والخلف سواء. الشريط يقول AAB. يمكنك قصّه إلى A وA وB، ثلاث قطع صغيرة متناظرة، أو إلى AA وB. لكن AAB كاملاً ليس متناظراً، ولا AB، فلا قصّ آخر يصلح. طريقة طاولة القص: اقطع قطعة أمامية، لكن فقط إن اجتازت اختبار المرآة، ثم قصّ بقية الشريط بنفس القاعدة، وحين يصل خط قصٍّ ما إلى طريق مسدود، ألصق القصّة الأخيرة بالشريط وجرّب قطعة أمامية أطول.
+---
+
+## Boss 7: The Banner Cuts
+
+The dungeon's choices so far: items (in/out), candidates (which weight), seats (who sits), tiles (which neighbor). This boss's choices are **positions in a string**, where to cut, and it introduces the pattern for every "split this sequence into valid pieces" problem: word break, IP address restoration, expression parsing. Plus a cameo from the oldest weapon in the quest: the two-pointer mirror check from Dungeon 2's very first boss.
+
+---
+
+## The story
+
+The print shop's ribbon reads **"aab"**. Wall display rules: cut it into contiguous pieces, every piece a **palindrome**, reads identically both directions.
+
+Enumerate at the cutting table:
+
+- First piece "a" (mirror test: single letter, trivially passes). Rest is "ab": first piece "a" ✓, rest "b" ✓ → **[a, a, b]**. Or first piece "ab" from that remainder, "ab" reversed is "ba", *fails the mirror*. No snip.
+- First piece "aa" ✓. Rest is "b" ✓ → **[aa, b]**.
+- First piece "aab"? Reversed "baa". Fails. No snip.
+
+Catalog: `[["a","a","b"], ["aa","b"]]`. Two displays.
+
+The table method, stated once and precisely: **snip a front piece only if it passes the mirror test, then solve the remaining ribbon by the same rule.** When a line of cutting dead-ends, tape the last snip back (the un-choose, literally adhesive here) and try the next longer front piece. The mirror test is the *guard*: it doesn't just validate finished displays, it refuses to even *make* a doomed snip, Boss 2's pruning philosophy, wearing scissors.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s`, partition `s` such that every substring of the partition is a **palindrome**. Return all possible palindrome partitionings of `s`.
+
+LeetCode 131.
+
+---
+
+## The naive attempt
+
+A string of length n has n-1 gaps, each cut-or-not: 2ⁿ⁻¹ partitions. Generate them all, filter for all-palindrome pieces:
+
+```python
+def partition(s):
+    out = []
+    for mask in range(1 << (len(s) - 1)):
+        pieces = split_by_mask(s, mask)
+        if all(p == p[::-1] for p in pieces):
+            out.append(pieces)
+    return out
+```
+
+The Boss 1 bitmask, resurrected, and the same disease as ever: "aab" has 4 partitions and 2 winners, tolerable, but a 16-letter ribbon has 32,768 partitions, and if its *first two letters* already can't form palindrome pieces any way, every one of those candidates gets built and checked anyway. The guard-at-the-snip version never builds a partition whose first piece already failed. Filtering validates corpses; guarding prevents births.
+
+---
+
+## The weapon: guarded cuts, one prefix at a time
+
+The recursion's state is one index, `start`: everything before it is already snipped into blessed pieces (sitting in `path`); everything from it onward is uncut ribbon.
+
+<MermaidBlock>
+graph TB
+    A["cut(start)"]
+    B["start == len(s)?\nribbon fully cut\nsave a copy of path"]
+    C["for end from start+1\nto len(s):\npiece = s start..end"]
+    D["mirror test fails?\nno snip: next end\n(the guard)"]
+    E["choose: append piece\nexplore: cut(end)\nun-choose: pop (tape back)"]
+    A --> B
+    A --> C
+    C --> D
+    C --> E
+    E --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+def partition(s: str) -> list[list[str]]:
+    out = []
+    path = []
+
+    def is_pal(lo, hi):                  # Dungeon 2, Boss 1, reporting for duty
+        while lo < hi:
+            if s[lo] != s[hi]:
+                return False
+            lo += 1
+            hi -= 1
+        return True
+
+    def cut(start):
+        if start == len(s):
+            out.append(path[:])          # ribbon exhausted: one display
+            return
+        for end in range(start + 1, len(s) + 1):
+            if not is_pal(start, end - 1):
+                continue                 # guard: doomed snip never made
+            path.append(s[start:end])    # choose (the snip)
+            cut(end)                     # explore (rest of the ribbon)
+            path.pop()                   # un-choose (the tape)
+    cut(0)
+    return out
+```
+
+`is_pal` checks indices directly, no `s[start:end][::-1]` slicing, the two-pointer walk from the Museum Mirror boss, avoiding a copy per test. Small thing; on the pathological all-same-letter ribbon ("aaaa..."), where *every* substring passes and the tree is maximal, it's the difference between tight and bloated constants.
+
+---
+
+## Watching it work
+
+`s = "aab"`:
+
+```
+cut(0)
+├─ end=1: "a" ✓ snip → path [a]
+│   cut(1)
+│   ├─ end=2: "a" ✓ → [a,a]
+│   │   cut(2)
+│   │   └─ end=3: "b" ✓ → [a,a,b]  cut(3): DISPLAY ✓  tape b, tape a
+│   └─ end=3: "ab"? mirror fails. no snip
+│   tape a
+├─ end=2: "aa" ✓ snip → [aa]
+│   cut(2)
+│   └─ end=3: "b" ✓ → [aa,b]  cut(3): DISPLAY ✓
+└─ end=3: "aab"? mirror fails. no snip
+
+catalog: [a,a,b] [aa,b] ✓
+```
+
+The two `no snip` lines are the guard earning its keep: the "ab"-and-onward universe and the "aab"-first universe were never entered, not explored-and-rejected, *never entered*.
+
+<Callout type="tip" title="The precompute follow-up">
+On ribbons dense with palindromes, `is_pal` re-answers overlapping questions ("is s[1..2] a palindrome?" gets asked from several branches). The upgrade: precompute a table `pal[i][j]` for all substrings in O(n²) with dynamic programming, then every guard is a table lookup. It's the standard follow-up, and a deliberate handshake with Dungeons 12 and 16, where that table-building style is the entire curriculum. Mention it; build it when asked.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Guarding after recursing.**
+Appending the piece, recursing, and checking palindrome-ness at collection time is the naive filter wearing recursion's clothes. The guard's entire value is *placement*: before the snip, so failed pieces spawn no subtrees.
+
+**2. Off-by-one in the piece.**
+`s[start:end]` with `end` exclusive, and the mirror test on `(start, end-1)` inclusive. Mixing the conventions checks the wrong window and blesses garbage or rejects gold. Pick exclusive-end everywhere and let `range(start+1, len(s)+1)` do the arithmetic.
+
+**3. Forgetting single letters pass.**
+Every one-letter piece is a palindrome, which guarantees at least one partition always exists (all singles) and anchors the recursion. If your output is ever empty for a nonempty string, your mirror test rejects length-1 pieces.
+
+**4. Reversal slicing in the guard.**
+`s[start:end] == s[start:end][::-1]` is correct and allocates two strings per test, called exponentially often. Index walking allocates none. In interviews either passes; knowing *why* you chose is the difference that gets noticed.
+
+---
+
+## Complexity
+
+Worst case (all same letter): every gap is a free choice, **O(n · 2ⁿ)** partitions generated and copied. The guard collapses realistic inputs far below it; the DP table trims guard costs to O(1) each.
+
+**Space: O(n)** for path and stack, output aside.
+
+---
+
+## Boss down. XP gained.
+
+Two displays go to the director: three small tiles, or the bold AA beside a lone B. She picks the second, mutters "negative space", and the shop bills for both enumerations.
+
+What you walked away with:
+
+- Choices as **cut positions**: the split-into-valid-pieces recursion, template for word break and IP restoration
+- The **guard placement law**: validate before the snip, and doomed universes are never born
+- Dungeon 2's two-pointer mirror check, still earning wages seven dungeons later
+- The DP-table precompute as the standard follow-up, and a preview of dungeons ahead
+
+Next up: **Boss 8 — The Vanity Number.** An old phone keypad, where 2 is ABC and 3 is DEF, and a business wants every word its number could spell. The gentlest boss of the dungeon's back half: a pure Cartesian product, no pruning, no duplicates, just clean fan-out, and a look at why its tree is *wider* but *shallower* than everything before it.

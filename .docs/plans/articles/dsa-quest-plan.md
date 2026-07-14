@@ -27,8 +27,8 @@ Full dungeon list (ship in order):
 6. **Linked List** — Dungeon 6 (COMPLETE)
 7. **Trees** — Dungeon 7 (COMPLETE)
 8. **Tries** — Dungeon 8 (COMPLETE)
-9. **Backtracking** — Dungeon 9 (next to build)
-10. **Heap / Priority Queue** — Dungeon 10
+9. **Backtracking** — Dungeon 9 (COMPLETE)
+10. **Heap / Priority Queue** — Dungeon 10 (next to build)
 11. **Graphs** — Dungeon 11
 12. **1-D DP** — Dungeon 12
 13. **Intervals** — Dungeon 13
@@ -182,8 +182,20 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 2: Design Add and Search Words (Smudged Ledger)
 - [x] Boss 3: Word Search II (Treasure Grid)
 
-### Dungeons 9-18
-- [ ] Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 9 — Backtracking (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Subsets (Packing List)
+- [x] Boss 2: Combination Sum (Balance Weights)
+- [x] Boss 3: Permutations (Photo Lineup)
+- [x] Boss 4: Subsets II (Twin Shirts)
+- [x] Boss 5: Combination Sum II (Coupon Stack)
+- [x] Boss 6: Word Search (Mosaic Floor)
+- [x] Boss 7: Palindrome Partitioning (Banner Cuts)
+- [x] Boss 8: Letter Combinations (Vanity Number)
+- [x] Boss 9: N-Queens (Rival Queens)
+
+### Dungeons 10-18
+- [ ] Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

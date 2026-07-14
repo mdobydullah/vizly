@@ -1,0 +1,175 @@
+---
+title: "Letter Combinations of a Phone Number — The Vanity Number"
+slug: letter-combinations-vanity-number
+category: dsa
+series: backtracking
+seriesOrder: 8
+description: "Dungeon 9, Boss 8. An old keypad where 2 is ABC and 3 is DEF, and a business wants every word its number could spell. Pure Cartesian fan-out: no pruning, no duplicates, and a tree wider but shallower than everything before it."
+tags:
+  - DSA
+  - Backtracking
+  - Strings
+icon: "☎️"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A small business just got assigned a phone number and the owner wants to print something memorable on the sign, the way 1-800-FLOWERS hides a word in the digits. On the old keypad, each digit owns a few letters: 2 is ABC, 3 is DEF, and so on. The number's last two digits are 2 and 3, so the owner asks for every word those two digits could spell: one letter from the 2, one letter from the 3, nine candidates in all. The recipe is the simplest in the whole dungeon: for each choice at the first digit, try every choice at the second, no choice ever conflicts with another.
+  bn: |
+    এক ছোট ব্যবসা সবে একটা ফোন নম্বর পেয়েছে, আর মালিক সাইনবোর্ডে মনে রাখার মতো কিছু ছাপতে চান, যেভাবে 1-800-FLOWERS সংখ্যার ভেতরে একটা শব্দ লুকিয়ে রাখে। পুরনো কিপ্যাডে প্রতিটা ডিজিটের ভাগে কয়েকটা অক্ষর: 2 মানে ABC, 3 মানে DEF, এভাবে। নম্বরের শেষ দুটো ডিজিট 2 আর 3, তাই মালিক চান ওই দুটো ডিজিট দিয়ে বানানো যায় এমন প্রতিটা শব্দ: 2 থেকে একটা অক্ষর, 3 থেকে একটা, মোট নয়টা প্রার্থী। রেসিপিটা গোটা ডানজনের সবচেয়ে সরল: প্রথম ডিজিটের প্রতিটা পছন্দের জন্য দ্বিতীয় ডিজিটের প্রতিটা পছন্দ চেষ্টা করুন, কোনো পছন্দ কখনো আরেকটার সাথে সংঘর্ষে যায় না।
+  hi: |
+    एक छोटे कारोबार को अभी-अभी फोन नंबर मिला है और मालिक साइनबोर्ड पर कुछ यादगार छापना चाहता है, जैसे 1-800-FLOWERS अंकों में एक शब्द छिपा लेता है। पुराने कीपैड पर हर अंक के हिस्से कुछ अक्षर हैं: 2 यानी ABC, 3 यानी DEF, वगैरह। नंबर के आखिरी दो अंक 2 और 3 हैं, तो मालिक उन दो अंकों से बनने वाला हर शब्द मांगता है: 2 से एक अक्षर, 3 से एक, कुल नौ उम्मीदवार। नुस्खा पूरे डंजन का सबसे सीधा है: पहले अंक की हर पसंद के लिए दूसरे अंक की हर पसंद आजमाओ, कोई पसंद कभी दूसरी से नहीं टकराती।
+  ar: |
+    حصل عمل تجاري صغير للتو على رقم هاتف ويريد المالك طباعة شيء لا يُنسى على اللافتة، كما يخبئ 1-800-FLOWERS كلمة في الأرقام. على لوحة المفاتيح القديمة يملك كل رقم بضعة حروف: 2 هي ABC و3 هي DEF وهكذا. آخر رقمين في الرقم هما 2 و3، فيطلب المالك كل كلمة يمكن أن يتهجاها هذان الرقمان: حرف من الـ 2 وحرف من الـ 3، تسعة مرشحين إجمالاً. الوصفة أبسط ما في الدهليز كله: لكل خيار عند الرقم الأول جرّب كل خيار عند الثاني، ولا خيار يتعارض مع آخر أبداً.
+---
+
+## Boss 8: The Vanity Number
+
+A breather before the finale, and a deliberate one: this problem is backtracking with every complication *removed*. No target to hit, no duplicates to skip, no board to heal, no validity guard at all. What's left is the skeleton in its purest form, a **Cartesian product**, and seeing the skeleton bare is worth a boss slot, because you'll recognize it inside every dressed-up variant forever after.
+
+---
+
+## The story
+
+The sign shop quotes by the letter, so the owner focuses on the number's last two digits: **"23"**. The old keypad's letter map:
+
+```
+2: abc    3: def    4: ghi    5: jkl
+6: mno    7: pqrs   8: tuv    9: wxyz
+```
+
+Every word "23" could spell: one letter from `abc`, then one from `def`:
+
+```
+ad ae af   bd be bf   cd ce cf
+```
+
+Nine candidates (3 × 3, the arithmetic is just multiplication). The owner squints at the list, picks "bf" for reasons known only to owners, and the shop prints it.
+
+Notice what *didn't* happen: no candidate was ever rejected. Every path through the choices is a valid answer, the first digit's letter never constrains the second's. Compare that to everything since Boss 2: sums that overshoot, twins that duplicate, tiles that block. This tree has **no dead branches**, wide (up to 4 children per level, thanks to 7 and 9) but shallow (one level per digit) and completely honest.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string containing digits from 2-9 inclusive, return all possible letter combinations that the number could represent. Return the answer in any order.
+>
+> Note that 1 does not map to any letters.
+
+LeetCode 17. And note the edge lurking in plain sight: the empty string maps to an empty *list*, not a list holding one empty string. Sign shops don't print blank signs.
+
+---
+
+## The naive attempt
+
+For a fixed number of digits, nested loops write themselves: two digits, two loops. The problem is the word "fixed", the digit count is input, and you can't write a variable number of nested loops. (Python's `itertools.product(*[MAP[d] for d in digits])` *is* the variable-loop machine, and in production, again, use it.) The recursion below is what `product` does inside, and the point of writing it once by hand: the "loop per level, recursion between levels" shape is exactly how every backtracking problem simulates arbitrarily-nested loops. This boss just lets you see it without camouflage.
+
+---
+
+## The weapon: fan out, descend, return
+
+One recursion, one loop per call, the for-loop skeleton with nothing else attached:
+
+<MermaidBlock>
+graph TB
+    A["spell(i)\nat digit position i"]
+    B["i past last digit?\npath spells one word\nsave it"]
+    C["for each letter\non digit i's key:"]
+    D["choose: append letter\nexplore: spell(i+1)\nun-choose: pop"]
+    A --> B
+    A --> C
+    C --> D
+    D --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+KEYPAD = {
+    "2": "abc", "3": "def", "4": "ghi", "5": "jkl",
+    "6": "mno", "7": "pqrs", "8": "tuv", "9": "wxyz",
+}
+
+def letter_combinations(digits: str) -> list[str]:
+    if not digits:
+        return []                        # no digits: no words, not [""]
+    out = []
+    path = []
+
+    def spell(i):
+        if i == len(digits):
+            out.append("".join(path))    # strings: join beats copy
+            return
+        for letter in KEYPAD[digits[i]]:
+            path.append(letter)          # choose
+            spell(i + 1)                 # explore
+            path.pop()                   # un-choose
+    spell(0)
+    return out
+```
+
+That's the entire boss. The un-choose is even arguably optional here, you could pass `path + letter` as a fresh string down the recursion and mutate nothing, and for this problem that's perfectly fine (strings are small, the tree is shallow). The mutate-and-restore version is shown because it's the *load-bearing* form: the one that scales to deep trees where per-call copying hurts, and the one whose muscle memory the previous seven bosses built. Know that the immutable-argument style exists, and know it's the same tree either way.
+
+---
+
+## Watching it work
+
+`digits = "23"`:
+
+```
+spell(0): try a → spell(1): try d → "ad" ✓  e → "ae" ✓  f → "af" ✓
+          try b → spell(1): → "bd" "be" "bf"
+          try c → spell(1): → "cd" "ce" "cf"
+
+nine words, zero rejections, tree width 3 × 3
+```
+
+Every leaf a winner. The only backtracking problem in the dungeon where the word "prune" has nothing to attach to, because there is no invalid state to detect.
+
+<Callout type="tip" title="The BFS/iterative flavor">
+This one has a loop-only solution worth knowing: start with `[""]`, and for each digit, rebuild the list by appending each of the digit's letters to each existing prefix. Three lines, no recursion, and it's the same tree traversed level by level instead of depth-first, Dungeon 7's DFS-vs-BFS distinction, echoed in string-building. It allocates more (every intermediate prefix becomes a real string), which is exactly the trade the recursive version's shared path avoids.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. `[""]` for empty input.**
+The recursion's base case fires immediately on zero digits and would emit one empty word. The explicit `if not digits: return []` guard exists solely for this. It's the most-submitted wrong answer on an otherwise gentle problem.
+
+**2. Forgetting 7 and 9 are four-letter keys.**
+Hand-typed keypad maps love to drop `s` or `z`. The output size for "79" should be 16, not 9, a one-second sanity multiplication that catches the typo.
+
+**3. Building strings by concatenation at every level.**
+`path + letter` per call is fine here (shallow tree), but as a *habit* it turns deep backtracking into O(n) allocation per node. The append/join pattern is the transferable habit; the callout's trade-off is the informed exception.
+
+**4. Overthinking it.**
+No sort, no used-array, no skip line, no guard. If your solution to this problem has any of them, you've imported machinery from muscle memory. Part of owning a toolkit is leaving tools in the box.
+
+---
+
+## Complexity
+
+Up to 4 letters per digit, n digits: **O(n · 4ⁿ)** words generated (each join costs O(n)). **Space: O(n)** for path and stack.
+
+---
+
+## Boss down. XP gained.
+
+Nine candidates on the proof sheet, "bf" on the sign, and the owner tells everyone the letters were chosen by "an algorithm", which is technically true and maximally misleading.
+
+What you walked away with:
+
+- The **Cartesian product**: independent choice sets multiply, and the fan-out recursion is n nested loops written once
+- A tree with no dead branches, pruning attaches to *constraints*, and this problem has none
+- Strings prefer append/join over per-level concatenation; the immutable-argument style is the same tree, costlier per node
+- Empty input maps to no answers, not one empty answer
+
+Every tool is now on the table: fan-out, guards, floors, twins, used-sets, boards, cuts. The finale stacks them against the most famous constraint-satisfaction puzzle in computer science, one that stumped minds for a century before backtracking made it routine.
+
+Next up: **Boss 9 — The Rival Queens.** Eight queens, one board, no two sharing a row, column, or diagonal, scaled to n and demanded in full: every arrangement, not just one. Three attack maps, one queen per row, and pruning so aggressive the factorial tree collapses to a handful of survivors. The dungeon's graduation exam.

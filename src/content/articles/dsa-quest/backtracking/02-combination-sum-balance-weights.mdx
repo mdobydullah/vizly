@@ -1,0 +1,182 @@
+---
+title: "Combination Sum — The Balance Weights"
+slug: combination-sum-balance-weights
+category: dsa
+series: backtracking
+seriesOrder: 2
+description: "Dungeon 9, Boss 2. Brass weights in a few sizes, unlimited copies, one pan to balance exactly. Reusable choices, a precise target, and pruning: the moment the pan tips, an entire subtree of futures dies."
+tags:
+  - DSA
+  - Backtracking
+  - Recursion
+icon: "⚖️"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A market scale, a seven-kilo sack of rice on one pan, and a box of brass weights on the other side: twos, threes, and sixes, with as many copies of each as you want. Find every distinct way to balance the sack exactly. Two threes and a... no wait, walk it properly: keep adding weights, and the moment the pan tips past seven, take the last weight off, that whole line of thinking is dead, no heavier weight can save it. One rule keeps the catalog free of duplicates: never add a weight smaller than the one you just added. Same recipe, different order, is the same recipe.
+  bn: |
+    বাজারের দাঁড়িপাল্লা, এক পাল্লায় সাত কেজির চালের বস্তা, আর অন্য পাশে পিতলের বাটখারার বাক্স: দুই, তিন আর ছয় কেজির, প্রতিটার যত খুশি কপি। বস্তাটা হুবহু ব্যালেন্স করার প্রতিটা আলাদা উপায় বের করুন। নিয়মমাফিক হাঁটুন: বাটখারা যোগ করতে থাকুন, আর যেই মুহূর্তে পাল্লা সাত ছাড়িয়ে কাত হয়ে যায়, শেষ বাটখারাটা নামিয়ে ফেলুন, ওই চিন্তার পুরো লাইনটাই মৃত, এর চেয়ে ভারী কোনো বাটখারা ওটাকে বাঁচাতে পারবে না। ক্যাটালগটা ডুপ্লিকেটমুক্ত রাখে একটাই নিয়ম: এইমাত্র যেটা চাপিয়েছেন তার চেয়ে ছোট বাটখারা আর কখনো চাপাবেন না। একই রেসিপি, আলাদা ক্রম, আসলে একই রেসিপি।
+  hi: |
+    बाजार का तराजू, एक पलड़े पर सात किलो चावल की बोरी, और दूसरी तरफ पीतल के बाटों का डिब्बा: दो, तीन और छह किलो के, हर एक की जितनी चाहो कॉपियां। बोरी को ठीक-ठीक बैलेंस करने का हर अलग तरीका निकालो। ढंग से चलो: बाट जोड़ते जाओ, और जिस पल पलड़ा सात के पार झुक जाए, आखिरी बाट उतार लो, सोच की वह पूरी लाइन मर चुकी है, उससे भारी कोई बाट उसे नहीं बचा सकता। कैटलॉग को डुप्लिकेट से बचाता है एक ही नियम: अभी-अभी जो बाट रखा उससे छोटा बाट कभी मत रखो। वही नुस्खा, अलग क्रम, वही नुस्खा है।
+  ar: |
+    ميزان سوق، كيس أرز بسبعة كيلوات على كفّة، وصندوق أثقال نحاسية على الجهة الأخرى: اثنان وثلاثة وستة، وبعدد ما تشاء من النسخ لكل وزن. جِد كل طريقة مميزة لموازنة الكيس بالضبط. سِر بالأصول: واصل إضافة الأثقال، ولحظة تميل الكفة متجاوزة السبعة، ارفع آخر ثقل، فخط التفكير ذاك كله ميت، ولا ثقل أثقل منه سينقذه. قاعدة واحدة تبقي الفهرس بلا تكرارات: لا تضف أبداً ثقلاً أصغر من الذي أضفته للتو. نفس الوصفة بترتيب مختلف هي نفس الوصفة.
+---
+
+## Boss 2: The Balance Weights
+
+Boss 1's tree had no dead branches, every path led to a valid subset. This boss introduces the two upgrades that define the rest of the dungeon: a **constraint** (sum exactly to target) that most branches will fail, and **pruning**, killing a branch the instant its failure becomes certain rather than at the leaf. Plus one twist Boss 1 explicitly forbade: choices may **repeat**.
+
+---
+
+## The story
+
+Market morning. A customer's rice sack sits on the left pan: **7 kilos**. Your weight box: brass **2s, 3s, and 6s**, effectively unlimited copies of each (brass is cheap, apparently).
+
+Find *every distinct way* to balance it exactly:
+
+- 2 + 2 + 3 = 7 ✓
+- Is 3 + 2 + 2 different? The pan doesn't think so. **Combinations, not orderings**, the multiset of weights is what counts.
+- 6 + ... 6 + 2 tips to 8. 6 + 3 tips to 9. Nothing pairs with 6. Dead.
+- 3 + 3 + ... 6 so far, +2 = 8 tips, +3 = 9 tips. Dead.
+- 2+2+2+... = 6, +2 tips to 8, +3 = 9 tips... dead.
+
+Catalog: `[[2, 2, 3]]`. One recipe. (Make the target 8 and you'd get `[2,2,2,2]`, `[2,3,3]`, `[2,6]`, richer market day.)
+
+Two working rules emerged as you did it, and they're the entire algorithm:
+
+**Rule 1, the tip-over prune:** the moment the pan exceeds 7, remove the last weight and stop pursuing that line. Weights are positive; a tipped pan only tips further. Certain failure, detected early, kills every future below it.
+
+**Rule 2, the no-smaller rule:** to avoid cataloging 2+2+3 and 3+2+2 as different recipes, impose an order: after placing a weight, only *itself or heavier* may follow (in index terms: never revisit earlier weight sizes). Each multiset then has exactly one buildable representative, the non-decreasing one.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of **distinct** integers `candidates` and a target integer `target`, return a list of all **unique combinations** of `candidates` where the chosen numbers sum to `target`. You may return the combinations in any order.
+>
+> The **same** number may be chosen from `candidates` an **unlimited number of times**. Two combinations are unique if the frequency of at least one of the chosen numbers is different.
+
+LeetCode 39. All candidates are positive, that positivity is what licenses the tip-over prune.
+
+---
+
+## The naive attempt
+
+Boss 1's subset generator can't even express this (items were use-once), so the naive version here is backtracking *without the two rules*: branch over every weight at every step, check the sum only at... when, exactly? With unlimited copies the tree is infinite, 2, 2, 2, 2... forever. You *must* stop when the sum passes target, so Rule 1 isn't an optimization here, it's what makes the tree finite at all. And without Rule 2, the output triples with duplicates like [2,2,3], [2,3,2], [3,2,2], which you'd then dedupe with a set of sorted tuples, doing exponentially more work to generate garbage and filter it. The rules aren't polish. They're the boss.
+
+---
+
+## The weapon: the for-loop skeleton, with a floor
+
+Boss 1's callout promised the second skeleton; here it is in its natural habitat. Each call loops over candidate weights **starting from index `start`**, the floor that enforces Rule 2:
+
+<MermaidBlock>
+graph TB
+    A["build(start, remaining)"]
+    B["remaining == 0?\npan balanced\nsave a copy"]
+    C["for j from start:\nweight j > remaining?\nskip (or break if sorted)"]
+    D["choose: append weight j\nexplore: build(j, remaining - w)\nj again: reuse allowed"]
+    E["un-choose: pop"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E
+    E --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The one-character decision worth a paragraph: the recursive call passes **`j`**, not `j + 1`. Passing `j` means "the same weight may be chosen again", the unlimited-copies rule, while still never going *below* j, Rule 2's floor. Next boss's twin problem (each item once, LC 40) changes this single character to `j + 1`. Entire problem families pivot on it.
+
+```python
+def combination_sum(candidates: list[int], target: int) -> list[list[int]]:
+    candidates.sort()                      # lets the prune 'break', not just 'skip'
+    out = []
+    path = []
+
+    def build(start, remaining):
+        if remaining == 0:
+            out.append(path[:])            # balanced: snapshot
+            return
+        for j in range(start, len(candidates)):
+            if candidates[j] > remaining:  # tip-over: this and all heavier
+                break                      #   weights are dead. prune.
+            path.append(candidates[j])     # choose
+            build(j, remaining - candidates[j])   # explore (j: reuse OK)
+            path.pop()                     # un-choose
+
+    build(0, target)
+    return out
+```
+
+Sorting upgrades the prune from `continue` (skip this weight) to `break` (this weight tips, so every heavier one tips too, abandon the whole loop). On dense candidate sets that's a real constant-factor kill.
+
+---
+
+## Watching it work
+
+`candidates = [2, 3, 6]`, `target = 7`:
+
+```
+build(start=0, rem=7)
+├─ 2: build(0, 5)
+│    ├─ 2: build(0, 3)
+│    │    ├─ 2: build(0, 1) → 2>1 break. dead end (silent)
+│    │    └─ 3: build(1, 0) → BALANCED [2,2,3] ✓
+│    ├─ 3: build(1, 2) → 3>2 break. dead
+│    └─ 6: 6>5 break
+├─ 3: build(1, 4)
+│    ├─ 3: build(1, 1) → break. dead
+│    └─ 6: 6>4 break
+└─ 6: build(2, 1) → 6>1 break. dead
+```
+
+Count what pruning bought: the infinite 2-2-2-2... spine died at depth 3, the 6-first branch died in one comparison, and no branch ever tried a weight below its floor, zero duplicate recipes generated, none filtered. The naive version's work didn't get *faster*; most of it stopped existing.
+
+---
+
+## Gotchas
+
+**1. `j + 1` where `j` belongs.**
+Passing `j + 1` silently forbids reuse: target 7 from [2,3,6] returns *nothing* and you'll stare at correct-looking code for an hour. Reuse ⇒ recurse with `j`. Its twin bug (LC 40 with `j`) produces infinite reuse where one-use was required. Check this character *first* when a combination problem misbehaves.
+
+**2. Pruning with `remaining < 0` at the top instead of before the call.**
+Checking after recursing works but explores one pointless level per dead branch (choose, call, immediately fail, pop). Testing `candidates[j] > remaining` *before* choosing never even picks up the weight. Same answers; meaningfully less work; better instincts.
+
+**3. Deduping instead of ordering.**
+Generating all orderings and set-filtering sorted tuples is the naive trap: exponentially more branches for the same catalog. The `start` floor generates each combination exactly once. If your solution contains `set(`, revisit.
+
+**4. Forgetting positivity's role.**
+The tip-over prune assumes adding weights only increases the sum. Candidates with zeros or negatives (not this problem, but variants exist) break both termination and pruning, and need different machinery. Know which assumption your prune leans on.
+
+---
+
+## Complexity
+
+Output-sensitive and exponential in the worst case: **O(nᵈ)** loosely, where d = target / smallest candidate (the tree's depth). Pruning collapses typical cases dramatically; nobody expects a closed form here, and saying "exponential, pruned, output-bounded" is the honest professional answer.
+
+**Space: O(d)** for path and stack.
+
+---
+
+## Boss down. XP gained.
+
+The sack balances: two 2s and a 3, the only recipe, found without ever weighing a duplicate or chasing a tipped pan.
+
+What you walked away with:
+
+- **Pruning**: kill branches at the moment failure is *certain*, before recursing, and sorted input turns skips into breaks
+- **Reuse via `j`**: recurse on the same index to allow repeats; the floor still blocks going backward
+- The `start` floor generates each *combination* exactly once, deduping by construction beats deduping by filter
+- Positivity licenses the prune; know your prune's assumptions
+
+Both bosses so far agreed that order doesn't matter. The next boss inverts that single assumption, `[1,2,3]` and `[3,2,1]` become *different* answers, and watch what it does to the machinery: the index floor stops working entirely, and a used-set takes its place.
+
+Next up: **Boss 3 — The Photo Lineup.** Three friends, one bench, every possible left-to-right arrangement for the photographer. Permutations: the factorial tree, the used-array, and why the choose/un-choose rhythm survives even when the index discipline doesn't.

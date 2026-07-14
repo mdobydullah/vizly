@@ -1,0 +1,179 @@
+---
+title: "Permutations — The Photo Lineup"
+slug: permutations-photo-lineup
+category: dsa
+series: backtracking
+seriesOrder: 3
+description: "Dungeon 9, Boss 3. Three friends, one bench, every left-to-right arrangement for the photographer. The factorial tree, the used-set, and why choose/explore/un-choose survives when the index floor doesn't."
+tags:
+  - DSA
+  - Backtracking
+  - Recursion
+icon: "📷"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Three friends can't agree who sits where for the group photo, so the photographer, very tired, says fine: we shoot every possible arrangement and you pick your favorite print. Three seats, three people, six photos. Filling the bench seat by seat, the leftmost seat has three candidates, the next seat two, the last seat one. The photographer works with a clipboard: seat someone, arrange everyone else, then un-seat them and try the next person in that spot. Unlike a packing list, here the same people appear in every photo, only the order changes, so what you track isn't who's included but who's already seated.
+  bn: |
+    গ্রুপ ছবিতে কে কোথায় বসবে তা নিয়ে তিন বন্ধু একমত হতে পারছে না, তাই ক্লান্ত ফটোগ্রাফার বললেন, ঠিক আছে: সম্ভাব্য প্রতিটা সাজানো একবার করে তুলব, তোমরা পছন্দের প্রিন্টটা বেছে নিও। তিনটা সিট, তিনজন মানুষ, ছয়টা ছবি। বেঞ্চটা সিট ধরে ধরে ভরলে, একদম বাঁয়ের সিটে তিনজন প্রার্থী, পরেরটায় দুজন, শেষটায় একজন। ফটোগ্রাফার কাজ করেন ক্লিপবোর্ড নিয়ে: একজনকে বসান, বাকিদের সাজান, তারপর তাকে তুলে ওই জায়গায় পরের জনকে বসান। প্যাকিং লিস্টের মতো নয়, এখানে প্রতিটা ছবিতে সবাই থাকে, বদলায় শুধু ক্রম, তাই যেটা ট্র্যাক করতে হয় তা হলো কে ঢুকেছে তা নয়, কে ইতিমধ্যে বসে পড়েছে।
+  hi: |
+    ग्रुप फोटो में कौन कहां बैठे इस पर तीन दोस्त सहमत नहीं हो पा रहे, तो थका हुआ फोटोग्राफर कहता है, ठीक है: हर मुमकिन बैठक की एक-एक तस्वीर खींचेंगे और तुम अपनी पसंदीदा प्रिंट चुन लेना। तीन सीटें, तीन लोग, छह तस्वीरें। बेंच को सीट दर सीट भरो तो सबसे बाईं सीट के तीन दावेदार, अगली के दो, आखिरी का एक। फोटोग्राफर क्लिपबोर्ड लेकर काम करता है: किसी को बिठाओ, बाकियों को जमाओ, फिर उसे उठाकर उस जगह अगले को आजमाओ। पैकिंग लिस्ट की तरह नहीं, यहां हर तस्वीर में सब लोग हैं, बदलता सिर्फ क्रम है, इसलिए ट्रैक यह नहीं करना कि कौन शामिल है बल्कि यह कि कौन पहले से बैठ चुका है।
+  ar: |
+    ثلاثة أصدقاء لا يتفقون على من يجلس أين في صورة المجموعة، فيقول المصوّر المنهك: حسناً، نلتقط كل ترتيب ممكن وتختارون الطبعة المفضلة. ثلاثة مقاعد، ثلاثة أشخاص، ست صور. عند ملء المقعد تلو المقعد، للمقعد الأيسر ثلاثة مرشحين، وللتالي اثنان، وللأخير واحد. يعمل المصوّر بلوح ملاحظات: أجلِس شخصاً، رتّب البقية، ثم أنهِضه وجرّب التالي في ذلك الموضع. بخلاف قائمة الحزم، هنا يظهر نفس الأشخاص في كل صورة والترتيب وحده يتغير، فما تتعقبه ليس من شارك بل من جلس بالفعل.
+---
+
+## Boss 3: The Photo Lineup
+
+Bosses 1 and 2 built *combinations*: what's in the bag, order irrelevant. This boss flips the single assumption, **order is the whole answer**, and the flip breaks one tool while sparing another. Watching which survives teaches more about backtracking than either boss alone.
+
+---
+
+## The story
+
+The photographer's bench, three friends: **1, 2, 3** (they answer to their jersey numbers). Every left-to-right seating, one photo each:
+
+```
+[1,2,3]  [1,3,2]  [2,1,3]  [2,3,1]  [3,1,2]  [3,2,1]
+```
+
+Six photos, and the count writes itself: seat the leftmost spot (**3** choices), then the middle (**2** remaining), then the right (**1** left). 3 × 2 × 1 = **3! = 6**. Factorials grow viciously, 10 friends means 3.6 million photos, so as with subsets, the output *is* the cost, and the craft is generating each arrangement exactly once with no bookkeeping disasters.
+
+Now the structural break from the last two bosses. In Combination Sum, the no-going-backward floor (`start`) killed duplicate recipes, because [2,2,3] and [3,2,2] were the same answer. Here `[1,2,3]` and `[3,2,1]` are *different* answers: the floor would forbid seating 1 after 3 and silently delete photos. **Index discipline dies.** Every not-yet-seated friend is a legal candidate at every seat, whatever their number.
+
+What replaces the floor: the clipboard. A simple **used-set**, who's already on the bench. The candidates at any seat are exactly the unused friends.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array `nums` of **distinct** integers, return all the possible permutations. You can return the answer in any order.
+
+LeetCode 46.
+
+---
+
+## The naive attempt
+
+Python's `itertools.permutations` (and its cousins in every language) does this in one line, and in production, *use it*. The interview wants the machinery. The genuinely naive hand-rolled version: generate all nⁿ sequences of picks and filter out those with repeats, that's 27 candidates for 6 answers at n=3, and the gap explodes factorially. The used-set doesn't filter repeats; it never generates them.
+
+---
+
+## The weapon: seat, arrange the rest, un-seat
+
+The rhythm survives untouched, choose, explore, un-choose, only the candidate list changed:
+
+<MermaidBlock>
+graph TB
+    A["seat(path)\nfilling next bench spot"]
+    B["bench full?\npath is one photo\nsave a copy"]
+    C["for each friend\nnot in used:"]
+    D["choose: seat them\nused.add, path.append"]
+    E["explore: seat(path)\nfill remaining spots"]
+    F["un-choose: used.discard\npath.pop, exact restore"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def permute(nums: list[int]) -> list[list[int]]:
+    out = []
+    path = []
+    used = [False] * len(nums)
+
+    def seat():
+        if len(path) == len(nums):
+            out.append(path[:])              # full bench: snapshot
+            return
+        for i in range(len(nums)):
+            if used[i]:
+                continue                     # already on the bench
+            used[i] = True                   # choose
+            path.append(nums[i])
+            seat()                           # explore
+            path.pop()                       # un-choose, both halves!
+            used[i] = False
+    seat()
+    return out
+```
+
+Note the un-choose is now **two** mutations, and both must reverse: the path pop *and* the used flag. The symmetry law from Boss 1 scales with the state: however many things choose touches, un-choose touches the same ones, in reverse. Half-restored state, the flag cleared but the path not popped, or vice versa, is this dungeon's signature crash-less catastrophe: no error, plausible output, wrong catalog.
+
+---
+
+## Watching it work
+
+`nums = [1, 2, 3]`, tracking bench and clipboard:
+
+```
+seat []: try 1 → [1]
+  seat: try 2 → [1,2]
+    seat: try 3 → [1,2,3] 📸  un-seat 3
+  un-seat 2, try 3 → [1,3]
+    seat: try 2 → [1,3,2] 📸  un-seat 2
+  un-seat 3
+un-seat 1, try 2 → [2]
+  ... → [2,1,3] 📸  [2,3,1] 📸
+un-seat 2, try 3 → [3]
+  ... → [3,1,2] 📸  [3,2,1] 📸
+```
+
+Six photos, and the shape of the tree changed from subsets': that tree was binary and uniform; this one **narrows** at every level, 3 branches, then 2, then 1. Factorial trees taper. (It's also why the used-check by array beats a hash set here: `used[i]` is one index, and the loop already iterates indices.)
+
+<Callout type="tip" title="The swap trick, for the second interview">
+A slicker variant needs no used-array: to fill seat k, swap each candidate into position k of the array itself, recurse on k+1, swap back. The array *is* the path and the used-tracking simultaneously, choose = swap in, un-choose = swap back. O(1) space over the output, beloved by interviewers as a follow-up. Its cost: the generation order gets scrambled, and on inputs with duplicates it needs extra care. Learn the used-array version as home base, carry the swap trick as the party move.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Reusing the combination floor.**
+`for i in range(start, ...)` deletes every permutation that seats a lower index after a higher one, you'll emit exactly one photo and puzzle over the other five. Order-matters problems track *usage*, not *position*.
+
+**2. Half un-choose.**
+Popping the path but forgetting `used[i] = False` (or the reverse). The friend stays phantom-seated forever; later branches see a full clipboard and an unfull bench and produce short, wrong photos. Both mutations, both reversals, adjacent lines.
+
+**3. Copy-at-leaf, forever and always.**
+`out.append(path)` strikes again, six references to one list that ends empty. Boss 1's tattoo (`path[:]`) applies to every boss in this dungeon; this is its last dedicated mention.
+
+**4. Checking `nums[i] in path` instead of a used flag.**
+Correct for distinct values, and O(n) per check where the flag is O(1), turning O(n·n!) into O(n²·n!). It also collapses the moment duplicates enter (Boss 4's sibling problem, LC 47). The flag tracks *the slot*, not the value, which is the honest thing being tracked.
+
+---
+
+## Complexity
+
+n! permutations, each copied in O(n).
+
+**Time: O(n · n!). Space: O(n)** for path, used, and stack.
+
+---
+
+## Boss down. XP gained.
+
+Six prints on the table. They pick `[2, 1, 3]`, the tall one in the middle, obviously, and the photographer bills for six setups anyway.
+
+What you walked away with:
+
+- Order matters ⇒ the **index floor dies**, replaced by a **used-set**; the rhythm itself survives everything
+- Un-choose reverses *all* of choose's mutations, symmetric to the letter
+- Factorial trees taper: n, then n-1, then n-2 branches, and O(n · n!) is the output's own size
+- The swap trick as the O(1)-space encore
+
+Three bosses, all on *distinct* inputs, and both Boss 1 and this one leaned on that quietly. The next boss breaks the assumption: two identical shirts enter the packing list, and suddenly the subset catalog is full of indistinguishable duplicates. The fix is one sorted array and one carefully aimed skip, the most transferable three lines in the dungeon.
+
+Next up: **Boss 4 — The Twin Shirts.** Subsets again, but the suitcase holds two identical blue shirts, and `[shirt A]` versus `[shirt B]` is a distinction without a difference. Sort, then skip a candidate when it equals its unchosen twin: the dedupe idiom that Bosses 5 reuses verbatim and half of LeetCode's hard filters are built on.

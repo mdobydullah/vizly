@@ -1,0 +1,192 @@
+---
+title: "Word Search — The Mosaic Floor"
+slug: word-search-mosaic-floor
+category: dsa
+series: backtracking
+seriesOrder: 6
+description: "Dungeon 9, Boss 6. A museum's lettered mosaic floor, one word to trace through adjacent tiles, no tile twice. Backtracking on shared mutable state: the un-choose heals a board instead of popping a list."
+tags:
+  - DSA
+  - Backtracking
+  - Matrix
+  - DFS
+icon: "🧩"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A museum's entrance hall is paved with a mosaic of letter tiles, and legend says the founder's motto can be traced through it: step from letter to letter, only onto neighboring tiles, never standing on the same tile twice. A curator wants to verify the legend for the word ABCCED. You trace with chalk: mark the tile you're on, try to continue the word in all four directions, and if every direction dies, wipe your chalk mark and step back, that tile is free again for some other route. The chalk-and-wipe is the whole method. One clean trace anywhere proves the legend.
+  bn: |
+    জাদুঘরের প্রবেশ হলটা অক্ষরের টাইলের মোজাইকে মোড়া, আর কিংবদন্তি বলে প্রতিষ্ঠাতার মূলমন্ত্রটা এর ভেতর দিয়ে আঁকা যায়: অক্ষর থেকে অক্ষরে পা ফেলুন, শুধু পাশের টাইলে, একই টাইলে দুবার না দাঁড়িয়ে। এক কিউরেটর ABCCED শব্দটার জন্য কিংবদন্তিটা যাচাই করতে চান। আপনি চক দিয়ে ট্রেস করেন: যে টাইলে আছেন সেটায় দাগ দিন, চার দিকেই শব্দটা এগোনোর চেষ্টা করুন, আর প্রতিটা দিক মরে গেলে চকের দাগটা মুছে এক পা পিছিয়ে আসুন, ওই টাইলটা আবার অন্য কোনো রুটের জন্য খালি। এই চক-আর-মোছাই পুরো পদ্ধতি। যেকোনো জায়গায় একটা পরিষ্কার ট্রেস পেলেই কিংবদন্তি প্রমাণিত।
+  hi: |
+    म्यूजियम का प्रवेश हॉल अक्षर टाइलों की पच्चीकारी से पटा है, और किंवदंती कहती है कि संस्थापक का ध्येय वाक्य उसमें से होकर खींचा जा सकता है: अक्षर से अक्षर पर कदम रखो, सिर्फ पड़ोसी टाइल पर, एक ही टाइल पर दो बार खड़े हुए बिना। एक क्यूरेटर ABCCED शब्द के लिए किंवदंती जांचना चाहता है। आप चॉक से ट्रेस करते हैं: जिस टाइल पर हो उस पर निशान लगाओ, चारों दिशाओं में शब्द आगे बढ़ाने की कोशिश करो, और हर दिशा मर जाए तो चॉक का निशान पोंछकर एक कदम पीछे हटो, वह टाइल किसी और रूट के लिए फिर खाली है। चॉक-और-पोंछना ही पूरा तरीका है। कहीं भी एक साफ ट्रेस मिला और किंवदंती साबित।
+  ar: |
+    بهو المتحف مرصوف بفسيفساء من بلاطات الحروف، وتقول الأسطورة إن شعار المؤسس يمكن تتبّعه خلالها: اخطُ من حرف إلى حرف، إلى البلاطات المجاورة فقط، دون الوقوف على نفس البلاطة مرتين. يريد أمين المتحف التحقق من الأسطورة لكلمة ABCCED. تتتبّع بالطبشور: علّم البلاطة التي تقف عليها، حاول مواصلة الكلمة في الاتجاهات الأربعة، وإذا ماتت كل الاتجاهات امسح علامة الطبشور وتراجع خطوة، فتلك البلاطة حرة من جديد لمسار آخر. الطبشور والمسح هما الطريقة كلها. تتبّع نظيف واحد في أي مكان يثبت الأسطورة.
+---
+
+## Boss 6: The Mosaic Floor
+
+Every un-choose so far popped a list. This boss's un-choose **heals a board**: the shared state is a two-dimensional grid that every branch reads and writes, and the restore-exactly discipline gets its sternest test. If you fought the Treasure Grid at the end of the Tries dungeon, this is that boss's inner engine, met on its own terms, one word, no trie, nothing between you and the mark/unmark law.
+
+---
+
+## The story
+
+The museum's entrance mosaic:
+
+```
+A  B  C  E
+S  F  C  S
+A  D  E  E
+```
+
+Legend: the founder's motto **"ABCCED"** can be traced through it, stepping only to **adjacent** tiles (up/down/left/right), never standing on the same tile twice within the trace.
+
+Verify it: start at the top-left A. B is right of it. C right of that. Second C? Below the first. E? Below that C. D? Left of that E. **A→B→C→C→E→D**, all adjacent, all distinct tiles. Legend confirmed.
+
+Now try **"SEE"**: the S at top-right... E below it, E below that (or left of it). Confirmed too. And **"ABCB"**: A→B→C fine, then B again, the only adjacent B is the one *already chalked*. Dies. Every start dies. False.
+
+The chalk is the story's key mechanic. While tracing, you mark your current tile so the trace can't loop back onto itself. When a tile's every continuation fails, you *wipe the mark and retreat*, because that tile being off-limits was only true **for the trace that stood on it**. Another route through the hall may legitimately pass there. Chalk is path-local truth, and wiping is what keeps it path-local.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` grid of characters `board` and a string `word`, return `true` if `word` exists in the grid. The word can be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once.
+
+LeetCode 79. One word, one boolean, the single-target version of what the Tries finale did for 30,000 words at once.
+
+---
+
+## The naive attempt
+
+Enumerate all paths of length `len(word)` and compare? The path count is exponential and almost all of them are garbage from their first tile. The only sane framing *is* the guided walk, extend the trace only where the next letter matches, so the naive-vs-real distinction here is subtler, and it's about the chalk. The tempting shortcut: track visited tiles in a **set copied per branch** (`visited | {(r,c)}` passed down). Correct! And it allocates a fresh set at every one of the potentially exponential steps. Mutating one shared board with mark/unmark does the same job with zero allocation, that's the upgrade this boss exists to drill.
+
+---
+
+## The weapon: chalk, four doors, wipe
+
+From every tile, attempt a trace. Each recursive step holds a position and an index into the word:
+
+1. **Tile letter ≠ word[i]?** Dead. Return false. (Off-board counts as dead, guard first.)
+2. **i is the last letter?** The whole word matched. True, all the way up.
+3. Otherwise: **chalk the tile** (overwrite it with a sentinel `#`, the visited-set trick without the set), recurse into the four neighbors for letter i+1, then **wipe** (restore the letter), and report whether any neighbor succeeded.
+
+<MermaidBlock>
+graph TB
+    A["trace(r, c, i)"]
+    B["off board, or\ntile != word i?\nfalse"]
+    C["i is last index?\nword complete: true"]
+    D["chalk: board r c = #"]
+    E["try 4 neighbors\nwith i+1\nany true?"]
+    F["wipe: restore letter\nreturn the verdict"]
+    A --> B
+    A --> C
+    A --> D
+    D --> E
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def exist(board: list[list[str]], word: str) -> bool:
+    rows, cols = len(board), len(board[0])
+
+    def trace(r, c, i):
+        if not (0 <= r < rows and 0 <= c < cols) or board[r][c] != word[i]:
+            return False
+        if i == len(word) - 1:
+            return True
+        board[r][c] = '#'                      # chalk
+        found = (trace(r+1, c, i+1) or trace(r-1, c, i+1) or
+                 trace(r, c+1, i+1) or trace(r, c-1, i+1))
+        board[r][c] = word[i]                  # wipe, ALWAYS
+        return found
+
+    return any(trace(r, c, 0)
+               for r in range(rows) for c in range(cols))
+```
+
+Two details carrying real weight:
+
+**The `or` chain short-circuits**, first successful neighbor stops the rest, but the wipe happens *after* the chain regardless of outcome. Success or failure, the board is restored before returning. A trace that succeeds and leaves chalk behind corrupts nothing *today* (we return immediately), but the discipline matters the moment this code grows a "find all traces" cousin, wipe unconditionally and never think about it again.
+
+**The sentinel `#` can never equal `word[i]`**, so a chalked tile fails the letter check naturally. The visited-check and the letter-check are the same comparison. That's the whole visited-set, deleted.
+
+---
+
+## Watching it work
+
+`word = "ABCB"`, starting at the top-left A, the *failing* case, because failure shows the machinery:
+
+```
+trace(0,0,'A') ✓ chalk A
+  trace(0,1,'B') ✓ chalk B
+    trace(0,2,'C') ✓ chalk C
+      trace(1,2,'B')? tile is C ✗
+      trace(0,3,'B')? tile is E ✗
+      trace(-1,..)? off board ✗
+      trace(0,1,'B')? tile is # ✗   ← the chalk blocks the loop-back
+    wipe C → false
+    trace(1,1,'C')? tile is F ✗
+  wipe B → false
+wipe A → false
+(every other A on the board: same fate)
+→ False ✓
+```
+
+The fourth check is the entire reason chalk exists: the trace tried to bend back onto its own B, met `#`, and died honestly. And after each level's failure, the wipe restored the letter, by the time the outer loop tries the next starting tile, the mosaic is pristine.
+
+<Callout type="tip" title="Pruning worth mentioning at the whiteboard">
+Two cheap accelerants for the pathological cases: (1) count letters first, if the board lacks enough of any letter the word needs, return false without walking; (2) if the word's *last* letter is rarer on the board than its first, search for the reversed word, fewer starting tiles, smaller tree. Neither changes worst-case complexity; both are the kind of observation that upgrades an interview from "solved it" to "owns it".
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Wiping inside the failure branch only.**
+Restore must be unconditional, after the neighbor attempts, before the return. Gating it on `found` leaves chalk on successful paths, and any later caller (the all-matches variant, the next test case in a shared runner) inherits a vandalized board.
+
+**2. Checking neighbors before recursing instead of guarding on entry.**
+Both work, but validating at the *top* of `trace` (bounds + letter in one place) means the four recursive calls need no conditions at all. Scattered guards at every call site is where off-by-one bounds bugs breed.
+
+**3. A visited set that never un-visits.**
+The set-based version needs `visited.remove((r,c))` exactly where the wipe goes. Forgetting it makes tiles permanently consumed by *failed* traces, false negatives on boards where routes cross. Same law, different costume.
+
+**4. Mutating the caller's board, permanently.**
+The chalk trick modifies the input mid-run and restores it by the end, which is fine, *if* every wipe runs. In environments where mutation of inputs is forbidden outright, say so and fall back to the set, correctness of contract beats cleverness.
+
+**5. Single-letter words.**
+`word = "A"` must return true on any board containing A, the `i == len-1` check fires before any chalk. If your version chalks first and checks later, trace it on one letter before submitting.
+
+---
+
+## Complexity
+
+From each of m·n starting tiles, the trace branches at most 3 ways per step (the fourth neighbor is your chalked past) for L = len(word) steps.
+
+**Time: O(m · n · 3^L). Space: O(L)** recursion depth, zero extra per-branch allocation, the board is the bookkeeping.
+
+---
+
+## Boss down. XP gained.
+
+ABCCED traces clean through the mosaic, the curator photographs the chalk line before you wipe it, and the founder's legend survives inspection.
+
+What you walked away with:
+
+- Backtracking on **shared mutable state**: chalk (mutate), explore, wipe (restore), the list-pop law generalized to boards
+- The sentinel trick: overwrite-with-`#` makes visited-check and letter-check one comparison, no set, no allocation
+- Wipe unconditionally, success and failure alike; path-local truth must not outlive the path
+- Guard at entry, recurse bare, bounds bugs hate consolidation
+
+Next up: **Boss 7 — The Banner Cuts.** A single ribbon of letters and a pair of scissors: cut it into pieces so every piece reads the same forwards and backwards. The choices stop being items or tiles and become *cut positions*, and a palindrome check guards every snip. Backtracking meets Dungeon 2's oldest trick.

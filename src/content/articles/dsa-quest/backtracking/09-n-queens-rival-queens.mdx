@@ -1,0 +1,186 @@
+---
+title: "N-Queens — The Rival Queens"
+slug: n-queens-rival-queens
+category: dsa
+series: backtracking
+seriesOrder: 9
+description: "Dungeon 9, Boss 9. N queens, one board, no two sharing a row, column, or diagonal, and every arrangement demanded. One queen per row, three attack sets, and pruning that collapses a factorial tree to a handful of survivors."
+tags:
+  - DSA
+  - Backtracking
+  - Matrix
+  - Hard
+icon: "👑"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A chess society commissions a display: four rival queens on a four-by-four board, arranged so no queen threatens another, no shared row, column, or diagonal, and the society wants every possible arrangement, not just one. The insight that tames it: since queens can't share rows, each row gets exactly one queen, so the job is picking one column per row. Place a queen, cross out her column and both her diagonals for all rows below, and move down a row. When a row has no safe square left, lift the previous queen and try her next column. Two arrangements survive, out of 256 raw ways.
+  bn: |
+    এক দাবা সমিতি একটা ডিসপ্লের অর্ডার দিলো: চার-বাই-চার বোর্ডে চারজন প্রতিদ্বন্দ্বী রানি, এমনভাবে সাজানো যাতে কেউ কাউকে আক্রমণ করতে না পারে, কোনো সারি, কলাম বা কোনাকুনি লাইন ভাগাভাগি নয়, আর সমিতি চায় সম্ভাব্য প্রতিটা সাজানো, শুধু একটা নয়। যে অন্তর্দৃষ্টি এটাকে বশে আনে: রানিরা যেহেতু সারি ভাগ করতে পারে না, প্রতিটা সারিতে ঠিক একজন রানি, তাই কাজটা হলো প্রতি সারির জন্য একটা কলাম বাছা। রানি বসান, নিচের সব সারির জন্য তার কলাম আর দুটো কোনাকুনি লাইন কেটে দিন, তারপর এক সারি নামুন। কোনো সারিতে নিরাপদ ঘর না থাকলে আগের রানিকে তুলে তার পরের কলামটা চেষ্টা করুন। ২৫৬টা কাঁচা উপায়ের মধ্যে টিকে থাকে দুটো সাজানো।
+  hi: |
+    एक शतरंज सोसाइटी डिस्प्ले का ऑर्डर देती है: चार-बाय-चार बोर्ड पर चार प्रतिद्वंद्वी रानियां, ऐसे सजी हों कि कोई रानी दूसरी को धमकी न दे, कोई साझा पंक्ति, कॉलम या विकर्ण नहीं, और सोसाइटी को हर मुमकिन सजावट चाहिए, सिर्फ एक नहीं। जो सूझ इसे काबू करती है: रानियां पंक्तियां बांट नहीं सकतीं, तो हर पंक्ति में ठीक एक रानी, यानी काम है हर पंक्ति के लिए एक कॉलम चुनना। रानी रखो, नीचे की सारी पंक्तियों के लिए उसका कॉलम और दोनों विकर्ण काट दो, और एक पंक्ति नीचे उतरो। किसी पंक्ति में कोई सुरक्षित खाना न बचे तो पिछली रानी को उठाकर उसका अगला कॉलम आजमाओ। 256 कच्चे तरीकों में से दो सजावटें बचती हैं।
+  ar: |
+    تطلب جمعية شطرنج عرضاً: أربع ملكات متنافسات على رقعة أربعة في أربعة، مرتّبات بحيث لا تهدد ملكة أخرى، لا صف مشترك ولا عمود ولا قطر، وتريد الجمعية كل ترتيب ممكن لا واحداً فقط. البصيرة التي تروّضها: بما أن الملكات لا يتشاركن الصفوف، فلكل صف ملكة واحدة بالضبط، فالمهمة اختيار عمود واحد لكل صف. ضع ملكة، اشطب عمودها وقطريها لكل الصفوف تحتها، وانزل صفاً. حين لا يبقى في صفٍ مربّع آمن، ارفع الملكة السابقة وجرّب عمودها التالي. ترتيبان ينجوان من أصل 256 طريقة خام.
+---
+
+## Boss 9: The Rival Queens
+
+The finale, and the most storied problem in the dungeon: posed for chess boards in 1848, generalized to n, attacked by Gauss himself, and now the canonical demonstration of constraint-satisfaction backtracking, the technique behind Sudoku solvers, register allocation, and scheduling engines. Everything the dungeon taught assembles here, and one new trick joins: **encoding diagonals as arithmetic**.
+
+---
+
+## The story
+
+The chess society's display case, a 4×4 board, four queens. Queens attack along **rows, columns, and both diagonals**, unlimited range. The commission: arrangements where *no queen threatens another*, and they want the complete set.
+
+First, shrink the search space by *thinking* before searching, the dungeon's oldest move. Four queens, four rows, and no two queens may share a row: **every row holds exactly one queen**. So an arrangement is just a choice of column for each row, [1, 3, 0, 2] means "row 0's queen in column 1, row 1's in column 3...", and rows are handled *by construction*, never checked again. 256 raw column-assignments (4⁴) instead of 1820 free placements. Constraints you build into the representation are constraints you never test.
+
+Columns and diagonals remain, and here's the arithmetic trick that turns diagonal-checking from geometry into set-membership. Squares on the same **↘ diagonal** share `row - col` (walk down-right: both grow, difference fixed). Squares on the same **↙ diagonal** share `row + col` (down-left: row grows, col shrinks, sum fixed). Three hash sets, `cols`, `diag`, `anti`, and "is this square attacked?" becomes three O(1) lookups. No scanning the board, no loops over earlier queens.
+
+The placement dance, row by row: try each column in the current row; if its three lookups all miss, place the queen (add to all three sets), descend to the next row, and on return, lift her (remove from all three), the un-choose now touching *three* pieces of state, the symmetry law at its heaviest load yet.
+
+---
+
+## The problem, dressed up properly
+
+> The n-queens puzzle is the problem of placing `n` queens on an `n x n` chessboard such that no two queens attack each other. Given an integer `n`, return all distinct solutions to the n-queens puzzle. You may return the answer in any order.
+>
+> Each solution contains a distinct board configuration of the n-queens' placement, where `'Q'` and `'.'` both indicate a queen and an empty space, respectively.
+
+LeetCode 51. Output as painted boards, a list of strings per solution.
+
+---
+
+## The naive attempt
+
+Generate all ways to drop 4 queens on 16 squares, check each: C(16,4) = 1820 boards, each needing pairwise attack checks. Or, smarter already, all 4! = 24 *permutations* of columns (one per row, all distinct, that's Boss 3's machinery handling rows *and* columns) and check only diagonals. That second version is genuinely decent, and it still validates complete arrangements: a doomed first-two-queens pair spawns 2 full placements before dying at the check. The boss-grade version kills the pair the instant queen two touches a shared diagonal, no descendants, no autopsy. Same tree, guard moved to the moment of choice, Boss 7's placement law, at scale.
+
+---
+
+## The weapon: one queen per row, three attack sets
+
+<MermaidBlock>
+graph TB
+    A["place(row)"]
+    B["row == n?\nall queens seated\npaint and save the board"]
+    C["for col in 0..n-1:\ncol in cols, or\nrow-col in diag, or\nrow+col in anti? SKIP"]
+    D["choose: add col,\nrow-col, row+col\nto the three sets"]
+    E["explore: place(row+1)"]
+    F["un-choose: remove\nall three, exactly"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def solve_n_queens(n: int) -> list[list[str]]:
+    out = []
+    queens = []                      # queens[r] = column of row r's queen
+    cols, diag, anti = set(), set(), set()
+
+    def place(row):
+        if row == n:
+            out.append(["".join("Q" if c == queens[r] else "."
+                                for c in range(n)) for r in range(n)])
+            return
+        for col in range(n):
+            if col in cols or (row - col) in diag or (row + col) in anti:
+                continue                          # attacked: never placed
+            queens.append(col)                    # choose, all four pieces
+            cols.add(col)
+            diag.add(row - col)
+            anti.add(row + col)
+            place(row + 1)                        # explore
+            queens.pop()                          # un-choose, all four
+            cols.discard(col)
+            diag.discard(row - col)
+            anti.discard(row + col)
+    place(0)
+    return out
+```
+
+Four mutations per choose, four reversals per un-choose, adjacent, symmetric, in matching order. This is the dungeon's symmetry law at maximum load, and the reason seasoned solvers group choose/un-choose lines visually: a missing `discard` here doesn't crash, it quietly convinces every later branch that a lifted queen still guards her diagonal, and solutions vanish without a trace.
+
+---
+
+## Watching it work
+
+n = 4, following row 0's first two attempts:
+
+```
+row 0, col 0: place. row 1: col 0 ✗(col) 1 ✗(diag) 2 ✓ place.
+    row 2: 0 ✗ 1 ✗ 2 ✗ 3 ✗ → dead. lift row 1.
+  row 1, col 3 ✓ place. row 2: only col 1 ✓ place.
+    row 3: 0 ✗ 1 ✗ 2 ✗ 3 ✗ → dead. unwind all the way.
+row 0, col 1: place. row 1: only col 3 ✓. row 2: only col 0 ✓.
+    row 3: col 2 ✓ → SOLUTION:  . Q . .
+                                 . . . Q
+                                 Q . . .
+                                 . . Q .
+row 0, col 2: (mirror of above) → SOLUTION
+row 0, cols 3: (mirror of col 0) → dead
+
+2 solutions ✓
+```
+
+Watch the collapse: 256 column-assignments existed; the walk *visited* maybe two dozen partial states, because every attacked square was refused at the moment of placement and its entire subtree never existed. That disproportion, exponential possibility, slender actual walk, is backtracking's whole sales pitch, and N-Queens is its showroom. (For the record: n=8 has 92 solutions; n=9, 352. The count has no known closed formula, computers *enumerate* it, with exactly this algorithm.)
+
+<Callout type="tip" title="Two doors further">
+**Counting only** (LC 52): delete the painting, increment a counter at the leaf, same walk. **Bitmask speed**: the three sets can be three integers, column c is bit c, diagonals shift by one each row, and "safe columns" becomes one AND-NOT expression. It's the same algorithm running on hardware instincts, and Dungeon 17 (Bit Manipulation) will make that translation natural. Constraint-propagation solvers (Sudoku, SAT) start exactly here and add smarter orderings: try the most-constrained row first, fail even earlier.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Checking only adjacent diagonals.**
+Queens attack at *any* distance. Comparing a candidate against just the previous row's queen passes n=4 by luck and fails n=5. The `row±col` sets encode full-length diagonals by construction, trust arithmetic over geometry.
+
+**2. One of eight mutations missing.**
+Four adds, four removes. The un-choose forgetting `anti` is invisible until a solution that needs that anti-diagonal goes missing. Smoke test: after `place(0)` returns, all three sets must be empty, Boss 1's empty-bag test, tripled.
+
+**3. Painting with shared row strings.**
+Building the board once and mutating rows across solutions aliases the output lists (the `path[:]` bug wearing a chessboard). Paint fresh strings per solution, at the leaf.
+
+**4. `row - col` collisions with `row + col`.**
+They live in *separate* sets for a reason: square (2,0) has difference 2 and sum 2, one merged set would let a ↘ diagonal veto an unrelated ↙ square. Two orientations, two sets, no shortcuts.
+
+**5. Symmetry "optimizations" that break enumeration.**
+Mirroring half the solutions (try only cols < n/2 in row 0, reflect the rest) genuinely halves the work for *counting*, but emitting reflected boards correctly, including the odd middle column, is fiddly, and the problem wants every distinct board. Optimize the counting variant; enumerate the enumeration variant honestly.
+
+---
+
+## Complexity
+
+**Time: O(n!)-ish**, row r sees at most n-r unattacked columns, savagely pruned below that in practice. Painting costs O(n²) per solution. **Space: O(n)** for the sets, stack, and queen list.
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained. Crown earned.
+
+Two arrangements go in the display case, mirror twins, as it happens, and the society's plaque credits "exhaustive analysis", which is exactly what it was: exhaustive in possibility, frugal in steps.
+
+The full haul from Dungeon 9:
+
+- The rhythm, forever: **choose, explore, un-choose**, symmetric to the last mutation, from one list to four structures
+- **Pruning at the moment of choice**: guards before recursion, doomed universes never born, sorted breaks, tipping pans, mirror tests, attack sets
+- **Dedupe by construction**: index floors for combinations, used-sets for permutations, twin-skips for duplicates, filters are confessions
+- **Representation kills constraints**: one-queen-per-row, diagonals as `row±col`, the best check is the one made unnecessary
+- Exponential outputs are the job; the craft is generating each answer exactly once and touching nothing else
+
+**Next dungeon: Heap / Priority Queue.** From enumerating everything to caring only about the *extremes*: the k-th largest, the closest points, the busiest task. A tree that lives inside an array, never fully sorted, always instantly ready with its minimum, and the family of top-k problems that every stream, scheduler, and leaderboard runs on.
+
+See you in Dungeon 10.

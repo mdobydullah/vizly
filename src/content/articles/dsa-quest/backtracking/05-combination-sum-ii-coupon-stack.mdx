@@ -1,0 +1,193 @@
+---
+title: "Combination Sum II — The Coupon Stack"
+slug: combination-sum-ii-coupon-stack
+category: dsa
+series: backtracking
+seriesOrder: 5
+description: "Dungeon 9, Boss 5. A stack of single-use coupons, duplicates included, and a bill to cover exactly. Boss 2's skeleton takes j+1, Boss 4's twin-skip drops in verbatim, and an assembled machine clears the register."
+tags:
+  - DSA
+  - Backtracking
+  - Recursion
+icon: "🎟️"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The grocery bill comes to eight, and your kitchen drawer yields a messy stack of store coupons: a ten, two ones, a two, a seven, a six, and a five. Each coupon is single use, tear it off and it's gone, and the register only accepts exact coverage. Two coupons with the same value are interchangeable, so "the first one-coupon" versus "the second" is not a different way to pay. Sort the stack, never revisit a torn coupon, skip a twin whose earlier copy you passed over, and drop any line of thinking the moment it overshoots eight. Four ways to pay, found without a single duplicate.
+  bn: |
+    মুদির বিল এলো আট, আর রান্নাঘরের ড্রয়ার থেকে বেরোলো দোকানের কুপনের এলোমেলো এক তাড়া: একটা দশ, দুটো এক, একটা দুই, একটা সাত, একটা ছয়, আর একটা পাঁচ। প্রতিটা কুপন একবারই চলে, ছিঁড়লেন তো শেষ, আর রেজিস্টার শুধু কাঁটায় কাঁটায় কভারেজ নেয়। একই মূল্যের দুটো কুপন অদলবদলযোগ্য, তাই "প্রথম এক-টাকার কুপন" বনাম "দ্বিতীয়টা" আলাদা কোনো পেমেন্ট নয়। তাড়াটা সর্ট করুন, ছেঁড়া কুপনে আর ফিরবেন না, যে যমজের আগের কপিটা এড়িয়ে গেছেন সেটাকে বাদ দিন, আর যেই মুহূর্তে হিসাব আট ছাড়ায় সেই চিন্তা তখনই ফেলে দিন। দেওয়ার চারটা উপায়, একটাও ডুপ্লিকেট ছাড়া।
+  hi: |
+    किराने का बिल आठ का बना, और रसोई की दराज से निकली स्टोर कूपनों की बेतरतीब गड्डी: एक दस, दो इकाइयां, एक दो, एक सात, एक छह, और एक पांच। हर कूपन एक बार चलता है, फाड़ा तो गया, और रजिस्टर सिर्फ ठीक-ठीक कवरेज लेता है। एक ही कीमत के दो कूपन अदला-बदली लायक हैं, इसलिए "पहला एक वाला" बनाम "दूसरा" भुगतान का अलग तरीका नहीं है। गड्डी सॉर्ट करो, फटे कूपन पर कभी न लौटो, जिस जुड़वां की पहली कॉपी छोड़ दी उसे छोड़ो, और जिस पल हिसाब आठ के पार जाए वह सोच वहीं गिरा दो। चुकाने के चार तरीके, एक भी डुप्लिकेट के बिना।
+  ar: |
+    بلغت فاتورة البقالة ثمانية، ودرج المطبخ أخرج رزمة فوضوية من كوبونات المتجر: عشرة، وواحدان، واثنان، وسبعة، وستة، وخمسة. كل كوبون يُستعمل مرة، مزّقته فانتهى، والصندوق لا يقبل إلا التغطية بالضبط. كوبونان بنفس القيمة قابلان للتبادل، لذا "كوبون الواحد الأول" مقابل "الثاني" ليس طريقة دفع مختلفة. رتّب الرزمة، لا تعد أبداً إلى كوبون ممزق، تخطَّ التوأم الذي تجاوزت نسخته السابقة، وأسقط أي خط تفكير لحظة يتجاوز الثمانية. أربع طرق للدفع، وُجدت دون تكرار واحد.
+---
+
+## Boss 5: The Coupon Stack
+
+The midpoint boss, and by design, the *assembly* boss. Nothing here is new: Boss 2 built the sum-target skeleton, Boss 4 built the twin-skip. This problem flips both of their dials simultaneously, single-use (where Boss 2 had unlimited) *and* duplicated input (where Boss 2 had distinct), and the two known parts click together with zero modification.
+
+That click is the dungeon's actual curriculum. Hard problems are mostly assembled, not invented.
+
+---
+
+## The story
+
+The bill: **8**. The drawer's coupon stack: `[10, 1, 2, 7, 6, 1, 5]`, note the **two 1s**. Rules of the register:
+
+- Each coupon is **single-use**. Tear it, it's gone.
+- Coverage must be **exact**. No overshoot, no change given.
+- The two 1-coupons are **interchangeable**: paying with "1ᵃ+7" and "1ᵇ+7" is one way to pay, not two.
+
+Work it: 1+1+6 = 8 ✓. 1+2+5 = 8 ✓. 1+7 = 8 ✓ (one way, despite two eligible 1s). 2+6 = 8 ✓. The 10 can't participate in anything. Catalog:
+
+```
+[1,1,6]  [1,2,5]  [1,7]  [2,6]
+```
+
+Every mechanism this needs, you own: exact-sum with overshoot pruning (the tipping pan, Boss 2), each-item-once (Boss 3's world, though here the *floor* survives since order still doesn't matter), and interchangeable-twins dedupe (the shirts, Boss 4).
+
+---
+
+## The problem, dressed up properly
+
+> Given a collection of candidate numbers `candidates` and a target number `target`, find all unique combinations in `candidates` where the candidate numbers sum to `target`. Each number in `candidates` **may only be used once** in the combination.
+>
+> Note: the solution set must not contain duplicate combinations.
+
+LeetCode 40.
+
+---
+
+## The naive attempt
+
+The tempting shortcut: run Boss 2's code (it's *right there*) and post-filter with a set. It fails twice before the filter even runs: Boss 2 recurses with `j` (unlimited reuse), so it would happily pay the bill with eight 1-coupons it doesn't have. Fix that to `j+1` and it still generates `[1ᵃ,7]` and `[1ᵇ,7]` as separate finds, garbage for the filter, at exponential volume when duplicates stack deep. Both dials must be set *in the generator*. Filters clean output; they can't fix generation.
+
+---
+
+## The weapon: two dials, both parts, one machine
+
+Boss 2's skeleton with exactly two adjustments, each one line, each previously earned:
+
+**Dial 1, single-use:** recurse with `j + 1`. The one-character pivot Boss 2 flagged in advance.
+
+**Dial 2, twins:** sort, then `if j > start and candidates[j] == candidates[j-1]: continue`. Boss 4's line, character for character, same reasoning: an unchosen twin offers only redundant routes; a deeper copy (j == start) is legitimate, that's how [1,1,6] gets built.
+
+And Boss 2's sorted-break prune rides along free: overshooting candidate kills the whole loop.
+
+<MermaidBlock>
+graph TB
+    A["sort the coupon stack"]
+    B["build(start, remaining)\nremaining 0? save copy"]
+    C["for j from start:\ncoupon > remaining? break\n(tipping pan, Boss 2)"]
+    D["j > start and twin\nof j-1? continue\n(shirt skip, Boss 4)"]
+    E["choose j\nbuild(j+1, rem - coupon)\nun-choose\n(single use: j+1)"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def combination_sum2(candidates: list[int], target: int) -> list[list[int]]:
+    candidates.sort()
+    out = []
+    path = []
+
+    def build(start, remaining):
+        if remaining == 0:
+            out.append(path[:])
+            return
+        for j in range(start, len(candidates)):
+            if candidates[j] > remaining:
+                break                                     # Boss 2's prune
+            if j > start and candidates[j] == candidates[j - 1]:
+                continue                                  # Boss 4's skip
+            path.append(candidates[j])
+            build(j + 1, remaining - candidates[j])       # single-use
+            path.pop()
+
+    build(0, target)
+    return out
+```
+
+Diff this against Boss 2's code: three changed characters (`j`→`j+1`) and one inserted line. Diff against Boss 4's: a target parameter and a break. Eight lines of assembled parts, and LeetCode files the result under its harder tier. Let that calibrate what "hard" usually means.
+
+---
+
+## Watching it work
+
+Sorted: `[1, 1, 2, 5, 6, 7, 10]`, target 8:
+
+```
+build(0, 8)
+├─ j=0 (1): build(1, 7)
+│   ├─ j=1 (1): build(2, 6)         j==start: deeper twin OK
+│   │   ├─ j=2 (2): build(3, 4) → 5>4 break. dead
+│   │   ├─ j=3 (5): 5<6... build(4,1) → break. dead
+│   │   └─ j=4 (6): BALANCED [1,1,6] ✓
+│   ├─ j=2 (2): build(3, 5)
+│   │   └─ j=3 (5): BALANCED [1,2,5] ✓
+│   ├─ j=3 (5): build(4, 2) → 6>2 break. dead
+│   ├─ j=4 (6): 6<7, build(5,1) → break. dead
+│   └─ j=5 (7): BALANCED [1,7] ✓
+├─ j=1 (1): SKIP (j>start, twin of unchosen j=0)   ← kills [1ᵇ,...] wholesale
+├─ j=2 (2): build(3, 6)
+│   └─ j=4 (6): BALANCED [2,6] ✓
+├─ j=3 (5): build(4, 3) → break. dead
+├─ j=4 (6): build(5, 2) → break. dead
+├─ j=5 (7): build(6, 1) → break. dead
+└─ j=6 (10): 10>8 break
+
+catalog: [1,1,6] [1,2,5] [1,7] [2,6] ✓
+```
+
+One SKIP at the top level erased the *entire* duplicate universe, every payment starting with the second 1-coupon, in a single comparison. That's the dedupe working at wholesale, not retail.
+
+---
+
+## Gotchas
+
+**1. Setting one dial, forgetting the other.**
+`j+1` without the twin-skip: duplicates like two copies of [1,7]. Twin-skip without `j+1`: phantom reuse, [2,2,2,2] paid with one coupon. The two dials fail independently; test with a duplicated input *and* a reuse-tempting target.
+
+**2. `j > start` mangled to `j > 0`, reprise.**
+Boss 4's gotcha, still the most common way to break this: [1,1,6] disappears because the legitimate deeper twin got banned. If a known-valid answer with repeated values is missing, look here.
+
+**3. Sorting after the fact, or not at all.**
+Both the break-prune and the twin-skip read adjacency. Unsorted input silently disables both while the code looks complete.
+
+**4. Zero coupons.**
+This problem's candidates are ≥ 1, but a variant with 0s breaks the break: a zero coupon never overshoots and creates infinite same-sum paths under reuse, and duplicate-explosions even without. Boss 2's positivity warning, still load-bearing.
+
+---
+
+## Complexity
+
+**Time: O(2ⁿ)** worst case (each coupon in or out), heavily collapsed by both prunes in practice; sorting adds O(n log n). **Space: O(n)** for path and stack.
+
+---
+
+## Boss down. XP gained.
+
+Four exact payments laid on the counter. The cashier takes [1,7], two tears, done, and the 10-coupon returns to the drawer to intimidate future bills.
+
+What you walked away with:
+
+- **Assembly beats invention**: Boss 2's skeleton + Boss 4's skip + one character = a harder-tier problem, solved
+- The dial pairs: `j` vs `j+1` (reuse vs single-use), skip-line present vs absent (twins vs distinct), four problems, one machine
+- Wholesale dedupe: one top-level skip erases entire duplicate subtrees
+- Test dials independently, duplicated input for one, greedy target for the other
+
+The next boss leaves the world of numbers entirely and returns to the grid, Tries dungeon déjà vu, but this time there's no trie, no word list, just one word, one board, and the purest form of the mark-explore-unmark discipline on shared mutable state.
+
+Next up: **Boss 6 — The Mosaic Floor.** A museum's tiled floor, a single word to trace through adjacent tiles, no tile stepped on twice. Word Search I, the problem Boss 3 of Tries generalized, now met on its own terms: backtracking where the un-choose heals a board instead of a list.

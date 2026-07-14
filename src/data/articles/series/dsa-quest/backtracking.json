@@ -6,6 +6,16 @@
   "color": "orange",
   "tags": ["DSA", "Backtracking", "Recursion"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-14T18:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "subsets-packing-list", "title": "Subsets — The Packing List" },
+    { "order": 2, "slug": "combination-sum-balance-weights", "title": "Combination Sum — The Balance Weights" },
+    { "order": 3, "slug": "permutations-photo-lineup", "title": "Permutations — The Photo Lineup" },
+    { "order": 4, "slug": "subsets-ii-twin-shirts", "title": "Subsets II — The Twin Shirts" },
+    { "order": 5, "slug": "combination-sum-ii-coupon-stack", "title": "Combination Sum II — The Coupon Stack" },
+    { "order": 6, "slug": "word-search-mosaic-floor", "title": "Word Search — The Mosaic Floor" },
+    { "order": 7, "slug": "palindrome-partitioning-banner-cuts", "title": "Palindrome Partitioning — The Banner Cuts" },
+    { "order": 8, "slug": "letter-combinations-vanity-number", "title": "Letter Combinations of a Phone Number — The Vanity Number" },
+    { "order": 9, "slug": "n-queens-rival-queens", "title": "N-Queens — The Rival Queens" }
+  ]
 }

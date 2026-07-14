@@ -1,0 +1,200 @@
+---
+title: "Subsets II — The Twin Shirts"
+slug: subsets-ii-twin-shirts
+category: dsa
+series: backtracking
+seriesOrder: 4
+description: "Dungeon 9, Boss 4. The suitcase holds two identical blue shirts, and packing 'shirt A' versus 'shirt B' is a distinction without a difference. Sort, then skip the twin: the dedupe idiom half of LeetCode is built on."
+tags:
+  - DSA
+  - Backtracking
+  - Recursion
+icon: "👕"
+color: orange
+createdAt: "2026-07-14T18:00:00Z"
+updatedAt: "2026-07-14T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Packing again, but this time the pile holds a camera and two absolutely identical blue shirts. Run the old every-possible-bag routine and it happily lists "camera plus the first shirt" and "camera plus the second shirt" as different packings, which is nonsense, the bags are indistinguishable. The fix has two parts. Sort the pile so twins sit side by side. Then one rule: you may skip both shirts, or pack the first, or pack both, but never skip the first and pack the second. Every count of shirts gets exactly one representative, and the catalog comes out clean without ever comparing finished bags.
+  bn: |
+    আবার প্যাকিং, কিন্তু এবার স্তূপে একটা ক্যামেরা আর দুটো একেবারে হুবহু এক নীল শার্ট। পুরনো সব-সম্ভাব্য-ব্যাগ রুটিনটা চালান, সেটা দিব্যি "ক্যামেরা আর প্রথম শার্ট" এবং "ক্যামেরা আর দ্বিতীয় শার্ট"-কে আলাদা প্যাকিং হিসেবে লিস্টে তুলবে, যেটা অর্থহীন, ব্যাগ দুটো আলাদা করার উপায়ই নেই। সমাধানের দুটো অংশ। স্তূপটা সর্ট করুন যাতে যমজরা পাশাপাশি বসে। তারপর একটাই নিয়ম: দুটো শার্টই বাদ দিতে পারেন, বা প্রথমটা নিতে পারেন, বা দুটোই, কিন্তু প্রথমটা বাদ দিয়ে দ্বিতীয়টা নেওয়া কখনোই না। শার্টের প্রতিটা সংখ্যা পায় ঠিক একজন প্রতিনিধি, আর তৈরি ব্যাগ মিলিয়ে না দেখেই ক্যাটালগটা পরিষ্কার বেরিয়ে আসে।
+  hi: |
+    फिर पैकिंग, पर इस बार ढेर में एक कैमरा और दो बिल्कुल एक जैसी नीली शर्ट हैं। पुराना हर-मुमकिन-बैग वाला रूटीन चलाओ तो वह मजे से "कैमरा और पहली शर्ट" और "कैमरा और दूसरी शर्ट" को अलग पैकिंग गिना देगा, जो बकवास है, बैगों में फर्क करने का कोई तरीका ही नहीं। हल के दो हिस्से हैं। ढेर को सॉर्ट करो ताकि जुड़वां अगल-बगल बैठें। फिर एक नियम: दोनों शर्ट छोड़ सकते हो, या पहली पैक करो, या दोनों, पर पहली छोड़कर दूसरी पैक करना कभी नहीं। शर्ट की हर गिनती को ठीक एक नुमाइंदा मिलता है, और तैयार बैगों की तुलना किए बिना ही कैटलॉग साफ निकल आता है।
+  ar: |
+    حزمٌ من جديد، لكن الكومة هذه المرة فيها كاميرا وقميصان أزرقان متطابقان تماماً. شغّل روتين كل-الحقائب-الممكنة القديم وسيسرّه أن يدرج "الكاميرا مع القميص الأول" و"الكاميرا مع القميص الثاني" كحزمتين مختلفتين، وهذا هراء، فالحقيبتان لا تُميَّزان. للحل جزآن. رتّب الكومة ليجلس التوأمان متجاورين. ثم قاعدة واحدة: لك أن تتخطى القميصين معاً، أو تحزم الأول، أو تحزمهما معاً، لكن لا تتخطَّ الأول وتحزم الثاني أبداً. كل عددٍ من القمصان ينال ممثلاً واحداً بالضبط، ويخرج الفهرس نظيفاً دون مقارنة حقيبة منتهية بأخرى.
+---
+
+## Boss 4: The Twin Shirts
+
+Bosses 1 through 3 all whispered the same fine print: *distinct elements*. This boss deletes it, and the deletion breaks Boss 1's generator in the most instructive way possible: it stays perfectly correct about *which* items it packs and becomes wrong about *what to call the results*.
+
+The fix, three lines, is the single most reused idiom in constraint-generation problems. Boss 5 will apply it verbatim to a different problem, that's how transferable it is.
+
+---
+
+## The story
+
+The pile this time: a **camera (1)** and **two identical blue shirts (2, 2)**. Machine-identical, same cut, same dye lot. Run Boss 1's subset generator faithfully and it produces eight bags:
+
+```
+[]  [1]  [2ᵃ]  [2ᵇ]  [1,2ᵃ]  [1,2ᵇ]  [2ᵃ,2ᵇ]  [1,2ᵃ,2ᵇ]
+```
+
+The superscripts are the lie. No human, and no equality check, can tell `[2ᵃ]` from `[2ᵇ]`: both are "a bag with one blue shirt". The *true* catalog:
+
+```
+[]  [1]  [2]  [1,2]  [2,2]  [1,2,2]
+```
+
+Six bags. What distinguishes real answers isn't *which* shirt went in, it's **how many** shirts went in: zero, one, or two. Duplicates collapse identity into multiplicity.
+
+So here's the packing rule that generates each multiplicity exactly once, and it's worth saying in plain words before any code: **line the twins up together. At any decision point, taking "one shirt" always means taking the *first available* twin. You never skip a twin and then take a later one**, because that produces the same bag by a different, redundant route.
+
+Legal: skip both. Take the first. Take both. Illegal: skip the first, take the second. Three routes for three multiplicities, instead of four routes for three.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums` that may contain **duplicates**, return all possible subsets (the power set). The solution set **must not** contain duplicate subsets. Return the solution in any order.
+
+LeetCode 90.
+
+---
+
+## The naive attempt
+
+Generate with Boss 1's code, dedupe after: store `tuple(sorted(subset))` in a set.
+
+```python
+def subsets_with_dup(nums):
+    out = set()
+    # ... Boss 1's generator, collecting into out as sorted tuples ...
+    return [list(t) for t in out]
+```
+
+Correct, and it does 2ⁿ work to produce a catalog that may be far smaller (imagine ten identical shirts: 1024 generated bags, **11** real answers). The generate-then-filter shape also costs the sorting and hashing of every candidate. Boss 2's moral, generate each answer once instead of generating garbage and filtering, applies with compound interest when duplicates are dense.
+
+---
+
+## The weapon: sort, then skip the unchosen twin
+
+Two ingredients:
+
+**Sort first.** Twins become adjacent. All the dedupe logic will need is a glance at the previous element.
+
+**The skip rule**, in the for-loop skeleton from Boss 2: at each level of the recursion, when the loop considers candidate `j`, if `nums[j]` equals `nums[j-1]` *and* `j-1` is still within this level's own choices (`j > start`), skip it.
+
+```
+if j > start and nums[j] == nums[j-1]: continue
+```
+
+Unpack the two conditions, because everyone confuses them once:
+
+- `nums[j] == nums[j-1]`: candidate j is a twin of its neighbor.
+- `j > start`: the twin at j-1 was **available at this same level and was passed over**. Choosing j now would build "skip the first twin, take the second", the illegal route. But when `j == start`, the previous twin was consumed by the *parent* level (we're extending a path that already took it), and taking another copy is exactly how `[2,2]` gets built, legal, required, welcome.
+
+One line, and it distinguishes "second shirt as a redundant alternative" (banned) from "second shirt as a deeper copy" (essential).
+
+<MermaidBlock>
+graph TB
+    A["sort nums\ntwins now adjacent"]
+    B["for j from start:\ncollect path copy at\nevery node, not leaves"]
+    C["j > start and\nnums j == nums j-1?\nSKIP: redundant twin"]
+    D["choose j\nexplore build(j+1)\nun-choose"]
+    A --> B
+    B --> C
+    B --> D
+    D --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def subsets_with_dup(nums: list[int]) -> list[list[int]]:
+    nums.sort()
+    out = []
+    path = []
+
+    def build(start):
+        out.append(path[:])                  # every node is a subset
+        for j in range(start, len(nums)):
+            if j > start and nums[j] == nums[j - 1]:
+                continue                     # unchosen twin: redundant route
+            path.append(nums[j])             # choose
+            build(j + 1)                     # explore (each shirt used once)
+            path.pop()                       # un-choose
+
+    build(0)
+    return out
+```
+
+(This uses the collect-at-every-node flavor from Boss 1's callout, every prefix of choices is itself a subset, so no explicit leaf case. Both flavors work; this one pairs more naturally with the loop.)
+
+---
+
+## Watching it work
+
+`nums = [1, 2, 2]` after sorting:
+
+```
+build(0): save []
+├─ j=0 (1): save [1]
+│   ├─ j=1 (2): save [1,2]
+│   │   └─ j=2 (2): save [1,2,2]        j==start: deeper copy OK
+│   └─ j=2 (2): SKIP  (j>start, twin of unchosen j=1)
+├─ j=1 (2): save [2]
+│   └─ j=2 (2): save [2,2]              j==start: OK
+└─ j=2 (2): SKIP  (j>start, twin unchosen)
+
+catalog: [] [1] [1,2] [1,2,2] [2] [2,2]   — six, exactly ✓
+```
+
+Both SKIPs killed precisely the routes that would have produced `[2ᵇ]`-flavored duplicates, and both deeper copies sailed through. No set, no post-filter, no comparison of finished bags.
+
+<Callout type="tip" title="This idiom's other homes">
+Memorize the line, then watch it reappear: **Combination Sum II** (Boss 5) uses it character-for-character. **Permutations II** (LC 47) uses its used-array dialect: skip a twin whose earlier copy is unused. **3Sum**, back in Dungeon 2, was doing the same thing with while-loops, skipping equal neighbors to avoid duplicate triples. One insight wearing four costumes: *among interchangeable choices, always consume the leftmost available one.*
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping with `j > 0` instead of `j > start`.**
+The classic mangling. `j > 0` bans *every* second twin, including the deeper copies, and `[2,2]` vanishes from the catalog. The comparison is against this level's start, not the array's.
+
+**2. Forgetting to sort.**
+The skip rule reads neighbors; unsorted twins aren't neighbors. `[2,1,2]` un-sorted generates duplicate subsets with the rule fully in place and passing unit tests on sorted inputs. Sort is half the algorithm.
+
+**3. Deduping the output anyway "to be safe".**
+If the skip rule is right, the set is dead weight; if it's wrong, the set is a bandage hiding the wound. Trust one mechanism and test it.
+
+**4. Confusing this with Permutations II.**
+Same twin-skipping *idea*, different dialect (used-array instead of start-index). Copying this exact line into a permutation problem misfires; the callout has the right form.
+
+---
+
+## Complexity
+
+At most 2ⁿ nodes, each copying O(n), sorting O(n log n).
+
+**Time: O(n · 2ⁿ)** worst case (all distinct), shrinking toward the true catalog size as duplicates densify. **Space: O(n)**.
+
+---
+
+## Boss down. XP gained.
+
+Six honest bags on the bed. You pack `[1, 2]`, one camera, one blue shirt, no metaphysics about *which* shirt, because there is no which.
+
+What you walked away with:
+
+- Duplicates collapse *identity* into *multiplicity*: answers differ by counts, not by which copy
+- **Sort + skip-the-unchosen-twin**: `j > start and nums[j] == nums[j-1]`, the most transferable line in the dungeon
+- `j > start` vs `j > 0` is the entire difference between deduping and destroying
+- Generate-once beats generate-and-filter, compounding when duplicates are dense
+
+Next up: **Boss 5 — The Coupon Stack.** Combination Sum returns, with both dials flipped at once: every coupon is single-use *and* the stack holds duplicates. Watch Boss 2's skeleton absorb `j + 1` and Boss 4's skip line absorb the twins, eight lines of assembled parts, zero new ideas, one Hard-rated problem. That's the dungeon working as designed.
