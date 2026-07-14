@@ -61,6 +61,9 @@ graph TB
 - **Avoid time-relative references that age badly**: Don't write "70 years" or "in the last few years." Use "decades" or anchor to a specific date. The article should read correctly a year from now.
 - **Keep timelines current**: If including a year-by-year table, include the current year.
 
+### MDX Syntax
+- **No bare curly braces in prose.** MDX parses `{...}` outside code blocks as a JSX expression: `{3's territory}` breaks the build ("Unexpected content after expression"), and `{2,0,4,3,5}` builds but silently renders as `5` (JS comma operator). Wrap set/dict notation in backticks (`` `{9, 3, 15}` ``) or reword. Code fences and frontmatter are safe.
+
 ## 6. CSS Rules for Articles
 - **Never write custom CSS for articles.** All article styling (code blocks, tables, callouts, blockquotes, inline code, headings) is handled by `src/styles/articles/articles.css`.
 - **Code blocks** use standard markdown fences (` ``` `). Styled by `.article-content pre` and `.article-content code` — dark background in both themes, proper font, border-radius, and padding.
