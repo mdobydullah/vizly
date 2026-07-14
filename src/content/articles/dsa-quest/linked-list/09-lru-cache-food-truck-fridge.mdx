@@ -1,0 +1,213 @@
+---
+title: "LRU Cache — The Food Truck Fridge"
+slug: lru-cache-food-truck-fridge
+category: dsa
+series: linked-list
+seriesOrder: 9
+description: "Dungeon 6, Boss 9. A tiny fridge, a lunch rush, and one rule: when full, toss whatever's been ignored longest. Every grab and restock in O(1). A hash map and a doubly linked list, holding hands. Top-three interview question worldwide."
+tags:
+  - DSA
+  - Linked List
+  - Hash Map
+  - Design
+icon: "🧊"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run a food truck with a fridge that fits exactly k containers. Lunch rush is brutal: grab an ingredient, use it, shove it back in front. When something new needs a spot and the fridge is full, you toss whatever's been sitting untouched the longest, it's probably expired anyway. To survive the rush, two things must be instant: finding any container, and knowing which one is oldest. A clipboard tells you exactly which shelf spot each thing is in, and the containers themselves stay lined up from freshest to oldest. That combo is an LRU cache.
+  bn: |
+    আপনি একটা ফুড ট্রাক চালান, যার ফ্রিজে ঠিক k টা কন্টেইনার ধরে। লাঞ্চের ভিড় ভয়ানক: উপকরণ বের করুন, ব্যবহার করুন, আবার সামনের দিকে ঢুকিয়ে রাখুন। নতুন কিছুর জায়গা লাগলে আর ফ্রিজ ভর্তি থাকলে, যেটা সবচেয়ে বেশিদিন ছোঁয়া হয়নি সেটাই ফেলে দিন, ওটার মেয়াদ এমনিতেও বোধহয় শেষ। ভিড় সামলাতে দুটো জিনিস চোখের পলকে হতে হবে: যেকোনো কন্টেইনার খুঁজে পাওয়া, আর কোনটা সবচেয়ে পুরনো সেটা জানা। একটা ক্লিপবোর্ড বলে দেয় কোন জিনিস ঠিক কোন তাকের জায়গায়, আর কন্টেইনারগুলো নিজেরাই টাটকা থেকে পুরনো ক্রমে সারি দিয়ে থাকে। এই জুটিটাই LRU cache।
+  hi: |
+    आप एक फूड ट्रक चलाते हैं जिसके फ्रिज में ठीक k कंटेनर आते हैं। लंच की भीड़ बेरहम है: सामान निकालो, इस्तेमाल करो, वापस आगे की तरफ ठूंस दो। जब किसी नई चीज को जगह चाहिए और फ्रिज भरा है, तो जो सबसे लंबे समय से अनछुआ पड़ा है उसे फेंक दो, वैसे भी शायद एक्सपायर हो चुका है। भीड़ से बचने के लिए दो चीजें पलक झपकते होनी चाहिए: कोई भी कंटेनर ढूंढना, और यह जानना कि सबसे पुराना कौन सा है। एक क्लिपबोर्ड बताता है कि कौन सी चीज ठीक किस शेल्फ की जगह पर है, और कंटेनर खुद ताजा से पुराने क्रम में कतार में रहते हैं। यही जोड़ी LRU cache है।
+  ar: |
+    تدير عربة طعام بثلاجة تتسع لعدد k من الحاويات بالضبط. زحمة الغداء قاسية: تسحب مكوّناً، تستعمله، تعيده إلى المقدمة. حين يحتاج شيء جديد مكاناً والثلاجة ممتلئة، ترمي ما بقي دون لمس أطول مدة، فصلاحيته منتهية على الأرجح. لتنجو من الزحمة يجب أن يكون أمران فوريين: إيجاد أي حاوية، ومعرفة أيها الأقدم. لوح الملاحظات يخبرك أين تقع كل حاوية بالضبط، والحاويات نفسها تبقى مصطفة من الأحدث إلى الأقدم. هذا الثنائي هو الـ LRU cache.
+---
+
+## Boss 9: The Food Truck Fridge
+
+Everything until now was an algorithm: input in, answer out. This boss is different, it asks you to **build a machine**. No single clever insight, but two data structures that each cover the other's weakness, welded together.
+
+It's also, by most counts, one of the three most-asked interview questions on Earth. Operating systems run this exact machine for memory pages, CPUs for cache lines, Redis for keys, your browser for tabs. Getting it fluent pays rent forever.
+
+---
+
+## The story
+
+Your food truck's fridge holds exactly **2 containers** (it's a very small truck).
+
+The rush begins. Your workflow, container by container:
+
+- **Grab something** to use it. After using it, it goes back *in front*, it's now the freshest thing in the fridge.
+- **Restock something new.** If the fridge is full, make room first: toss the container that's gone **longest without being touched**. Not the oldest by purchase date, the one *least recently used*. If nobody's reached for the mayo all shift, the mayo goes.
+
+```
+put(sauce)      fridge: [sauce]
+put(cheese)     fridge: [cheese, sauce]
+get(sauce)      fridge: [sauce, cheese]     ← sauce touched, moves to front
+put(basil)      full! toss cheese (least recently touched)
+                fridge: [basil, sauce]
+get(cheese)     ...it's gone. -1.
+```
+
+Now the constraint that turns kitchen management into a boss fight: the rush is relentless, so **both operations must be O(1)**. Not O(log n), not amortized-usually-fast. Constant. Every single time.
+
+---
+
+## The problem, dressed up properly
+
+> Design a data structure that follows the constraints of a Least Recently Used (LRU) cache. Implement the `LRUCache` class:
+>
+> - `LRUCache(int capacity)` — initialize with a positive size capacity.
+> - `int get(int key)` — return the value of the key if it exists, otherwise return -1.
+> - `void put(int key, int value)` — update the value if the key exists, otherwise add it. If adding exceeds capacity, evict the least recently used key.
+>
+> The functions `get` and `put` must each run in O(1) average time complexity.
+
+LeetCode 146.
+
+---
+
+## The naive attempts, and the gap they reveal
+
+**Just a hash map?** `get` is O(1), lovely. But eviction needs to know which key is oldest, and a map has no memory of touch order. You'd scan everything or store timestamps and scan those. Eviction: O(n). Dead.
+
+**Just a list ordered by recency?** Eviction is O(1), pop the back. But `get(key)` must *find* the key first: O(n) walk. Dead.
+
+Look at the shape of the failure: the map knows **where** things are but not **when** they were touched. The list knows *when* but not *where*. Each structure is exactly half the machine. So: both. The map stores, for each key, a pointer straight to its node in the list. The list keeps nodes ordered freshest-to-stalest.
+
+---
+
+## The weapon: a clipboard and a conga line
+
+**The conga line** is a **doubly** linked list, and the doubly matters. When you grab a container from the middle of the line, it must step out so you can move it to the front. Stepping out means its neighbors link to each other: you need to reach the *previous* node in O(1), which a singly linked list can't do. Backward pointers earn their keep here, this is the first boss to need them.
+
+**The clipboard** is the hash map: `key → node in the line`. Lookup, then jump straight to the container, no walking.
+
+And a familiar trinket, doubled: **two dummy nodes**, `head` and `tail`, permanent bookends. The line lives between them, "insert at front" is always "insert after head", "evict the stalest" is always "remove before tail", and the empty-fridge edge cases evaporate. Boss 2's mannequin, hired twice.
+
+<MermaidBlock>
+graph TB
+    A["Hash map\nkey to node pointer\nfind anything O(1)"]
+    B["Doubly linked list\nhead dummy, MRU first\nLRU last, tail dummy"]
+    C["get: map lookup\nunlink node, relink at front"]
+    D["put when full:\nevict node before tail\ndelete its map entry too"]
+    A --> C
+    B --> C
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Every operation decomposes into two O(1) micro-moves worth naming, because all four methods are built from them:
+
+- **`unlink(node)`** — node steps out of line: `node.prev.next = node.next; node.next.prev = node.prev`.
+- **`link_front(node)`** — node cuts to the front: wire it between `head` and `head.next`, four pointer writes.
+
+`get` = lookup, unlink, link_front. `put` on existing key = update value, unlink, link_front. `put` on new key at capacity = evict (unlink `tail.prev`, delete from map), then insert (new node, map it, link_front).
+
+---
+
+## The code
+
+```python
+class Node:
+    def __init__(self, key=0, val=0):
+        self.key, self.val = key, val
+        self.prev = self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.map = {}                     # key -> node
+        self.head, self.tail = Node(), Node()   # dummies: MRU side, LRU side
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def _unlink(self, node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _link_front(self, node):
+        node.next = self.head.next
+        node.prev = self.head
+        self.head.next.prev = node
+        self.head.next = node
+
+    def get(self, key: int) -> int:
+        if key not in self.map:
+            return -1
+        node = self.map[key]
+        self._unlink(node)
+        self._link_front(node)
+        return node.val
+
+    def put(self, key: int, value: int) -> None:
+        if key in self.map:
+            node = self.map[key]
+            node.val = value
+            self._unlink(node)
+            self._link_front(node)
+            return
+        if len(self.map) == self.cap:
+            lru = self.tail.prev          # stalest real node
+            self._unlink(lru)
+            del self.map[lru.key]         # ← why nodes store their key
+        node = Node(key, value)
+        self.map[key] = node
+        self._link_front(node)
+```
+
+The line that matters most is `del self.map[lru.key]`, and it's the reason each `Node` stores its **key**, not just its value: at eviction time you're holding the node and must delete its map entry, and without the key on the node you'd have no way to name which entry dies.
+
+<Callout type="tip" title="In production, don't build this by hand">
+Python's `collections.OrderedDict` (with `move_to_end` and `popitem(last=False)`) and Java's `LinkedHashMap` (with `removeEldestEntry`) are this exact machine, battle-tested. Real code should use them. Interviews want the hand-built version precisely because it proves you know what those classes do inside. Know both, and say so out loud in the interview, it reads as maturity.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting that `get` also refreshes.**
+Reading the sauce *is* touching the sauce. A `get` that returns the value without moving the node to the front breaks eviction order silently, and tests catch it late. Both operations refresh recency.
+
+**2. Evicting from the wrong end.**
+Front is freshest, back is stalest, *if* you consistently insert at front. Flip one operation's end and the cache evicts your most popular item during rush hour. Pick the convention, write it as a comment on the dummy nodes, obey it everywhere.
+
+**3. Evicting from the list but not the map.**
+The container left the fridge but the clipboard still lists it. The map grows past capacity forever, and a later `get` returns a node whose neighbors were rewired long ago. Chaos. Eviction is always a *pair*: unlink node, delete map entry.
+
+**4. Updating an existing key without refreshing it.**
+`put` on a key already present must update the value *and* move the node to front. Treating it as a pure value-write leaves a freshly-written item next in line for eviction.
+
+**5. Capacity one.**
+The whole machine, smallest possible fridge. Every `put` of a new key evicts the sole occupant. If your dummies and link helpers are right, it just works; if anything is off by one pointer, this is where it explodes. Test it first.
+
+---
+
+## Complexity
+
+`get`: one map lookup plus a constant number of pointer writes. `put`: same, plus possibly one eviction, also constant.
+
+**Time: O(1) per operation. Space: O(capacity)** for the map and the line.
+
+---
+
+## Boss down. XP gained.
+
+The rush ends, the fridge holds exactly the k things people actually ordered, and the mayo's death is mourned by no one.
+
+What you walked away with:
+
+- **Composite data structures**: when one structure can't do it, pair two whose strengths interlock, map for *where*, list for *when*
+- Doubly linked lists exist so middle nodes can leave in O(1), backward pointers finally earn their bytes
+- Two dummy bookends kill every empty/single/full edge case at both ends
+- Nodes carry their key so eviction can clean the map
+- The pattern generalizes: LFU, TTL caches, and half of systems design interviews are this machine with different eviction policies
+
+Next up: **Boss 10 — The Grand Terminal.** Not two bakery queues this time: **k** ferry queues converge on one gangway, all sorted, and the naive one-by-one comparison drowns at scale. A min-heap of front passengers, or divide-and-conquer pairwise merging, both roads lead through everything Boss 2 taught you, at industrial strength. LeetCode calls it Hard; you'll call it Boss 2 with logistics.

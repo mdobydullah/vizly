@@ -24,8 +24,8 @@ Full dungeon list (ship in order):
 3. **Stack** — Dungeon 3 (COMPLETE)
 4. **Binary Search** — Dungeon 4 (COMPLETE)
 5. **Sliding Window** — Dungeon 5 (COMPLETE)
-6. **Linked List** — Dungeon 6 (next to build)
-7. **Trees** — Dungeon 7
+6. **Linked List** — Dungeon 6 (COMPLETE)
+7. **Trees** — Dungeon 7 (next to build)
 8. **Tries** — Dungeon 8
 9. **Backtracking** — Dungeon 9
 10. **Heap / Priority Queue** — Dungeon 10
@@ -144,8 +144,22 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 5: Minimum Window Substring (Market Run)
 - [x] Boss 6: Sliding Window Maximum (Parade Watch)
 
-### Dungeons 6-18
-- [ ] Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 6 — Linked List (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Reverse Linked List (Paper Trail)
+- [x] Boss 2: Merge Two Sorted Lists (Bakery Tickets)
+- [x] Boss 3: Linked List Cycle (Night Watchman)
+- [x] Boss 4: Reorder List (Zipper March)
+- [x] Boss 5: Remove Nth Node From End (Caboose Cut)
+- [x] Boss 6: Copy List with Random Pointer (Museum Replica)
+- [x] Boss 7: Add Two Numbers (Register Tapes)
+- [x] Boss 8: Find the Duplicate Number (Bunk Bed Mystery)
+- [x] Boss 9: LRU Cache (Food Truck Fridge)
+- [x] Boss 10: Merge K Sorted Lists (Grand Terminal)
+- [x] Boss 11: Reverse Nodes in k-Group (Drill Yard)
+
+### Dungeons 7-18
+- [ ] Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

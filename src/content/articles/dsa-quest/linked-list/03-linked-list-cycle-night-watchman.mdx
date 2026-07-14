@@ -1,0 +1,201 @@
+---
+title: "Linked List Cycle — The Night Watchman"
+slug: linked-list-cycle-night-watchman
+category: dsa
+series: linked-list
+seriesOrder: 3
+description: "Dungeon 6, Boss 3. A museum guard follows glowing arrows room to room, and a prankster rewired one to point backward. Does his route end, or loop till sunrise? Floyd's tortoise and hare, the most famous meeting in computer science."
+tags:
+  - DSA
+  - Linked List
+  - Two Pointers
+icon: "🔦"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A night watchman patrols a museum by following glowing arrows, each room pointing to the next. Some prankster rewired one arrow so it points back to an earlier room. Now the poor guard might be walking the same loop all night without noticing, because every room looks different but the route repeats. He can't leave chalk marks and he can't carry a map. The fix sounds like a joke: send two guards, one walking, one jogging double speed. If the route loops, the jogger comes up behind the walker and they meet. If it ends, the jogger just hits the last room first.
+  bn: |
+    এক নৈশপ্রহরী জাদুঘরে টহল দেন জ্বলজ্বলে তীরচিহ্ন ধরে ধরে, প্রতিটা ঘর দেখিয়ে দেয় পরের ঘরটা। কোনো এক দুষ্টু লোক একটা তীর ঘুরিয়ে আগের একটা ঘরের দিকে করে রেখেছে। এখন বেচারা গার্ড হয়তো সারারাত একই চক্করে হাঁটছেন টেরও পাচ্ছেন না, কারণ প্রতিটা ঘর আলাদা দেখালেও রুটটা ঘুরেফিরে একই। চক দিয়ে দাগ দেওয়া নিষেধ, ম্যাপ নেওয়াও চলবে না। সমাধানটা শুনতে মজার: দুজন গার্ড পাঠান, একজন হাঁটবে, আরেকজন দ্বিগুণ গতিতে জগিং করবে। রুট যদি ঘোরে, জগার পেছন থেকে এসে ওয়াকারকে ধরে ফেলবে, দেখা হয়ে যাবে। আর রুট শেষ হলে জগার আগে শেষ ঘরে পৌঁছে যাবে, ব্যস।
+  hi: |
+    एक रात का चौकीदार चमकते तीरों के सहारे म्यूजियम में गश्त करता है, हर कमरा अगले कमरे की ओर इशारा करता है। किसी शरारती ने एक तीर घुमाकर पीछे के कमरे की ओर कर दिया है। अब बेचारा गार्ड शायद पूरी रात एक ही चक्कर में घूम रहा है और उसे पता भी नहीं, क्योंकि हर कमरा अलग दिखता है पर रास्ता वही दोहराता है। चॉक से निशान लगाना मना है, नक्शा साथ रखना भी नहीं चलेगा। हल सुनने में मजाक लगता है: दो गार्ड भेजो, एक चलेगा, दूसरा दोगुनी रफ्तार से जॉगिंग करेगा। अगर रास्ता घूमता है, तो जॉगर पीछे से आकर वॉकर को पकड़ लेगा, मुलाकात हो जाएगी। अगर रास्ता खत्म होता है, तो जॉगर बस पहले आखिरी कमरे पर पहुंच जाएगा।
+  ar: |
+    يقوم حارس ليلي بجولته في المتحف متتبعاً أسهماً مضيئة، كل غرفة تشير إلى التالية. عبث أحدهم بسهم واحد فجعله يشير إلى غرفة سابقة. الآن قد يمشي الحارس المسكين في نفس الحلقة طوال الليل دون أن يلاحظ، لأن كل غرفة تبدو مختلفة لكن الطريق يتكرر. لا يستطيع ترك علامات بالطبشور ولا حمل خريطة. الحل يبدو كنكتة: أرسل حارسين، أحدهما يمشي والآخر يهرول بضعف السرعة. إن كان الطريق حلقة فسيلحق المهرول بالماشي من الخلف ويلتقيان. وإن كان الطريق ينتهي فسيصل المهرول إلى آخر غرفة أولاً وحسب.
+---
+
+## Boss 3: The Night Watchman
+
+The first two bosses rewired lists. This one just *asks a question* about a list, and the question sounds trivial until you hear the constraints.
+
+Does this list loop? You get **no notebook, no marks, O(1) memory**. This boss's answer is one of those algorithms that feels like a magic trick the first time, and then becomes a reflex you use for the rest of your career. It comes back with a vengeance in Boss 8.
+
+---
+
+## The story
+
+The city museum hired a night watchman. His route is defined by glowing arrows on the floor: each room has exactly one arrow pointing to the next room on the route. The route either ends at a room with no arrow (the exit), or... well, it should end.
+
+Last week, some prankster rotated one arrow. It now points back to a room the route already visited. The watchman has been showing up exhausted, swearing the museum "goes on forever". Every room genuinely looks different (it's a museum, they're all full of different stuff), so he never notices the repeat, he just walks. And walks.
+
+Management wants to know, without re-wiring anything: **does the route loop, yes or no?**
+
+The obvious fix: give him chalk, mark each room, and if he ever enters a marked room, it loops. But the curator forbids chalk on the marble, and remembering thousands of rooms in your head is exactly the O(n) memory we're told we don't have.
+
+So instead: send **two** watchmen from the entrance. One walks, one room per minute. One jogs, two rooms per minute.
+
+- If the route ends, the jogger reaches the exit first. No loop. Done.
+- If the route loops, the jogger enters the loop first, circles it, and eventually comes up **behind the walker** inside the loop. Gaining one room per minute, he inevitably catches him. The moment they stand in the same room: loop confirmed.
+
+---
+
+## The problem, dressed up properly
+
+> Given `head`, the head of a linked list, determine if the linked list has a cycle in it.
+>
+> Return `true` if there is a cycle in the linked list. Otherwise, return `false`.
+>
+> Follow up: can you solve it using O(1) memory?
+
+LeetCode 141. The two-watchmen algorithm is **Floyd's cycle detection**, universally nicknamed the tortoise and the hare.
+
+---
+
+## The naive attempt
+
+The chalk approach: remember every node you've visited.
+
+```python
+def has_cycle(head):
+    seen = set()
+    node = head
+    while node:
+        if node in seen:
+            return True
+        seen.add(node)
+        node = node.next
+    return False
+```
+
+O(n) time, works perfectly, and stores up to every node in the set. The follow-up question exists precisely to take this away from you. Note one detail before we do: the set stores *nodes* (identities), not values. Two different rooms can display the same painting, `node.val` can repeat without any cycle.
+
+---
+
+## The weapon: the tortoise and the hare
+
+```
+slow = one step per tick
+fast = two steps per tick
+```
+
+Walk them from the head. If `fast` (or `fast.next`) hits the end, no cycle. If `slow` and `fast` ever point to the *same node*, cycle.
+
+<MermaidBlock>
+graph TB
+    A["Both start at head\nslow plus 1, fast plus 2"]
+    B["fast reaches None\nroute ends, no cycle"]
+    C["slow equals fast\nsame node, cycle confirmed"]
+    D["Inside a loop\nfast gains 1 per tick\ngap shrinks to zero"]
+    A --> B
+    A --> C
+    D --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+Why *must* they meet, rather than the hare hopping over the tortoise forever? Once both are inside the loop, think of the gap between them, measured in rooms, hare behind tortoise. Every tick, the tortoise adds one to the gap and the hare removes two: net, the gap shrinks by exactly **one room per tick**. A gap shrinking by one at a time can't skip past zero. It hits zero, and zero gap means same room. No hopping-over is possible.
+
+And why is it fast? The tortoise can't even finish its *first* lap of the loop before being caught (the gap at loop-entry is at most one loop-length, shrinking by 1 per tick while the tortoise moves 1 per tick). Total steps: O(n).
+
+---
+
+## Watching it work
+
+A route where room 4's arrow points back to room 2:
+
+```
+1 → 2 → 3 → 4
+    ↑       |
+    └───────┘
+
+tick   slow   fast   note
+0      1      1      start together
+1      2      3      
+2      3      2      fast wrapped around
+3      4      4      MEET → cycle
+```
+
+And a straight route `1 → 2 → 3 → 4 → None`:
+
+```
+tick   slow   fast
+0      1      1
+1      2      3
+2      3      None   fast fell off the end → no cycle
+```
+
+---
+
+## The code
+
+```python
+def has_cycle(head: ListNode | None) -> bool:
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast:
+            return True
+    return False
+```
+
+Six lines. The loop condition `fast and fast.next` is doing double duty: it's the "no cycle" exit *and* the guard that makes `fast.next.next` safe to evaluate.
+
+<Callout type="info" title="`is`, not `==`">
+The meeting test compares *identity*: are these the same node object, the same room? In Python that's `is`. Using `==` happens to work for plain ListNodes but breaks the moment a class defines value-based equality, and it muddles what you mean. You're asking "same room?", not "same painting inside?"
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Comparing values instead of nodes.**
+`slow.val == fast.val` fires false positives on any list with duplicate values. Cycles are about structure, not contents. Same room, not same-looking room.
+
+**2. Checking only `fast` and not `fast.next`.**
+On an even-length straight list, `fast` lands on the last node and `fast.next.next` explodes on None. Both guards, always.
+
+**3. Starting the meet-check before moving.**
+`slow` and `fast` start at the same node, so testing `slow is fast` *before* the first move returns true on every non-empty list. Move first, then compare. (Or start `fast = head.next`, but then the restart trick in Boss 8 breaks, so don't get in the habit.)
+
+**4. Thinking the meeting point is the loop's start.**
+They meet *somewhere inside* the loop, not necessarily where the loop begins. Finding the actual entrance is a separate, beautiful second act, and it's exactly what Boss 8 is about. For today, yes/no is the whole job.
+
+---
+
+## Complexity
+
+Slow moves at most O(n) steps before a verdict, fast moves twice that.
+
+**Time: O(n). Space: O(1).** Two pointers, no chalk.
+
+---
+
+## Boss down. XP gained.
+
+The two watchmen meet in the Egyptian wing at 3 AM, which settles it. Maintenance fixes one arrow, and patrols are boring again, the good kind of boring.
+
+What you walked away with:
+
+- **Floyd's cycle detection**: slow and fast pointers meet if and only if the list loops
+- The gap argument: closing speed of 1 can't skip zero, so no hopping-over
+- Identity comparison (`is`), because cycles are structural, values lie
+- The guard `fast and fast.next`, the standard armor for double-stepping
+
+Slow/fast pointers are a whole sub-family: they also find the *middle* of a list (when fast finishes, slow is halfway), which is the first move of the very next boss.
+
+Next up: **Boss 4 — The Zipper March.** A wedding procession must re-order itself: first guest, then last guest, then second, then second-to-last, folding the line in half like a zipper. No copying allowed. You'll find the middle with slow/fast, reverse the back half with Boss 1's flip, and weave. Three skills, one boss.

@@ -6,6 +6,18 @@
   "color": "orange",
   "tags": ["DSA", "Linked List"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-14T15:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "reverse-linked-list-paper-trail", "title": "Reverse Linked List — The Paper Trail" },
+    { "order": 2, "slug": "merge-two-lists-bakery-tickets", "title": "Merge Two Sorted Lists — The Bakery Tickets" },
+    { "order": 3, "slug": "linked-list-cycle-night-watchman", "title": "Linked List Cycle — The Night Watchman" },
+    { "order": 4, "slug": "reorder-list-zipper-march", "title": "Reorder List — The Zipper March" },
+    { "order": 5, "slug": "remove-nth-node-caboose-cut", "title": "Remove Nth Node From End of List — The Caboose Cut" },
+    { "order": 6, "slug": "copy-random-pointer-museum-replica", "title": "Copy List with Random Pointer — The Museum Replica" },
+    { "order": 7, "slug": "add-two-numbers-register-tapes", "title": "Add Two Numbers — The Register Tapes" },
+    { "order": 8, "slug": "find-duplicate-bunk-bed-mystery", "title": "Find the Duplicate Number — The Bunk Bed Mystery" },
+    { "order": 9, "slug": "lru-cache-food-truck-fridge", "title": "LRU Cache — The Food Truck Fridge" },
+    { "order": 10, "slug": "merge-k-lists-grand-terminal", "title": "Merge K Sorted Lists — The Grand Terminal" },
+    { "order": 11, "slug": "reverse-k-group-drill-yard", "title": "Reverse Nodes in k-Group — The Drill Yard" }
+  ]
 }

@@ -1,0 +1,220 @@
+---
+title: "Reorder List — The Zipper March"
+slug: reorder-list-zipper-march
+category: dsa
+series: linked-list
+seriesOrder: 4
+description: "Dungeon 6, Boss 4. A wedding procession refolds itself: first guest, last guest, second, second-to-last. No copying allowed. Find the middle, reverse the back half, weave. Three skills, one boss."
+tags:
+  - DSA
+  - Linked List
+icon: "🤵"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The wedding planner has a vision. The guests are lined up in arrival order, but she wants them to enter the hall as pairs from opposite ends of the line: first with last, second with second-to-last, folding the whole line like a zipper. The catch is the hallway is narrow, guests can only follow the person in front of them, and there's no room to step aside and rebuild the line. So you split the line in the middle, march the back half around to face the other way, and weave the two halves together one person at a time.
+  bn: |
+    ওয়েডিং প্ল্যানারের মাথায় একটা আইডিয়া এসেছে। অতিথিরা আসার ক্রমে লাইনে দাঁড়িয়ে, কিন্তু তিনি চান তারা হলে ঢুকুক লাইনের দুই প্রান্ত থেকে জোড়ায় জোড়ায়: প্রথমজন শেষজনের সাথে, দ্বিতীয়জন শেষের আগেরজনের সাথে, পুরো লাইনটা জিপারের মতো ভাঁজ হয়ে। ঝামেলা হলো করিডোরটা সরু, প্রত্যেকে শুধু সামনের মানুষটাকে ফলো করতে পারে, আর পাশে সরে গিয়ে লাইন নতুন করে বানানোর জায়গা নেই। তাই আপনি লাইনটা মাঝখানে ভাগ করেন, পেছনের অর্ধেকটাকে ঘুরিয়ে উল্টোমুখী করেন, তারপর দুই অর্ধেককে একজন একজন করে বুনে দেন।
+  hi: |
+    वेडिंग प्लानर के दिमाग में एक आइडिया है। मेहमान आने के क्रम में लाइन में खड़े हैं, पर वह चाहती है कि वे हॉल में लाइन के दोनों सिरों से जोड़े बनकर घुसें: पहला आखिरी के साथ, दूसरा आखिरी से पहले वाले के साथ, पूरी लाइन जिपर की तरह मुड़ती हुई। दिक्कत यह है कि गलियारा संकरा है, हर मेहमान सिर्फ अपने आगे वाले के पीछे चल सकता है, और किनारे हटकर लाइन दोबारा बनाने की जगह नहीं है। तो आप लाइन को बीच से बांटते हैं, पिछले आधे को घुमाकर उल्टा करते हैं, और फिर दोनों हिस्सों को एक-एक करके गूंथ देते हैं।
+  ar: |
+    لدى منظمة الزفاف رؤية. الضيوف مصطفون بترتيب وصولهم، لكنها تريدهم أن يدخلوا القاعة أزواجاً من طرفي الصف: الأول مع الأخير، والثاني مع ما قبل الأخير، فينطوي الصف كله كسحّاب. المشكلة أن الممر ضيق، كل ضيف لا يرى إلا من أمامه، ولا مكان للتنحي جانباً وإعادة بناء الصف. لذلك تقسم الصف من منتصفه، وتدير النصف الخلفي ليواجه الاتجاه المعاكس، ثم تنسج النصفين معاً شخصاً بعد شخص.
+---
+
+## Boss 4: The Zipper March
+
+The first three bosses each taught one move. This is the first boss that demands a **combo**: find the middle (slow/fast from Boss 3), reverse a half (Boss 1's flip), and merge two lists (Boss 2's weave, minus the sorting).
+
+Interviewers love this problem for exactly that reason: it tests whether your tools compose, or whether you learned three party tricks in isolation.
+
+---
+
+## The story
+
+Wedding day. The guests lined up in arrival order:
+
+```
+1 → 2 → 3 → 4 → 5
+```
+
+The planner wants a dramatic entrance: pairs walking in from *opposite ends* of the line. First with last. Second with second-to-last. The line should refold into:
+
+```
+1 → 5 → 2 → 4 → 3
+```
+
+The hallway is narrow. Each guest can only track the person directly in front of them (this is a singly linked list wearing a suit), and there's no side room to rebuild the line from scratch.
+
+The planner's actual instructions, and they're exactly the algorithm:
+
+1. "Count off, find the middle. Back half, detach."
+2. "Back half, about-face." Now they're ordered `5 → 4`.
+3. "Front half, back half: alternate. One from each, zip it up."
+
+---
+
+## The problem, dressed up properly
+
+> You are given the head of a singly linked list. The list can be represented as `L0 → L1 → … → Ln-1 → Ln`.
+>
+> Reorder the list to be of the form: `L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …`
+>
+> You may not modify the values in the list's nodes. Only nodes themselves may be changed.
+
+LeetCode 143. That last line kills the "just shuffle the values" escape hatch by decree.
+
+---
+
+## The naive attempt
+
+Values are off-limits, but nothing forbids an *array of node pointers*. Load every node into an array, then rewire using indices from both ends.
+
+```python
+def reorder_list(head):
+    nodes = []
+    node = head
+    while node:
+        nodes.append(node)
+        node = node.next
+    i, j = 0, len(nodes) - 1
+    while i < j:
+        nodes[i].next = nodes[j]
+        i += 1
+        if i == j: break
+        nodes[j].next = nodes[i]
+        j -= 1
+    nodes[i].next = None
+```
+
+Honestly? Fine. O(n) time, real pointer rewiring, passes LeetCode. But it's O(n) extra space for the array, and the follow-up "now in O(1) space" is guaranteed. The in-place version is the one that makes you fluent.
+
+---
+
+## The weapon: split, flip, weave
+
+<MermaidBlock>
+graph TB
+    A["Step 1: find middle\nslow plus 1, fast plus 2\nslow lands on middle"]
+    B["Step 2: split and reverse\nsecond half about-face\nBoss 1 flip"]
+    C["Step 3: weave\nalternate front, back\nBoss 2 merge, no compare"]
+    D["1 2 3 4 5\nbecomes\n1 5 2 4 3"]
+    A --> B
+    B --> C
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+**Step 1 — the midpoint.** Slow and fast from the head. When fast runs out, slow stands at the middle. For `1 2 3 4 5`: slow ends at 3. The second half is everything *after* slow: `4 → 5`. Detach it: `slow.next = None`. The 3 stays with the front half, which is what you want for odd lengths, the middle guest walks in last, alone, maximum drama.
+
+**Step 2 — about-face.** Reverse `4 → 5` into `5 → 4` with the three-finger flip from Boss 1. You now hold two independent lists:
+
+```
+front: 1 → 2 → 3
+back:  5 → 4
+```
+
+**Step 3 — the weave.** Alternate: one from front, one from back, until the back runs out. This is Boss 2's merge with the comparison removed, you always take front-then-back. The back half is never longer than the front, so when it empties, the front's remaining node (the middle) is already correctly attached at the end.
+
+---
+
+## Watching it work
+
+```
+weave step   take        result so far          front rem.   back rem.
+1            front 1     1                      2 → 3        5 → 4
+2            back 5      1 → 5                  2 → 3        4
+3            front 2     1 → 5 → 2              3            4
+4            back 4      1 → 5 → 2 → 4          3            -
+5            back empty  attach front: → 3      -            -
+```
+
+Final: `1 → 5 → 2 → 4 → 3`. The planner weeps. Good tears.
+
+---
+
+## The code
+
+```python
+def reorder_list(head: ListNode | None) -> None:
+    if not head or not head.next:
+        return
+
+    # 1. find middle (slow ends on middle node)
+    slow, fast = head, head
+    while fast.next and fast.next.next:
+        slow = slow.next
+        fast = fast.next.next
+
+    # 2. detach and reverse second half
+    second = slow.next
+    slow.next = None
+    prev = None
+    while second:
+        nxt = second.next
+        second.next = prev
+        prev = second
+        second = nxt
+    second = prev              # head of reversed back half
+
+    # 3. weave
+    first = head
+    while second:
+        f_next, s_next = first.next, second.next
+        first.next = second
+        second.next = f_next
+        first, second = f_next, s_next
+```
+
+Note the function returns nothing: reorder happens in place, the caller's `head` still points at guest 1, who is still first.
+
+<Callout type="info" title="Two flavors of the middle finder">
+`while fast and fast.next` puts slow on the *second* middle for even lengths; `while fast.next and fast.next.next` puts it on the *first*. For this problem you want the split to leave the front half no shorter than the back, so the first-middle version keeps the weave's "back empties first" invariant painless. When you use slow/fast anywhere, spend ten seconds deciding which middle you need. Off-by-one here is silent and evil.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting to cut.**
+Skip `slow.next = None` and the front half still flows into the (now reversed) back half. The weave then chases its own tail and you get cycles, duplicates, or an infinite loop. Detach *before* reversing.
+
+**2. Saving next pointers during the weave.**
+Each weave step overwrites `first.next` and `second.next`. Grab `f_next` and `s_next` *before* touching anything, same discipline as Boss 1's "save before flip". Every splice in this dungeon follows that law.
+
+**3. Wrong middle on even lengths.**
+With the wrong slow/fast condition on `1 2 3 4`, you split as `1` / `2 3 4` and the weave runs out of front while back still has members, dropping guests. See the callout, pick the first middle.
+
+**4. Weaving by values.**
+The problem forbids it explicitly, and interviews treat it as a non-answer. If you catch yourself writing `.val =`, put the pen down and breathe.
+
+---
+
+## Complexity
+
+One pass to find the middle, one to reverse, one to weave.
+
+**Time: O(n). Space: O(1).** The array version costs O(n) space for the same time.
+
+---
+
+## Boss down. XP gained.
+
+The procession folds like origami and the videographer gets the shot of the year.
+
+What you walked away with:
+
+- The **split-flip-weave combo**: midpoint, reverse-in-place, alternate-splice
+- Slow/fast as a middle-finder, and the two flavors of "middle"
+- Detach before reversing, save before splicing, the two laws of pointer surgery
+- Composition: three known moves chained beats one clever unknown move
+
+This boss found the middle by racing pointers. The next one finds a position *from the end* using a fixed gap instead of a speed difference, the other classic two-pointer trick on lists.
+
+Next up: **Boss 5 — The Caboose Cut.** A freight train needs its n-th car from the *rear* removed, and you only get one walk along the train. Two inspectors, a rope of fixed length between them, and a dummy engine to handle the day someone asks you to remove the locomotive itself.

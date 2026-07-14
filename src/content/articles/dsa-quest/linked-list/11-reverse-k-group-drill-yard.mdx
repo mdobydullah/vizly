@@ -1,0 +1,229 @@
+---
+title: "Reverse Nodes in k-Group — The Drill Yard"
+slug: reverse-k-group-drill-yard
+category: dsa
+series: linked-list
+seriesOrder: 11
+description: "Dungeon 6, Boss 11. A parade formation reverses squad by squad: every k marchers about-face as a block, and a final short squad holds its ground. Everything this dungeon taught, in one final kata."
+tags:
+  - DSA
+  - Linked List
+  - Hard
+icon: "🥁"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The drill sergeant wants a crowd-pleaser for the parade: the marching column reverses itself in squads. Every k marchers about-face as a block, so the first squad walks in reverse order, then the second squad, and so on down the column. One strict rule: if the last squad has fewer than k marchers, it stays exactly as it is, no half-reversed squads allowed. Each about-face is easy on its own. The real work is stitching the squads back together so the column stays one unbroken line, seam after seam after seam.
+  bn: |
+    ড্রিল সার্জেন্ট প্যারেডের জন্য দর্শক মাতানো একটা কায়দা চান: মার্চ করা কলামটা স্কোয়াড ধরে ধরে উল্টে যাবে। প্রতি k জন মার্চার এক ব্লক হয়ে about-face করবে, মানে প্রথম স্কোয়াডটা উল্টো ক্রমে হাঁটবে, তারপর দ্বিতীয়টা, এভাবে কলামের শেষ পর্যন্ত। একটাই কড়া নিয়ম: শেষ স্কোয়াডে k জনের কম থাকলে সেটা যেমন আছে তেমনই থাকবে, আধখানা উল্টানো স্কোয়াড চলবে না। প্রতিটা about-face আলাদাভাবে সহজ। আসল কাজটা হলো স্কোয়াডগুলোকে আবার জোড়া লাগানো, যাতে কলামটা একটানা এক লাইন থাকে, সেলাইয়ের পর সেলাই।
+  hi: |
+    ड्रिल सार्जेंट परेड के लिए भीड़ को लुभाने वाला करतब चाहता है: मार्च करता कॉलम स्क्वाड दर स्क्वाड खुद को पलटेगा। हर k मार्चर एक ब्लॉक बनकर about-face करेंगे, यानी पहला स्क्वाड उल्टे क्रम में चलेगा, फिर दूसरा, और ऐसे ही कॉलम के अंत तक। एक सख्त नियम: अगर आखिरी स्क्वाड में k से कम मार्चर हैं, तो वह जस का तस रहेगा, आधा पलटा स्क्वाड नहीं चलेगा। हर about-face अपने आप में आसान है। असली काम है स्क्वाडों को वापस जोड़ना, ताकि कॉलम एक अटूट लाइन बना रहे, सीवन दर सीवन।
+  ar: |
+    يريد رقيب التدريب حركة تبهر الجمهور في العرض: الرتل الزاحف يعكس نفسه سرية بعد سرية. كل k عنصراً يستديرون كتلة واحدة، فتمشي السرية الأولى بترتيب معكوس، ثم الثانية، وهكذا حتى نهاية الرتل. قاعدة صارمة واحدة: إذا كانت السرية الأخيرة أقل من k عنصراً بقيت كما هي تماماً، لا سرايا نصف معكوسة. كل استدارة سهلة بمفردها. العمل الحقيقي هو خياطة السرايا معاً من جديد ليبقى الرتل خطاً واحداً متصلاً، درزة بعد درزة.
+---
+
+## Boss 11: The Drill Yard
+
+The final boss of the longest dungeon, and it's an honest one: no new theory, no hidden data structure, no disguise. Reverse Nodes in k-Group is **pure execution**, Boss 1's flip performed inside a loop, with seams to stitch and a leftover rule to honor. LeetCode marks it Hard purely for the pointer discipline it demands.
+
+Think of it as the dungeon's black-belt kata: every move is one you know, and the grade is on precision.
+
+---
+
+## The story
+
+The drill sergeant lines up the column:
+
+```
+1 → 2 → 3 → 4 → 5        k = 2
+```
+
+The trick he wants for the parade: **squads of k reverse themselves in place**. First squad `1, 2` becomes `2, 1`. Second squad `3, 4` becomes `4, 3`. Marcher 5 is a squad of one, short of k, and the rule for short squads is absolute: **untouched**.
+
+```
+2 → 1 → 4 → 3 → 5
+```
+
+Each about-face is Boss 1 on a short segment. Rehearse the failure mode, though: squad one flips, and marcher 1, formerly the squad leader and now its rear, is still telling the column "after me comes marcher 3"... wait, no, he's telling them "after me comes 2", who's now *in front* of him. The column shatters into a tangle unless, at every squad boundary, someone reconnects three things: the previous squad's tail, this squad's new head, and this squad's new tail onto whatever comes next.
+
+Those reconnections are the boss.
+
+---
+
+## The problem, dressed up properly
+
+> Given the head of a linked list, reverse the nodes of the list `k` at a time, and return the modified list. `k` is a positive integer and is less than or equal to the length of the linked list. If the number of nodes is not a multiple of `k` then left-out nodes, in the end, should remain as it is.
+>
+> You may not alter the values in the list's nodes, only nodes themselves may be changed.
+>
+> Follow up: can you solve the problem in O(1) extra memory space?
+
+LeetCode 25. The no-values rule again, and the O(1) space follow-up that rules out "copy to array, reverse chunks, rebuild".
+
+---
+
+## The naive attempt
+
+Array of nodes, reverse each k-slice's wiring by index, patch the seams with arithmetic.
+
+```python
+def reverse_k_group(head, k):
+    nodes = []
+    node = head
+    while node:
+        nodes.append(node)
+        node = node.next
+    # reverse each full k-chunk in the array, then rewire everything
+    for i in range(0, len(nodes) - len(nodes) % k, k):
+        nodes[i:i+k] = reversed(nodes[i:i+k])
+    for i, node in enumerate(nodes):
+        node.next = nodes[i+1] if i+1 < len(nodes) else None
+    return nodes[0]
+```
+
+Genuinely correct, pleasantly readable, O(n) extra space, and exactly what the follow-up forbids. Its educational value is the shape it reveals: *reverse chunks, then rewire globally*. The in-place version does the same thing but must rewire **locally, at each seam, before moving on**, because without the array there's no global view to come back to.
+
+---
+
+## The weapon: flip a squad, stitch the seam, march on
+
+The in-place loop, one squad per iteration:
+
+**Scout.** From the current position, walk k nodes ahead. Fewer than k remain? The short-squad rule fires: stop, everything stays.
+
+**Flip.** Reverse exactly k nodes with Boss 1's three-finger dance, counted, not while-driven.
+
+**Stitch.** Here's where all the care goes. Before the flip, remember two nodes: `prev_tail` (the previous squad's last marcher, or the dummy on the first squad) and `start` (this squad's first marcher, about to become its *last*). After the flip: `prev_tail.next` = the squad's new head, and `start.next` = whatever node comes after the squad. Two writes, seam closed.
+
+**March.** `prev_tail = start` (the new tail of this squad), repeat from Scout.
+
+<MermaidBlock>
+graph TB
+    A["Scout: k nodes ahead?\nno: leave remainder, done"]
+    B["Flip: reverse k nodes\nBoss 1, counted loop"]
+    C["Stitch the seam\nprev_tail.next = new head\nstart.next = next squad"]
+    D["March: prev_tail = start\nnext squad"]
+    A --> B
+    B --> C
+    C --> D
+    D --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+And who stands before the *first* squad, whose flip changes the head of the entire list? The dummy node, one last time. `dummy.next` tracks the true head through every flip, and the answer at the end is, as it has been all dungeon long, `dummy.next`.
+
+---
+
+## Watching it work
+
+`1 → 2 → 3 → 4 → 5`, `k = 2`. Dummy prepended.
+
+```
+squad 1: scout finds 2 nodes ✓
+         flip [1,2] → 2 → 1
+         stitch: dummy.next = 2,  1.next = 3
+         column: D → 2 → 1 → 3 → 4 → 5      prev_tail = 1
+
+squad 2: scout finds 2 nodes ✓
+         flip [3,4] → 4 → 3
+         stitch: 1.next = 4,  3.next = 5
+         column: D → 2 → 1 → 4 → 3 → 5      prev_tail = 3
+
+squad 3: scout finds 1 node < k ✗
+         short-squad rule: stop
+```
+
+Final column: `2 → 1 → 4 → 3 → 5`. Sergeant satisfied, crowd loses it.
+
+---
+
+## The code
+
+```python
+def reverse_k_group(head: ListNode | None, k: int) -> ListNode | None:
+    dummy = ListNode(0, head)
+    prev_tail = dummy
+
+    while True:
+        # scout: is there a full squad ahead?
+        scout = prev_tail
+        for _ in range(k):
+            scout = scout.next
+            if not scout:
+                return dummy.next          # short squad stays as is
+
+        next_squad = scout.next            # first marcher after this squad
+        start = prev_tail.next             # will become this squad's tail
+
+        # flip: reverse exactly k nodes (Boss 1, counted)
+        prev, curr = next_squad, start     # seed prev with next_squad:
+        for _ in range(k):                 # the flip stitches start.next for free
+            nxt = curr.next
+            curr.next = prev
+            prev = curr
+            curr = nxt
+
+        # stitch the front seam and march
+        prev_tail.next = prev              # prev = squad's new head (old scout)
+        prev_tail = start
+```
+
+One sly economy worth savoring: the reversal seeds `prev` with `next_squad` instead of `None`. Boss 1's flip makes the first flipped node point at `prev`, so the squad's new tail automatically points at the next squad, the back seam stitches itself *during* the flip. Only the front seam (`prev_tail.next = prev`) needs an explicit write.
+
+<Callout type="tip" title="The recursive version, for completeness">
+Recursion states this problem beautifully: reverse the first k nodes, then set the new tail's next to `reverse_k_group(rest, k)`. Base case: fewer than k nodes, return head untouched. It's five lines shorter and O(n/k) stack deep, which fails the O(1)-space follow-up but wins style points. Write the iterative one in interviews, mention the recursive one, collect the nod.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Reversing the short squad anyway.**
+Scout *before* you flip, never flip-then-check. Once a partial squad reverses, un-reversing it cleanly is its own bug farm. The scout loop is cheap insurance.
+
+**2. Losing the head.**
+The list's head changes on the very first flip (1 stops being first). Every operation in this dungeon that can change the head wants a dummy, and this one changes it k-fold. Return `dummy.next`, never `head`.
+
+**3. Stitching seams with stale pointers.**
+`start` must be captured *before* the flip (afterward it's buried mid-squad), `next_squad` must be captured before the flip too (afterward `scout.next` points backward). Pointer surgery law from Boss 1, now with two patients: save everything you'll need *before* cutting.
+
+**4. While-driven instead of counted reversal.**
+Boss 1 reversed until `curr` hit None. Here the flip must stop after exactly k nodes, or squad one happily reverses the entire column. Counted `for` loop, not `while curr`.
+
+**5. k = 1.**
+Every squad is one marcher, every "flip" is a no-op, and the output must equal the input. If your seam-stitching is even slightly wrong, k = 1 scrambles the list, which makes it the best regression test this problem has. Try it before submitting.
+
+---
+
+## Complexity
+
+Each node is scouted once and flipped once, both O(1) per node.
+
+**Time: O(n). Space: O(1).** The recursive version trades that for O(n/k) stack.
+
+---
+
+## Boss down. Dungeon down. XP gained. A lot of it.
+
+The column folds and unfolds squad by squad down the parade route, marcher 5 walking proudly un-reversed at the rear.
+
+Eleven bosses. What you're carrying out of Dungeon 6:
+
+- The **three-finger flip** (save, flip, slide), solo, on halves, and now in counted squads
+- **Dummy nodes**, singly and in bookend pairs, deleting head-mutation and empty-structure special cases
+- **Slow/fast pointers**: cycle detection, cycle *entrances*, and middles; **fixed-gap pointers**: n-th from the end
+- The **splice discipline**: capture every pointer you'll need before you cut, restore what you borrow
+- Merging as a component: two lists, then k lists via heap or tournament
+- **Composite structures**: hash map + doubly linked list = O(1) everything (LRU)
+- And the meta-lesson: hard list problems are easy list problems, composed carefully
+
+**Next dungeon: Trees.** The chain becomes a branch. Every node still points onward, but now it points *twice*, left and right, and "walk the list" becomes "choose a direction, and deal with what you postponed". Recursion stops being optional, traversals come in four flavors, and the call stack becomes a place you visualize as naturally as the fridge line. The dungeon where DSA stops being linear.
+
+See you in Dungeon 7.

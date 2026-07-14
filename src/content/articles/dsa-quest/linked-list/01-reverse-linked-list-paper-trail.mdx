@@ -1,0 +1,214 @@
+---
+title: "Reverse Linked List — The Paper Trail"
+slug: reverse-linked-list-paper-trail
+category: dsa
+series: linked-list
+seriesOrder: 1
+description: "Dungeon 6, Boss 1. A scavenger hunt where every note points to the next hiding spot, and now the trail must run backward. Three pointers, one flip at a time. Welcome to pointer surgery."
+tags:
+  - DSA
+  - Linked List
+  - Beginner
+icon: "📜"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Your friend set up a scavenger hunt: a note under the doormat tells you where the next note hides, that one points to the next, and so on to the prize. Now he wants the hunt to run the other way, starting from the prize spot back to the doormat. Problem is, each note only knows the next spot, nothing remembers the previous one. So you walk the trail once, and at every note you flip its arrow to point backward. One careless flip and the rest of the trail is lost forever. That flip dance is how you reverse a linked list.
+  bn: |
+    আপনার বন্ধু একটা স্ক্যাভেঞ্জার হান্ট সাজিয়েছে: দরজার ম্যাটের নিচের চিরকুট বলে দেয় পরের চিরকুট কোথায় লুকানো, সেটা বলে তার পরেরটা, এভাবে একদম পুরস্কার পর্যন্ত। এখন সে চায় খেলাটা উল্টো দিকে চলুক, পুরস্কারের জায়গা থেকে শুরু করে ম্যাট পর্যন্ত। ঝামেলা হলো, প্রতিটা চিরকুট শুধু পরের জায়গাটা চেনে, আগেরটা কেউ মনে রাখে না। তাই আপনি ট্রেইলটা একবার হাঁটেন, আর প্রতিটা চিরকুটে তার তীরটা উল্টে পেছনের দিকে ঘুরিয়ে দেন। একটা অসাবধান ফ্লিপেই বাকি ট্রেইল চিরতরে হারিয়ে যাবে। এই ফ্লিপের নাচটাই linked list reverse করা।
+  hi: |
+    आपके दोस्त ने एक स्कैवेंजर हंट सजाया है: डोरमैट के नीचे की पर्ची बताती है कि अगली पर्ची कहां छिपी है, वह अगली बताती है, और ऐसे ही इनाम तक। अब वह चाहता है कि खेल उल्टी दिशा में चले, इनाम वाली जगह से वापस डोरमैट तक। दिक्कत यह है कि हर पर्ची सिर्फ अगली जगह जानती है, पिछली किसी को याद नहीं। तो आप ट्रेल पर एक बार चलते हैं और हर पर्ची का तीर पलटकर पीछे की ओर कर देते हैं। एक लापरवाह फ्लिप और बाकी ट्रेल हमेशा के लिए गुम। यही फ्लिप का नाच linked list को reverse करना है।
+  ar: |
+    رتّب صديقك لعبة بحث عن الكنز: ورقة تحت ممسحة الباب تخبرك أين تختبئ الورقة التالية، وتلك تشير إلى ما بعدها، وهكذا حتى الجائزة. الآن يريد أن تسير اللعبة بالاتجاه المعاكس، من مكان الجائزة عائدة إلى الممسحة. المشكلة أن كل ورقة تعرف المكان التالي فقط، ولا شيء يتذكر السابق. لذلك تمشي المسار مرة واحدة وتقلب سهم كل ورقة ليشير إلى الخلف. قلبة واحدة متهورة وتضيع بقية المسار إلى الأبد. رقصة القلب هذه هي عكس الـ linked list.
+---
+
+## Welcome to Dungeon 6
+
+Five dungeons of arrays and strings. Data sitting in neat rows, every element reachable by index, `nums[7]` and you're there.
+
+That comfort ends here.
+
+A **linked list** is a chain of nodes. Each node holds a value and one pointer: the address of the next node. That's it. No indexing, no jumping to the middle, no peeking backward. To reach the fifth node you walk through four others, and once you've passed a node, it's gone unless you saved a pointer to it.
+
+```python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+```
+
+Why would anyone store data this way? Because inserting or removing in the middle is O(1) once you're standing there, no shifting a million elements like an array. Linked lists trade random access for cheap surgery. This dungeon teaches the surgery.
+
+Eleven bosses. The longest dungeon in the quest. The first one is the rite of passage every programmer goes through.
+
+---
+
+## The story
+
+Your friend runs a scavenger hunt for his little sister's birthday. Note under the doormat says "check the mailbox". Mailbox note says "look in the flowerpot". Flowerpot says "garage shelf". Garage says "prize box, under the stairs".
+
+```
+doormat → mailbox → flowerpot → garage → prize
+```
+
+The kids finished the trail in ten minutes and want to play again. Your friend, tired, has an idea: run it **backward**. Start at the prize spot, end at the doormat.
+
+Easy, right? Just... walk it backward?
+
+You can't. Stand at the flowerpot note and read it: "garage shelf". It knows what comes *next*. Nothing anywhere records what came *before*. The trail is one-directional by construction, like every linked list.
+
+The fix: walk the trail once, and at each note, rewrite it to point at the spot you *just came from*. Doormat's note becomes "end of trail". Mailbox's note becomes "doormat". And so on. When you're done, the arrows all face the other way.
+
+One rule of survival: **read where a note points before you overwrite it.** Rewrite the flowerpot note before reading it, and the garage, the prize, the whole rest of the hunt vanishes. No backup, no undo.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `head` of a singly linked list, reverse the list, and return the new head.
+>
+> Example: `1 → 2 → 3 → 4 → 5` becomes `5 → 4 → 3 → 2 → 1`.
+
+LeetCode 206. The single most-asked linked list question in interviews, and the building block for at least three later bosses in this dungeon.
+
+---
+
+## The naive attempt
+
+Copy all values into an array, reverse the array, walk the list again writing values back.
+
+```python
+def reverse_list(head):
+    vals = []
+    node = head
+    while node:
+        vals.append(node.val)
+        node = node.next
+    node = head
+    for v in reversed(vals):
+        node.val = v
+        node = node.next
+    return head
+```
+
+It works, O(n) time even. But it uses O(n) extra memory, and worse, it dodges the entire lesson. It reverses the *values* while leaving the *structure* untouched. Interviewers will smile and say "now do it without the array", because rewiring pointers in place is the skill being tested. Everything else in this dungeon builds on it.
+
+---
+
+## The weapon: three pointers and a flip
+
+You need three fingers on the trail at all times:
+
+- **`prev`** — the note you just rewired (starts as `None`, the end-of-trail marker)
+- **`curr`** — the note you're rewiring now
+- **`nxt`** — saved *before* the flip, so the rest of the trail survives
+
+Each step is the same four beats:
+
+1. Save: `nxt = curr.next`
+2. Flip: `curr.next = prev`
+3. Advance prev: `prev = curr`
+4. Advance curr: `curr = nxt`
+
+<MermaidBlock>
+graph TB
+    A["Save nxt = curr.next\nthe rest of the trail"]
+    B["Flip curr.next = prev\narrow now points backward"]
+    C["Slide forward\nprev = curr, curr = nxt"]
+    D["curr is None?\nprev is the new head"]
+    A --> B
+    B --> C
+    C --> A
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The order is everything. Save before you flip. Flip before you slide. Beat 1 out of order loses the list, beats 3 and 4 out of order and the fingers trip over each other.
+
+---
+
+## Watching it work
+
+`1 → 2 → 3 → 4 → 5`
+
+```
+step   prev        curr   flip result
+0      None        1      -
+1      1           2      1 → None
+2      2           3      2 → 1 → None
+3      3           4      3 → 2 → 1 → None
+4      4           5      4 → 3 → 2 → 1 → None
+5      5           None   5 → 4 → 3 → 2 → 1 → None
+```
+
+When `curr` runs off the end, `prev` is standing on the old tail, which is the new head. Return `prev`, not `head`. Your old `head` variable now points at the *last* node of the reversed list, the doormat, holding a note that says "end of trail".
+
+---
+
+## The code
+
+```python
+def reverse_list(head: ListNode | None) -> ListNode | None:
+    prev = None
+    curr = head
+    while curr:
+        nxt = curr.next        # save the rest of the trail
+        curr.next = prev       # flip the arrow
+        prev = curr            # slide both fingers
+        curr = nxt
+    return prev                # old tail = new head
+```
+
+Five lines of body. Memorize the shape, but more importantly, be able to *re-derive* it from the doormat story, because interviews mutate this problem endlessly (reverse a sublist, reverse in groups, and yes, both are later bosses).
+
+<Callout type="tip" title="The recursive version">
+There's a famous recursive one-liner family: reverse the rest of the list, then hook `head.next.next = head`. It's elegant, O(n) stack space, and worth understanding once. But the iterative version is what you write under pressure: no stack overflow on a 100,000-node list, and the three-finger dance generalizes to every pointer problem that follows. Iterative first, recursive for bragging rights.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Flipping before saving.**
+`curr.next = prev` before `nxt = curr.next` orphans the entire unvisited remainder. This is the number one linked list bug in existence. If your reversed list comes back with one node, this is why.
+
+**2. Returning `head` instead of `prev`.**
+After the loop, `head` still points to the node that is now the tail. Returning it gives you a "list" of one element with `next = None`. The new head is wherever `prev` stopped.
+
+**3. Forgetting the empty list.**
+`head = None` should return `None`. The while loop handles it for free (`curr` starts as None, loop never runs, return `prev` which is None). But *check* your version handles it, especially recursive ones.
+
+**4. Testing only on paper with three nodes.**
+Every pointer bug hides at the boundaries: empty list, single node, two nodes. If those three cases work, five hundred nodes work.
+
+---
+
+## Complexity
+
+One pass, three variables.
+
+**Time: O(n). Space: O(1).** The recursive version is O(n) space for the call stack.
+
+---
+
+## Boss down. XP gained.
+
+The kids run the trail backward from the prize box and it works perfectly, until the youngest eats the mailbox note.
+
+What you walked away with:
+
+- A linked list is nodes plus one-way arrows: no indexing, no going back, walking is the only travel
+- The three-finger flip: **save, flip, slide**, in that exact order
+- Old tail becomes new head, return `prev`
+- Boundary cases (empty, one node, two nodes) are where pointer bugs live
+
+Reversal is the push-up of linked lists. You'll do it again in Boss 4 (reversing half a list) and Boss 11 (reversing in groups), so let it settle into your hands.
+
+Next up: **Boss 2 — The Bakery Tickets.** Two queues at the counter, both already sorted by ticket number, and one display board. Merge them into a single sorted line without losing anyone. The gentlest boss in this dungeon, and the introduction of the most useful trinket in pointer work: the dummy node.

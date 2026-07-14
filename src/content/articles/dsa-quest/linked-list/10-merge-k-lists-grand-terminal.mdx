@@ -1,0 +1,203 @@
+---
+title: "Merge K Sorted Lists — The Grand Terminal"
+slug: merge-k-lists-grand-terminal
+category: dsa
+series: linked-list
+seriesOrder: 10
+description: "Dungeon 6, Boss 10. Not two queues this time: k ferry queues converge on one gangway, all sorted. A min-heap of front passengers, or tournament-style pairwise merging. Boss 2 at industrial strength."
+tags:
+  - DSA
+  - Linked List
+  - Heap
+  - Divide and Conquer
+  - Hard
+icon: "⛴️"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The grand ferry terminal has k boarding queues, every queue already sorted by ticket number, and exactly one gangway onto the ship. Everyone must board in global ticket order. Scanning all k queue fronts before waving each passenger through works, but with dozens of queues the boarding takes all day. The fix is a dispatcher's board that always shows the smallest front ticket at a glance: wave that passenger through, and only their queue reveals a new front. One glance, one passenger, and even a thousand queues board almost as fast as two.
+  bn: |
+    গ্র্যান্ড ফেরি টার্মিনালে k টা বোর্ডিং লাইন, প্রতিটা লাইন আগে থেকেই টিকিট নম্বরে সাজানো, আর জাহাজে ওঠার গ্যাংওয়ে ঠিক একটা। সবাইকে উঠতে হবে সব লাইন মিলিয়ে টিকিটের ক্রমে। প্রতিবার যাত্রী ছাড়ার আগে k টা লাইনের সামনেটা দেখে নেওয়া চলে, কিন্তু ডজনখানেক লাইন হলে বোর্ডিংয়েই দিন কাবার। সমাধানটা হলো ডিসপ্যাচারের একটা বোর্ড, যেখানে এক নজরেই সবচেয়ে ছোট সামনের টিকিটটা দেখা যায়: সেই যাত্রীকে ছেড়ে দিন, আর শুধু তার লাইনটাই নতুন একটা সামনের যাত্রী দেখাবে। এক নজর, এক যাত্রী, আর হাজারটা লাইনও প্রায় দুটো লাইনের মতোই দ্রুত উঠে যায়।
+  hi: |
+    ग्रैंड फेरी टर्मिनल में k बोर्डिंग कतारें हैं, हर कतार पहले से टिकट नंबर के क्रम में, और जहाज पर चढ़ने का गैंगवे ठीक एक। सबको चढ़ना है सभी कतारों को मिलाकर टिकट के क्रम में। हर यात्री को भेजने से पहले k कतारों के आगे वाले देख लेना चलता तो है, पर दर्जनों कतारें हों तो बोर्डिंग में पूरा दिन निकल जाता है। हल है डिस्पैचर का एक बोर्ड, जो हर पल एक नजर में सबसे छोटा अगला टिकट दिखाता है: उस यात्री को भेज दो, और सिर्फ उसी की कतार एक नया अगला यात्री दिखाएगी। एक नजर, एक यात्री, और हजार कतारें भी करीब-करीब दो कतारों जितनी तेजी से चढ़ जाती हैं।
+  ar: |
+    في محطة العبّارات الكبرى k طابور صعود، كل طابور مرتب مسبقاً برقم التذكرة، ومعبر واحد فقط إلى السفينة. يجب أن يصعد الجميع بترتيب التذاكر الإجمالي. فحص مقدمات الطوابير الـ k قبل تمرير كل راكب يفي بالغرض، لكن مع عشرات الطوابير يستغرق الصعود اليوم كله. الحل لوحة مُنظِّم تُظهر بلمحة واحدة أصغر تذكرة في المقدمات: مرّر ذلك الراكب، وطابوره وحده سيكشف عن مقدمة جديدة. لمحة واحدة، راكب واحد، وحتى ألف طابور يصعدون تقريباً بسرعة طابورين.
+---
+
+## Boss 10: The Grand Terminal
+
+Boss 2 merged two bakery queues and called it a morning. This boss is the same job at port scale: **k** queues, one output, and a time limit that punishes the obvious generalization.
+
+LeetCode marks it Hard. Structurally, it's Boss 2 plus one question: *how do you find the smallest of k fronts, fast?* Answer that and the boss folds.
+
+---
+
+## The story
+
+Ferry terminal, peak season. The ship boards through one gangway, and the yard has k sorted queues:
+
+```
+Queue 1:  1 → 4 → 5
+Queue 2:  1 → 3 → 4
+Queue 3:  2 → 6
+```
+
+Global boarding order required: `1, 1, 2, 3, 4, 4, 5, 6`.
+
+The two-queue instinct says: compare the fronts, wave the smaller one through. With k queues that becomes "scan all k fronts, wave the smallest through", and it works. It's also **k comparisons per passenger**. Three queues, fine. The terminal handles *ten thousand* queues on holiday weekends (LeetCode's actual constraint). Ten thousand comparisons per passenger, per hundred thousand passengers... the ferry leaves without you.
+
+The dispatcher's fix: a **departure board** that always shows, at a glance, which queue's front ticket is smallest. Wave that passenger through. Only *their* queue changes, so only one board entry updates. One glance, one wave, one update, repeat.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array of `k` linked lists `lists`, each linked list is sorted in ascending order. Merge all the linked lists into one sorted linked list and return it.
+
+LeetCode 23. Watch the edge cases in the input: `lists` can be empty, and it can contain empty lists.
+
+---
+
+## The naive attempts, and the arithmetic that kills them
+
+**Scan all k fronts per passenger:** O(k) per node, O(k·N) total for N total passengers. With k = 10⁴ and N = 10⁵, that's 10⁹ operations. Dead in the water.
+
+**Merge queues one at a time into an accumulator** (merge 1+2, then result+3, then result+4...): looks smarter, is secretly the same. The accumulator grows, and early passengers get re-compared in every subsequent merge. Total: O(k·N) again. The disguise fools a lot of people, including the person writing your performance review.
+
+**Concatenate everything and sort:** O(N log N), honestly not bad, and ignores that every queue was pre-sorted. The "sorting sorted data" tax from Boss 2, now at scale. Also loses the O(1)-space high ground.
+
+---
+
+## The weapon, version 1: the departure board (min-heap)
+
+The board is a **min-heap** holding one entry per non-empty queue: its front node. A heap answers "smallest?" in O(1) and repairs itself after any insertion or removal in O(log k).
+
+Loop: pop the smallest front off the heap, splice that node onto the output (dummy node, `tail`, Boss 2 choreography), and if its queue still has passengers, push the new front onto the heap.
+
+<MermaidBlock>
+graph TB
+    A["Min-heap of k fronts\none entry per queue"]
+    B["Pop smallest front\nsplice onto output tail"]
+    C["That queue's next passenger\npush onto heap"]
+    D["Heap empty\nall queues drained\nreturn dummy.next"]
+    A --> B
+    B --> C
+    C --> B
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Every one of the N passengers passes through the heap exactly once: one push, one pop, O(log k) each. **Total: O(N log k).** For our holiday numbers, that's 10⁵ × 14 ≈ 1.4 million operations instead of a billion. The heap never holds more than k entries, so **space is O(k)**.
+
+```python
+import heapq
+
+def merge_k_lists(lists: list[ListNode | None]) -> ListNode | None:
+    heap = []
+    for i, node in enumerate(lists):
+        if node:
+            heapq.heappush(heap, (node.val, i, node))
+
+    dummy = ListNode()
+    tail = dummy
+    while heap:
+        _, i, node = heapq.heappop(heap)
+        tail.next = node
+        tail = tail.next
+        if node.next:
+            heapq.heappush(heap, (node.next.val, i, node.next))
+    return dummy.next
+```
+
+That middle element `i` in the tuple is not decoration. When two fronts hold **equal tickets**, Python compares the next tuple element to break the tie, and comparing two `ListNode` objects with `<` throws a TypeError. The queue index `i` breaks ties first and never collides. This crash famously appears only on inputs with duplicate values, which is to say: in production, on a Friday.
+
+---
+
+## The weapon, version 2: the tournament (divide and conquer)
+
+No heap available, or the interviewer wants pointers only? Merge queues **pairwise, in rounds**, like a tournament bracket: merge queue 1 with 2, queue 3 with 4, and so on. Each round halves the number of queues; after ⌈log k⌉ rounds, one remains.
+
+```python
+def merge_k_lists(lists):
+    if not lists:
+        return None
+    while len(lists) > 1:
+        merged = []
+        for i in range(0, len(lists), 2):
+            l1 = lists[i]
+            l2 = lists[i + 1] if i + 1 < len(lists) else None
+            merged.append(merge_two_lists(l1, l2))   # Boss 2, verbatim
+        lists = merged
+    return lists[0]
+```
+
+Why isn't this the accumulator disaster from the naive section? Count a single passenger's journeys: they get merged once per *round*, and there are only log k rounds. Every passenger is compared O(log k) times, total **O(N log k)**, same as the heap. The accumulator version dragged early passengers through all k merges; the tournament drags everyone through log k. Same `merge_two_lists` inside, opposite fate, and the difference is pure bracket geometry.
+
+Which version to use? Heap when the queues *stream* (you can't tournament what hasn't arrived), tournament when you want O(1) auxiliary space and you already have Boss 2 on hand. Interviews accept both; know why each is O(N log k) and you're bulletproof.
+
+---
+
+## Watching it work (heap version)
+
+Queues: `[1,4,5]`, `[1,3,4]`, `[2,6]`.
+
+```
+heap (val,queue)          pop      output so far
+(1,q1)(1,q2)(2,q3)        1 (q1)   1
+(1,q2)(2,q3)(4,q1)        1 (q2)   1 → 1
+(2,q3)(3,q2)(4,q1)        2 (q3)   1 → 1 → 2
+(3,q2)(4,q1)(6,q3)        3 (q2)   1 → 1 → 2 → 3
+(4,q1)(4,q2)(6,q3)        4 (q1)   ... → 4      (tie! index broke it)
+(4,q2)(6,q3)              4 (q2)   ... → 4 → 4
+(5,q1)(6,q3)              5 (q1)   ... → 5
+(6,q3)                    6 (q3)   ... → 6
+```
+
+Never more than three entries on the board, no matter how long the queues run. That's the entire economy of the algorithm.
+
+---
+
+## Gotchas
+
+**1. The tuple tie-breaker.**
+`(node.val, node)` crashes on duplicate values in Python. `(node.val, i, node)`. Covered above, repeated here because it will bite you exactly once and you'll never forget it, might as well be today.
+
+**2. Empty lists inside the input.**
+`lists = [None, [1,2], None]` is legal. Push only non-empty heads; the `if node:` guard in setup is not optional. Same for `lists = []` overall: return None, which the dummy handles gracefully.
+
+**3. Pushing values instead of nodes.**
+Heap of bare integers loses the nodes, forcing you to allocate a fresh output list: correct, O(N) extra space, and it violates the splice-the-nodes spirit. Carry the node in the tuple.
+
+**4. The accumulator trap.**
+Merging into one growing list *feels* like divide and conquer if you don't do the arithmetic. It's O(k·N). If your "optimized" version times out on the big test case, this is what you wrote.
+
+---
+
+## Complexity
+
+Both weapons: **Time O(N log k)** where N is total nodes. **Space: O(k)** for the heap, or **O(1)** auxiliary for the tournament (iterative merging reuses the input array).
+
+---
+
+## Boss down. XP gained.
+
+All queues drain in ticket order, the ferry sails on time, and the dispatcher's board goes dark until the evening rush.
+
+What you walked away with:
+
+- The k-way merge question reduces to "smallest of k fronts, fast": **heap** says O(log k)
+- O(N log k) two ways: heap streaming, or tournament-bracket pairwise merging
+- The accumulator anti-pattern: same merge function, wrong geometry, O(k·N)
+- Tuple tie-breakers for heaps of non-comparable objects, the Friday-crash vaccine
+- Boss 2 was never a beginner problem, it was a *component*
+
+One boss left. It takes Boss 1's reversal, puts it inside a loop, adds group boundaries and a leftover rule, and asks for surgical precision at every seam. The dungeon saved the deepest pointer work for last.
+
+Next up: **Boss 11 — The Drill Yard.** A parade formation must reverse itself squad by squad: every k marchers about-face as a block, and a final squad smaller than k holds its ground. Dummy node, segment reversal, seam stitching, everything this dungeon taught, in one final kata.

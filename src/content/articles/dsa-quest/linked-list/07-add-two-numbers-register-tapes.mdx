@@ -1,0 +1,198 @@
+---
+title: "Add Two Numbers — The Register Tapes"
+slug: add-two-numbers-register-tapes
+category: dsa
+series: linked-list
+seriesOrder: 7
+description: "Dungeon 6, Boss 7. Two cash registers print totals as digit chains stored backward, and corporate wants the sum. The reversed order is a gift: ones-place lines up first and the carry flows like second grade taught you."
+tags:
+  - DSA
+  - Linked List
+  - Math
+icon: "🧾"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Two old cash registers print the day's total on paper tape, one digit per slip, and some ancient engineer decided the tapes come out backward: ones digit first, then tens, then hundreds. Corporate wants both totals added and the answer printed the same backward way. Sounds annoying until you actually try it: backward means the ones digits meet first, exactly where addition starts. You add slip by slip like second grade, carry the one when it overflows, and staple a fresh slip whenever the carry spills past the last pair.
+  bn: |
+    দুটো পুরনো ক্যাশ রেজিস্টার দিনের মোট বিক্রি কাগজের টেপে ছাপে, প্রতি স্লিপে একটা করে অঙ্ক, আর কোন যুগের এক ইঞ্জিনিয়ার ঠিক করে গেছেন টেপ বেরোবে উল্টো করে: আগে এককের অঙ্ক, তারপর দশক, তারপর শতক। কর্পোরেট চায় দুটো মোট যোগ করে উত্তরটাও সেই একই উল্টো কায়দায় ছাপা হোক। শুনতে বিরক্তিকর, কিন্তু করতে গেলেই দেখবেন: উল্টো মানে এককের অঙ্ক দুটো আগে মুখোমুখি হয়, ঠিক যেখান থেকে যোগ শুরু হয়। ক্লাস টুয়ের মতো স্লিপ ধরে ধরে যোগ করুন, দশ পেরোলেই হাতে রাখুন এক, আর শেষ জোড়ার পরেও ক্যারি বেঁচে থাকলে নতুন একটা স্লিপ লাগিয়ে দিন।
+  hi: |
+    दो पुराने कैश रजिस्टर दिन का टोटल कागज की टेप पर छापते हैं, हर पर्ची पर एक अंक, और किसी जमाने के इंजीनियर ने तय किया कि टेप उल्टी निकलेगी: पहले इकाई का अंक, फिर दहाई, फिर सैकड़ा। कॉरपोरेट चाहता है दोनों टोटल जुड़ें और जवाब भी उसी उल्टे अंदाज में छपे। सुनने में झंझट लगता है, पर करने बैठो तो समझ आता है: उल्टा यानी इकाई के अंक पहले मिलते हैं, ठीक वहीं से जोड़ शुरू होता है। दूसरी कक्षा की तरह पर्ची दर पर्ची जोड़िए, दस से ऊपर जाए तो हासिल का एक आगे ले जाइए, और आखिरी जोड़ी के बाद भी हासिल बचा रहे तो एक नई पर्ची लगा दीजिए।
+  ar: |
+    آلتا تسجيل نقد قديمتان تطبعان مجموع اليوم على شريط ورقي، رقم واحد في كل قصاصة، وقرر مهندس من زمن سحيق أن يخرج الشريط معكوساً: خانة الآحاد أولاً ثم العشرات ثم المئات. تريد الإدارة جمع المجموعين وطباعة الناتج بنفس الطريقة المعكوسة. يبدو الأمر مزعجاً حتى تجربه فعلاً: المعكوس يعني أن خانتي الآحاد تلتقيان أولاً، وهذا بالضبط حيث يبدأ الجمع. تجمع قصاصة بقصاصة كما في الصف الثاني، وتحمل واحداً عند الفيض، وتدبّس قصاصة جديدة إذا بقي محمول بعد آخر زوج.
+---
+
+## Boss 7: The Register Tapes
+
+After the puzzle-box of Boss 6, a comfort-food boss. No trick insight, no aha moment, just clean execution of something you've known since you were seven, on a structure you've now spent six bosses learning to walk.
+
+Which is exactly why interviewers use it: it's an *execution* test. Dummy node, carry variable, unequal lengths, leftover carry. Four chances to be sloppy, zero places to be clever.
+
+---
+
+## The story
+
+The corner store has two ancient cash registers, one per aisle. At closing, each prints the day's total on paper tape, one digit per slip, and thanks to an engineering decision older than the owner, the tapes print **backward**, ones digit first:
+
+```
+Register 1 tape:  2 → 4 → 3     (this is 342: ones=2, tens=4, hundreds=3)
+Register 2 tape:  5 → 6 → 4     (this is 465)
+```
+
+Corporate wants one number: the combined total, printed on the same kind of backward tape.
+
+`342 + 465 = 807`, which on backward tape is:
+
+```
+7 → 0 → 8
+```
+
+Now here's the thing you realize the moment you stop groaning about the backward format: **it's doing you a favor.** When you add on paper, where do you start? The ones column. Rightmost digits first, carry flows left. These tapes hand you the ones digits *first in walking order*. The weird legacy format is grade-school addition's native byte order.
+
+Walk both tapes together: `2+5=7`, write 7. `4+6=10`, write 0, **carry the 1**. `3+4+1=8`, write 8. Done, `7 → 0 → 8`.
+
+---
+
+## The problem, dressed up properly
+
+> You are given two non-empty linked lists representing two non-negative integers. The digits are stored in **reverse order**, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
+>
+> You may assume the two numbers do not contain any leading zero, except the number 0 itself.
+
+LeetCode 2. Yes, problem number two on the entire site. It's the second-oldest problem on LeetCode and still in every interview rotation.
+
+---
+
+## The naive attempt
+
+Convert each list to an integer, add, convert back.
+
+```python
+def add_two_numbers(l1, l2):
+    def to_int(node):
+        n, mult = 0, 1
+        while node:
+            n += node.val * mult
+            mult *= 10
+            node = node.next
+        return n
+    total = to_int(l1) + to_int(l2)
+    # ...convert total back into a reversed list
+```
+
+In Python this even works, arbitrary-precision integers absorb a 500-digit tape without complaint. In Java, C++, Go? The moment a tape outgrows 64 bits, this crashes or silently wraps. The problem allows lists up to 100 digits, deliberately. The lesson being tested is digit-by-digit arithmetic where numbers *stay* digits, the same technique behind every big-integer library ever written.
+
+---
+
+## The weapon: one carry, two walkers, a dummy
+
+You know the algorithm from childhood. The engineering is in the loop conditions:
+
+- Walk both tapes together, but they may have **different lengths**. Treat a missing slip as 0.
+- Track one integer, `carry`, always 0 or 1 (max digit sum: 9+9+1 = 19).
+- Keep looping while there's *anything* left: slips on tape 1, slips on tape 2, **or a live carry**.
+- Build the result behind a dummy node, because you don't know the first digit before computing it.
+
+<MermaidBlock>
+graph TB
+    A["digit1 plus digit2 plus carry\nmissing slip counts as 0"]
+    B["new slip = sum mod 10\ncarry = sum div 10"]
+    C["attach slip to tail\nadvance surviving tapes"]
+    D["loop while l1 or l2 or carry\nleftover carry gets a slip"]
+    A --> B
+    B --> C
+    C --> D
+    D --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+That `or carry` in the loop condition is the whole boss. Consider `5 + 5`: tapes are `5` and `5`, one slip each. First iteration: `5+5=10`, write 0, carry 1, both tapes empty. Without `or carry`, the loop ends and you return `0`, having lost ten dollars off corporate's books. With it, one more iteration writes the 1: `0 → 1`, which is 10. Correct.
+
+---
+
+## Watching it work
+
+Unequal lengths this time: `9 → 9 → 9` (999) plus `1` (1).
+
+```
+step   d1   d2   carry in   sum   write   carry out
+1      9    1    0          10    0       1
+2      9    -    1          10    0       1
+3      9    -    1          10    0       1
+4      -    -    1          1     1       0
+```
+
+Result: `0 → 0 → 0 → 1`, which reads as 1000. The carry rippled through the entire number and then *outlived both tapes*, needing a fourth slip that neither input had. Steps 2 and 3 show the missing-slip-is-zero rule carrying half the load.
+
+---
+
+## The code
+
+```python
+def add_two_numbers(l1: ListNode | None, l2: ListNode | None) -> ListNode | None:
+    dummy = ListNode()
+    tail = dummy
+    carry = 0
+    while l1 or l2 or carry:
+        d1 = l1.val if l1 else 0
+        d2 = l2.val if l2 else 0
+        total = d1 + d2 + carry
+        carry, digit = divmod(total, 10)
+        tail.next = ListNode(digit)
+        tail = tail.next
+        l1 = l1.next if l1 else None
+        l2 = l2.next if l2 else None
+    return dummy.next
+```
+
+`divmod(total, 10)` hands back carry and digit in one call. In languages without it: `carry = total // 10`, `digit = total % 10`.
+
+<Callout type="tip" title="The follow-up: digits stored forward">
+LeetCode 445 is this exact problem with the tapes printed most-significant-first, and it's worth a thought experiment now: addition *needs* to start at the ones place, so you'd either reverse both lists (Boss 1!), add, and reverse the result, or push digits onto stacks (Dungeon 3!) and pop. The backward storage in today's problem isn't a quirk to tolerate, it's the format addition wants. Some legacy engineer knew exactly what they were doing.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Dropping the final carry.**
+The `or carry` in the loop condition. Test with `5 + 5` or `999 + 1`. This is *the* bug for this problem, decades of interviews confirm it.
+
+**2. Assuming equal lengths.**
+Advancing `l1.next` unconditionally crashes the moment tape 1 is shorter. Every read and every advance needs its `if l1 else` guard, all four of them.
+
+**3. Carry bigger than 1?**
+Can't happen with two numbers (9+9+1 = 19, carry 1), but if a variant sums *k* lists, carry can exceed 1 and `divmod` handles it while a hardcoded `carry = 1` doesn't. Write the general form out of habit.
+
+**4. Reversing the inputs "to make it normal".**
+Some people's first instinct is to reverse both lists so the numbers read forward, then fight the carry flowing the wrong way. The format is already perfect for the job. Read the problem twice before renovating it.
+
+---
+
+## Complexity
+
+One pass down the longer tape, plus possibly one extra node.
+
+**Time: O(max(n, m)). Space: O(max(n, m))** for the output list, O(1) beyond it.
+
+---
+
+## Boss down. XP gained.
+
+The stapled tape reads `7 → 0 → 8`, corporate's spreadsheet says 807, and both registers survive another fiscal year.
+
+What you walked away with:
+
+- Digit-by-digit arithmetic: numbers can stay as digit chains, no integer conversion, no overflow, ever
+- The loop condition `while l1 or l2 or carry`, three sources of remaining work in one line
+- Missing digits are zeros, no length-equalizing preprocessing needed
+- Reversed digit storage is addition's preferred format, not an obstacle
+
+Next up: **Boss 8 — The Bunk Bed Mystery.** A summer camp has n beds and n+1 campers, and the roster maps each camper to a bed. Someone's sharing, and you must name the bed *without* modifying the roster and *without* a notebook. There's no linked list anywhere in sight, until you squint, and then the Night Watchman's two runners come sprinting back for the cleverest encore in the dungeon.

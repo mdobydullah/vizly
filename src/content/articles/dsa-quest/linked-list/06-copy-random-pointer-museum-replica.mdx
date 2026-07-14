@@ -1,0 +1,220 @@
+---
+title: "Copy List with Random Pointer — The Museum Replica"
+slug: copy-random-pointer-museum-replica
+category: dsa
+series: linked-list
+seriesOrder: 6
+description: "Dungeon 6, Boss 6. Duplicate a traveling exhibit where every display points to the next, plus a 'see also' plaque aimed anywhere in the hall. Clone it so every plaque in the copy points inside the copy. The interleaving trick."
+tags:
+  - DSA
+  - Linked List
+  - Hash Map
+icon: "🖼️"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A famous exhibit is going on tour, so the museum needs an exact replica of the whole hall. Each display points to the next one, fine, easy to copy. But each display also has a "see also" plaque pointing at any other display in the hall, sometimes even itself. Copy the displays one by one and the plaques betray you: the replica's plaques keep pointing back at the original hall. The clever fix is to park each replica right behind its original for a while. Then every original's neighbor is its own clone, and every plaque can be copied with one glance.
+  bn: |
+    একটা বিখ্যাত প্রদর্শনী ট্যুরে যাচ্ছে, তাই জাদুঘরের পুরো হলটার হুবহু রেপ্লিকা বানাতে হবে। প্রতিটা ডিসপ্লে পরেরটাকে দেখিয়ে দেয়, সেটা কপি করা সোজা। কিন্তু প্রতিটা ডিসপ্লেতে একটা "আরও দেখুন" ফলকও আছে, যেটা হলের যেকোনো ডিসপ্লের দিকে তাক করা, কখনো নিজের দিকেও। একটা একটা করে কপি করলে ফলকগুলোই ধোঁকা দেবে: রেপ্লিকার ফলক ঘুরেফিরে আসল হলের দিকেই দেখাবে। চালাক সমাধানটা হলো প্রতিটা রেপ্লিকাকে কিছুক্ষণের জন্য তার আসলটার ঠিক পেছনে দাঁড় করিয়ে রাখা। তখন প্রতিটা আসলের পাশের জনই তার নিজের ক্লোন, আর যেকোনো ফলক এক নজরেই কপি করে ফেলা যায়।
+  hi: |
+    एक मशहूर प्रदर्शनी टूर पर जा रही है, इसलिए म्यूजियम को पूरे हॉल की हूबहू प्रतिकृति चाहिए। हर डिस्प्ले अगले की ओर इशारा करता है, वह कॉपी करना आसान है। पर हर डिस्प्ले पर एक "और देखें" पट्टिका भी है, जो हॉल के किसी भी डिस्प्ले की ओर तनी है, कभी-कभी खुद की ओर भी। एक-एक करके कॉपी करें तो पट्टिकाएं धोखा दे जाती हैं: प्रतिकृति की पट्टिकाएं असली हॉल की ओर ही इशारा करती रहती हैं। चालाक हल यह है कि हर प्रतिकृति को कुछ देर उसके असली के ठीक पीछे खड़ा कर दो। तब हर असली का पड़ोसी उसका अपना क्लोन होता है, और हर पट्टिका एक नजर में कॉपी हो जाती है।
+  ar: |
+    معرض شهير سينطلق في جولة، فيحتاج المتحف نسخة طبق الأصل من القاعة كلها. كل واجهة عرض تشير إلى التالية، وهذا سهل النسخ. لكن على كل واجهة أيضاً لوحة "انظر أيضاً" تشير إلى أي واجهة أخرى في القاعة، وأحياناً إلى نفسها. انسخ الواجهات واحدة واحدة وستخونك اللوحات: لوحات النسخة تظل تشير إلى القاعة الأصلية. الحل الذكي أن توقف كل نسخة خلف أصلها مباشرة لبعض الوقت. حينها يصبح جار كل أصل هو نسخته بالذات، وتُنسخ كل لوحة بلمحة واحدة.
+---
+
+## Boss 6: The Museum Replica
+
+Halfway boss, and the dungeon's puzzle-box. The structure itself fights back here: you're copying a list whose nodes point at *each other* in arbitrary ways, and every partial copy is a trap of half-built references.
+
+Two solutions matter: the honest hash map, and the interleaving trick that trades the map for three passes of pure pointer choreography.
+
+---
+
+## The story
+
+The "Wonders of the Deep" exhibit is going on a world tour, and the home museum refuses to part with the originals. Your studio wins the contract: replicate the entire hall, exactly.
+
+Each display case points to the next one on the visitor route. Easy. But each case also carries a **"see also" plaque**: "See also: Display 7", pointing anywhere in the hall. Forward, backward, at itself, or at nothing.
+
+```
+Display A: next → B,  see-also → C
+Display B: next → C,  see-also → A
+Display C: next → ∅,  see-also → C   (points at itself, bold choice)
+```
+
+The requirement that makes it a puzzle: in the replica hall, **every plaque must point at a replica**, never back at an original. The tour replica of B must say "see also: replica-of-A", not "see also: A, which is 4,000 miles away in the original museum".
+
+Copy the cases in route order and you hit the trap immediately: while copying A, its plaque points at C, *which you haven't built yet*. There's nothing to aim the replica plaque at.
+
+---
+
+## The problem, dressed up properly
+
+> A linked list of length `n` is given such that each node contains an additional random pointer, which could point to any node in the list, or `null`.
+>
+> Construct a **deep copy** of the list. The deep copy should consist of exactly `n` brand new nodes, where each new node's `next` and `random` pointers point to new nodes in the copied list, such that none of the pointers in the new list point to nodes in the original list.
+
+LeetCode 138. "Deep copy" is the key phrase: new nodes, internal wiring only.
+
+---
+
+## The naive attempt that isn't even wrong, just incomplete
+
+Copy nodes in order, set `next` as you go, and... skip the randoms? Set them later by *position*? To find "the clone of whatever my random points at", you'd walk the original list counting steps to the random's target (O(n)), then walk the clone list the same number of steps. Per node. O(n²) total, and the code is a mess of counting loops.
+
+The real lesson of the naive attempt is the diagnosis: the hard part is a *lookup problem*. Given a pointer to an original node, find its clone, fast.
+
+---
+
+## The weapon, version 1: the interpreter's dictionary
+
+Say it that way and the answer writes itself: a hash map from original node to its clone.
+
+**Pass 1:** walk the list, create a clone of every node (values only, no wiring), store `clone[orig] = copy`.
+**Pass 2:** walk again. For each original, wire `clone[orig].next = clone[orig.next]` and `clone[orig].random = clone[orig.random]`.
+
+Pass 2 can't hit the "not built yet" trap because *everything* was built in pass 1. The map is a phrasebook: any original pointer, `next` or `random`, translates to clone-world in O(1).
+
+```python
+def copy_random_list(head):
+    clone = {None: None}                 # translates null too
+    node = head
+    while node:
+        clone[node] = Node(node.val)
+        node = node.next
+    node = head
+    while node:
+        clone[node].next = clone[node.next]
+        clone[node].random = clone[node.random]
+        node = node.next
+    return clone[head]
+```
+
+O(n) time, O(n) space, and the `{None: None}` seed handles null pointers with zero `if`s. This is the version to write first in an interview. Then comes the follow-up: *without* the map?
+
+---
+
+## The weapon, version 2: park each replica behind its original
+
+The map answered "where's the clone of X?". The interleaving trick answers it with *geometry* instead of memory: put every clone **immediately after its original**, in the same list.
+
+**Pass 1 — interleave.** After each original, splice in its clone:
+
+```
+A → A' → B → B' → C → C'
+```
+
+Now "the clone of X" is simply `X.next`. The lookup structure is the list itself.
+
+**Pass 2 — wire the randoms.** For each original `X`: `X.next.random = X.random.next`. Read it slowly, it's the whole trick in one line: *my clone's plaque* (`X.next.random`) points at *the clone of whatever my plaque points at* (`X.random.next`).
+
+**Pass 3 — unzip.** Separate evens from odds: originals restored to their exact former glory, clones extracted into their own chain. The museum notices nothing.
+
+<MermaidBlock>
+graph TB
+    A["Pass 1: interleave\nA A' B B' C C'\nclone of X is X.next"]
+    B["Pass 2: wire randoms\nX.next.random = X.random.next\none glance per plaque"]
+    C["Pass 3: unzip\nrestore originals\nextract clone chain"]
+    A --> B
+    B --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+Original: `A(random→C)`, `B(random→A)`, `C(random→C)`.
+
+```
+pass 1:  A → A' → B → B' → C → C'
+
+pass 2:  A.random = C,  so A'.random = C.next  = C'   ✓
+         B.random = A,  so B'.random = A.next  = A'   ✓
+         C.random = C,  so C'.random = C.next  = C'   ✓ (self-pointer just works)
+
+pass 3:  originals: A → B → C        clones: A' → B' → C'
+```
+
+The self-pointing plaque on C, which feels like it should need a special case, falls out for free: C's neighbor is C', and that's exactly where the replica plaque should aim.
+
+---
+
+## The code (interleaving version)
+
+```python
+def copy_random_list(head: 'Node | None') -> 'Node | None':
+    if not head:
+        return None
+
+    # pass 1: interleave clones
+    node = head
+    while node:
+        node.next = Node(node.val, next=node.next)
+        node = node.next.next
+
+    # pass 2: wire random pointers
+    node = head
+    while node:
+        if node.random:
+            node.next.random = node.random.next
+        node = node.next.next
+
+    # pass 3: unzip
+    node = head
+    clone_head = head.next
+    while node:
+        clone = node.next
+        node.next = clone.next
+        clone.next = clone.next.next if clone.next else None
+        node = node.next
+    return clone_head
+```
+
+<Callout type="warning" title="Restore the original. Always.">
+Pass 3 isn't optional cleanup, it's part of the contract. LeetCode literally diffs your original list afterward, and real code that mutates a shared structure and "mostly" restores it is a time bomb. If you use the interleaving trick, you are borrowing the original's `next` pointers, and borrowed things get returned.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Wiring randoms during the first pass.**
+The original trap in new clothes: `A.random.next` only equals A-random's clone *after all clones are spliced in*. Wire randoms in their own pass, after interleaving completes.
+
+**2. Null randoms.**
+`node.random.next` explodes when `random` is null. Guard it (interleaved version) or seed the map with `{None: None}` (map version). This is the most common submitted bug on this problem.
+
+**3. Unzipping with sloppy tail handling.**
+The last clone's `next` must end as None, not dangle at an original. Walk the unzip on paper for a two-node list before trusting it.
+
+**4. Copying values into "new" nodes that share randoms.**
+A shallow copy that reuses original `random` targets passes a casual eyeball test and fails the deep-copy check. Every pointer in the clone world must land in the clone world. No embassies, no dual citizens.
+
+---
+
+## Complexity
+
+Map version: **O(n) time, O(n) space.** Interleaving: three passes, **O(n) time, O(1) extra space** (the clones themselves are the output, not overhead).
+
+---
+
+## Boss down. XP gained.
+
+The replica hall ships to Singapore, every "see also" plaque pointing correctly at its fellow replicas. Nobody ever knows there were two C displays pointing at themselves on two continents.
+
+What you walked away with:
+
+- Arbitrary cross-pointers make copying a **lookup problem**: original → clone, fast
+- The hash map phrasebook: build everything first, wire everything second
+- The interleaving trick: `X.next` *is* the clone, geometry replacing memory
+- `X.next.random = X.random.next`, the one-liner worth rehearsing until it reads like English
+- Borrowed structure gets restored, always
+
+Next up: **Boss 7 — The Register Tapes.** Two cash registers print the day's totals as digit chains, and corporate wants them added. The digits are stored *backward*, which sounds like a nuisance and is actually a gift: it lines the ones-place up first, and the carry flows exactly the way you learned in second grade. Grade-school addition, now with pointers.

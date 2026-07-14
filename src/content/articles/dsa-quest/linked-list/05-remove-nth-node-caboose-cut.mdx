@@ -1,0 +1,202 @@
+---
+title: "Remove Nth Node From End of List — The Caboose Cut"
+slug: remove-nth-node-caboose-cut
+category: dsa
+series: linked-list
+seriesOrder: 5
+description: "Dungeon 6, Boss 5. Drop the n-th car from the rear of a freight train, in a single walk along the track. Two inspectors, a fixed rope between them, and a dummy engine for the day the target is the locomotive itself."
+tags:
+  - DSA
+  - Linked List
+  - Two Pointers
+icon: "🚂"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A freight train waits at the yard and the dispatcher radios: "drop the second car from the rear, it's overweight." Easy if you could count from the back, but the train only couples front to rear, and the yard is so foggy you can't even see where it ends. Walking it twice, once to count and once to cut, wastes time. The trick: two inspectors and a rope exactly n cars long. The front inspector starts walking with the rope taut, and when he steps off the last car, the rear inspector is standing right before the doomed one. One uncoupling, done.
+  bn: |
+    ইয়ার্ডে একটা মালগাড়ি দাঁড়িয়ে, আর ডিসপ্যাচার রেডিওতে বলল: "পেছন থেকে দ্বিতীয় বগিটা খুলে ফেলো, ওজন বেশি।" পেছন থেকে গুনতে পারলে সহজ ছিল, কিন্তু ট্রেনের বগিগুলো শুধু সামনে থেকে পেছনে জোড়া, আর কুয়াশায় ইয়ার্ডের শেষ মাথাও দেখা যায় না। দুবার হাঁটা, একবার গুনতে আরেকবার কাটতে, সময় নষ্ট। ট্রিকটা হলো: দুজন ইন্সপেক্টর আর ঠিক n বগি লম্বা একটা দড়ি। সামনের ইন্সপেক্টর দড়ি টানটান রেখে হাঁটা শুরু করে, আর সে যখন শেষ বগি থেকে নামে, পেছনের ইন্সপেক্টর তখন ঠিক সেই বগিটার আগে দাঁড়িয়ে যেটা খুলতে হবে। এক টানে কাপলিং খোলা, কাজ শেষ।
+  hi: |
+    यार्ड में एक मालगाड़ी खड़ी है और डिस्पैचर रेडियो पर बोलता है: "पीछे से दूसरा डिब्बा काट दो, ओवरवेट है।" पीछे से गिन पाते तो आसान था, पर ट्रेन के डिब्बे सिर्फ आगे से पीछे जुड़े हैं, और कोहरा इतना है कि यार्ड का छोर तक नहीं दिखता। दो बार चलना, एक बार गिनने और एक बार काटने के लिए, समय की बर्बादी है। ट्रिक यह है: दो इंस्पेक्टर और ठीक n डिब्बे लंबी एक रस्सी। आगे वाला इंस्पेक्टर रस्सी तानकर चलना शुरू करता है, और जब वह आखिरी डिब्बे से उतरता है, पीछे वाला इंस्पेक्टर ठीक उस डिब्बे से पहले खड़ा होता है जिसे काटना है। एक कपलिंग खोली, काम खत्म।
+  ar: |
+    يقف قطار شحن في الساحة ويصدر أمر عبر اللاسلكي: "افصلوا العربة الثانية من المؤخرة، وزنها زائد." الأمر سهل لو أمكنك العد من الخلف، لكن عربات القطار موصولة من الأمام إلى الخلف فقط، والضباب كثيف حتى إنك لا ترى نهايته. المشي مرتين، مرة للعد ومرة للفصل، مضيعة للوقت. الحيلة: مفتشان وحبل طوله n عربة بالضبط. يمشي المفتش الأمامي والحبل مشدود، وعندما ينزل من آخر عربة يكون المفتش الخلفي واقفاً تماماً قبل العربة المطلوب فصلها. فكّة واحدة للوصلة وانتهى الأمر.
+---
+
+## Boss 5: The Caboose Cut
+
+Boss 3 raced two pointers at different *speeds*. This boss walks two pointers at the same speed with a fixed *gap*, the other half of the two-pointer toolkit for lists. Plus a return appearance from Boss 2's dummy node, in its most important role yet.
+
+---
+
+## The story
+
+Fog-drowned freight yard, 5 AM. A train of five cars:
+
+```
+1 → 2 → 3 → 4 → 5
+```
+
+Dispatcher on the radio: "Car **2nd from the rear** is overweight. Uncouple it before the 6 AM departure."
+
+Second from the rear is car 4. But you're standing at the locomotive, the fog eats everything past three cars, and couplings only connect *forward to next*. You can't see the end, and no car knows what's behind it.
+
+The obvious plan: walk to the end counting cars (five), walk back to the front, walk again to car `5 - 2 = 3`, and uncouple the link behind it. Two full walks. It works, and there's a lazier way.
+
+Take a rope exactly **2 couplings long** and a colleague. You hold one end at the front, she holds the other, standing 2 cars ahead. Now both of you walk forward together, rope taut. When *she* steps off the **last car**, you look up: you're standing on car 3, and the car behind you, car 4, is the one to cut.
+
+Why it works is almost insulting: she's always exactly n cars ahead of you. When she's at the end, you're n cars from the end. No counting, one walk.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `head` of a linked list, remove the `n`-th node from the end of the list and return its head.
+>
+> Follow up: could you do this in one pass?
+
+LeetCode 19.
+
+---
+
+## The naive attempt
+
+The two-walk version.
+
+```python
+def remove_nth_from_end(head, n):
+    length = 0
+    node = head
+    while node:
+        length += 1
+        node = node.next
+    if length == n:              # removing the head itself
+        return head.next
+    node = head
+    for _ in range(length - n - 1):
+        node = node.next
+    node.next = node.next.next
+    return head
+```
+
+O(n) time, O(1) space, completely respectable. Two things bug us: the double pass (the follow-up exists to poke at it), and that special case sticking out like a splinter, "what if the node to remove is the head?" needs its own branch, because the head has no node in front of it to rewire.
+
+Both annoyances die together.
+
+---
+
+## The weapon: a taut rope and a fake engine
+
+**The rope.** Two pointers, `lead` and `trail`. Advance `lead` alone by `n` steps first, creating the gap. Then advance both together until `lead` steps off the end. `trail` now stands exactly `n` from the end... almost. For surgery we want `trail` standing *just before* the doomed node, so we run `lead` to the *last node* rather than past it, or equivalently, start `trail` one node earlier.
+
+**The fake engine.** Which brings in the dummy. Hook a dummy node in front of the head and start `trail` there. Now even if the doomed node *is* the head, `trail` stands on the dummy, in front of it, perfectly positioned to rewire. The special case doesn't need code because the dummy makes "the node before the head" a place that exists.
+
+<MermaidBlock>
+graph TB
+    A["Dummy engine in front\ntrail starts at dummy"]
+    B["lead starts at head\nadvance lead n steps\nrope now taut"]
+    C["March both together\nuntil lead is on last car"]
+    D["trail is just before target\ntrail.next = trail.next.next"]
+    E["Return dummy.next\nworks even if head was cut"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+`1 → 2 → 3 → 4 → 5`, `n = 2`. Dummy prepended: `D → 1 → 2 → 3 → 4 → 5`.
+
+```
+phase 1: lead advances n=2 steps from head
+         lead at 3, trail at D
+
+phase 2: march together while lead exists
+march    trail   lead
+1        1       4
+2        2       5
+3        3       None   → stop
+
+trail = 3, the doomed car is trail.next = 4
+cut:     3.next = 3.next.next   →   1 → 2 → 3 → 5
+```
+
+The rope did its job: `lead` walked off the fog end of the train at the exact moment `trail` reached the car in front of the overweight one.
+
+Return `dummy.next`, which is still car 1. And if the order had been `n = 5` (cut the locomotive), `lead`'s head start would land it on None immediately, zero marches happen, `trail` stays on the dummy, and `dummy.next = dummy.next.next` beheads the list cleanly. No special case, the dummy absorbed it.
+
+---
+
+## The code
+
+```python
+def remove_nth_from_end(head: ListNode | None, n: int) -> ListNode | None:
+    dummy = ListNode(0, head)
+    lead = head
+    trail = dummy
+    for _ in range(n):          # rope out: lead gets n ahead of trail's next
+        lead = lead.next
+    while lead:                 # march until lead walks off the end
+        lead = lead.next
+        trail = trail.next
+    trail.next = trail.next.next    # the cut
+    return dummy.next
+```
+
+This version runs `lead` fully off the end (`while lead` instead of `while lead.next`), which pairs with `trail` starting on the dummy, one node before `head`. Gap arithmetic and start position must agree; change one, change the other.
+
+<Callout type="tip" title="Is one pass actually faster?">
+Truthfully: the two-pass version also touches each node at most twice, same O(n). "One pass" matters when the list *streams* past you and can't be replayed, tape drives once, network packets now. Interviewers ask for it partly for that reason and partly to see the gap technique. Learn it as a technique, not as a speed hack.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Rope length off by one.**
+Whether `lead` should get `n` or `n+1` steps of head start depends entirely on whether `trail` starts at `head` or at the dummy. Don't memorize a number, memorize the *goal*: after marching, `trail.next` must be the doomed node. Rehearse on a 3-car train.
+
+**2. No dummy, then removing the head.**
+`n` equal to the list length means the head dies. Without a dummy, `trail` has nowhere to stand and you need an explicit `if` branch. With it, zero branches. This is the single best advertisement for dummy nodes in the whole dungeon.
+
+**3. Cutting with `trail.next = lead`.**
+Tempting and wrong: `lead` is off the end (None) or on the last car, not the node after the target. The cut is always `trail.next = trail.next.next`, splice around the victim.
+
+**4. Trusting `n` blindly.**
+LeetCode guarantees `1 ≤ n ≤ length`. Real code shouldn't: an `n` bigger than the list makes the rope-out loop walk off a cliff. A guard clause costs one line.
+
+---
+
+## Complexity
+
+`lead` walks the list once, `trail` walks part of it once.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+Car 4 rolls to the side track, the train leaves at 5:58, and the dispatcher never learns how close it was.
+
+What you walked away with:
+
+- The **fixed-gap technique**: two same-speed pointers, n apart, turn "n-th from the end" into "when the front one finishes"
+- Dummy nodes erase the remove-the-head special case entirely
+- Position `trail` one *before* the target, surgery always happens from the node in front
+- Gap size and start position are one decision, not two
+
+Five bosses in, and every list so far had one pointer per node, a single clean chain. The next boss hands you a list where every node *also* points somewhere random, and asks for a perfect copy. It's the dungeon's puzzle-box.
+
+Next up: **Boss 6 — The Museum Replica.** A traveling exhibit must be duplicated exactly: each display points to the next, and each also has a "see also" plaque pointing at *any* display in the hall, even itself. Clone the hall so that every plaque in the copy points inside the copy. The elegant answer hides clones between originals, like parking each replica right behind its original.

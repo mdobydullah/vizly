@@ -1,0 +1,196 @@
+---
+title: "Merge Two Sorted Lists — The Bakery Tickets"
+slug: merge-two-lists-bakery-tickets
+category: dsa
+series: linked-list
+seriesOrder: 2
+description: "Dungeon 6, Boss 2. Two bakery queues, both sorted by ticket number, one counter. Zip them into a single sorted line without losing a soul. Enter the dummy node, the most useful trinket in pointer work."
+tags:
+  - DSA
+  - Linked List
+  - Beginner
+icon: "🥐"
+color: orange
+createdAt: "2026-07-14T15:00:00Z"
+updatedAt: "2026-07-14T15:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Saturday morning at the bakery, two doors, two queues, and everyone holds a numbered ticket. Each queue is already sorted, smallest ticket in front. The owner wants one single line at the counter, still sorted. You stand between the two queues and just keep waving the smaller front ticket forward, again and again, until one queue empties. Then the leftover queue walks over in one piece. No one gets recounted, no one gets lost, and the whole thing takes one pass.
+  bn: |
+    শনিবার সকালে বেকারিতে দুটো দরজা, দুটো লাইন, সবার হাতে নম্বর দেওয়া টিকিট। দুটো লাইনই আগে থেকে সাজানো, সবচেয়ে ছোট নম্বর সামনে। মালিক চান কাউন্টারে একটাই লাইন হোক, সেটাও সাজানো। আপনি দুই লাইনের মাঝখানে দাঁড়ান আর বারবার সামনের দুটো টিকিটের মধ্যে ছোটটাকে হাত নেড়ে এগিয়ে দেন, যতক্ষণ না একটা লাইন খালি হয়ে যায়। তারপর বাকি লাইনটা পুরোটাই একসাথে হেঁটে চলে আসে। কেউ দুবার গোনা পড়ে না, কেউ হারায় না, আর পুরো কাজটা হয় এক পাসেই।
+  hi: |
+    शनिवार सुबह बेकरी में दो दरवाजे, दो कतारें, और सबके हाथ में नंबर वाला टिकट। दोनों कतारें पहले से क्रम में हैं, सबसे छोटा नंबर आगे। मालिक चाहता है काउंटर पर एक ही कतार हो, वह भी क्रम में। आप दोनों कतारों के बीच खड़े होते हैं और बार-बार आगे के दो टिकटों में से छोटे वाले को हाथ के इशारे से आगे भेजते रहते हैं, जब तक एक कतार खाली न हो जाए। फिर बची हुई कतार एक साथ चलकर आ जाती है। न कोई दोबारा गिना जाता है, न कोई खोता है, और पूरा काम एक ही पास में हो जाता है।
+  ar: |
+    صباح السبت في المخبز، بابان وطابوران وكل شخص يحمل تذكرة مرقّمة. كلا الطابورين مرتب أصلاً، أصغر رقم في المقدمة. يريد المالك طابوراً واحداً عند الكاونتر، مرتباً أيضاً. تقف بين الطابورين وتشير للتذكرة الأصغر بين المقدمتين لتتقدم، مرة بعد مرة، حتى يفرغ أحد الطابورين. عندها ينتقل الطابور المتبقي كاملاً كقطعة واحدة. لا أحد يُعَدّ مرتين ولا أحد يضيع، والعملية كلها تتم في مسار واحد.
+---
+
+## Boss 2: The Bakery Tickets
+
+After Boss 1's careful flip surgery, this one feels like a breather. It is. But it introduces a tool you'll use in half of the remaining bosses, so don't skim: the **dummy node**.
+
+---
+
+## The story
+
+Your favorite bakery got popular. Two entrances now, two queues, and a ticket machine at each door. Both queues are sorted by ticket number, lowest in front.
+
+```
+Queue A:  1 → 2 → 4
+Queue B:  1 → 3 → 4
+```
+
+The owner wants **one line** at the counter, still fully sorted:
+
+```
+1 → 1 → 2 → 3 → 4 → 4
+```
+
+You're on queue duty. Your move is almost embarrassing in its simplicity: look at the two people in front, wave the smaller ticket forward, repeat. When one queue runs dry, the other walks over as-is, it's already sorted internally and everyone left in it is bigger than everything you've placed.
+
+That's the entire algorithm. The interesting part is doing it with pointers without dropping anybody.
+
+---
+
+## The problem, dressed up properly
+
+> You are given the heads of two sorted linked lists `list1` and `list2`. Merge the two lists into one sorted list. The list should be made by splicing together the nodes of the first two lists.
+>
+> Return the head of the merged linked list.
+
+LeetCode 21. Note "splicing together the nodes": you rewire the existing people, you don't create new ones.
+
+---
+
+## The naive attempt
+
+Dump both lists into an array, sort, rebuild.
+
+```python
+def merge_two_lists(l1, l2):
+    vals = []
+    for node in (l1, l2):
+        while node:
+            vals.append(node.val)
+            node = node.next
+    vals.sort()
+    # ...rebuild a fresh list from vals
+```
+
+O((n+m) log(n+m)) for the sort, O(n+m) extra space, and it ignores the gift the problem handed you: both lists are *already sorted*. Sorting sorted data is paying for groceries you already own.
+
+---
+
+## The weapon: the dummy node
+
+Here's the annoyance the naive version dodged. When you build the merged line node by node, the *first* attachment is special: there's no line yet, so "attach to the end of the line" has nothing to attach to. You end up writing separate code for "starting the line" and "growing the line", with an `if` guarding which case fires.
+
+The fix costs one line: create a fake node, the **dummy**, and let it be the permanent start of the line. Now the line is never empty, the first real node attaches to the dummy like any other node, and the special case evaporates. At the end, the answer is `dummy.next`.
+
+Think of it as a bakery mannequin standing at the counter holding ticket zero. Nobody serves it, but everyone lines up behind it, and "behind the mannequin" is a place that always exists.
+
+<MermaidBlock>
+graph TB
+    A["Dummy node\nline always has a start"]
+    B["tail = last placed node\nstarts at dummy"]
+    C["Compare front tickets\nl1.val vs l2.val"]
+    D["Attach smaller to tail\ntail moves, that queue advances"]
+    E["One queue empty\ntail.next = other queue\nwhole remainder at once"]
+    F["Answer is dummy.next"]
+    A --> B
+    B --> C
+    C --> D
+    D --> C
+    C --> E
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+`A: 1 → 2 → 4`, `B: 1 → 3 → 4`
+
+```
+step   front of A   front of B   attach       merged line so far
+1      1            1            B's 1 (tie→either)   0(dummy) → 1
+2      1            3            A's 1        0 → 1 → 1
+3      2            3            A's 2        0 → 1 → 1 → 2
+4      4            3            B's 3        0 → 1 → 1 → 2 → 3
+5      4            4            A's 4        0 → 1 → 1 → 2 → 3 → 4
+6      -            4            splice B     0 → 1 → 1 → 2 → 3 → 4 → 4
+```
+
+Step 6 is the free lunch: queue A emptied, so the rest of queue B (just the 4) attaches in a single pointer assignment, no loop needed. Return `dummy.next`, skipping the mannequin.
+
+---
+
+## The code
+
+```python
+def merge_two_lists(l1: ListNode | None, l2: ListNode | None) -> ListNode | None:
+    dummy = ListNode()
+    tail = dummy
+    while l1 and l2:
+        if l1.val <= l2.val:
+            tail.next = l1
+            l1 = l1.next
+        else:
+            tail.next = l2
+            l2 = l2.next
+        tail = tail.next
+    tail.next = l1 if l1 else l2    # splice the survivor
+    return dummy.next
+```
+
+<Callout type="tip" title="When to reach for a dummy">
+Any time the head of your output list is decided *during* the algorithm rather than known upfront, use a dummy. Merging (head could come from either list), deleting nodes (the head itself might be deleted), partitioning, splicing. It costs one allocation and deletes an entire class of `if head is None` special cases. You'll see it again in Bosses 5, 7, 10, and 11.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the leftover splice.**
+The `while` stops when *one* list empties, not both. Without `tail.next = l1 if l1 else l2`, everyone still standing in the other queue goes home without pastries. On sorted inputs the survivors are always valid as-is, splice and done.
+
+**2. Advancing the wrong pointer.**
+Attach from `l1`, advance `l1`. Attaching from one list while stepping the other duplicates one queue and drops the other. Symptom: output is sorted but has wrong members.
+
+**3. Building with `<` instead of `<=`.**
+Both work for correctness here, but `<=` keeps the merge **stable**: ties preserve original order, list1 first. Some problems (and some interviewers) care. Free to do, so do it.
+
+**4. Creating new nodes.**
+`tail.next = ListNode(l1.val)` works but allocates n+m nodes for no reason and violates the "splice the nodes" instruction. Rewire, don't rebuild.
+
+---
+
+## Complexity
+
+Every node is examined and attached exactly once.
+
+**Time: O(n + m). Space: O(1).** Just the dummy and two walkers.
+
+---
+
+## Boss down. XP gained.
+
+One line, fully sorted, and the croissants move at maximum speed.
+
+What you walked away with:
+
+- The **dummy node**: a fake head that makes "the line is empty" impossible, killing special cases
+- Merge by repeated smaller-front selection, then splice the survivor in O(1)
+- `<=` for stability, and always return `dummy.next`
+- Rewire existing nodes, never rebuild
+
+Keep this merge warm. Boss 10 asks you to do it with *k* queues at once, and this two-queue version is the inner gear of that machine.
+
+Next up: **Boss 3 — The Night Watchman.** A museum guard follows glowing arrows from room to room, and some prankster rewired one arrow to point backward. Does the guard's route ever end, or does he walk in circles until sunrise? You can't mark the rooms and you can't carry a notebook. Two runners, one track, and the most famous meeting in computer science.
