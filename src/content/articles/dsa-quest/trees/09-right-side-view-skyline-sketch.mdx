@@ -1,0 +1,208 @@
+---
+title: "Binary Tree Right Side View — The Skyline Sketch"
+slug: right-side-view-skyline-sketch
+category: dsa
+series: trees
+seriesOrder: 9
+description: "Dungeon 7, Boss 9. An artist east of a tree-shaped tower sketches one apartment per floor: the rightmost visible one. Boss 8's engine with one line changed, plus a sly DFS that visits right-first and trusts depth."
+tags:
+  - DSA
+  - Trees
+  - BFS
+  - DFS
+icon: "🏙️"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An artist in a hot-air balloon floats due east of a strange apartment tower that branches like a tree. She sketches exactly what she can see: one apartment per floor, whichever sits furthest east, everything behind it hidden. Floors are tricky because the tower branches: some floors are wide, and on some floors the east wing simply stops and an apartment from the west wing peeks out from behind it. Sweep the tower floor by floor and keep each floor's last apartment, or be sneaky, walk the tower east-side-first and record the first apartment you meet on each new floor.
+  bn: |
+    এক শিল্পী হট-এয়ার বেলুনে ভেসে আছেন একটা অদ্ভুত অ্যাপার্টমেন্ট টাওয়ারের ঠিক পুবে, টাওয়ারটা গাছের মতো শাখা ছড়ায়। তিনি আঁকেন ঠিক যা দেখতে পান: প্রতি তলায় একটাই অ্যাপার্টমেন্ট, যেটা সবচেয়ে পুবে, তার পেছনের সবকিছু আড়ালে। তলাগুলো প্যাঁচালো, কারণ টাওয়ার শাখা মেলে: কোনো তলা চওড়া, আর কোনো তলায় পুব দিকের উইং হঠাৎ শেষ, তখন পশ্চিমের উইংয়ের একটা অ্যাপার্টমেন্ট পেছন থেকে উঁকি দেয়। টাওয়ারটা তলা ধরে ধরে ঝাড়ু দিন আর প্রতিটা তলার শেষ অ্যাপার্টমেন্টটা রাখুন, নয়তো চালাকি করুন, পুব-দিক-আগে হেঁটে প্রতিটা নতুন তলায় প্রথম যে অ্যাপার্টমেন্ট পাবেন সেটাই টুকে নিন।
+  hi: |
+    एक कलाकार गर्म हवा के गुब्बारे में एक अजीब अपार्टमेंट टावर के ठीक पूरब में तैर रही है, टावर पेड़ की तरह शाखाएं फैलाता है। वह ठीक वही स्केच करती है जो दिख रहा है: हर मंजिल पर एक ही अपार्टमेंट, जो सबसे पूरब में है, उसके पीछे का सब छिपा। मंजिलें पेचीदा हैं क्योंकि टावर शाखाओं में बंटता है: कुछ मंजिलें चौड़ी हैं, और कुछ मंजिलों पर पूरब वाला विंग बस खत्म हो जाता है और पश्चिम विंग का एक अपार्टमेंट उसके पीछे से झांकता है। टावर को मंजिल दर मंजिल छानो और हर मंजिल का आखिरी अपार्टमेंट रखो, या चालाकी करो, टावर पर पूरब-पहले चलो और हर नई मंजिल पर मिलने वाला पहला अपार्टमेंट दर्ज कर लो।
+  ar: |
+    تطفو رسامة في منطاد إلى الشرق تماماً من برج سكني غريب يتفرع كالشجرة. ترسم بالضبط ما تراه: شقة واحدة في كل طابق، الأبعد شرقاً، وكل ما خلفها محجوب. الطوابق خادعة لأن البرج يتفرع: بعضها عريض، وفي بعضها ينتهي الجناح الشرقي فجأة فتطل شقة من الجناح الغربي من خلفه. امسح البرج طابقاً طابقاً واحتفظ بآخر شقة في كل طابق، أو كن ماكراً: تجول في البرج بادئاً بالجهة الشرقية وسجّل أول شقة تصادفها في كل طابق جديد.
+---
+
+## Boss 9: The Skyline Sketch
+
+Boss 8 promised its engine had many hats. Here's the first one worn in battle, and the boss brings a bonus: a second, sneakier solution that flips a DFS around and lets *depth* decide visibility. Two mindsets, one answer, and knowing both is the point.
+
+---
+
+## The story
+
+The artist's balloon hangs due east of the tower:
+
+```
+             1
+           /   \
+          2     3
+           \      \
+            5      4
+```
+
+From the east, she sees floor by floor:
+
+- **Floor 1:** apartment 1. (Alone on its floor.)
+- **Floor 2:** apartment 3, and 2 is hidden *behind* it (3 is further east).
+- **Floor 3:** apartment 4, hiding 5.
+
+Sketch: `[1, 3, 4]`.
+
+Now the case that separates this from "just walk the right edge", give apartment 5 a westward child and *remove* 4:
+
+```
+             1
+           /   \
+          2     3
+           \
+            5
+           /
+          6
+```
+
+Floors: 1 → then 3 → then **5** (the east wing ended at floor 2; 5 peeks out from the west wing) → then **6**. Sketch: `[1, 3, 5, 6]`.
+
+The right side view is *not* the right spine. When the east wing stops short, deeper floors show whatever's rightmost among what *exists*. Any solution that only follows `right` pointers dies on this tower.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
+
+LeetCode 199.
+
+---
+
+## The naive attempt
+
+Walk down the right spine: `root`, `root.right`, `root.right.right`...
+
+```python
+def right_side_view(root):
+    out, node = [], root
+    while node:
+        out.append(node.val)
+        node = node.right      # blind faith in the east wing
+    return out
+```
+
+On the second tower this returns `[1, 3]`, missing floors 3 and 4 entirely. The counterexample is worth internalizing because this exact wrong answer *feels* right for a solid minute. Visibility is a **per-floor** question, floors don't care which wing their rightmost survivor came from.
+
+---
+
+## The weapon, version 1: sweep floors, keep the last
+
+Per-floor question, and Boss 8 built the per-floor engine. Run level order; from each row, keep the **last** element (BFS pushes left before right, so within a row, east is last).
+
+```python
+from collections import deque
+
+def right_side_view(root: TreeNode | None) -> list[int]:
+    if not root:
+        return []
+    out = []
+    queue = deque([root])
+    while queue:
+        for i in range(len(queue)):        # Boss 8's snapshot
+            node = queue.popleft()
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        out.append(node.val)               # last popped this row = rightmost
+    return out
+```
+
+One line of substance changed from Boss 8: instead of collecting the whole row, keep whoever popped last. That's the "many hats" promise, cashed.
+
+---
+
+## The weapon, version 2: fly east-first, trust the depth
+
+The sneaky one. Run a **depth-first** walk that visits `right` before `left`, carrying the floor number. The first apartment you ever encounter on a given floor is, by construction, the most eastern one on that floor, everything else on the floor gets reached later, from further west.
+
+Detection is one comparison: you're on a floor no one has sketched yet exactly when `depth == len(sketch)`.
+
+<MermaidBlock>
+graph TB
+    A["dfs(node, depth)\nright child first"]
+    B["depth == len(sketch)?\nfirst visit to this floor\nsketch this apartment"]
+    C["dfs(node.right, depth+1)\neast wing before west"]
+    D["dfs(node.left, depth+1)\nwest fills floors\nthe east never reached"]
+    A --> B
+    B --> C
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def right_side_view(root: TreeNode | None) -> list[int]:
+    out = []
+    def dfs(node, depth):
+        if not node:
+            return
+        if depth == len(out):        # first arrival on this floor
+            out.append(node.val)
+        dfs(node.right, depth + 1)   # east first
+        dfs(node.left, depth + 1)
+    dfs(root, 0)
+    return out
+```
+
+Trace it on the second tower: 1 sketched (floor 0), 3 sketched (floor 1), 3 has no children, backtrack, 2 arrives on floor 1, `len(out)` is already 2, *skipped*, then 5 arrives on floor 2, sketched, then 6 on floor 3, sketched. `[1, 3, 5, 6]`. The west wing filled in exactly the floors the east wing never reached, which is what "peeking out from behind" *means*, formalized into one equality check.
+
+---
+
+## Which one, when?
+
+Same O(n) time. BFS pays O(width) memory, DFS pays O(height). BFS states the problem's shape directly ("per floor, keep the rightmost"), DFS is slicker and generalizes to "left side view" by swapping two lines. Interviews: either is a full-credit answer, and mentioning the other earns the bonus nod. Personal advice: reach for the BFS hat first, it's harder to get subtly wrong under pressure, then name-drop the east-first DFS.
+
+---
+
+## Gotchas
+
+**1. The right-spine fantasy.**
+The naive attempt. Keep the 5-peeks-out tower in your pocket; it kills the spine walk in four nodes.
+
+**2. DFS with left-first order.**
+Visit left before right in version 2 and `depth == len(out)` sketches the *west* side view. The entire correctness hangs on east-first order; it's one swapped line with no crash and totally wrong output, the worst kind of bug.
+
+**3. BFS keeping the first of each row instead of the last.**
+That's the left side view again, from the other engine. Rightmost = last popped (with left-pushed-first), or push right before left and keep the first. Pick a convention, don't mix.
+
+**4. Depth off-by-one in version 2.**
+`depth == len(out)` works when the root starts at depth 0 and floors are sketched in order. Start the root at 1 and the root never gets sketched (the check `1 == 0` fails). The invariant, in words: floors sketched so far = deepest floor reached. Keep it aligned with your starting depth.
+
+---
+
+## Complexity
+
+Both versions visit every apartment once.
+
+**Time: O(n). Space:** O(w) for BFS, O(h) for DFS. The tower's shape decides which bill is smaller.
+
+---
+
+## Boss down. XP gained.
+
+The sketch sells at the gallery under the title "East Elevation, With Peeking", and apartment 5's owner buys it, delighted to finally be visible.
+
+What you walked away with:
+
+- Right side view = **rightmost per floor**, a per-level question, never a right-spine walk
+- Boss 8's engine, one line modified: many-hats delivered
+- The east-first DFS: visit order plus `depth == len(out)` turns *arrival order* into *visibility*
+- Left view, right view, top-of-each-level: all the same two engines with lines swapped
+
+Both view bosses asked "what's visible per level". The next boss asks something spicier: what's visible *looking back up the path you came from*, and it pays in a different currency, a count, accumulated through the recursion's arguments instead of its return values.
+
+Next up: **Boss 10 — The Ridge Lookouts.** Hikers rate viewpoints along mountain ridge trails: a lookout is "good" if nothing *earlier on the trail from base camp* stands taller than it. Count the good lookouts. The new move: passing knowledge *downward* through the recursion, a running maximum riding shotgun in the arguments.

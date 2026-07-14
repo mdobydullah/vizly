@@ -1,0 +1,202 @@
+---
+title: "Diameter of Binary Tree — The Zipline Route"
+slug: diameter-zipline-route
+category: dsa
+series: trees
+seriesOrder: 3
+description: "Dungeon 7, Boss 3. An adventure park wants the longest zipline between any two treehouse platforms, and the cable may bend through a platform. Depth reports plus a side channel: the pattern behind half of all Hard tree problems."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+icon: "🚡"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An adventure park built a treehouse complex where every platform branches into two, and marketing wants to sell "the longest zipline in the country". The cable can run between any two platforms, and it's allowed to bend through a platform, coming up one branch and going down the other. Here's the twist that makes it tricky: the longest ride might not touch the main platform at all, it could live entirely inside one far branch. So every platform reports its depth upward, exactly like the cave survey, but also quietly checks how long a cable bending through itself would be. The best of those quiet checks is the answer.
+  bn: |
+    এক অ্যাডভেঞ্চার পার্ক ট্রিহাউস কমপ্লেক্স বানিয়েছে যেখানে প্রতিটা প্ল্যাটফর্ম দুই শাখায় ভাগ হয়, আর মার্কেটিং টিম বেচতে চায় "দেশের সবচেয়ে লম্বা জিপলাইন"। কেবলটা যেকোনো দুটো প্ল্যাটফর্মের মধ্যে টানা যায়, আর সেটা একটা প্ল্যাটফর্মের ভেতর দিয়ে বাঁক নিতেও পারে, এক শাখা বেয়ে উঠে অন্য শাখা বেয়ে নেমে। মজার প্যাঁচটা হলো: সবচেয়ে লম্বা রাইডটা হয়তো মূল প্ল্যাটফর্ম ছুঁয়েও দেখে না, সেটা দূরের কোনো এক শাখার ভেতরেই থাকতে পারে। তাই প্রতিটা প্ল্যাটফর্ম গুহা জরিপের মতোই নিজের গভীরতা উপরে রিপোর্ট করে, কিন্তু সাথে চুপিচুপি হিসাব করে নিজের ভেতর দিয়ে বাঁক নেওয়া কেবলটা কত লম্বা হতো। ওই চুপচাপ হিসাবগুলোর সেরাটাই উত্তর।
+  hi: |
+    एक एडवेंचर पार्क ने ऐसा ट्रीहाउस कॉम्प्लेक्स बनाया है जहां हर प्लेटफॉर्म दो शाखाओं में बंटता है, और मार्केटिंग को बेचना है "देश की सबसे लंबी जिपलाइन"। केबल किन्हीं भी दो प्लेटफॉर्मों के बीच खिंच सकती है, और उसे किसी प्लेटफॉर्म से होकर मुड़ने की भी इजाजत है, एक शाखा से ऊपर आकर दूसरी से नीचे। पेच यह है: सबसे लंबी राइड शायद मुख्य प्लेटफॉर्म को छुए ही नहीं, वह पूरी की पूरी किसी दूर की शाखा के अंदर हो सकती है। इसलिए हर प्लेटफॉर्म गुफा सर्वे की तरह अपनी गहराई ऊपर रिपोर्ट करता है, पर साथ ही चुपचाप जांच लेता है कि उससे होकर मुड़ने वाली केबल कितनी लंबी होती। उन्हीं चुपचाप जांचों में से सबसे बड़ी ही जवाब है।
+  ar: |
+    بنى منتزه مغامرات مجمّع بيوت شجرية يتفرع فيه كل منصة إلى فرعين، ويريد قسم التسويق بيع "أطول زيبلاين في البلاد". يمكن مدّ الكابل بين أي منصتين، ويُسمح له بالانعطاف عبر منصة، صاعداً من فرع ونازلاً من الآخر. المفاجأة التي تجعلها صعبة: أطول رحلة قد لا تلمس المنصة الرئيسية إطلاقاً، فقد تقع بكاملها داخل فرع بعيد. لذلك تبلّغ كل منصة عمقها إلى الأعلى تماماً كمسح الكهف، لكنها تفحص بهدوء أيضاً كم سيبلغ طول كابل ينعطف عبرها. أفضل تلك الفحوص الهادئة هو الجواب.
+---
+
+## Boss 3: The Zipline Route
+
+Boss 2's template had one channel: each node reports one number upward. This boss introduces the move that separates tree tourists from tree residents: **the answer you report upward and the answer you're hunting are different numbers.**
+
+Master this split and Boss 14, a certified Hard and this dungeon's summit, becomes a reskin.
+
+---
+
+## The story
+
+The adventure park's treehouse complex, platforms connected by rope bridges:
+
+```
+          Platform 1
+         /          \
+    Platform 2    Platform 3
+     /      \
+Platform 4  Platform 5
+```
+
+Marketing wants to install one glorious zipline: **the longest possible cable between any two platforms**, measured in bridges (edges). The cable may pass *through* platforms, and critically, it may **bend at a platform**: come up from one branch and head down the other.
+
+Look at the map. The longest route is Platform 4 → 2 → 5? Three platforms, 2 bridges. Or 4 → 2 → 1 → 3: **3 bridges**. That one bends at Platform 1, rising from the deep left side and dropping to the right.
+
+Now stretch your imagination to a complex where Platform 3's side is a stub but Platform 2's side is a fifty-platform jungle. The longest cable might run entirely *inside* the left jungle, bending at some interior platform, never visiting Platform 1 at all. That's the trap of this problem: **the best answer can live anywhere, not just at the root.**
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, return the length of the **diameter** of the tree.
+>
+> The diameter of a binary tree is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root. The length of a path between two nodes is represented by the number of edges between them.
+
+LeetCode 543. Note: **edges**, not nodes. Boss 2's counting-convention warning, now live ammunition.
+
+---
+
+## The naive attempt
+
+The longest path bending at node X is `depth(X.left) + depth(X.right)`. So: for every node, compute both depths, take the best.
+
+```python
+def diameter_of_binary_tree(root):
+    def depth(node):
+        if not node:
+            return 0
+        return 1 + max(depth(node.left), depth(node.right))
+
+    best = 0
+    def walk(node):
+        nonlocal best
+        if not node:
+            return
+        best = max(best, depth(node.left) + depth(node.right))
+        walk(node.left)
+        walk(node.right)
+    walk(root)
+    return best
+```
+
+Correct! And O(n²) in the worst case: `walk` visits n nodes, and each visit launches a full `depth` survey of everything below. On a vine-shaped tree, that's the arithmetic-series death: n + (n-1) + (n-2) + ... The park's surveyors re-measure the same branches thousands of times.
+
+The waste is painfully specific: `depth` at a node *already computes* the depths of everything below it, then throws them away, and `walk` asks again.
+
+---
+
+## The weapon: report depth up, log the bend on the side
+
+One traversal. Each platform does Boss 2's job, report `1 + max(left, right)` upward, and one extra thing while it has both children's reports in hand: it checks the cable that would bend through *itself*, `left + right` bridges, and logs it into a shared best-so-far.
+
+Two channels:
+
+- **Return value** (the upward report): my depth, information my *parent* needs.
+- **Side channel** (the log): the best bend seen anywhere, information the *problem* wants.
+
+<MermaidBlock>
+graph TB
+    A["depth(node), one pass"]
+    B["left = depth(node.left)\nright = depth(node.right)"]
+    C["side channel:\nbest = max(best, left + right)\nthe cable bending here"]
+    D["return up:\n1 + max(left, right)\nwhat the parent needs"]
+    A --> B
+    B --> C
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Why can't the bend itself be reported upward? Because a bent path is *used up*: once the cable turns at a platform, it can't also continue up to the parent, a zipline has two ends, not three. The parent can only extend a *straight* arm, hence it receives the depth. The bend is a completed candidate, so it goes to the judge, not to the parent. That's the entire philosophy: **report what's extendable, log what's complete.**
+
+---
+
+## Watching it work
+
+```
+depth(4) → left 0, right 0 → log 0+0=0 → report 1
+depth(5) → log 0 → report 1
+depth(2) → left 1, right 1 → log 1+1=2 → report 2
+depth(3) → log 0 → report 1
+depth(1) → left 2, right 1 → log 2+1=3 → report 3 (nobody's listening)
+
+best logged: 3 ✓   (the 4 → 2 → 1 → 3 route)
+```
+
+One visit per platform. The n² became n by *not forgetting*: every depth is computed once, used twice (once by the parent, once by the local bend check), and never recomputed.
+
+---
+
+## The code
+
+```python
+def diameter_of_binary_tree(root: TreeNode | None) -> int:
+    best = 0
+
+    def depth(node):
+        nonlocal best
+        if not node:
+            return 0
+        left = depth(node.left)
+        right = depth(node.right)
+        best = max(best, left + right)      # complete candidate: log it
+        return 1 + max(left, right)         # extendable arm: report it
+
+    depth(root)
+    return best
+```
+
+<Callout type="tip" title="This exact shape solves a family">
+Return-the-extendable, log-the-complete is a *pattern*, not a trick. Longest univalue path (LC 687): same code, arms only extend while values match. Binary Tree Maximum Path Sum (LC 124, Boss 14): same code, arms carry sums and negative arms get clamped to zero. When a tree problem says "path" and doesn't anchor it at the root, reach for this shape first.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Returning `left + right + 1` upward.**
+The three-ended zipline. The parent extends your *arm*, not your bend. Report `1 + max(left, right)`. Mixing the two channels is *the* bug in this problem family.
+
+**2. Edges vs nodes, again.**
+This problem counts edges, so a leaf's bend check is 0+0 and a single-node tree has diameter 0. If the expected answer is consistently one less than yours, you're counting platforms instead of bridges.
+
+**3. Initializing best inside the recursion.**
+`best` must live outside `depth` (a `nonlocal`, a class field, or a one-element list). Re-declaring it per call resets the log and returns whatever the root's bend happened to be.
+
+**4. Assuming the answer passes through the root.**
+`depth(root.left) + depth(root.right)` alone is exactly the naive trap this problem was designed to punish. The log exists because the best bend can hide anywhere. Test on a tree with one deep, bushy arm.
+
+---
+
+## Complexity
+
+One post-order pass, constant work per node.
+
+**Time: O(n). Space: O(h)** for the stack.
+
+---
+
+## Boss down. XP gained.
+
+The zipline runs 4 → 2 → 1 → 3, marketing photographs a terrified-but-thrilled first rider, and the surveyor who computed it never re-measured a single branch.
+
+What you walked away with:
+
+- **Two channels**: return the extendable arm upward, log the completed candidate sideways
+- Bends are complete (two ends used), arms are extendable, never report a bend as an arm
+- The O(n²) → O(n) move: compute child answers once, use them for both jobs
+- This shape is a master key; Boss 14 will open with it
+
+So far every boss processed *one* tree. Time to hold two at once.
+
+Next up: **Boss 4 — The Mobile Maker.** An artist hangs balanced mobile sculptures, and a mobile is only sellable if, at *every* joint, the two hanging sides differ in height by at most one. Same two-channel trick, but the side channel carries a verdict instead of a length, and one clever encoding makes the whole check a single pass.

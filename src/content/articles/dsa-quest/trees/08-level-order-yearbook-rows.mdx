@@ -1,0 +1,207 @@
+---
+title: "Binary Tree Level Order Traversal — The Yearbook Rows"
+slug: level-order-yearbook-rows
+category: dsa
+series: trees
+seriesOrder: 8
+description: "Dungeon 7, Boss 8. A photographer shoots a family-tree mural generation by generation, left to right, nobody out of place. Breadth-first search, the queue, and the snapshot trick that turns a flood of nodes into tidy rows."
+tags:
+  - DSA
+  - Trees
+  - BFS
+  - Queue
+icon: "📸"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The school hired a photographer for the founders' family-tree mural, and the yearbook wants it shot generation by generation: the founder alone in row one, both kids in row two, all grandkids in row three, each row left to right. The photographer can't teleport around the mural, so she works with a waiting line. Photograph whoever is at the front of the line, and as you do, send their kids to the back of the line. Start the line with just the founder, and the generations sort themselves out. One small trick keeps the rows separate: at the start of each row, count how many are in line, and shoot exactly that many.
+  bn: |
+    প্রতিষ্ঠাতাদের ফ্যামিলি-ট্রি ম্যুরালের জন্য স্কুল একজন ফটোগ্রাফার ভাড়া করেছে, আর ইয়ারবুক চায় ছবিগুলো তোলা হোক প্রজন্ম ধরে ধরে: এক নম্বর সারিতে শুধু প্রতিষ্ঠাতা, দুই নম্বরে তার দুই সন্তান, তিন নম্বরে সব নাতি-নাতনি, প্রতিটা সারি বাঁ থেকে ডানে। ফটোগ্রাফার তো ম্যুরালের এধার ওধার টেলিপোর্ট করতে পারেন না, তাই তিনি কাজ করেন একটা অপেক্ষার লাইন দিয়ে। লাইনের সামনের জনের ছবি তুলুন, আর তোলার সাথে সাথে তার সন্তানদের লাইনের পেছনে পাঠিয়ে দিন। লাইনটা শুরু করুন শুধু প্রতিষ্ঠাতাকে দিয়ে, প্রজন্মগুলো নিজেরাই সেজে যাবে। সারিগুলো আলাদা রাখার ছোট্ট কৌশল একটাই: প্রতিটা সারির শুরুতে গুনে নিন লাইনে কজন আছে, আর ঠিক ততজনেরই ছবি তুলুন।
+  hi: |
+    स्कूल ने संस्थापकों की फैमिली-ट्री म्यूरल के लिए फोटोग्राफर बुलाया है, और ईयरबुक चाहती है तस्वीरें पीढ़ी दर पीढ़ी खिंचें: पहली पंक्ति में अकेले संस्थापक, दूसरी में उनके दोनों बच्चे, तीसरी में सारे पोते-पोतियां, हर पंक्ति बाएं से दाएं। फोटोग्राफर म्यूरल पर इधर-उधर टेलीपोर्ट नहीं कर सकती, इसलिए वह एक प्रतीक्षा लाइन से काम करती है। लाइन में सबसे आगे वाले की तस्वीर लो, और लेते-लेते उसके बच्चों को लाइन के पीछे भेज दो। लाइन सिर्फ संस्थापक से शुरू करो, पीढ़ियां खुद सुलझ जाती हैं। पंक्तियों को अलग रखने की एक छोटी सी तरकीब: हर पंक्ति की शुरुआत में गिन लो लाइन में कितने हैं, और ठीक उतनों की ही तस्वीर खींचो।
+  ar: |
+    استأجرت المدرسة مصوّرة لجدارية شجرة عائلة المؤسسين، والكتاب السنوي يريد التصوير جيلاً بعد جيل: المؤسس وحده في الصف الأول، وولداه في الثاني، وكل الأحفاد في الثالث، وكل صف من اليسار إلى اليمين. لا تستطيع المصوّرة التنقل الفوري حول الجدارية، فتعمل بطابور انتظار. صوّر من في مقدمة الطابور، وأثناء ذلك أرسل أولاده إلى مؤخرته. ابدأ الطابور بالمؤسس وحده، وسترتّب الأجيال نفسها بنفسها. حيلة صغيرة واحدة تفصل الصفوف: عند بداية كل صف عُدّ كم شخصاً في الطابور، وصوّر هذا العدد بالضبط.
+---
+
+## Boss 8: The Yearbook Rows
+
+Seven bosses of *depth*: dive down a branch, come back, dive again. This boss turns the whole dungeon sideways and sweeps the tree one **level** at a time. Breadth-first search, powered by the humble queue, and it's the tool behind roughly a third of all tree interview questions ("by level", "zigzag", "rightmost per level", "average per level"... one engine, many hats).
+
+---
+
+## The story
+
+The school's centennial mural paints the founding family as a tree:
+
+```
+        Founder (3)
+        /        \
+   Daughter(9)  Son(20)
+                /     \
+          Grandkid(15) Grandkid(7)
+```
+
+The yearbook's photo spec is rigid: shoot it **row by row**. Row 1: the founder. Row 2: daughter, then son. Row 3: the two grandkids, left to right. The final layout:
+
+```
+[[3], [9, 20], [15, 7]]
+```
+
+Try to shoot this with the dungeon's usual deep-dive style and feel the mismatch: a depth-first walk visits Founder → Daughter → *back up* → Son → Grandkid 15 → ..., bouncing between generations. You'd need to label each shot with its row and sort it all afterward. (Genuinely workable! Hold that thought.)
+
+The photographer's actual technique is a **waiting line**:
+
+1. The line starts holding just the founder.
+2. Photograph the person at the front of the line. As you do, their children join the *back* of the line.
+3. Repeat until the line is empty.
+
+Founder is shot, daughter and son join. Daughter is shot (her kids: none), son is shot, his two kids join. Then the grandkids, in the order they joined, which is left to right. **The queue preserves generation order automatically**: everyone from generation k stands in line ahead of everyone from generation k+1, because parents joined before their children could.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, return the **level order traversal** of its nodes' values (i.e., from left to right, level by level).
+
+LeetCode 102. Note the output shape: not a flat list, a **list of lists**, one inner list per level. That inner grouping is where the boss hides its one real trick.
+
+---
+
+## The naive attempt
+
+The hold-that-thought version: depth-first walk carrying a depth label, appending each value into its row's bucket.
+
+```python
+def level_order(root):
+    rows = []
+    def walk(node, depth):
+        if not node:
+            return
+        if depth == len(rows):
+            rows.append([])
+        rows[depth].append(node.val)
+        walk(node.left, depth + 1)
+        walk(node.right, depth + 1)
+    walk(root, 0)
+    return rows
+```
+
+Here's the twist for a "naive attempt" section: **this is correct, O(n), and interview-acceptable.** DFS visits left before right, so within each bucket, order comes out left-to-right. Its real cost is conceptual: it answers a breadth-shaped question with depth-shaped machinery, and it keeps O(h) stack *plus* the row structure. The BFS version answers it natively, and BFS is the skill this boss exists to install, because the follow-up questions (zigzag, right-side view, "kill the tree floor by floor") stop yielding to relabeled DFS so gracefully.
+
+---
+
+## The weapon: a queue, and the snapshot count
+
+The photographer's line is a **FIFO queue**: push to the back, pop from the front. The plain loop gives a flat generation-ordered stream. The one missing piece is *where one row ends*, and the trick is disarmingly small:
+
+**At the moment a row begins, the queue contains exactly that row and nothing else.** Everyone from the previous row has been shot and left; their children (the next row) haven't been processed yet. So: snapshot `len(queue)`, pop *exactly that many*, and that's one complete row, while their children quietly accumulate behind them for the next round.
+
+<MermaidBlock>
+graph TB
+    A["queue holds exactly\none full generation"]
+    B["snapshot: k = len(queue)"]
+    C["pop k people\nphotograph each\npush their children"]
+    D["their children now fill\nthe queue: next generation"]
+    A --> B
+    B --> C
+    C --> D
+    D --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+---
+
+## Watching it work
+
+```
+queue: [3]                 snapshot 1
+  pop 3 → row [3], push 9, 20
+queue: [9, 20]             snapshot 2
+  pop 9  → row [9],  no children
+  pop 20 → row [9, 20], push 15, 7
+queue: [15, 7]             snapshot 2
+  pop 15 → row [15]
+  pop 7  → row [15, 7]
+queue: []                  done
+
+output: [[3], [9, 20], [15, 7]] ✓
+```
+
+Note the third snapshot is 2, not 3: the snapshot counts *people in line*, not the row number. Misread that once here and you'll never misread it in code.
+
+---
+
+## The code
+
+```python
+from collections import deque
+
+def level_order(root: TreeNode | None) -> list[list[int]]:
+    if not root:
+        return []
+    rows = []
+    queue = deque([root])
+    while queue:
+        row = []
+        for _ in range(len(queue)):      # snapshot: this generation only
+            node = queue.popleft()
+            row.append(node.val)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        rows.append(row)
+    return rows
+```
+
+`range(len(queue))` is evaluated **once**, at the top of the row, that's the snapshot. The children appended mid-row swell the queue, but the loop bound was already locked in.
+
+<Callout type="tip" title="One engine, many hats">
+Every "by level" variant is this loop with one line changed. Zigzag (LC 103): reverse every other `row`. Right side view (LC 199, next boss): keep only each row's last element. Level averages (LC 637): `sum(row)/len(row)`. Minimum depth: return the row number when a leaf first appears, and note BFS can stop *early* here where DFS must keep exploring. Learn the engine once, collect the hats.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Popping from the wrong end.**
+`queue.pop()` (the right end) turns your queue into a stack and BFS into DFS, and the rows interleave into nonsense. `popleft()`, and use a real deque: `list.pop(0)` is O(n) per pop, silently turning the traversal quadratic.
+
+**2. No snapshot.**
+`while queue:` with a single unbounded inner drain gives one flat list, generations merged. Fine for "traverse", wrong for "traverse *by level*". The `for _ in range(len(queue))` is the entire difference.
+
+**3. Pushing None children.**
+Appending `node.left` unguarded means popping Nones later, then either crashing or writing None-checks at the pop. Filter at the push, the queue stays clean.
+
+**4. Recomputing `len(queue)` in the loop condition.**
+`while i < len(queue)` re-reads the *growing* queue and the row boundary dissolves. The snapshot must be taken once and stored (or locked into `range`).
+
+---
+
+## Complexity
+
+Every node enters and leaves the queue exactly once.
+
+**Time: O(n). Space: O(w)** where w is the tree's maximum width, up to n/2 for a bushy tree's bottom row. Note the trade against DFS: recursion pays for *height*, BFS pays for *width*. Deep skinny tree → BFS is cheap. Wide bushy tree → DFS is cheap. Neither dominates; the tree's shape picks.
+
+---
+
+## Boss down. XP gained.
+
+The mural spread runs three tidy rows in the centennial yearbook, every face in its generation, and the photographer never once climbed the scaffolding out of order.
+
+What you walked away with:
+
+- **BFS**: pop the front, push the children, and the queue sorts the generations for free
+- The **snapshot trick**: `len(queue)` at row start = exactly one level, children accumulate behind
+- DFS-with-depth-labels also solves it, but the queue *is* the native tool, and the variants demand it
+- Stack space scales with height, queue space with width, know which your tree punishes
+
+Next up: **Boss 9 — The Skyline Sketch.** An artist sits in a hot-air balloon due east of a tree-shaped apartment tower and sketches what she sees: exactly one apartment per floor, the rightmost one, everything behind it hidden. One line changes in today's engine, and there's a sneaky DFS alternative that visits right children first and trusts the depth to say who's visible.

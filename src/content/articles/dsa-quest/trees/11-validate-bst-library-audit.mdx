@@ -1,0 +1,194 @@
+---
+title: "Validate Binary Search Tree — The Library Audit"
+slug: validate-bst-library-audit
+category: dsa
+series: trees
+seriesOrder: 11
+description: "Dungeon 7, Boss 11. A rare-books library claims its catalog is a true BST, and the auditor who checks each shelf against its neighbors approves a corrupted one. Every node must respect an inherited range, narrowing at every turn."
+tags:
+  - DSA
+  - Trees
+  - BST
+  - DFS
+icon: "🗂️"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A rare-books library organizes its catalog as a branching shelf system with one promise: from any shelf, everything down the left holds smaller numbers, everything down the right holds bigger ones. A new auditor checks every shelf against its two immediate children, finds no complaints, and signs off. A week later a courier follows the numbers to a book that isn't where the system says. The flaw: a shelf can be fine with its own children yet betray a great-grandparent's promise. The real audit hands each shelf an allowed range, inherited from every ancestor above it, narrowing at every turn.
+  bn: |
+    এক দুর্লভ বইয়ের লাইব্রেরি তাদের ক্যাটালগ সাজায় শাখাওয়ালা তাক-ব্যবস্থায়, একটাই প্রতিশ্রুতি নিয়ে: যেকোনো তাক থেকে বাঁ দিকের নিচের সবকিছুতে ছোট নম্বর, ডান দিকের নিচের সবকিছুতে বড়। নতুন এক অডিটর প্রতিটা তাক তার দুই সরাসরি সন্তানের সাথে মিলিয়ে দেখলেন, কোনো গরমিল পেলেন না, সই করে দিলেন। এক সপ্তাহ পর এক কুরিয়ার নম্বর ধরে গিয়ে দেখে বইটা সিস্টেম যেখানে বলছে সেখানে নেই। গলদটা হলো: একটা তাক নিজের সন্তানদের সাথে ঠিকঠাক থেকেও তার প্রপিতামহের প্রতিশ্রুতি ভাঙতে পারে। আসল অডিট প্রতিটা তাকের হাতে ধরিয়ে দেয় একটা অনুমোদিত রেঞ্জ, উপরের প্রতিটা পূর্বপুরুষের কাছ থেকে উত্তরাধিকারে পাওয়া, প্রতিটা বাঁকে সরু হতে হতে।
+  hi: |
+    दुर्लभ किताबों की एक लाइब्रेरी अपना कैटलॉग शाखादार शेल्फ सिस्टम में रखती है, एक वादे के साथ: किसी भी शेल्फ से बाईं ओर नीचे सब छोटे नंबर, दाईं ओर नीचे सब बड़े। नया ऑडिटर हर शेल्फ को उसके दो सीधे बच्चों से मिलाता है, कोई शिकायत नहीं मिलती, दस्तखत कर देता है। हफ्ते भर बाद एक कूरियर नंबरों के पीछे चलकर ऐसी किताब तक पहुंचता है जो वहां नहीं है जहां सिस्टम कहता है। खोट यह है: कोई शेल्फ अपने बच्चों के साथ ठीक रहकर भी परदादा का वादा तोड़ सकती है। असली ऑडिट हर शेल्फ को एक इजाजत वाली रेंज थमाता है, ऊपर के हर पुरखे से विरासत में मिली, हर मोड़ पर सिकुड़ती हुई।
+  ar: |
+    تنظّم مكتبة كتب نادرة فهرسها كنظام رفوف متفرع بوعد واحد: من أي رف، كل ما نزولاً إلى اليسار أرقامه أصغر، وكل ما إلى اليمين أرقامه أكبر. يفحص مدقق جديد كل رف مقابل ولديه المباشرين فقط، لا يجد شكوى، فيوقّع بالموافقة. بعد أسبوع يتبع ساعٍ الأرقام إلى كتاب ليس حيث يقول النظام. العيب: قد يكون الرف سليماً مع ولديه ومع ذلك يخون وعد جدّ أعلى. التدقيق الحقيقي يسلّم كل رف نطاقاً مسموحاً، موروثاً من كل الأسلاف فوقه، يضيق عند كل منعطف.
+---
+
+## Boss 11: The Library Audit
+
+This is the most instructive *wrong answer* in the tree catalog. The broken solution is so natural, so locally sensible, that it has failed candidates at every tech company on Earth. The fix is Boss 10's downward-context pattern with two numbers instead of one, and after today you'll spot the trap in other people's code from across the room.
+
+---
+
+## The story
+
+The rare-books library files everything by acquisition number, shelves branching like a tree, with the BST promise from Boss 7: left territory smaller, right territory bigger, *at every shelf, for everything below it*.
+
+A new auditor is hired to certify the catalog. His method: stand at each shelf, check the left child is smaller and the right child is bigger. Reasonable. He walks this catalog:
+
+```
+        5
+       / \
+      4   6
+         / \
+        3   7
+```
+
+Shelf 5: left is 4 ✓, right is 6 ✓. Shelf 6: left is 3 ✓ (3 < 6), right is 7 ✓. Shelf 4, 3, 7: leaves, nothing to check. **Certified.**
+
+A week later, a courier hunts for book 3. Following the system: at shelf 5, "3 is smaller, go left". Left subtree: just the book 4. Book 3 isn't there, *and the search gives up*, because in a BST that's a legal conclusion. But book 3 exists, sitting under shelf 6, in the **right** territory of 5, where everything is promised to be *bigger than 5*.
+
+The shelf 3 is perfectly fine with its parent 6. It betrays its *grandparent*. Local checks certify catalogs that global navigation can't use. The whole point of a BST, the O(h) navigation from Boss 7, dies the moment any ancestor's promise is broken anywhere below.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, determine if it is a valid binary search tree (BST). A valid BST is defined as follows:
+>
+> - The left subtree of a node contains only nodes with keys **less than** the node's key.
+> - The right subtree of a node contains only nodes with keys **greater than** the node's key.
+> - Both the left and right subtrees must also be binary search trees.
+>
+> LeetCode 98. Note "subtree contains only": the promise covers entire territories, not children. Also note: strictly less, strictly greater, duplicates are invalid.
+
+---
+
+## The naive attempt
+
+The auditor's method, in code:
+
+```python
+def is_valid_bst(root):
+    if not root:
+        return True
+    if root.left and root.left.val >= root.val:
+        return False
+    if root.right and root.right.val <= root.val:
+        return False
+    return is_valid_bst(root.left) and is_valid_bst(root.right)
+```
+
+Returns true on the corrupted catalog above. This is the famous one, the wrong answer that *recursion itself* seems to endorse ("check my level, recurse for the rest", what could be missing?). What's missing: the recursive calls forget where they came from. Shelf 3's check never hears about shelf 5, because the context was dropped at the first fork.
+
+---
+
+## The weapon: an inherited range, narrowing at every turn
+
+What does shelf 5 actually promise about its right territory? *Everything there exceeds 5.* And when you then step left from 6, what does 6 add? *Everything there is below 6.* So the book at that position must live in the range **(5, 6)**, open on both ends. Book 3 fails, instantly.
+
+Every shelf inherits a range `(lo, hi)` accumulated from every turn above it:
+
+- Start at the root with `(-∞, +∞)`, no promises yet.
+- Step **left** from a shelf worth v: the ceiling tightens, range becomes `(lo, v)`.
+- Step **right**: the floor rises, `(v, hi)`.
+- A shelf is legal if `lo < val < hi`. Strictly.
+
+<MermaidBlock>
+graph TB
+    A["check(node, lo, hi)"]
+    B["lo < val < hi?\nno: corrupted, false"]
+    C["left child inherits\n(lo, val)\nceiling tightens"]
+    D["right child inherits\n(val, hi)\nfloor rises"]
+    A --> B
+    B --> C
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+This is Boss 10's move exactly: the path's whole history, compressed into a sufficient digest and passed down through arguments. Boss 10's digest was one number (the max seen). Here it's two (the tightest floor and ceiling), because turns in *both* directions leave promises. Nothing else about the ancestry matters, two numbers carry it all.
+
+---
+
+## Watching it work
+
+The corrupted catalog:
+
+```
+check(5, -∞, +∞)   -∞ < 5 < +∞ ✓
+├─ check(4, -∞, 5)    -∞ < 4 < 5 ✓   (leaf, both children pass trivially)
+└─ check(6, 5, +∞)    5 < 6 < +∞ ✓
+    ├─ check(3, 5, 6)    5 < 3?  ✗  CORRUPTED
+    └─ (never reached, short-circuit)
+
+verdict: false ✓
+```
+
+The range `(5, 6)` at the fatal shelf *is* the grandparent's voice, carried two levels down by nothing more than argument passing. The naive auditor had no channel for that voice.
+
+---
+
+## The code
+
+```python
+def is_valid_bst(root: TreeNode | None) -> bool:
+    def check(node, lo, hi):
+        if not node:
+            return True
+        if not (lo < node.val < hi):
+            return False
+        return check(node.left, lo, node.val) and check(node.right, node.val, hi)
+
+    return check(root, float("-inf"), float("inf"))
+```
+
+Four lines of substance. Compare it, line by line, against the naive version: same skeleton, and the only change is *what travels in the arguments*. That's the entire lesson of Bosses 10 and 11, stated twice so it sticks.
+
+<Callout type="tip" title="The in-order alternative">
+A BST has a secret identity: walk it in-order (left, self, right) and the values come out **sorted, strictly ascending**. So: traverse in-order, and verify each value exceeds the previous one, O(n), one prev variable. It's an equally correct answer with a different flavor, structural promise turned into sequence property. Hold that identity close, because the very next boss is built on nothing else.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The children-only check.**
+The star of the show. If your validator has no concept of inherited bounds (or a prev pointer), it approves the 5/4/6/3/7 catalog. This exact bug has appeared in production databases, real ones, with real couriers.
+
+**2. Duplicates.**
+The contract says strictly less, strictly greater, so a child equal to its ancestor's bound is invalid. `lo < val < hi` with open bounds handles it; write `<=` anywhere and duplicate keys slip through. (Some real-world BSTs *do* allow duplicates by convention; this problem doesn't. Read the contract.)
+
+**3. Int-limit sentinels.**
+Seeding with `INT_MIN`/`INT_MAX` in fixed-width languages breaks when a node's value *equals* the sentinel, and LeetCode gleefully includes exactly those testcases. Use `long` bounds, or nullable bounds ("no floor yet"), Python's `float("inf")` sidesteps it.
+
+**4. In-order with `>=` tolerance.**
+The alternative solution needs *strictly* ascending. Accepting equal consecutive values re-admits duplicates through the side door. Same contract, different entrance.
+
+---
+
+## Complexity
+
+Every shelf checked once against two numbers.
+
+**Time: O(n). Space: O(h)** stack.
+
+---
+
+## Boss down. XP gained.
+
+The re-audit flags shelf 3 in red ink, the book moves to its lawful spot under shelf 4, and couriers stop coming back empty-handed.
+
+What you walked away with:
+
+- BST validity is **territorial**, not parental: every ancestor's promise binds every descendant
+- The inherited range `(lo, hi)`: two-number digest of all promises above, tightening on every turn
+- Boss 10's downward-context pattern, now with two passengers, the pattern scales
+- The in-order identity: **BST ⟺ in-order walk is strictly sorted**, your second weapon and the next boss's foundation
+
+Next up: **Boss 12 — The Auction Paddles.** An auction house files bidder paddles in a BST and the floor manager keeps asking for the k-th lowest paddle number. The in-order identity turns the question into "walk sorted, count to k, stop", and the early stop is where the elegance lives.

@@ -1,0 +1,214 @@
+---
+title: "Count Good Nodes in Binary Tree — The Ridge Lookouts"
+slug: count-good-nodes-ridge-lookouts
+category: dsa
+series: trees
+seriesOrder: 10
+description: "Dungeon 7, Boss 10. A lookout is 'good' if nothing earlier on the trail from base camp stands taller. Count them all. The new move: passing knowledge downward through the recursion's arguments, a running maximum riding shotgun."
+tags:
+  - DSA
+  - Trees
+  - DFS
+  - Recursion
+icon: "🔭"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A national park rates the lookout points along its ridge trails, and the rule is charmingly selfish: a lookout is good if, walking the one trail from base camp to it, you never passed anything taller. Taller peaks behind you on the trail would have already given you that view. The park wants a count of good lookouts across the whole branching trail network. The trick is what each hiker carries: the height of the tallest point seen so far on their trail. Hand that number down at every fork, compare at every lookout, and the count adds itself up.
+  bn: |
+    এক ন্যাশনাল পার্ক তার রিজ ট্রেইলের ভিউপয়েন্টগুলোর রেটিং করছে, আর নিয়মটা মজার রকম স্বার্থপর: একটা লুকআউট তখনই ভালো, যদি বেস ক্যাম্প থেকে সেখানে পৌঁছানোর একমাত্র ট্রেইলে হাঁটার পথে তার চেয়ে উঁচু কিছু পার না হয়ে থাকেন। পেছনের উঁচু চূড়া তো সেই ভিউ আগেই দিয়ে দিয়েছে। পার্ক চায় পুরো শাখাওয়ালা ট্রেইল নেটওয়ার্কে ভালো লুকআউটের মোট সংখ্যা। কৌশলটা হলো প্রতিটা হাইকার কী বহন করে: তার ট্রেইলে এখন পর্যন্ত দেখা সবচেয়ে উঁচু পয়েন্টের উচ্চতা। প্রতিটা মোড়ে সংখ্যাটা নিচে হস্তান্তর করুন, প্রতিটা লুকআউটে তুলনা করুন, আর গোনাটা নিজে নিজেই যোগ হয়ে যাবে।
+  hi: |
+    एक नेशनल पार्क अपनी रिज ट्रेल्स के व्यूपॉइंट्स की रेटिंग कर रहा है, और नियम मजेदार ढंग से स्वार्थी है: कोई लुकआउट तभी अच्छा है जब बेस कैंप से उस तक की इकलौती ट्रेल पर चलते हुए आपने उससे ऊंचा कुछ पार न किया हो। पीछे की ऊंची चोटियां तो वह नजारा पहले ही दे चुकी होतीं। पार्क को पूरे शाखादार ट्रेल नेटवर्क में अच्छे लुकआउट्स की गिनती चाहिए। तरकीब इसमें है कि हर हाइकर क्या लेकर चलता है: अपनी ट्रेल पर अब तक दिखे सबसे ऊंचे पॉइंट की ऊंचाई। हर मोड़ पर वह नंबर नीचे थमा दो, हर लुकआउट पर तुलना करो, और गिनती खुद जुड़ती जाती है।
+  ar: |
+    يقيّم منتزه وطني نقاط الإطلالة على دروب سلاسله الجبلية، والقاعدة أنانية بشكل ظريف: الإطلالة جيدة إذا لم تمرّ، وأنت تمشي الدرب الوحيد من المخيم الرئيسي إليها، بشيء أعلى منها. فالقمم الأعلى خلفك كانت ستمنحك ذلك المشهد أصلاً. يريد المنتزه عدّ الإطلالات الجيدة في شبكة الدروب المتفرعة كلها. الحيلة فيما يحمله كل متنزه: ارتفاع أعلى نقطة رآها على دربه حتى الآن. سلّم هذا الرقم نزولاً عند كل مفترق، وقارن عند كل إطلالة، وسيجمع العدّ نفسه بنفسه.
+---
+
+## Boss 10: The Ridge Lookouts
+
+Count the information flows you've mastered: answers rising *up* (Bosses 2-4), two trees in lockstep (5-6), levels sweeping *across* (8-9). This boss completes the compass: knowledge flowing **down**, carried in the recursion's arguments, each branch inheriting what its ancestors saw.
+
+Small boss, big pattern. "Pass the path's context downward" is half of backtracking (Dungeon 9 says hello in advance), and it's the natural shape for any question that begins "along the path from the root...".
+
+---
+
+## The story
+
+The park's ridge trail network branches from base camp:
+
+```
+        Base(3)
+       /       \
+     (1)       (4)
+     /         /  \
+   (3)       (1)  (5)
+```
+
+Numbers are elevations. The rating rule for a lookout: **good** if the trail from base camp to it never passed anything strictly taller. You've already seen that view, says the park, if a taller point stood behind you on your own trail.
+
+Rate them all:
+
+- **Base(3):** nothing before it. Good. (Base camp is always good.)
+- **(1)**, left of base: the trail is 3 → 1, and 3 is taller. Not good.
+- **(3)**, below that: trail 3 → 1 → 3. Tallest before it: 3. It *ties* the max, and ties count, nothing is *taller*. **Good.**
+- **(4):** trail 3 → 4. Nothing taller before. Good.
+- **(1)**, under 4: trail 3 → 4 → 1. The 4 looms. Not good.
+- **(5):** trail 3 → 4 → 5. Nothing taller. Good.
+
+Count: **4**.
+
+Notice what each verdict needed: not the whole trail, just **one number**, the maximum elevation so far on it. The trail's entire history, compressed into a single value that updates as you descend.
+
+---
+
+## The problem, dressed up properly
+
+> Given a binary tree `root`, a node X in the tree is named **good** if in the path from root to X there are no nodes with a value *greater than* X.
+>
+> Return the number of good nodes in the binary tree.
+
+LeetCode 1448. "Greater than", strictly, so equals survive, the tie rule from the story.
+
+---
+
+## The naive attempt
+
+Carry the actual path. At each node, walk the list of ancestors and check for anything taller:
+
+```python
+def good_nodes(root):
+    count = 0
+    def dfs(node, path):
+        nonlocal count
+        if not node:
+            return
+        if all(v <= node.val for v in path):
+            count += 1
+        dfs(node.left, path + [node.val])
+        dfs(node.right, path + [node.val])
+    dfs(root, [])
+    return count
+```
+
+Correct, and doubly wasteful: the `all()` rescans the ancestry at every node (O(h) per node, O(n·h) total), and `path + [node.val]` copies the list at every call. The diagnosis writes the cure: the *only* fact the check uses is the path's maximum. Carry the digest, not the archive.
+
+---
+
+## The weapon: a running maximum, passed at every fork
+
+Each recursive call receives `max_so_far`, the tallest elevation on the trail *above* this node. The node's work:
+
+1. **Verdict:** `node.val >= max_so_far` → good, count 1, else 0.
+2. **Update:** the max handed to the children is `max(max_so_far, node.val)`.
+3. **Combine:** my subtree's count = my verdict + left's count + right's count.
+
+<MermaidBlock>
+graph TB
+    A["dfs(node, max_so_far)"]
+    B["node.val >= max_so_far?\ngood: 1, else 0"]
+    C["new_max =\nmax(max_so_far, node.val)"]
+    D["dfs(left, new_max)"]
+    E["dfs(right, new_max)"]
+    F["return verdict\nplus left plus right"]
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    D --> F
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Two flows in one function, and this is the boss's actual lesson: **context flows down through arguments** (`max_so_far`, each branch getting a personalized copy of its own trail's history) while **answers flow up through returns** (the counts, summed at each fork). Down-and-up in a single pass. Boss 14 runs on exactly this two-way plumbing.
+
+And a lovely detail: no shared state. Each branch's `max_so_far` is its own; the left trail's giant peaks never contaminate the right trail's verdicts. The call stack does the bookkeeping that the naive version did with copied lists.
+
+---
+
+## Watching it work
+
+```
+dfs(3, max=-∞)   3 ≥ -∞  GOOD   pass max=3 down
+├─ dfs(1, max=3)   1 < 3   not good   pass max=3
+│   └─ dfs(3, max=3)   3 ≥ 3  GOOD (tie!)   → returns 1
+│   → returns 0 + 1 = 1
+└─ dfs(4, max=3)   4 ≥ 3  GOOD   pass max=4
+    ├─ dfs(1, max=4)   1 < 4   not good  → 0
+    └─ dfs(5, max=4)   5 ≥ 4  GOOD  → 1
+    → returns 1 + 0 + 1 = 2
+
+total: 1 + 1 + 2 = 4 ✓
+```
+
+The tie at the deep 3: it inherited `max=3` from its own ancestor and passed `3 ≥ 3`. Strictly-greater blocks, equal survives.
+
+---
+
+## The code
+
+```python
+def good_nodes(root: TreeNode) -> int:
+    def dfs(node, max_so_far):
+        if not node:
+            return 0
+        good = 1 if node.val >= max_so_far else 0
+        new_max = max(max_so_far, node.val)
+        return good + dfs(node.left, new_max) + dfs(node.right, new_max)
+
+    return dfs(root, float("-inf"))
+```
+
+Seeding with `-inf` makes the root automatically good with zero special-casing, nothing is taller than negative infinity. (Seeding with `root.val` also works and reads nicely; just don't seed with 0, elevations can be negative, LeetCode's are as low as -10⁴.)
+
+<Callout type="tip" title="Name the pattern: path context">
+Whenever a node's answer depends on *the path that reached it*, not on its subtrees, pass the needed digest downward: max-so-far (here), the running sum (path sum problems), the current bounds (Boss 11, next, does exactly this with two of them), the string built so far. The art is compressing "everything about my ancestry" into the smallest sufficient summary. Here, one number sufficed.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Strict vs non-strict, inverted.**
+Good means nothing *greater* on the path, so the verdict is `node.val >= max_so_far`. Writing `>` demotes every tie, and the deep 3 in the story is your regression test.
+
+**2. A global max instead of a passed max.**
+One shared `max_so_far` mutated in place bleeds the left trail's peaks into the right trail's verdicts. The whole point is per-path context; arguments give each branch its own. (If you *must* mutate shared state, you must also un-mutate it on the way out, and that un-mutation discipline is literally Dungeon 9's backtracking. Arguments let you skip the ceremony today.)
+
+**3. Updating the max before the verdict.**
+`new_max` first, then compare against it, and every node compares against *itself*: everything is good, count = n. Verdict against the *inherited* max, update after.
+
+**4. Seeding with 0.**
+Works until the first all-negative tree, then the root (say, -3) fails `-3 ≥ 0` and the guaranteed-good root goes uncounted. `-inf` or `root.val`, never a magic constant.
+
+---
+
+## Complexity
+
+One visit per lookout, O(1) work each.
+
+**Time: O(n). Space: O(h)** for the stack, and nothing else, the naive version's path copies are gone.
+
+---
+
+## Boss down. XP gained.
+
+The park prints four telescope icons on the trail map, and the deep lookout that tied its ancestor gets one, the rulebook's tie clause vindicated.
+
+What you walked away with:
+
+- **Downward context**: pass ancestry through arguments, each branch inheriting a personalized copy
+- Compress the path to its *sufficient digest*, here a single running max
+- Down-and-up in one pass: context descends via arguments, counts ascend via returns
+- `-inf` seeding, strict-vs-non-strict discipline, and verdict-before-update ordering
+
+You now hold the exact toolkit for the dungeon's most famous trap. The next boss looks like Boss 7's BST rule plus a quick check, and an entire generation of engineers has flunked it by checking only the children. Two bounds, passed downward, exactly like today's max.
+
+Next up: **Boss 11 — The Library Audit.** A rare-books library claims its catalog tree is a true BST, and the auditor who checks each shelf against just its immediate neighbors approves a corrupted catalog. Every node must respect an *inherited range*, narrowing at every turn. Boss 10's pattern, with two numbers riding shotgun instead of one.

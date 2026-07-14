@@ -1,0 +1,207 @@
+---
+title: "Invert Binary Tree — The Mirror Mansion"
+slug: invert-binary-tree-mirror-mansion
+category: dsa
+series: trees
+seriesOrder: 1
+description: "Dungeon 7, Boss 1. A mansion's floor plan must be rebuilt as its own mirror image, every left room swapped with every right room, all the way down. Four lines of recursion, and the question that once got a famous programmer rejected by Google."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+  - Beginner
+icon: "🪞"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An eccentric client loved her architect's mansion design with one complaint: she's left-handed, and the whole thing feels backwards. She wants the mirror image, every left room swapped with every right room, on every floor, all the way down to the closets. Redrawing thousands of rooms by hand would take weeks. Then the intern says something smart: a mirrored mansion is just a mansion where the two wings are swapped, and each wing is itself mirrored. That one sentence is the entire algorithm, and trusting it is your first real lesson in recursion.
+  bn: |
+    এক খেয়ালি ক্লায়েন্ট তার আর্কিটেক্টের বানানো ম্যানশনের ডিজাইন খুব পছন্দ করলেন, শুধু একটাই অভিযোগ: তিনি বাঁহাতি, আর পুরো বাড়িটা তার কাছে উল্টো লাগে। তিনি চান আয়নার প্রতিবিম্ব, প্রতিটা বাঁ দিকের ঘর ডান দিকের ঘরের সাথে বদলে যাবে, প্রতিটা তলায়, একদম আলমারি পর্যন্ত। হাজার হাজার ঘর হাতে নতুন করে আঁকতে সপ্তাহ লেগে যাবে। তখন ইন্টার্ন একটা বুদ্ধির কথা বলল: আয়না করা ম্যানশন মানে তো এমন একটা ম্যানশন যার দুটো উইং অদলবদল করা, আর প্রতিটা উইং নিজেও আয়না করা। ওই এক লাইনই পুরো অ্যালগরিদম, আর ওটাকে বিশ্বাস করাই recursion এর প্রথম আসল শিক্ষা।
+  hi: |
+    एक सनकी क्लाइंट को अपने आर्किटेक्ट का मैन्शन डिजाइन बहुत पसंद आया, बस एक शिकायत: वह बाएं हाथ की हैं, और पूरा घर उन्हें उल्टा लगता है। उन्हें चाहिए आईने वाली छवि, हर बाएं कमरे की जगह दायां कमरा, हर मंजिल पर, एकदम अलमारियों तक। हजारों कमरे हाथ से दोबारा बनाने में हफ्ते लग जाते। तभी इंटर्न ने समझदारी की बात कही: आईने वाला मैन्शन बस ऐसा मैन्शन है जिसके दोनों विंग आपस में बदल दिए गए हों, और हर विंग खुद भी आईना किया हुआ हो। वही एक वाक्य पूरा एल्गोरिदम है, और उस पर भरोसा करना recursion का पहला असली सबक है।
+  ar: |
+    أحبّت عميلة غريبة الأطوار تصميم القصر الذي رسمه معماريها، مع شكوى واحدة: إنها عسراء والمبنى كله يبدو لها معكوساً. تريد الصورة المرآتية، كل غرفة يسرى تتبادل مع اليمنى، في كل طابق، حتى الخزائن. إعادة رسم آلاف الغرف يدوياً تستغرق أسابيع. عندها قال المتدرب شيئاً ذكياً: القصر المعكوس هو ببساطة قصر تبادل جناحاه، وكل جناح معكوس بدوره. تلك الجملة الواحدة هي الخوارزمية كاملة، والثقة بها أول درس حقيقي في الـ recursion.
+---
+
+## Welcome to Dungeon 7
+
+Six dungeons of chains: arrays, strings, linked lists. Data in a line, one thing after another.
+
+This dungeon branches.
+
+A **binary tree** is nodes and pointers, like Dungeon 6, with one upgrade that changes everything: each node points onward *twice*.
+
+```python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+```
+
+One node at the top (the **root**, because computer science draws trees upside down), and under it, two subtrees: left and right. And here's the sentence that unlocks the entire dungeon, read it twice: **each subtree is itself a complete binary tree**. The left child of the root is the root of its own smaller tree, which has its own left child rooting an even smaller tree, down to the **leaves**, nodes with no children at all.
+
+A structure defined in terms of smaller versions of itself is begging to be processed by a function defined in terms of itself. That's why Dungeon 6's teaser said recursion stops being optional here. Fifteen bosses, and nearly every one is a variation of a single incantation: *handle one node, trust the function to handle both subtrees*.
+
+Boss 1 is the gentlest possible version, and also the most famous.
+
+---
+
+## The story
+
+An architecture firm. A wealthy, eccentric client approved the mansion design months ago, and today she calls: "I love it. But I'm left-handed and it's all *backwards*. Mirror it. Everything."
+
+The floor plan is a binary tree: every room opens onto up to two smaller rooms, a left one and a right one.
+
+```
+        Great Hall (4)
+       /             \
+   West Wing (2)   East Wing (7)
+    /      \         /      \
+ Study(1) Salon(3) Den(6)  Library(9)
+```
+
+Mirrored, the East Wing's layout must appear where the West Wing was, and inside each wing, every left/right pair flips too, down to the last closet:
+
+```
+        Great Hall (4)
+       /             \
+   East Wing (7)   West Wing (2)
+    /      \         /      \
+ Library(9) Den(6) Salon(3) Study(1)
+```
+
+The senior architects start estimating weeks of redrawing. The intern raises a hand: "A mirrored mansion is a mansion where the two wings are swapped... and each wing is itself mirrored. That's it. That's the whole spec."
+
+Silence. Then someone says "write that down."
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, invert the tree, and return its root.
+
+LeetCode 226. Ten words. And it comes with the best origin story in interview lore: Max Howell, author of Homebrew, the package manager half the engineers at Google use daily, tweeted in 2015 that Google rejected him because he couldn't invert a binary tree on a whiteboard. The problem has been a rite of passage ever since. Let's make sure you're never that tweet.
+
+---
+
+## The naive attempt
+
+There isn't a meaningfully worse way that still works, and that's itself a lesson: for trees, the recursive way usually *is* the naive way, the honest way, and the optimal way, all at once.
+
+The genuinely naive thing people do is overthink it: build a full copy of the tree, or collect nodes into arrays by position, or try to "walk" the tree with a loop and get tangled in remembering where they've been. Loops walk chains beautifully. Trees fork, and at every fork a loop must pick one branch and *somehow remember to come back* for the other. That "somehow" is a stack, and recursion is the language giving you one for free.
+
+---
+
+## The weapon: swap one pair, trust the recursion
+
+Translate the intern's sentence directly:
+
+1. Mirror of an empty plot: an empty plot. (The base case, always first.)
+2. Mirror of a mansion: swap the two wings, then mirror each wing.
+
+<MermaidBlock>
+graph TB
+    A["invert(room)"]
+    B["room is None?\nreturn None"]
+    C["swap room.left\nwith room.right"]
+    D["invert(room.left)"]
+    E["invert(room.right)"]
+    A --> B
+    A --> C
+    C --> D
+    C --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The hard part isn't the code. It's the **trust**. Every beginner stares at `invert(room.left)` and thinks "but I haven't written the part that handles the Study and the Salon yet". You have. It's this same function. It swaps their children and delegates deeper, until it hits empty plots and unwinds. The discipline of recursion is writing the one-node step, proving the base case, and *refusing to mentally trace the rest*. The machine traces; you specify.
+
+If the trust won't come, here's the exercise that builds it, once, and then never do it again: trace a three-node tree by hand. Root swaps its two leaves. Each leaf swaps its two Nones. Done. Now believe it scales, because nothing about a bigger tree introduces a new kind of step.
+
+---
+
+## Watching it work
+
+```
+invert(Great Hall 4)
+├─ swap wings → East(7) now left, West(2) now right
+├─ invert(7)
+│   ├─ swap → Library(9) left, Den(6) right
+│   ├─ invert(9) → swap two Nones, done
+│   └─ invert(6) → swap two Nones, done
+└─ invert(2)
+    ├─ swap → Salon(3) left, Study(1) right
+    ├─ invert(3) → done
+    └─ invert(1) → done
+```
+
+Every node gets exactly one swap. The recursion visits each room once, mirrors it, and moves on. Nothing is copied, nothing is rebuilt, the original tree *becomes* its mirror.
+
+---
+
+## The code
+
+```python
+def invert_tree(root: TreeNode | None) -> TreeNode | None:
+    if not root:
+        return None
+    root.left, root.right = root.right, root.left
+    invert_tree(root.left)
+    invert_tree(root.right)
+    return root
+```
+
+Four lines of substance. In a language without tuple swap, use a temp variable, and note the swap must happen with both original pointers in hand, the same save-before-you-overwrite law that governed all of Dungeon 6.
+
+<Callout type="tip" title="The iterative version, for the day it's asked">
+Any tree recursion can be flattened into a loop plus an explicit stack (or a queue, making it breadth-first): push the root, pop a node, swap its children, push the children. Same work, same order-ish, and you manage the stack yourself. Worth writing once to demystify what the call stack was doing for you. Recursion isn't magic, it's a stack with good manners.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the base case.**
+`invert(None)` must return immediately. Without the guard, the first leaf's child dereferences None and the whole mansion collapses. Base case first, always, in every boss this dungeon.
+
+**2. Swapping after recursing... into the wrong rooms.**
+`invert(root.left); invert(root.right); swap` also works (post-order instead of pre-order, both fine here). What *doesn't* work is the half-blend: `invert(root.left); swap; invert(root.left)`, which mirrors one wing twice and the other never. If you recurse and swap in the same function, keep straight which subtree each call is touching.
+
+**3. Building a new tree.**
+Allocating fresh nodes gives a correct mirror and an O(n) memory bill for nothing. The swap is in-place, embrace it.
+
+**4. Only swapping the top level.**
+Swap the wings but forget to recurse, and the mansion's first floor mirrors while every room inside stays backwards. The client notices. Clients always notice.
+
+---
+
+## Complexity
+
+Every node visited once, constant work per node.
+
+**Time: O(n). Space: O(h)** where h is the tree's height, that's the recursion stack, log n for a bushy tree, n for a pathological vine.
+
+---
+
+## Boss down. XP gained.
+
+The mirrored blueprints print overnight. The client walks the halls turning left where she always wanted to, and the intern gets a permanent desk.
+
+What you walked away with:
+
+- Binary trees: root, left and right children, leaves, and the self-similar definition that powers everything
+- The recursive incantation: **base case, one node's work, trust the function on both children**
+- Pre-order vs post-order is just "before or after the recursive calls", and for symmetric work, either flies
+- Recursion is a call stack you don't have to manage; the iterative translation always exists
+
+Every boss from here on refines this one incantation: sometimes the one-node work is a comparison, sometimes a sum, sometimes the children's answers combine in interesting ways. The shape never changes.
+
+Next up: **Boss 2 — The Cave Survey.** A caving team needs the depth of the deepest chamber, and the cave forks at every junction. The answer teaches the second half of the incantation: recursion doesn't just *visit*, it *returns answers upward*, and a parent's answer is built from its children's. One plus the deeper of two surveys.

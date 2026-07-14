@@ -1,0 +1,213 @@
+---
+title: "Construct Binary Tree from Preorder and Inorder Traversal — The Torn Journals"
+slug: build-tree-torn-journals
+category: dsa
+series: trees
+seriesOrder: 13
+description: "Dungeon 7, Boss 13. An explorer logged her cave route twice: once in entry order, once left-self-right. Neither journal alone can rebuild the route tree. Together, they determine it completely. Construction recursion, with a hash map to kill the O(n²)."
+tags:
+  - DSA
+  - Trees
+  - Divide and Conquer
+  - Hash Map
+icon: "📔"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A famous cave explorer left behind two journals of her greatest route, where every chamber forks into at most two passages. The first journal lists chambers in the order she entered them, always exploring the left passage fully before the right. The second lists the same chambers in the archivist's left-self-right reading order. The map itself was lost. Here's the recovery trick: the first entry of journal one is always the route's starting chamber. Find that chamber in journal two, and everything written before it belongs to the left passage, everything after to the right. That one cut splits both journals in two, and the same trick rebuilds each half.
+  bn: |
+    এক বিখ্যাত গুহা অভিযাত্রী তার সেরা রুটের দুটো জার্নাল রেখে গেছেন, যেখানে প্রতিটা কুঠুরি বড়জোর দুটো পথে ভাগ হয়। প্রথম জার্নালে কুঠুরিগুলো লেখা তিনি যে ক্রমে ঢুকেছিলেন সেই ক্রমে, সবসময় বাঁ পথটা পুরো ঘুরে তবেই ডানে। দ্বিতীয়টায় একই কুঠুরিগুলো আর্কাইভিস্টের বাঁ-নিজে-ডান পড়ার ক্রমে। ম্যাপটাই হারিয়ে গেছে। উদ্ধারের কৌশলটা হলো: প্রথম জার্নালের প্রথম এন্ট্রিটাই সবসময় রুটের শুরুর কুঠুরি। সেই কুঠুরিটা দ্বিতীয় জার্নালে খুঁজে বের করুন, তার আগে লেখা সবকিছু বাঁ পথের, পরের সবকিছু ডান পথের। ওই এক কাটেই দুটো জার্নাল দু-টুকরো হয়ে যায়, আর একই কৌশল প্রতিটা টুকরো আবার গড়ে তোলে।
+  hi: |
+    एक मशहूर गुफा खोजी अपने सबसे बड़े रूट की दो डायरियां छोड़ गई, जहां हर कक्ष ज्यादा से ज्यादा दो रास्तों में बंटता है। पहली डायरी में कक्ष उस क्रम में लिखे हैं जिस क्रम में वह घुसी, हमेशा बायां रास्ता पूरा घूमकर ही दायां। दूसरी में वही कक्ष आर्किविस्ट के बाएं-खुद-दाएं पढ़ने के क्रम में। नक्शा ही खो गया। रिकवरी की तरकीब यह है: पहली डायरी की पहली एंट्री हमेशा रूट का शुरुआती कक्ष होती है। उस कक्ष को दूसरी डायरी में ढूंढो, उससे पहले लिखा सब बाएं रास्ते का है, बाद का सब दाएं का। वह एक कट दोनों डायरियों को दो-दो टुकड़ों में बांट देता है, और वही तरकीब हर टुकड़े को दोबारा खड़ा कर देती है।
+  ar: |
+    تركت مستكشفة كهوف شهيرة دفترين عن أعظم مساراتها، حيث تتفرع كل حجرة إلى ممرين على الأكثر. الدفتر الأول يسرد الحجرات بترتيب دخولها إليها، مستكشفة الممر الأيسر كاملاً قبل الأيمن دائماً. والثاني يسرد نفس الحجرات بترتيب قراءة الأرشيفيين: يسار-ذات-يمين. أما الخريطة فضاعت. حيلة الاستعادة: أول سطر في الدفتر الأول هو دائماً حجرة البداية. جِد تلك الحجرة في الدفتر الثاني، فكل ما كُتب قبلها يخص الممر الأيسر وكل ما بعدها يخص الأيمن. تلك القطعة الواحدة تشطر الدفترين معاً، ونفس الحيلة تعيد بناء كل نصف.
+---
+
+## Boss 13: The Torn Journals
+
+Twelve bosses of *reading* trees. This one **builds** a tree, from two flat lists that each hold half the truth. It's the dungeon's forensics episode, and the recursion here returns something new: not counts, not verdicts, but freshly allocated *nodes*.
+
+---
+
+## The story
+
+The legendary explorer Naz kept two journals on her final cave route. The cave: each chamber forks into at most a left and a right passage.
+
+**Journal P** (her entry log): chambers in the order she first stepped into them, always finishing the entire left passage before touching the right. That's pre-order, self-left-right.
+
+**Journal I**: the same chambers in the archivist's reading order from Boss 12, left-self-right. In-order.
+
+```
+P: [3, 9, 20, 15, 7]
+I: [9, 3, 15, 20, 7]
+```
+
+The map is gone. The historical society wants it back.
+
+First, feel why **one journal isn't enough**. Journal P starting `[3, 9, ...]` can't tell whether 9 hangs left or right of 3, both shapes produce that log. Every traversal flattens a two-dimensional structure into one dimension, and something is always lost in the flattening. (True for any single one of the four traversals, with one loophole you'll meet in the gotchas.)
+
+Now the recovery, and it's two facts rubbed together:
+
+**Fact 1:** Journal P's first entry is the route's **starting chamber**, the root. She entered it before anything else, by definition of the log. Root: **3**.
+
+**Fact 2:** Find 3 in Journal I: `[9 | 3 | 15, 20, 7]`. In left-self-right order, everything written *before* the self is exactly the left territory, everything *after* is exactly the right. So the left passage contains `{9}`, the right contains `{15, 20, 7}`. Not probably, *exactly*.
+
+And now recursion takes the wheel: the left passage is itself a route with journals P=[9], I=[9]. The right passage has P=[20, 15, 7] (the next chunk of the entry log, she entered the left passage's 1 chamber first, then these), I=[15, 20, 7]. Same puzzle, smaller caves. Two facts, applied until the journals run dry.
+
+---
+
+## The problem, dressed up properly
+
+> Given two integer arrays `preorder` and `inorder` where `preorder` is the preorder traversal of a binary tree and `inorder` is the inorder traversal of the same tree, construct and return the binary tree.
+>
+> Both arrays consist of **unique** values.
+
+LeetCode 105. That "unique" is doing quiet, heavy work: it's what makes "find the root in the inorder list" unambiguous. Hold onto that.
+
+---
+
+## The naive attempt
+
+The story, transcribed directly with list slicing:
+
+```python
+def build_tree(preorder, inorder):
+    if not preorder:
+        return None
+    root = TreeNode(preorder[0])
+    mid = inorder.index(preorder[0])            # find the self
+    root.left = build_tree(preorder[1:mid+1], inorder[:mid])
+    root.right = build_tree(preorder[mid+1:], inorder[mid+1:])
+    return root
+```
+
+Correct, readable, and the version to write *first* on a whiteboard. Two taxes hide in it: `inorder.index()` is a linear scan at every node, and every slice copies its lists. Worst case (a vine-shaped cave), both go quadratic: **O(n²)** time and space. For the interview's follow-up round, both taxes have clean refunds.
+
+---
+
+## The weapon: a chamber directory, and pointers instead of scissors
+
+**Refund 1, the scan:** build a hash map from chamber number to its position in Journal I, once, upfront. `inorder.index(...)` becomes an O(1) lookup. (This is why unique values matter, the directory needs one address per chamber.)
+
+**Refund 2, the copies:** never slice. Pass index boundaries (`lo`, `hi`) into the recursion, describing which stretch of Journal I this subtree owns. And for Journal P, an even neater trick: keep **one shared cursor** that walks P left to right. Pre-order *is* construction order, self before left before right, so each recursive call just consumes the next entry. The cursor visits each chamber exactly once, in exactly the order the builder needs it.
+
+<MermaidBlock>
+graph TB
+    A["cursor reads next\nchamber from P\nthat's this subtree's root"]
+    B["directory lookup:\nroot's position mid in I"]
+    C["build left from\nI-range lo to mid-1"]
+    D["build right from\nI-range mid+1 to hi"]
+    E["empty range?\nreturn None: no passage"]
+    A --> B
+    B --> C
+    C --> D
+    A --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Build order matters and is not negotiable: **left before right**, because the shared cursor must consume P's left-passage entries before its right-passage entries, that's the order Naz walked.
+
+---
+
+## Watching it work
+
+`P = [3, 9, 20, 15, 7]`, `I = [9, 3, 15, 20, 7]`, directory `{9:0, 3:1, 15:2, 20:3, 7:4}`.
+
+```
+build(lo=0, hi=4): cursor→3, mid=1
+├─ build(0, 0):  cursor→9, mid=0
+│   ├─ build(0, -1) → None      (empty range: no left passage)
+│   └─ build(1, 0)  → None
+└─ build(2, 4):  cursor→20, mid=3
+    ├─ build(2, 2):  cursor→15  → leaf
+    └─ build(4, 4):  cursor→7   → leaf
+
+        3
+       / \
+      9   20
+          / \
+        15   7
+```
+
+Naz's cave, resurrected. Check it: pre-order of this tree is [3,9,20,15,7] ✓, in-order is [9,3,15,20,7] ✓.
+
+---
+
+## The code
+
+```python
+def build_tree(preorder: list[int], inorder: list[int]) -> TreeNode | None:
+    pos = {val: i for i, val in enumerate(inorder)}   # chamber directory
+    cursor = 0
+
+    def build(lo, hi):
+        nonlocal cursor
+        if lo > hi:
+            return None                    # no passage here
+        root_val = preorder[cursor]
+        cursor += 1
+        root = TreeNode(root_val)
+        mid = pos[root_val]
+        root.left = build(lo, mid - 1)     # left first: cursor order demands it
+        root.right = build(mid + 1, hi)
+        return root
+
+    return build(0, len(inorder) - 1)
+```
+
+<Callout type="info" title="Which journal pairs work?">
+Pre+in works. Post+in works the same way (post-order's *last* entry is the root; consume the cursor from the right, build right before left, that's LC 106). Pre+post does **not** determine the tree when nodes have single children, you can't tell left-only from right-only. And the loophole promised earlier: a *single* traversal suffices if it records the Nones, the empty passages, because then nothing is lost in the flattening. That loophole has a boss of its own: number 15.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Right before left.**
+With the shared cursor, building the right subtree first consumes the left passage's P-entries for the wrong side. The tree comes out plausibly shaped and completely wrong. Left first. Always. (Unless you're doing post+in from the right, where it's exactly reversed, know *why*, not just *which*.)
+
+**2. Rebuilding the directory per call.**
+The hash map goes *outside* the recursion. Rebuilding it inside quietly restores the O(n²) you were refunding.
+
+**3. Slicing "just for clarity".**
+`preorder[1:mid+1]` in the naive version isn't wrong, it's a cost decision. Know which version you're writing and say so: "slices for clarity, indices for the O(n) version" is a strong interview sentence.
+
+**4. Duplicate values.**
+The directory keeps one position per value, so duplicates silently rebuild the wrong cave. The problem bans them; real serialization formats (Boss 15) don't need the ban, another reason that boss exists.
+
+**5. Trusting inconsistent journals.**
+Real-world inputs can disagree (a P entry missing from I). This code would KeyError; production code validates first. Interviews: mention it, move on.
+
+---
+
+## Complexity
+
+Directory: O(n). Each chamber built once, O(1) work each.
+
+**Time: O(n). Space: O(n)** for the directory plus O(h) stack.
+
+---
+
+## Boss down. XP gained.
+
+The rebuilt map hangs in the historical society, both journals under glass beside it, and every traversal of the map reproduces its journal, the proof is the frame.
+
+What you walked away with:
+
+- **Pre-order's head is the root; in-order splits at the root**, two facts that together determine the whole tree
+- Construction recursion: return *nodes*, let the calls assemble each other's children
+- The upgrade kit: hash-map directory (kill the scan) + index ranges and a shared cursor (kill the copies)
+- Cursor discipline: build in the traversal's own order, left-first for pre-order
+- Which traversal pairs determine a tree, and the None-recording loophole
+
+Two bosses left, and they're the summit pair: the dungeon's hardest recursion, then its most practical export.
+
+Next up: **Boss 14 — The Gold Vein.** A mining company maps ore-rich tunnels where every chamber has a value, some *negative* (flooded, costly), and wants the most profitable connected path, any start, any end, bends allowed. Boss 3's two-channel pattern returns carrying money instead of distance, and one clamp, max with zero, does all the hard thinking.

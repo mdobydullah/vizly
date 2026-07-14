@@ -1,0 +1,222 @@
+---
+title: "Serialize and Deserialize Binary Tree — The Bonsai Courier"
+slug: serialize-deserialize-bonsai-courier
+category: dsa
+series: trees
+seriesOrder: 15
+description: "Dungeon 7, Boss 15. A prize bonsai ships across the country as a single line of text, then regrows at the destination, identical, empty branches and all. Boss 13's loophole cashed: one traversal suffices when you record the Nones."
+tags:
+  - DSA
+  - Trees
+  - DFS
+  - Design
+  - Hard
+icon: "🪴"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A prize-winning bonsai must travel across the country, and live shipping is out of the question. The courier's service is stranger: a botanist writes the entire tree down as one line of text, the line travels by wire, and a botanist at the other end regrows the tree from the text, identical to the last branch. The catch from the torn journals still holds: writing down just the branches loses the shape. The fix costs almost nothing: write down the empty spots too. Every "no branch here" gets its own mark on the line, and with the gaps recorded, one reading rebuilds the tree with zero guesswork.
+  bn: |
+    পুরস্কারজয়ী এক বনসাইকে দেশের এক প্রান্ত থেকে আরেক প্রান্তে যেতে হবে, আর জ্যান্ত গাছ পাঠানোর প্রশ্নই ওঠে না। ক্যুরিয়ারের সার্ভিসটা অদ্ভুত: একজন উদ্ভিদবিদ পুরো গাছটাকে এক লাইন টেক্সটে লিখে ফেলেন, লাইনটা তারে চড়ে পাড়ি দেয়, আর ওপারের আরেক উদ্ভিদবিদ সেই টেক্সট থেকে গাছটা আবার ফলিয়ে তোলেন, শেষ ডালটা পর্যন্ত হুবহু। ছেঁড়া জার্নালের সেই প্যাঁচটা এখানেও খাটে: শুধু ডালগুলো লিখলে আকৃতিটা হারিয়ে যায়। সমাধানের খরচ প্রায় শূন্য: খালি জায়গাগুলোও লিখে ফেলুন। প্রতিটা "এখানে ডাল নেই" পায় লাইনে তার নিজের চিহ্ন, আর ফাঁকগুলো নথিভুক্ত থাকলে এক পাঠেই গাছটা দাঁড়িয়ে যায়, কোনো আন্দাজ ছাড়াই।
+  hi: |
+    इनाम जीता हुआ एक बोनसाई देश के आर-पार भेजना है, और जिंदा पेड़ की शिपिंग का सवाल ही नहीं उठता। कूरियर की सर्विस अजीब है: एक वनस्पतिशास्त्री पूरे पेड़ को टेक्स्ट की एक लाइन में लिख देता है, लाइन तार से सफर करती है, और दूसरे छोर पर दूसरा वनस्पतिशास्त्री उस टेक्स्ट से पेड़ दोबारा उगा देता है, आखिरी टहनी तक हूबहू। फटी डायरियों वाला पेच यहां भी लागू है: सिर्फ टहनियां लिखो तो आकार खो जाता है। हल की कीमत लगभग शून्य है: खाली जगहें भी लिख डालो। हर "यहां टहनी नहीं" को लाइन पर अपना निशान मिलता है, और खाली जगहें दर्ज हों तो एक ही पढ़ाई में पेड़ बिना किसी अंदाजे के खड़ा हो जाता है।
+  ar: |
+    يجب أن تسافر شجرة بونساي حائزة على جائزة عبر البلاد، وشحنها حيّةً غير وارد. خدمة الساعي أغرب: يكتب عالم نباتات الشجرة كلها سطراً واحداً من النص، يسافر السطر عبر السلك، وفي الطرف الآخر يعيد عالم نباتات آخر إنباتها من النص، مطابقة حتى آخر غصن. مأزق الدفاتر الممزقة قائم هنا أيضاً: كتابة الأغصان وحدها تُضيع الشكل. الحل يكاد لا يكلف شيئاً: اكتب المواضع الفارغة أيضاً. كل "لا غصن هنا" ينال علامته الخاصة على السطر، ومع تسجيل الفجوات تكفي قراءة واحدة لإعادة بناء الشجرة بلا أي تخمين.
+---
+
+## Boss 15: The Bonsai Courier
+
+The final boss, and fittingly, it isn't a puzzle, it's an **engineering rite**. Serialization is how trees escape RAM: how they cross networks, land on disks, survive restarts. Every JSON payload, every protobuf, every database page is a cousin of what you build here. LeetCode calls it Hard; you'll call it Boss 13's loophole plus writing discipline.
+
+---
+
+## The story
+
+The champion bonsai "Winter Cloud" must move from a greenhouse in the east to a museum in the west. Live transport is out: too fragile, too slow. The courier's exotic alternative: **transmit the tree as text**, regrow it on arrival. Identical. Not similar, identical, judges will compare it branch for branch against photographs. Empty spots included: a bonsai's art is as much where branches *aren't*.
+
+Boss 13 taught the obstacle: one traversal, values only, can't pin down a shape. `[3, 9, ...]` couldn't say whether 9 hung left or right. That's why the journals came in pairs.
+
+And Boss 13's callout planted the loophole: pairs are needed only because plain traversals *skip the empty spots*. Record the Nones, and the flattening loses nothing. One journal, with gaps marked, determines the tree completely.
+
+The tree:
+
+```
+        1
+       / \
+      2   3
+         / \
+        4   5
+```
+
+Write it down pre-order (self, left, right), marking every empty spot with `#`:
+
+```
+1,2,#,#,3,4,#,#,5,#,#
+```
+
+Read it aloud like the botanist regrowing it: "1. Its left: 2. 2's left: nothing. 2's right: nothing. So back to 1's right: 3. 3's left: 4..." Every question the regrower could ask, the line answers *at the exact moment it's asked*. No searching, no directory, no second journal. That's what recording the gaps buys.
+
+---
+
+## The problem, dressed up properly
+
+> Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.
+>
+> Design an algorithm to serialize and deserialize a binary tree. There is no restriction on how your serialization/deserialization algorithm should work. You just need to ensure that a binary tree can be serialized to a string and this string can be deserialized to the original tree structure.
+
+LeetCode 297. The freedom ("no restriction") is real, and so is the responsibility: *you* are designing a format, and formats have failure modes.
+
+---
+
+## The naive attempt
+
+Two journals! Serialize pre-order *and* in-order, ship both, rebuild with Boss 13's machinery.
+
+It genuinely works... on that problem's guarantee: **unique values**. This problem makes no such promise, and Boss 13's directory (value → position) collapses when two branches share a value. A bonsai with two identical "5" branches ships east and regrows west as something else. The two-journal scheme isn't wrong, it's *fragile*, resting on a guarantee this contract doesn't give. The gap-marking scheme needs no such crutch: it never looks anything up by value.
+
+(The other naive road: level-order with gaps, LeetCode's own bracket format. Perfectly valid, queue-based, slightly bulkier. The DFS version below is less code and pairs with everything this dungeon taught.)
+
+---
+
+## The weapon: pre-order with the gaps written down
+
+**Serialize** is Boss 1's skeleton with a notebook: visit self (write the value), recurse left, recurse right, and when there's no node, **write the mark**.
+
+**Deserialize** is where the design earns its keep: read tokens one at a time through a single shared cursor, exactly Boss 13's cursor discipline:
+
+- Read a token. If it's `#`: this spot is empty, return None, done.
+- Otherwise: it's a node. Build it, then, *because the format is self-left-right*, everything next on the line is its left subtree; recurse, then recurse right.
+
+<MermaidBlock>
+graph TB
+    A["serialize(node)"]
+    B["None? write mark\nand return"]
+    C["write node.val\nserialize left\nserialize right"]
+    D["deserialize:\nread next token"]
+    E["mark? return None\nthe gap regrows as a gap"]
+    F["build node,\nregrow left, then right\nsame cursor throughout"]
+    A --> B
+    A --> C
+    D --> E
+    D --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The deep symmetry, and the reason this boss closes the dungeon: **serialization and deserialization are the same traversal**, one writing the line, one reading it. The writer's recursion and the regrower's recursion visit spots in the identical order, so the line's tokens arrive precisely when the regrower needs them. The format *is* the traversal. Once you see that, every serializer you meet, JSON's nested braces included, reads as a traversal wearing punctuation.
+
+---
+
+## Watching it work
+
+Regrowing `1,2,#,#,3,4,#,#,5,#,#`:
+
+```
+read 1  → node(1); regrow its left
+  read 2  → node(2); regrow its left
+    read # → None (2's left is a gap)
+    read # → None (2's right)
+  ← 2 complete
+  back at 1: regrow its right
+  read 3  → node(3); regrow left
+    read 4  → node(4)
+      read #, read # → both gaps
+    read 5  → node(5)
+      read #, read # → both gaps
+  ← 3 complete
+← 1 complete. Winter Cloud stands.
+```
+
+Eleven tokens, eleven questions, zero ambiguity. Count them: 6 values + 5 marks... a tree with n nodes has exactly **n + 1** gaps (each node offers 2 spots, each non-root node fills 1: 2n - (n-1) = n+1). Your serialized line should always have that shape; it's a free sanity check on any implementation.
+
+---
+
+## The code
+
+```python
+class Codec:
+    def serialize(self, root: TreeNode | None) -> str:
+        out = []
+        def write(node):
+            if not node:
+                out.append("#")
+                return
+            out.append(str(node.val))
+            write(node.left)
+            write(node.right)
+        write(root)
+        return ",".join(out)
+
+    def deserialize(self, data: str) -> TreeNode | None:
+        tokens = iter(data.split(","))
+        def read():
+            tok = next(tokens)
+            if tok == "#":
+                return None
+            node = TreeNode(int(tok))
+            node.left = read()
+            node.right = read()
+            return node
+        return read()
+```
+
+`iter()` + `next()` *is* the shared cursor, Python's iterator protocol handing out tokens in order. In other languages: an index passed by reference, or a queue you pop from the front.
+
+<Callout type="warning" title="Format design is failure design">
+Three quiet decisions in that code, each guarding a real bug. **The comma:** without a separator, nodes 1 and 12 serialize into the same characters as 11 and 2, delimiters exist because values have widths. **The `#` choice:** it must never collide with a legal value's text; values here are integers, so any non-numeric mark works. **`str`/`int` round-tripping:** negative values ride through because `int("-7")` works, but a format hand-rolled with fixed-width fields would corrupt them. Every serialization bug ever shipped is one of these three wearing a trench coat.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the gaps.**
+The entire boss. Values-only pre-order is Boss 13's ambiguity, reborn. If your deserializer needs to *guess* or *search*, your format lost information.
+
+**2. Separator-free concatenation.**
+The 1,12 vs 11,2 collision. Join with a delimiter, split on it, never substring-parse by position.
+
+**3. Two cursors, or a reset cursor.**
+The left-subtree recursion and right-subtree recursion must consume from the *same* advancing cursor. A fresh iterator per call, or an index passed by value, regrows the same branch everywhere.
+
+**4. The empty bonsai.**
+`root = None` serializes to `"#"` and must regrow as None. Formats that special-case emptiness with empty strings then crash splitting them. One mark, no special case, test it.
+
+**5. Deserializing untrusted lines.**
+Interview scope ends at "round-trips correctly". Production scope doesn't: a malformed line (`"1,2"`, truncated) makes `next(tokens)` raise, and real formats carry length checks and version tags. Saying this sentence out loud in an interview is worth more than it costs.
+
+---
+
+## Complexity
+
+Each spot, node or gap, written once and read once.
+
+**Time: O(n)** both directions. **Space: O(n)** for the line, O(h) for the recursion.
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained. Level up.
+
+Winter Cloud regrows in the museum, and the judges' loupes find nothing to object to: every branch, every deliberate emptiness, exactly as photographed. The line of text is framed beside it.
+
+Fifteen bosses. What you're carrying out of Dungeon 7, the biggest haul of the quest:
+
+- The **incantation**: base case, one node's work, trust the recursion, and its four traversal orders, all with faces now
+- **Answers up** through returns (depth, counts, arms), **context down** through arguments (maxes, ranges), and **side channels** for prizes that live anywhere (diameter, gold)
+- The clamp, the sentinel, and the two zeros, small tools that decide Hard problems
+- **BST ordering**: navigation instead of search, in-order as sorted order, territories not children
+- **BFS**: the queue, the snapshot, and the per-level family
+- **Construction**: recursion that returns nodes, cursors that consume traversals, and formats that record their gaps
+- The meta-lesson, twice proven: Hards are compositions, Boss 14 was 3+10, Boss 15 was 1+13
+
+**Next dungeon: Tries.** The tree grows letters. Twenty-six children per node instead of two, words stored as *paths from the root*, and shared prefixes shared exactly once. Autocomplete, spell-check, and prefix search in O(word length), plus a wildcard boss that brings recursion right back. The trees keep branching.
+
+See you in Dungeon 8.

@@ -1,0 +1,219 @@
+---
+title: "Maximum Depth of Binary Tree — The Cave Survey"
+slug: max-depth-cave-survey
+category: dsa
+series: trees
+seriesOrder: 2
+description: "Dungeon 7, Boss 2. A caving team must report how deep the cave goes, and it forks at every junction. Recursion's second lesson: answers flow upward, and a parent's answer is one plus the deeper of its two children's."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+  - Beginner
+icon: "🕳️"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A caving team is mapping a cave that forks at every junction, and the park office wants one number: how many levels down does the deepest chamber sit? No single caver can walk every branch, so they use the buddy system. At each fork, two scouts descend, one per tunnel, and each comes back with the depth of their side. The rule for reporting is dead simple: take the bigger of the two reports and add one for the level you're standing on. Empty tunnel reports zero. The number that reaches the surface is the cave's depth.
+  bn: |
+    একটা গুহা ম্যাপ করছে এক কেভিং টিম, গুহাটা প্রতিটা মোড়ে দুভাগ হয়ে যায়, আর পার্ক অফিস চায় একটাই সংখ্যা: সবচেয়ে গভীর কুঠুরিটা কত লেভেল নিচে? একজন কেভারের পক্ষে সব শাখা হাঁটা সম্ভব না, তাই তারা বাডি সিস্টেম ব্যবহার করে। প্রতিটা মোড়ে দুজন স্কাউট নামে, একেক টানেলে একেকজন, আর প্রত্যেকে নিজের দিকের গভীরতা নিয়ে ফিরে আসে। রিপোর্ট করার নিয়মটা একদম সোজা: দুটো রিপোর্টের মধ্যে বড়টা নিন আর যে লেভেলে দাঁড়িয়ে আছেন তার জন্য এক যোগ করুন। খালি টানেলের রিপোর্ট শূন্য। যে সংখ্যাটা উপরে পৌঁছায় সেটাই গুহার গভীরতা।
+  hi: |
+    एक केविंग टीम ऐसी गुफा का नक्शा बना रही है जो हर मोड़ पर दो हिस्सों में बंटती है, और पार्क ऑफिस को एक ही नंबर चाहिए: सबसे गहरा कक्ष कितने लेवल नीचे है? अकेला केवर हर शाखा नहीं चल सकता, इसलिए वे बडी सिस्टम अपनाते हैं। हर मोड़ पर दो स्काउट उतरते हैं, हर सुरंग में एक, और हर कोई अपनी तरफ की गहराई लेकर लौटता है। रिपोर्ट का नियम एकदम सीधा है: दोनों रिपोर्ट में से बड़ी लो और जिस लेवल पर खड़े हो उसके लिए एक जोड़ दो। खाली सुरंग की रिपोर्ट शून्य। जो नंबर सतह तक पहुंचता है वही गुफा की गहराई है।
+  ar: |
+    يرسم فريق استكشاف كهفاً يتفرع عند كل مفترق، ويريد مكتب المنتزه رقماً واحداً: كم مستوى تحت الأرض تقع أعمق حجرة؟ لا يستطيع مستكشف واحد المشي في كل الفروع، فيستخدمون نظام الثنائيات. عند كل مفترق ينزل كشافان، واحد لكل نفق، ويعود كل منهما بعمق جهته. قاعدة التقرير بسيطة للغاية: خذ الأكبر من التقريرين وأضف واحداً للمستوى الذي تقف عليه. النفق الفارغ يبلّغ صفراً. الرقم الذي يصل إلى السطح هو عمق الكهف.
+---
+
+## Boss 2: The Cave Survey
+
+Boss 1's recursion *did* something at every node (a swap) and returned nothing interesting. This boss teaches the other half of the incantation, the half that powers most of the dungeon: **recursion returns answers, and parents combine their children's answers**.
+
+Once this clicks, Bosses 3, 4, 10, and 14 are all the same boss wearing progressively better armor.
+
+---
+
+## The story
+
+The national park found a new cave and the survey team is sent in. The cave is a binary tree of chambers: from each chamber, up to two tunnels descend deeper.
+
+```
+        Entrance (depth 1)
+       /        \
+   Chamber A   Chamber B
+                /      \
+           Chamber C  Chamber D
+                        \
+                       Chamber E
+```
+
+The park office wants one number for the sign at the entrance: **maximum depth**, the number of chambers on the longest path from entrance to the deepest dead end. Here: Entrance → B → D → E, four chambers, depth **4**.
+
+The cave forks too much for one person. The team's protocol, at every chamber:
+
+- Send one scout down the left tunnel, one down the right.
+- Each scout returns with a number: the depth of the cave *below that tunnel*.
+- Your report to the person above you: **the bigger of the two reports, plus one** for the chamber you're standing in.
+- A blocked or missing tunnel counts as depth 0, there's nothing down there.
+
+Nobody in the cave knows the full map. Each person knows one rule and trusts the scouts below. The right answer assembles itself on the way up.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary tree, return its maximum depth.
+>
+> A binary tree's maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.
+
+LeetCode 104.
+
+---
+
+## The naive attempt
+
+The instinct from six dungeons of lists: walk it with a loop. And immediately, the fork problem: at Chamber B, a loop goes down toward C or D, and must remember to come back for the other. So you add an explicit stack of "chambers I still owe a visit", and track the depth each was found at:
+
+```python
+def max_depth(root):
+    if not root:
+        return 0
+    stack = [(root, 1)]
+    best = 0
+    while stack:
+        node, depth = stack.pop()
+        best = max(best, depth)
+        if node.left:
+            stack.append((node.left, depth + 1))
+        if node.right:
+            stack.append((node.right, depth + 1))
+    return best
+```
+
+This *works*, same O(n), and it's genuinely worth knowing. But look at what you built: a hand-managed pile of postponed work with bookkeeping glued to each entry. The recursive version is this exact machine with the language running the pile, and the buddy-system rule stated once, cleanly.
+
+---
+
+## The weapon: one rule, applied everywhere
+
+The scout protocol, verbatim:
+
+```
+depth(no chamber)  = 0
+depth(chamber)     = 1 + max(depth(left tunnel), depth(right tunnel))
+```
+
+<MermaidBlock>
+graph TB
+    A["depth(node)"]
+    B["None? report 0"]
+    C["ask left scout\ndepth(left)"]
+    D["ask right scout\ndepth(right)"]
+    E["report up:\n1 + max(left, right)"]
+    A --> B
+    A --> C
+    A --> D
+    C --> E
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Notice what changed from Boss 1. There, the recursive calls were fire-and-forget. Here, their **return values are ingredients**: the parent can't compute its answer until both children have reported. Information flows *up* the tree. This upward flow has a name you'll meet in textbooks, post-order processing: children first, then the node's own work. Whenever a node's answer depends on its subtrees' answers, you're in post-order country, and most tree problems live there.
+
+---
+
+## Watching it work
+
+```
+depth(Entrance)
+├─ depth(A)
+│   ├─ depth(None) = 0
+│   ├─ depth(None) = 0
+│   └─ report 1 + max(0,0) = 1
+├─ depth(B)
+│   ├─ depth(C)
+│   │   └─ report 1 + max(0,0) = 1
+│   ├─ depth(D)
+│   │   ├─ depth(None) = 0
+│   │   ├─ depth(E)
+│   │   │   └─ report 1 + max(0,0) = 1
+│   │   └─ report 1 + max(0,1) = 2
+│   └─ report 1 + max(1,2) = 3
+└─ answer: 1 + max(1,3) = 4
+```
+
+Watch the 4 get built: E says 1, D says 2, B says 3, Entrance says 4. Nobody counted to four. Four *accumulated*, one honest plus-one at a time, up the chain of reports.
+
+---
+
+## The code
+
+```python
+def max_depth(root: TreeNode | None) -> int:
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))
+```
+
+Two lines. This is the recursion template for the whole dungeon, worth engraving:
+
+```
+def solve(node):
+    if not node: return BASE_VALUE
+    left  = solve(node.left)
+    right = solve(node.right)
+    return COMBINE(node, left, right)
+```
+
+Boss 2 is `BASE=0, COMBINE=1+max`. Later bosses only ever change those two slots.
+
+<Callout type="tip" title="The BFS version counts floors instead">
+There's a second honest way to think about depth: count the *levels*. Process the tree floor by floor with a queue (all depth-1 chambers, then all depth-2 chambers...), and count how many floors you clear. That's breadth-first search, and it stars in Boss 8. For this problem both are O(n); recursion is less code, BFS answers "how deep" without ever going deep, which matters when trees are huge and lopsided.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Base case returning 1.**
+`depth(None)` is 0, a missing tunnel has no chambers. Returning 1 for None inflates every leaf's report and the whole survey runs one deep. If your answer is exactly one too big, it's this.
+
+**2. Adding depths instead of taking the max.**
+`1 + left + right` computes something (roughly, a path *through* the node, which is Boss 3's business), but not depth. Depth is a choice between tunnels, not a tour of both. `max`, not `+`.
+
+**3. Counting edges vs nodes.**
+This problem counts *nodes* (the entrance itself is depth 1). Some textbooks define depth by *edges* (entrance is depth 0). Both conventions exist; the base case and the plus-one placement encode which one you're using. Read the problem, pick, be consistent.
+
+**4. Fearing the double recursion.**
+`max_depth` calls itself twice, and some instinct whispers "exponential!". It isn't: each *node* is visited exactly once, the two calls partition the tree, they don't duplicate it. O(n), always, for every boss built on this template.
+
+---
+
+## Complexity
+
+Every chamber visited once.
+
+**Time: O(n). Space: O(h)** for the call stack, h being the cave's depth itself.
+
+---
+
+## Boss down. XP gained.
+
+The sign at the entrance reads "DEPTH: 4 LEVELS", and every number on it was computed by someone who never saw more than one chamber and two tunnel mouths.
+
+What you walked away with:
+
+- **Answers flow upward**: children report, parents combine, the root's answer is the problem's answer
+- The universal template: base case, solve both subtrees, combine
+- `1 + max(left, right)`, and the discipline of knowing whether you count nodes or edges
+- Double recursion visits each node once; trust the partition, not the panic
+
+The template's `COMBINE` slot is about to get its first twist. Depth asked each node one question. The next boss secretly asks each node *two*, and teaches what to do when the answer you report upward isn't the answer you actually care about.
+
+Next up: **Boss 3 — The Zipline Route.** An adventure park wants the longest possible zipline between any two platforms in a treehouse complex, and the cable may bend *through* a platform, joining its left and right branches. Every platform computes depth like today, but the prize lives in a side channel. Meet the pattern that cracks half of all Hard tree problems.

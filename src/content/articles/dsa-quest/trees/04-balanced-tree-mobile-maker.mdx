@@ -1,0 +1,217 @@
+---
+title: "Balanced Binary Tree — The Mobile Maker"
+slug: balanced-tree-mobile-maker
+category: dsa
+series: trees
+seriesOrder: 4
+description: "Dungeon 7, Boss 4. A mobile sculpture only sells if every joint hangs level: the two sides differ in height by at most one. One pass, heights flowing up, and a sentinel value that means 'already ruined, stop measuring'."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+icon: "🎐"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An artist builds hanging mobiles, the kind that drift over a baby's crib, and the gallery has one quality rule: at every single joint, the two hanging sides may differ in height by at most one unit, or the whole piece tilts and looks broken. Checking the top joint isn't enough, a lopsided branch three levels down ruins the piece just the same. So she checks it the lazy smart way: each branch reports its height upward, and any joint that finds its two sides differing by two or more sends up a special ruined flag instead of a number. Once ruined, always ruined, no point measuring further.
+  bn: |
+    এক শিল্পী ঝুলন্ত মোবাইল বানান, যেগুলো বাচ্চার দোলনার উপর দোলে, আর গ্যালারির একটাই কোয়ালিটি নিয়ম: প্রতিটা জয়েন্টে ঝুলে থাকা দুই পাশের উচ্চতার ফারাক বড়জোর এক ইউনিট হতে পারবে, নইলে পুরো জিনিসটা কাত হয়ে ভাঙা ভাঙা লাগে। শুধু উপরের জয়েন্ট দেখলে চলবে না, তিন লেভেল নিচের একটা একপেশে ডালও জিনিসটা সমান ভাবে নষ্ট করে। তাই তিনি চেক করেন অলস কিন্তু বুদ্ধিমান কায়দায়: প্রতিটা ডাল নিজের উচ্চতা উপরে রিপোর্ট করে, আর যে জয়েন্ট দেখে তার দুই পাশের ফারাক দুই বা তার বেশি, সে সংখ্যার বদলে উপরে পাঠায় একটা বিশেষ "নষ্ট" পতাকা। একবার নষ্ট মানে চিরতরে নষ্ট, আর মাপামাপির দরকার নেই।
+  hi: |
+    एक कलाकार लटकने वाले मोबाइल बनाती है, वही जो बच्चे के पालने के ऊपर झूलते हैं, और गैलरी का एक ही क्वालिटी नियम है: हर एक जोड़ पर लटकती दोनों तरफ की ऊंचाई का फर्क ज्यादा से ज्यादा एक यूनिट हो सकता है, वरना पूरी कृति झुकी और टूटी सी दिखती है। सिर्फ ऊपर का जोड़ जांचना काफी नहीं, तीन लेवल नीचे की एक झुकी डाल भी कृति को उतना ही बर्बाद करती है। तो वह आलसी पर समझदार तरीके से जांचती है: हर डाल अपनी ऊंचाई ऊपर रिपोर्ट करती है, और जो जोड़ अपनी दोनों तरफ का फर्क दो या ज्यादा पाता है, वह नंबर की जगह ऊपर एक खास "बर्बाद" झंडा भेज देता है। एक बार बर्बाद तो हमेशा बर्बाद, आगे नापने का कोई मतलब नहीं।
+  ar: |
+    تصنع فنانة منحوتات معلّقة، من النوع الذي يتمايل فوق سرير رضيع، وللمعرض قاعدة جودة واحدة: عند كل مفصل يجوز أن يختلف ارتفاع الجانبين المتدليين بوحدة واحدة على الأكثر، وإلا مالت القطعة كلها وبدت مكسورة. فحص المفصل العلوي لا يكفي، فغصن مائل في المستوى الثالث يفسد القطعة بنفس القدر. لذلك تفحص بالطريقة الكسولة الذكية: كل غصن يبلّغ ارتفاعه إلى الأعلى، وأي مفصل يجد فرق جانبيه اثنين أو أكثر يرسل بدل الرقم راية "تالف" خاصة. ما فسد مرة فسد إلى الأبد، ولا جدوى من القياس بعدها.
+---
+
+## Boss 4: The Mobile Maker
+
+Boss 3 sent a *length* through the side channel. This boss sends a *verdict*, and then pulls a classic engineering move: it smuggles the verdict **inside the return value itself**, using a number no legitimate height could ever be.
+
+Sentinel values. Cheap, slightly sneaky, everywhere in real codebases.
+
+---
+
+## The story
+
+The artist's studio is strung with mobiles, each one a binary tree of rods and threads. The gallery's acceptance test is strict and *local*: at **every joint**, the height of the left hanging side and the height of the right hanging side may differ by at most 1.
+
+This one passes:
+
+```
+        o
+       / \
+      o   o
+     / \
+    o   o
+```
+
+Left side height 2, right side height 1 at the top joint, fine. Every lower joint, fine.
+
+This one fails, and here's the teaching moment, it fails *even though the top joint looks fine*:
+
+```
+        o
+       / \
+      o   o
+     /
+    o
+   /
+  o
+```
+
+Top joint: left height 3, right height 1. Difference 2. Tilted, rejected. And even in trees where the top happens to balance, a joint buried five levels deep with a difference of 2 fails the whole piece. **Every** joint must pass. One bad weld, no sale.
+
+---
+
+## The problem, dressed up properly
+
+> Given a binary tree, determine if it is **height-balanced**: for every node, the heights of its left and right subtrees differ by at most one.
+
+LeetCode 110. This "balanced" is the property that keeps search trees fast, the reason AVL trees and red-black trees exist, and you'll appreciate *why* when BSTs star later in this dungeon.
+
+---
+
+## The naive attempt
+
+For each node, measure both subtree heights, compare, recurse.
+
+```python
+def is_balanced(root):
+    def height(node):
+        if not node:
+            return 0
+        return 1 + max(height(node.left), height(node.right))
+
+    if not root:
+        return True
+    if abs(height(root.left) - height(root.right)) > 1:
+        return False
+    return is_balanced(root.left) and is_balanced(root.right)
+```
+
+Boss 3's disease, verbatim: `height` fully surveys a subtree, throws the details away, and `is_balanced` re-surveys the same nodes one level down. O(n²) on lopsided trees, which are precisely the trees this problem exists to catch. There's dark comedy in that: the check for imbalance is slowest on unbalanced input.
+
+And the cure is Boss 3's cure: one pass, heights flowing up, verdicts riding along.
+
+---
+
+## The weapon: heights up, with a poison pill
+
+Each joint reports its height upward, with a twist in the protocol: if a joint discovers imbalance, *or receives the ruined flag from below*, it reports the flag instead of a height. The flag is **-1**, chosen because no real height is negative, the sentinel can never be confused with an honest measurement.
+
+```
+report(no rod)   = 0
+report(joint)    = -1                       if either side reported -1
+                 = -1                       if |left - right| > 1
+                 = 1 + max(left, right)     otherwise
+```
+
+<MermaidBlock>
+graph TB
+    A["check(node)\nreturns height or -1"]
+    B["left = check(node.left)\nright = check(node.right)"]
+    C["either side is -1?\npass the ruin up: -1"]
+    D["gap over 1?\nruined here: -1"]
+    E["healthy:\nreport 1 + max(left, right)"]
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The tree is balanced exactly when the root's report isn't -1. One traversal, every joint checked, and the ruin flag naturally short-circuits: once a -1 appears, it surfs the return values straight to the top, and with early exits, whole untouched branches never even get measured.
+
+---
+
+## Watching it work
+
+The failing mobile from the story (heights in parentheses):
+
+```
+check(deepest leaf)        → 1
+check(its parent)          → left 1, right 0, gap 1 → 2
+check(left arm top)        → left 2, right 0, gap 2 → -1  ☠
+check(right side leaf)     → 1
+check(root)                → left -1 → pass it up → -1  ☠
+
+root reports -1 → not balanced ✓
+```
+
+The ruin was detected two levels down and simply *outranked* every honest number on its way up.
+
+---
+
+## The code
+
+```python
+def is_balanced(root: TreeNode | None) -> bool:
+    def check(node):
+        if not node:
+            return 0
+        left = check(node.left)
+        if left == -1:
+            return -1                    # early exit: skip the right side entirely
+        right = check(node.right)
+        if right == -1:
+            return -1
+        if abs(left - right) > 1:
+            return -1
+        return 1 + max(left, right)
+
+    return check(root) != -1
+```
+
+That first early exit is worth noticing: if the left subtree is already ruined, the right subtree never gets visited at all. The artist doesn't measure the rest of a mobile she's already rejected.
+
+<Callout type="tip" title="The tuple alternative, for the sentinel-averse">
+Returning a pair `(is_ok, height)` says the same thing without magic numbers, and some interviewers prefer the explicitness. The sentinel version is tighter and idiomatic for this problem because heights can't be negative, the -1 slot was going spare. When your channel's value range has no spare room (Boss 14's sums can be any integer!), tuples or nonlocals are the honest tool. Choose by whether a poison value exists naturally.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Checking only the root's joint.**
+The single most submitted wrong answer: compare the root's two subtree heights and call it a day. Balance is a *universal* property, every joint, and the deep-imbalance mobile in the story is the counterexample to keep in your pocket.
+
+**2. Forgetting to propagate the flag.**
+Detecting -1 from a child and then... computing `1 + max(-1, 2)` anyway. The sentinel must be checked *before* it's used as a number, or the poison becomes an off-by-two height and the ruin heals itself on the way up. Sentinels demand guard clauses.
+
+**3. `abs()` amnesia.**
+`left - right > 1` misses the case where the *right* side is deeper. Two mirror-image bugs for the price of one missing `abs`.
+
+**4. Empty tree panic.**
+No mobile at all is a balanced mobile: `check(None) = 0`, root report 0, answer true. The conventions all agree here, but only if your base case returns 0 and not, say, an early `False`.
+
+---
+
+## Complexity
+
+One pass, each node visited at most once, early exits only make it faster.
+
+**Time: O(n). Space: O(h)** for the stack.
+
+---
+
+## Boss down. XP gained.
+
+Every joint hangs level, the gallery takes the piece, and it spins slow and true over some lucky crib.
+
+What you walked away with:
+
+- Balance is **every node's** property; root-only checks are the canonical trap
+- **Sentinel values**: smuggle a verdict inside a numeric channel using a value the channel can't legitimately produce
+- Guard the sentinel before using the number, and enjoy the free short-circuit
+- The Boss 3 economy, reconfirmed: one pass, child answers used at the joint, never recomputed
+
+Four bosses, one tree at a time. The next two put a tree in *each hand*.
+
+Next up: **Boss 5 — The Twin Topiaries.** A client commissioned two identical garden sculptures, and "identical" means same shape *and* same plant at every position. Walking both trees in lockstep is recursion's version of patting your head while rubbing your stomach, and it's easier than it sounds.

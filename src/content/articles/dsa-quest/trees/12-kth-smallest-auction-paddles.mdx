@@ -1,0 +1,221 @@
+---
+title: "Kth Smallest Element in a BST — The Auction Paddles"
+slug: kth-smallest-auction-paddles
+category: dsa
+series: trees
+seriesOrder: 12
+description: "Dungeon 7, Boss 12. The floor manager keeps asking for the k-th lowest paddle number in the bidder tree. In-order traversal walks a BST in sorted order, and the art is stopping at k instead of finishing the walk."
+tags:
+  - DSA
+  - Trees
+  - BST
+  - DFS
+icon: "🪧"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An auction house files bidder paddles in a branching registry with the usual promise: lower numbers down the left, higher down the right. All evening the floor manager fires the same kind of question: who holds the third-lowest paddle? The fifth-lowest? There's a magical way to read this registry: at any shelf, first read everything down the left, then the shelf itself, then everything down the right. Follow that rule and the paddles come out in perfect ascending order. So don't sort anything. Walk in that order, count as you go, and stop dead the moment your count hits k.
+  bn: |
+    এক নিলাম ঘর বিডারদের প্যাডেল রাখে শাখাওয়ালা রেজিস্ট্রিতে, চেনা প্রতিশ্রুতি সহ: ছোট নম্বর বাঁ দিকে নিচে, বড় নম্বর ডানে। সারা সন্ধ্যা ফ্লোর ম্যানেজার একই ধাঁচের প্রশ্ন ছুড়তে থাকেন: তৃতীয় সর্বনিম্ন প্যাডেলটা কার হাতে? পঞ্চম সর্বনিম্নটা? এই রেজিস্ট্রি পড়ার একটা জাদুকরী কায়দা আছে: যেকোনো তাকে দাঁড়িয়ে আগে বাঁ দিকের নিচের সবটা পড়ুন, তারপর তাকটা নিজে, তারপর ডান দিকের সবটা। এই নিয়ম মানলেই প্যাডেলগুলো বেরিয়ে আসে নিখুঁত ছোট থেকে বড় ক্রমে। তাই কিছুই সর্ট করবেন না। ওই ক্রমে হাঁটুন, হাঁটতে হাঁটতে গুনুন, আর গোনা k ছুঁলেই থেমে যান।
+  hi: |
+    एक नीलामी घर बोली लगाने वालों के पैडल शाखादार रजिस्ट्री में रखता है, जाने-पहचाने वादे के साथ: छोटे नंबर बाईं ओर नीचे, बड़े दाईं ओर। पूरी शाम फ्लोर मैनेजर एक ही तरह के सवाल दागता रहता है: तीसरा सबसे छोटा पैडल किसके पास है? पांचवां? इस रजिस्ट्री को पढ़ने का एक जादुई तरीका है: किसी भी शेल्फ पर पहले बाईं ओर का सब कुछ पढ़ो, फिर शेल्फ खुद, फिर दाईं ओर का सब। यह नियम मानो और पैडल एकदम बढ़ते क्रम में निकलते हैं। तो कुछ भी सॉर्ट मत करो। उसी क्रम में चलो, चलते-चलते गिनो, और गिनती k छूते ही वहीं रुक जाओ।
+  ar: |
+    تحفظ دار مزادات مضارب المزايدين في سجل متفرع بالوعد المعتاد: الأرقام الأصغر نزولاً إلى اليسار، والأكبر إلى اليمين. طوال الأمسية يقذف مدير القاعة بنفس نوع السؤال: من يحمل ثالث أصغر مضرب؟ خامس أصغر؟ لهذا السجل طريقة قراءة سحرية: عند أي رف اقرأ أولاً كل ما في اليسار، ثم الرف نفسه، ثم كل ما في اليمين. اتبع هذه القاعدة فتخرج المضارب بترتيب تصاعدي مثالي. إذاً لا تفرز شيئاً. امشِ بذلك الترتيب، عُدّ وأنت تمشي، وتوقف فوراً لحظة يبلغ عدّك k.
+---
+
+## Boss 12: The Auction Paddles
+
+Boss 11 ended on a secret identity: **a BST walked in-order is a sorted list.** This boss is that identity, cashed. It's the gentlest boss of the back half, and it earns its slot by making you *implement* in-order traversal with your hands, including the early stop that turns an O(n) walk into an O(h + k) answer.
+
+---
+
+## The story
+
+Auction night. The registry of bidder paddles, filed BST-style:
+
+```
+          5
+         / \
+        3   6
+       / \
+      2   4
+     /
+    1
+```
+
+The floor manager, all evening: "Third-lowest paddle?" (That's 3.) "First-lowest?" (1.) "Fourth?" (4.)
+
+The intern's instinct: read all the paddles into a list, sort, index. Works, but the registry was *built sorted*, that's the whole BST promise. Sorting it again is the sorted-groceries tax from Dungeon 5, paid in a fancier store.
+
+The archivist's method, the one worth learning, is a reading order:
+
+> At any shelf: read everything down the **left** first. Then the shelf **itself**. Then everything down the **right**.
+
+Apply it here: to read from 5, first read all of 3's territory, which means first 2's territory, which means first the lone 1. So: 1, then 2, then 3, then 4 (3's right), then 5, then 6. **1, 2, 3, 4, 5, 6.** Sorted. Not by luck: at every shelf, the BST promise says everything left is smaller and everything right is bigger, so left-self-right *is* ascending order, recursively, everywhere.
+
+This reading order is **in-order traversal**, one of the four classic tree walks (its siblings: pre-order self-left-right from Boss 1's mansion, post-order left-right-self from the cave survey's reports, and level-order from the yearbook). In-order is the one that makes BSTs sing.
+
+And for the manager's question, one more idea: he wants the k-th paddle, not a report. So **count while walking, and stop at k**. If k is 3, the walk touches 1, 2, 3 and never disturbs half the registry.
+
+---
+
+## The problem, dressed up properly
+
+> Given the `root` of a binary search tree, and an integer `k`, return the `k`-th smallest value (**1-indexed**) of all the values of the nodes in the tree.
+
+LeetCode 230.
+
+---
+
+## The naive attempt
+
+The intern's version:
+
+```python
+def kth_smallest(root, k):
+    vals = []
+    def collect(node):
+        if not node:
+            return
+        collect(node.left)
+        vals.append(node.val)
+        collect(node.right)
+    collect(root)
+    return vals[k - 1]
+```
+
+Notice something funny: this already *uses* in-order traversal, correctly. Its sins are inefficiency, not ignorance: O(n) memory for a list it barely reads, and a full walk when k might be 1. It also skips `sorted(vals)`, if your version sorts, you didn't trust the traversal, and that's the deeper miss.
+
+The upgrade isn't a new algorithm. It's *restraint*: count instead of collect, stop instead of finish.
+
+---
+
+## The weapon: walk in-order, count down, freeze
+
+Keep a countdown starting at k. Walk in-order; each time a shelf is *read* (the "self" moment, after its left territory), decrement. When the countdown hits zero, that shelf is the answer, freeze everything and pass it up.
+
+<MermaidBlock>
+graph TB
+    A["visit(node)"]
+    B["walk left territory\nsmaller paddles first"]
+    C["read self: k minus 1\nk hits 0? this is the answer"]
+    D["walk right territory\nonly if answer not found"]
+    A --> B
+    B --> C
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+The iterative version deserves the spotlight here, because "stop mid-walk" is its native talent, recursion has to thread a found-flag through every frame, while a loop just... returns. And this is the one traversal every engineer should be able to write iteratively cold:
+
+```python
+def kth_smallest(root: TreeNode, k: int) -> int:
+    stack = []
+    node = root
+    while stack or node:
+        while node:                  # slide left, shelving ancestors
+            stack.append(node)
+            node = node.left
+        node = stack.pop()           # smallest unread shelf
+        k -= 1
+        if k == 0:
+            return node.val
+        node = node.right            # then its right territory
+    return -1                        # unreachable if k is valid
+```
+
+Read the loop as the archivist's motion: slide as far left as possible (shelving every ancestor you pass), read the deepest one, then step into its right territory and repeat. The stack holds exactly the ancestors whose "self" moment hasn't come yet.
+
+---
+
+## Watching it work
+
+k = 3:
+
+```
+slide left from 5:  stack [5, 3, 2, 1]
+pop 1  → k=2        1 has no right territory
+pop 2  → k=1        no right territory
+pop 3  → k=0        ANSWER: 3 ✓
+
+(5, 6, and 4 never touched... well, 4 never touched, 5 still on stack, 6 never seen)
+```
+
+Six shelves, three visited. With k small and the tree big, the savings are the whole point: O(h) to slide down, O(k) to read, **O(h + k)** total.
+
+---
+
+## The recursive version, for symmetry
+
+```python
+def kth_smallest(root: TreeNode, k: int) -> int:
+    count = 0
+    answer = None
+
+    def walk(node):
+        nonlocal count, answer
+        if not node or answer is not None:
+            return
+        walk(node.left)
+        if answer is not None:
+            return
+        count += 1
+        if count == k:
+            answer = node.val
+            return
+        walk(node.right)
+
+    walk(root)
+    return answer
+```
+
+The `answer is not None` guards are the found-flag tax mentioned above. It works fine; it's just visibly clunkier than the loop's clean `return`. Choosing the iterative form *because early exit is the problem's soul* is the kind of judgment interviews are actually probing.
+
+<Callout type="tip" title="The follow-up: many queries, changing tree">
+LeetCode's follow-up asks: what if the BST is modified often and k-th-smallest is queried often? The classy answer: store in each node the **size of its subtree**. Then the query becomes BST navigation: if the left subtree has s nodes, the k-th smallest is in it when k ≤ s, is the root when k = s+1, and is the (k-s-1)-th of the right subtree otherwise. O(h) per query, no walk at all. Augmented trees, the same trick behind order-statistic trees in real databases.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Off-by-one on the 1-indexing.**
+k = 1 means the minimum, decrement-then-check (`k -= 1; if k == 0`) handles it cleanly. Mixing zero-indexed thinking gives the (k+1)-th paddle and a very confused floor manager.
+
+**2. Counting at the wrong moment.**
+The decrement belongs at the *pop* (the "self" moment), not at the push. Counting on push tallies shelves in discovery order, pre-order, and the sorted guarantee evaporates.
+
+**3. Forgetting the right step.**
+After reading a shelf, `node = node.right` even when the right is None, the outer loop handles it. Omitting the step re-pops the same ancestor forever or ends the walk early. The two-line rhythm (pop, step right) is the iterative in-order heartbeat; drill it.
+
+**4. Trusting this on a non-BST.**
+In-order gives sorted output *only* under the BST promise. On an arbitrary tree, this code cheerfully returns the k-th node in in-order position, a meaningless number. Boss 11 exists so you can check the promise first.
+
+---
+
+## Complexity
+
+**Time: O(h + k)**, slide down plus k reads, worst case O(n). **Space: O(h)** for the stack.
+
+---
+
+## Boss down. XP gained.
+
+"Third-lowest paddle!" is answered before the gavel finishes its bounce, and half the registry stayed shut all evening.
+
+What you walked away with:
+
+- **In-order traversal**: left, self, right, and on a BST that's ascending sorted order, guaranteed
+- The iterative in-order loop: slide left shelving ancestors, pop, step right, the walk every engineer should own cold
+- Early exit as an *algorithmic* saving: O(h + k), not O(n), when you stop at the answer
+- The four traversals now all have faces: pre (Boss 1), post (Bosses 2-4), level (Boss 8), in (here)
+- Augmented subtree-size trees for the repeat-query follow-up
+
+Next up: **Boss 13 — The Torn Journals.** An explorer's route through a cave system was recorded twice: one journal lists chambers in the order she *entered* them, the other in classic left-self-right order. From the two journals together, and neither alone suffices, rebuild the entire route tree. Construction, not inspection: the recursion builds nodes instead of reading them.

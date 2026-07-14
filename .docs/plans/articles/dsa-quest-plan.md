@@ -25,8 +25,8 @@ Full dungeon list (ship in order):
 4. **Binary Search** — Dungeon 4 (COMPLETE)
 5. **Sliding Window** — Dungeon 5 (COMPLETE)
 6. **Linked List** — Dungeon 6 (COMPLETE)
-7. **Trees** — Dungeon 7 (next to build)
-8. **Tries** — Dungeon 8
+7. **Trees** — Dungeon 7 (COMPLETE)
+8. **Tries** — Dungeon 8 (next to build)
 9. **Backtracking** — Dungeon 9
 10. **Heap / Priority Queue** — Dungeon 10
 11. **Graphs** — Dungeon 11
@@ -158,8 +158,26 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 10: Merge K Sorted Lists (Grand Terminal)
 - [x] Boss 11: Reverse Nodes in k-Group (Drill Yard)
 
-### Dungeons 7-18
-- [ ] Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 7 — Trees (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Invert Binary Tree (Mirror Mansion)
+- [x] Boss 2: Maximum Depth (Cave Survey)
+- [x] Boss 3: Diameter (Zipline Route)
+- [x] Boss 4: Balanced Binary Tree (Mobile Maker)
+- [x] Boss 5: Same Tree (Twin Topiaries)
+- [x] Boss 6: Subtree of Another Tree (Hedge Stamp)
+- [x] Boss 7: LCA of BST (Trail Fork)
+- [x] Boss 8: Level Order Traversal (Yearbook Rows)
+- [x] Boss 9: Right Side View (Skyline Sketch)
+- [x] Boss 10: Count Good Nodes (Ridge Lookouts)
+- [x] Boss 11: Validate BST (Library Audit)
+- [x] Boss 12: Kth Smallest in BST (Auction Paddles)
+- [x] Boss 13: Construct from Preorder + Inorder (Torn Journals)
+- [x] Boss 14: Maximum Path Sum (Gold Vein)
+- [x] Boss 15: Serialize and Deserialize (Bonsai Courier)
+
+### Dungeons 8-18
+- [ ] Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

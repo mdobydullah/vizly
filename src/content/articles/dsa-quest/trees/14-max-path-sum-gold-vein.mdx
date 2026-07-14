@@ -1,0 +1,201 @@
+---
+title: "Binary Tree Maximum Path Sum — The Gold Vein"
+slug: max-path-sum-gold-vein
+category: dsa
+series: trees
+seriesOrder: 14
+description: "Dungeon 7, Boss 14. Tunnel chambers hold gold, or flood damage, negative values included. Find the most profitable connected path, any start, any end, bends allowed. Boss 3's two channels carry money now, and one clamp does the thinking."
+tags:
+  - DSA
+  - Trees
+  - DFS
+  - Recursion
+  - Hard
+icon: "⛏️"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A mining company surveys an old tunnel network where every chamber has a number: gold worth digging, or a negative number where flooding makes that chamber cost money to pass through. They'll cut one continuous path through the network, any start, any end, and a path may bend through a chamber, coming up one branch and down the other. Some chambers are worth routing around entirely. Each chamber reports upward the best straight arm hanging below it, refusing any arm worth less than nothing, and quietly checks the bend through itself. The best bend anywhere in the mine is the payday.
+  bn: |
+    এক মাইনিং কোম্পানি পুরনো এক টানেল নেটওয়ার্ক জরিপ করছে, যেখানে প্রতিটা কুঠুরির একটা সংখ্যা আছে: খোঁড়ার মতো সোনা, নয়তো ঋণাত্মক সংখ্যা, মানে বন্যার ক্ষতিতে ওই কুঠুরি পেরোতেই টাকা খসে। তারা নেটওয়ার্কে একটানা একটা পথ কাটবে, শুরু যেকোনো জায়গায়, শেষও তাই, আর পথটা কোনো কুঠুরির ভেতর দিয়ে বাঁকও নিতে পারে, এক শাখা বেয়ে উঠে অন্যটা বেয়ে নেমে। কিছু কুঠুরি পুরোপুরি এড়িয়ে যাওয়াই লাভজনক। প্রতিটা কুঠুরি উপরে রিপোর্ট করে তার নিচে ঝুলে থাকা সেরা সোজা হাতটা, শূন্যের কম দামের কোনো হাত নিতেই রাজি হয় না, আর চুপিচুপি নিজের ভেতর দিয়ে বাঁকটাও হিসাব করে রাখে। পুরো খনির সেরা বাঁকটাই হলো পে-ডে।
+  hi: |
+    एक माइनिंग कंपनी पुराने सुरंग नेटवर्क का सर्वे कर रही है जहां हर कक्ष का एक नंबर है: खोदने लायक सोना, या नेगेटिव नंबर जहां बाढ़ की वजह से उस कक्ष से गुजरना ही महंगा पड़ता है। वे नेटवर्क में एक लगातार रास्ता काटेंगे, शुरुआत कहीं से, अंत कहीं भी, और रास्ता किसी कक्ष से होकर मुड़ भी सकता है, एक शाखा से ऊपर आकर दूसरी से नीचे। कुछ कक्षों को पूरी तरह बायपास करना ही फायदेमंद है। हर कक्ष ऊपर रिपोर्ट करता है अपने नीचे लटकी सबसे अच्छी सीधी बांह, शून्य से कम कीमत वाली कोई बांह लेने से साफ मना कर देता है, और चुपचाप अपने भीतर से मुड़ने वाला रास्ता भी जांच लेता है। पूरी खदान का सबसे अच्छा मोड़ ही पेडे है।
+  ar: |
+    تمسح شركة تعدين شبكة أنفاق قديمة حيث لكل حجرة رقم: ذهب يستحق الحفر، أو رقم سالب حيث الفيضان يجعل مجرد عبور الحجرة مكلفاً. سيشقّون مساراً واحداً متصلاً عبر الشبكة، يبدأ من أي مكان وينتهي في أي مكان، ويجوز للمسار أن ينعطف داخل حجرة، صاعداً من فرع ونازلاً من الآخر. بعض الحجرات يجدر الالتفاف حولها كلياً. كل حجرة تبلّغ إلى الأعلى أفضل ذراع مستقيمة تتدلى تحتها، رافضة أي ذراع قيمتها أقل من لا شيء، وتفحص بهدوء الانعطاف عبر نفسها. أفضل انعطاف في المنجم كله هو يوم الحصاد.
+---
+
+## Boss 14: The Gold Vein
+
+The summit. LeetCode Hard, a fixture of final-round interviews, and, if Bosses 3 and 10 landed, about four lines of new thinking. That's not a humblebrag on the dungeon's behalf: Maximum Path Sum *is* the diameter problem with money, and the entire difficulty lives in one question the diameter never had to ask: **what if a branch is worth less than nothing?**
+
+---
+
+## The story
+
+The company inherits a mapped tunnel network. Each chamber's survey value: positive for ore, negative where flood damage makes traversal a net loss.
+
+```
+        -10
+        /  \
+       9    20
+           /  \
+         15    7
+```
+
+They'll cut **one continuous path**, start anywhere, end anywhere, no revisiting, and a path may **bend** through a chamber (up one branch, down the other), same geometry as the zipline in Boss 3. Maximize the total survey value along the path.
+
+Candidates: the path holding 9 alone is worth 9. The path 15 → 20 → 7 bends at 20: 15 + 20 + 7 = **42**. Extending it up through -10 to reach 9? That's 42 - 10 + 9 = 41. Worse. The best path *refuses the root*, the -10 chamber is a toll not worth paying even to connect two profitable regions.
+
+And sharpen the edge case now: a mine where **every** chamber is negative, say all values -3. The best path is a single chamber, total -3. "Take nothing" isn't an option, a path has at least one chamber, and this detail decides where initializations and clamps go.
+
+---
+
+## The problem, dressed up properly
+
+> A **path** in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence **at most once**. Note that the path does not need to pass through the root.
+>
+> The **path sum** of a path is the sum of the node's values in the path.
+>
+> Given the `root` of a binary tree, return the maximum path sum of any **non-empty** path.
+
+LeetCode 124. Values range down to -1000, and "non-empty" is the all-negative clause in contract language.
+
+---
+
+## The naive attempt
+
+Enumerate paths? The number of paths in a tree is quadratic (every pair of nodes defines one), and summing each costs more; O(n²) at best with cleverness, and structurally messy to even enumerate. The honest naive framing is Boss 3's: *for every chamber, the best path bending there is (best downward arm on the left) + (chamber) + (best downward arm on the right)*, computed with a fresh depth-style scan per chamber, O(n²).
+
+You already know the cure for the re-scanning. What Boss 3 didn't have: arms that can be *liabilities*.
+
+---
+
+## The weapon: two channels, one clamp
+
+The Boss 3 architecture, verbatim: each chamber **returns** its best extendable arm upward and **logs** its best bend into a side channel. Now the money twist, and the four lines of new thinking:
+
+**An arm's value can be negative, and a negative arm is never worth attaching.** If the best arm below-left sums to -7, the bend at this chamber does better by *ignoring the left entirely*, a bend doesn't have to use both sides, or either. The fix is a clamp:
+
+```
+left_arm  = max(0, best_arm(left))
+right_arm = max(0, best_arm(right))
+```
+
+Read `max(0, ...)` as a business decision: *an arm worth less than nothing is replaced by no arm at all.* Zero is the value of not digging.
+
+With clamped arms, everything else is Boss 3:
+
+- **Log the bend:** `left_arm + node.val + right_arm`. (With clamps, this single expression covers node-alone, node-plus-one-arm, and node-plus-both, whichever is best, the clamp already zeroed the losers.)
+- **Return the arm:** `node.val + max(left_arm, right_arm)`. An arm extends through *one* side only, and note the node's own value is **not** clamped here, a parent extending down to this chamber must pay its toll; refusing the chamber is the parent's decision, made by *its* clamp.
+
+<MermaidBlock>
+graph TB
+    A["arm(node)"]
+    B["left_arm = max(0, arm(left))\nright_arm = max(0, arm(right))\nnegative arms become no-arm"]
+    C["side channel:\nbest = max(best,\nleft_arm + val + right_arm)"]
+    D["return upward:\nval + max(left_arm, right_arm)\none side only, toll unclamped"]
+    A --> B
+    B --> C
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Why must `best` be seeded with negative infinity and not zero? The all-negative mine. Every bend there sums negative, and a zero seed would "win" with a path that doesn't exist. The side channel's seed encodes "non-empty path required"; the clamp encodes "sides are optional". Two different zeros, two different jobs, keeping them straight *is* this boss.
+
+---
+
+## Watching it work
+
+```
+arm(9):   arms 0,0 → log 9,  return 9
+arm(15):  log 15, return 15
+arm(7):   log 7,  return 7
+arm(20):  left_arm 15, right_arm 7
+          log 15+20+7 = 42   ← the vein
+          return 20 + max(15,7) = 35
+arm(-10): left_arm max(0,9)=9, right_arm max(0,35)=35
+          log 9 + (-10) + 35 = 34
+          return -10 + 35 = 25 (nobody above to care)
+
+best: max(9, 15, 7, 42, 34) = 42 ✓
+```
+
+The root's own bend (34) dutifully considered, dutifully beaten. The mine's answer formed at chamber 20 and no ancestor could improve it, exactly the "answer lives anywhere" lesson from Boss 3, now with the root actively *hurting* any path through it.
+
+---
+
+## The code
+
+```python
+def max_path_sum(root: TreeNode) -> int:
+    best = float("-inf")                 # non-empty path: seed below any real sum
+
+    def arm(node):
+        nonlocal best
+        if not node:
+            return 0
+        left_arm = max(0, arm(node.left))     # a losing arm is no arm
+        right_arm = max(0, arm(node.right))
+        best = max(best, left_arm + node.val + right_arm)   # bend here
+        return node.val + max(left_arm, right_arm)          # extend one side up
+
+    arm(root)
+    return best
+```
+
+Nine lines for a Hard. Every line is a boss you've already beaten: the post-order shape (Boss 2), the two channels (Boss 3), the side-channel state (Boss 3), the downward-free clamp reasoning standing in for a sentinel (Boss 4's cousin), the seed discipline (Boss 10's -inf).
+
+<Callout type="info" title="Why the returned arm isn't clamped">
+`return node.val + max(left_arm, right_arm)` can go negative, and that's correct: it reports *the truth* about the best arm ending at this node. The parent's `max(0, ...)` is where refusal happens. Clamp the return yourself and an all-negative tree reports arms of 0, phantom free tunnels that don't exist, and the bend logs turn into lies. Truth flows up, decisions are made by the receiver. It's a surprisingly good rule outside of code, too.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Returning the bend.**
+Boss 3's cardinal sin, worth restating with money: a bend used both sides, so the parent can't extend it, a path can't have three ends. Return the one-sided arm, log the bend.
+
+**2. Seeding `best` with 0.**
+All-negative mine returns 0, claiming a profitable path exists in a mine that only loses money. The answer there is the least-bad single chamber. `-inf` seed, non-negotiable.
+
+**3. Clamping the return.**
+The phantom-free-tunnels bug from the callout. Clamp *received* arms, never your own report.
+
+**4. Forgetting the node-alone case.**
+Covered automatically: both arms clamp to 0 and the bend log becomes `0 + val + 0`. If your version enumerates cases (`val`, `val+left`, `val+right`, `val+both`) instead of clamping, it can be correct but it's four expressions doing one clamp's work, and interviewers notice the difference.
+
+**5. Global state across test cases.**
+`best` as a class attribute survives between LeetCode calls and haunts the second test. Keep it function-local (`nonlocal`) or reset it explicitly. This bug has ended otherwise-perfect interviews.
+
+---
+
+## Complexity
+
+One post-order pass, constant work per chamber.
+
+**Time: O(n). Space: O(h)** stack.
+
+---
+
+## Boss down. XP gained. The summit is yours.
+
+The cutter follows 15 → 20 → 7, the flooded -10 chamber stays sealed forever, and the survey team's nine-line memo becomes company legend.
+
+What you walked away with:
+
+- Max Path Sum = **diameter + money + one clamp**: `max(0, arm)` turns "negative branch" into "no branch"
+- Two zeros, two jobs: clamp-zero means "sides are optional", -inf seed means "the path is not"
+- Truth flows up unclamped; the *receiver* decides refusal
+- Hard problems as compositions: every line of this boss was a previous boss's lesson
+
+One boss remains. After fourteen rounds of holding trees in memory, the finale asks you to *flatten one into a string and resurrect it*, the skill that lets trees cross networks, hit disks, and survive process death. The dungeon's most shippable lesson.
+
+Next up: **Boss 15 — The Bonsai Courier.** A prize bonsai must ship across the country flat-packed: written down as a single line of text, then regrown at the destination, *identical*, empty branches and all. Boss 13 said one traversal can't determine a tree, unless it records the Nones. Time to cash that loophole.

@@ -1,0 +1,192 @@
+---
+title: "Subtree of Another Tree — The Hedge Stamp"
+slug: subtree-hedge-stamp
+category: dsa
+series: trees
+seriesOrder: 6
+description: "Dungeon 7, Boss 6. A designer suspects her signature hedge pattern was stamped somewhere inside a rival's estate garden. Boss 5's twin inspection becomes the inner loop of a search over every possible trunk."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+icon: "🌿"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A landscape designer has a signature hedge arrangement, a small tree of specific plants she's famous for. Touring a rival's estate, she freezes: something deep in his sprawling garden looks like her design. An accusation needs proof, so she must check whether her exact pattern, whole and complete, grows somewhere inside his much bigger garden. The method writes itself: walk his garden plant by plant, and at every plant that could be the trunk of her design, run the full twin inspection from yesterday. One perfect match anywhere and the lawyers get involved.
+  bn: |
+    এক ল্যান্ডস্কেপ ডিজাইনারের একটা সিগনেচার হেজ বিন্যাস আছে, নির্দিষ্ট গাছের ছোট্ট একটা ট্রি, যেটার জন্য তিনি বিখ্যাত। প্রতিদ্বন্দ্বীর এস্টেট ঘুরতে গিয়ে তিনি থমকে গেলেন: তার বিশাল বাগানের গভীরে কিছু একটা তার ডিজাইনের মতো দেখাচ্ছে। অভিযোগ করতে প্রমাণ লাগে, তাই তাকে দেখতে হবে তার হুবহু প্যাটার্নটা, পুরোটা অক্ষত অবস্থায়, ওই অনেক বড় বাগানের ভেতরে কোথাও গজিয়ে আছে কি না। পদ্ধতিটা নিজে থেকেই লেখা হয়ে যায়: তার বাগানটা গাছে গাছে হাঁটুন, আর যে গাছটা তার ডিজাইনের কাণ্ড হতে পারত সেখানে গতকালের সেই টুইন ইন্সপেকশনটা পুরোটা চালান। কোথাও একটা নিখুঁত মিল পেলেই উকিলদের ডাক পড়বে।
+  hi: |
+    एक लैंडस्केप डिजाइनर का एक सिग्नेचर हेज अरेंजमेंट है, खास पौधों का छोटा सा पेड़, जिसके लिए वह मशहूर है। प्रतिद्वंद्वी की एस्टेट घूमते हुए वह ठिठक जाती है: उसके फैले हुए बगीचे में गहराई में कुछ उसके डिजाइन जैसा दिखता है। इल्जाम के लिए सबूत चाहिए, तो उसे जांचना होगा कि उसका हूबहू पैटर्न, पूरा का पूरा, उसके कहीं बड़े बगीचे के अंदर कहीं उगा है या नहीं। तरीका खुद लिख जाता है: उसका बगीचा पौधे दर पौधे चलो, और हर उस पौधे पर जो उसके डिजाइन का तना हो सकता है, कल वाली पूरी जुड़वां जांच चला दो। कहीं भी एक परफेक्ट मैच मिला और वकील बुला लिए जाते हैं।
+  ar: |
+    لمصمّمة حدائق تنسيقة سياج مميزة، شجرة صغيرة من نباتات محددة اشتهرت بها. أثناء جولتها في ضيعة منافس تجمّدت: شيء ما في عمق حديقته المترامية يشبه تصميمها. الاتهام يحتاج دليلاً، فعليها التحقق هل نمط تصميمها بالضبط، كاملاً غير منقوص، ينمو في مكان ما داخل حديقته الأكبر بكثير. الطريقة تكتب نفسها: امشِ في حديقته نبتة نبتة، وعند كل نبتة يمكن أن تكون جذع تصميمها شغّل فحص التوأمة الكامل من الأمس. تطابق واحد تام في أي مكان وتتدخل المحاماة.
+---
+
+## Boss 6: The Hedge Stamp
+
+Boss 5 built a tool. This boss *uses* it, and that's the actual lesson: recursion composes. A function that answers "are these twins?" becomes a single line inside a function that answers "does the twin hide anywhere in here?"
+
+Two recursions, one nested in the other. Keep them straight and this boss is short; blur them and it's quicksand.
+
+---
+
+## The story
+
+The designer's signature piece, the one from her portfolio cover:
+
+```
+subRoot:      Yew(4)
+             /      \
+        Holly(1)   Rose(2)
+```
+
+The rival's estate garden:
+
+```
+root:          Oak(3)
+              /     \
+          Yew(4)   Boxwood(5)
+         /      \
+    Holly(1)   Rose(2)
+```
+
+Is her design in there? Look at his Yew(4): its left is Holly(1), its right is Rose(2). **Exact match.** Stamped.
+
+But the contract-grade subtlety, the one the problem lives on: a *subtree* means a node **and all of its descendants**. Suppose his Rose(2) had a little Fern(0) growing under it. Then his Yew section would be her design *plus an extra plant*, and that's **not** her subtree, the inspection at Yew(4) would fail when her Rose's empty positions meet his Fern. Partial overlap, prefix match, "contains her plants somewhere": all worthless. The stamp is all-or-nothing, right down to the pattern of empty spots.
+
+---
+
+## The problem, dressed up properly
+
+> Given the roots of two binary trees `root` and `subRoot`, return `true` if there is a subtree of `root` with the same structure and node values of `subRoot` and `false` otherwise.
+>
+> A subtree of a binary tree `tree` is a tree that consists of a node in `tree` and all of this node's descendants.
+
+LeetCode 572.
+
+---
+
+## The naive attempt
+
+Compare values along some traversal and hope? You know better since Boss 5, shape lives in the Nones. There's no meaningful naive version *below* the real algorithm here; the actual naive-vs-clever divide on this problem is about complexity, and it's worth doing honestly. The straightforward algorithm **is** the standard answer:
+
+**At every node of the big garden, run the twin inspection.**
+
+---
+
+## The weapon: search outer, verify inner
+
+Two functions with two jobs, and naming discipline keeps them apart:
+
+- `is_same(a, b)` — Boss 5, verbatim. *Verifier.* Answers: are these two trees identical?
+- `is_subtree(root, subRoot)` — *Searcher.* Answers: does subRoot match here, or anywhere below?
+
+<MermaidBlock>
+graph TB
+    A["is_subtree(node, subRoot)\nthe searcher"]
+    B["node is None?\nnothing here: false"]
+    C["is_same(node, subRoot)?\nrun the twin inspection\nat this trunk"]
+    D["match! return true"]
+    E["no match: search on\nis_subtree(left) OR\nis_subtree(right)"]
+    A --> B
+    A --> C
+    C --> D
+    C --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def is_subtree(root: TreeNode | None, subRoot: TreeNode | None) -> bool:
+    if not subRoot:
+        return True                  # empty pattern matches anywhere
+    if not root:
+        return False                 # non-empty pattern, no garden left
+    if is_same(root, subRoot):
+        return True
+    return is_subtree(root.left, subRoot) or is_subtree(root.right, subRoot)
+
+def is_same(p, q):
+    if not p and not q:
+        return True
+    if not p or not q or p.val != q.val:
+        return False
+    return is_same(p.left, q.left) and is_same(p.right, q.right)
+```
+
+Note what `is_subtree` passes downward: `subRoot`, **whole and unchanged**. The searcher never descends into the pattern; only the verifier does. That's the discipline that keeps the two recursions from blurring: the searcher moves through the *garden*, the verifier moves through *both* in lockstep. If you ever find yourself writing `is_subtree(root.left, subRoot.left)`, stop, you've crossed the streams, and you're accidentally checking "can I carve the pattern out of scattered pieces", a different (and wrong) question.
+
+---
+
+## Watching it work
+
+```
+is_subtree(Oak 3)
+├─ is_same(Oak 3, Yew 4)?  values differ → no
+├─ is_subtree(Yew 4)
+│   ├─ is_same(Yew 4, Yew 4)?
+│   │   ├─ Holly(1) vs Holly(1) ✓  (and their four empty spots match)
+│   │   └─ Rose(2) vs Rose(2)  ✓
+│   └─ TRUE → bubbles all the way up
+└─ (Boxwood side never searched, short-circuit)
+```
+
+---
+
+## The complexity conversation
+
+Worst case: at every one of the m garden nodes, the inspection runs up to n pattern comparisons before failing at the last moment. **O(m · n)**, and for this problem's sizes (m ≤ 2000, n ≤ 1000), completely fine, say so out loud in an interview and you're covered.
+
+The follow-up, if it comes: can we do better? Two known doors, both worth knowing *of*:
+
+**Serialize both trees** with None markers (preorder with `#` for empty, and a separator before each value so `12` can't impersonate `2`), then check if the pattern's string is a substring of the garden's string. String search via KMP or Rabin-Karp runs O(m + n). The serialization trick is a preview of Boss 15, where it becomes the whole boss.
+
+**Merkle hashing**: give every node a hash built from its value and its children's hashes; equal subtree hashes (verified against collisions) mean equal subtrees. One O(m + n) pass. This is literally how Git tells identical directory trees apart, your commits ride on this boss's follow-up.
+
+You will almost never be asked to *implement* either on the spot. Naming them, and knowing why O(m·n) is fine here, is the senior move.
+
+---
+
+## Gotchas
+
+**1. Crossing the streams.**
+`is_subtree(root.left, subRoot.left)` , the searcher must carry the pattern intact. Only the verifier splits it.
+
+**2. Matching too greedily.**
+Finding the pattern's root value and returning true without the full inspection. His garden may have five Yew(4)s; only a complete twin counts. The `is_same` call is not optional decoration.
+
+**3. The extra-child case.**
+Pattern matches but garden node has one extra descendant below the matched region: `is_same` catches this through None-vs-Fern, but only if your Boss 5 case ladder is correct. This boss inherits every Boss 5 bug at m× volume.
+
+**4. Empty-pattern conventions.**
+`subRoot = None`: LeetCode says an empty tree is a subtree of anything, hence the `if not subRoot: return True` first. Order matters, test it before `not root` or an empty pattern in an empty garden returns false.
+
+---
+
+## Complexity
+
+**Time: O(m · n)** worst case, with the O(m + n) serialization/hashing doors named for follow-ups. **Space: O(h_root + h_sub)** stack depth.
+
+---
+
+## Boss down. XP gained.
+
+The inspection matches at his Yew, node for node, empty spot for empty spot. Her lawyer frames the traversal printout.
+
+What you walked away with:
+
+- **Composition**: Boss 5's verifier dropped whole into a searcher's body, two recursions, two jobs, zero blur
+- The searcher moves one tree, the verifier moves both; never mix their descents
+- Subtree = node plus *all* descendants, all-or-nothing down to the Nones
+- O(m·n) honestly stated beats O(m+n) hand-waved; serialization and Merkle hashing are the named upgrades
+
+Six bosses of general binary trees. The next one adds the *ordering* superpower, and suddenly you can navigate a tree without searching it at all.
+
+Next up: **Boss 7 — The Trail Fork.** Mountain trails split downhill from the summit station, junctions numbered so every left path leads to smaller numbers, every right to bigger. Two hikers went different ways; find the last junction both passed through. The BST property turns what looks like a search problem into a stroll with a compass.

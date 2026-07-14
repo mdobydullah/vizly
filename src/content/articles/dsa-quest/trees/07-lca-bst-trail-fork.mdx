@@ -1,0 +1,204 @@
+---
+title: "Lowest Common Ancestor of a BST — The Trail Fork"
+slug: lca-bst-trail-fork
+category: dsa
+series: trees
+seriesOrder: 7
+description: "Dungeon 7, Boss 7. Numbered trail junctions split downhill: left paths lead to smaller numbers, right to bigger. Two hikers went separate ways; find the last junction both passed. Your first taste of the BST superpower."
+tags:
+  - DSA
+  - Trees
+  - BST
+icon: "⛰️"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Mountain trails fan out downhill from the summit station, and every junction has a number with one iron rule: everything down the left path has a smaller number, everything down the right has a bigger one. Two hikers left the summit this morning and ended up at different spots, and the ranger wants the last junction both of them walked through, the fork where their routes split. No searching needed. Stand at the summit: if both hikers' numbers are smaller than yours, they both went left, follow them. Both bigger, go right. The moment they'd go different ways, or one of them is standing right where you are, you've found the fork.
+  bn: |
+    পাহাড়ের চূড়ার স্টেশন থেকে ট্রেইলগুলো নিচের দিকে ছড়িয়ে গেছে, আর প্রতিটা জংশনের একটা নম্বর আছে, সাথে একটা লোহার মতো শক্ত নিয়ম: বাঁ পথের নিচের সবকিছুর নম্বর ছোট, ডান পথের সবকিছুর নম্বর বড়। আজ সকালে দুজন হাইকার চূড়া থেকে নেমে আলাদা জায়গায় পৌঁছেছে, আর রেঞ্জার জানতে চান শেষ কোন জংশন দিয়ে দুজনেই হেঁটেছে, মানে যে মোড়ে তাদের পথ আলাদা হয়ে গেছে। খোঁজাখুঁজির দরকারই নেই। চূড়ায় দাঁড়ান: দুজনের নম্বরই যদি আপনারটার চেয়ে ছোট হয়, দুজনেই বাঁয়ে গেছে, পিছু নিন। দুটোই বড় হলে ডানে যান। যেই মুহূর্তে তারা দুদিকে যেত, বা একজন ঠিক আপনার জায়গাতেই দাঁড়িয়ে, সেই মোড়টাই উত্তর।
+  hi: |
+    पहाड़ की चोटी के स्टेशन से ट्रेल नीचे की ओर फैलती हैं, और हर जंक्शन का एक नंबर है, साथ में एक लोहे जैसा नियम: बाएं रास्ते के नीचे सब कुछ छोटे नंबर का, दाएं रास्ते के नीचे सब बड़े नंबर का। आज सुबह दो हाइकर चोटी से निकले और अलग-अलग जगह पहुंचे, और रेंजर को वह आखिरी जंक्शन चाहिए जहां से दोनों गुजरे, यानी वह मोड़ जहां उनके रास्ते बंटे। खोजने की जरूरत ही नहीं। चोटी पर खड़े हो: दोनों हाइकरों के नंबर तुम्हारे से छोटे हैं, तो दोनों बाएं गए, पीछा करो। दोनों बड़े, तो दाएं जाओ। जिस पल वे अलग-अलग दिशा जाते, या एक ठीक वहीं खड़ा है जहां तुम हो, वही मोड़ जवाब है।
+  ar: |
+    تتفرع الدروب الجبلية نازلة من محطة القمة، ولكل مفترق رقم مع قاعدة حديدية واحدة: كل ما في الدرب الأيسر أرقامه أصغر، وكل ما في الأيمن أرقامه أكبر. انطلق متنزهان من القمة هذا الصباح وانتهيا في موضعين مختلفين، ويريد الحارس آخر مفترق مرّا به معاً، النقطة التي افترق عندها طريقاهما. لا حاجة للبحث. قف عند القمة: إن كان رقما المتنزهين أصغر من رقمك فقد ذهبا يساراً، اتبعهما. وإن كانا أكبر فاذهب يميناً. لحظة يفترقان في اتجاهين، أو يقف أحدهما حيث تقف أنت، تكون قد وجدت المفترق.
+---
+
+## Boss 7: The Trail Fork
+
+Six bosses of trees where values were just cargo. This boss introduces the **Binary Search Tree**, where values are *navigation*, and suddenly you can find things in a tree the way Dungeon 4 found things in sorted arrays: by discarding half the world at every step.
+
+---
+
+## The story
+
+The summit station sits at junction 6. Trails fan downhill, and the trail authority numbers junctions under one iron rule, posted at every fork:
+
+> Everything reachable down the LEFT path: smaller numbers.
+> Everything reachable down the RIGHT path: bigger numbers.
+
+```
+            6
+          /   \
+         2     8
+        / \   / \
+       0   4 7   9
+          / \
+         3   5
+```
+
+Check it against the rule, it holds *everywhere*: under 6's left arm live `{2, 0, 4, 3, 5}`, all smaller than 6. Under 2's right arm live `{4, 3, 5}`, all bigger than 2 (and, since they're also under 6's left arm, all smaller than 6). Every junction constrains its entire *territory*, not just its two children. That's a **Binary Search Tree**.
+
+This morning, hiker P stopped at junction 2 and hiker Q at junction 8. The ranger needs the **last junction both walked through**: since every hike starts at the summit, their two routes share a prefix, and it ends at the fork where they split. For 2 and 8, that's the summit itself, 6: P went left, Q went right, split immediately.
+
+Trickier: P at 2, Q at 4. Trace it: both routes go 6 → 2, then P *stops at 2* while Q continues into 2's territory. The last shared junction is **2**, a junction can be its own fork. The authority's term for this is the **lowest common ancestor**, with the friendly convention that you count as your own ancestor.
+
+---
+
+## The problem, dressed up properly
+
+> Given a binary **search** tree (BST), find the lowest common ancestor (LCA) node of two given nodes in the BST.
+>
+> The lowest common ancestor is defined between two nodes `p` and `q` as the lowest node in `T` that has both `p` and `q` as descendants (where we allow **a node to be a descendant of itself**).
+
+LeetCode 235. Both nodes are guaranteed to exist in the tree.
+
+---
+
+## The naive attempt
+
+Ignore the numbers, treat it as a plain tree: find the full root-to-P path, find the root-to-Q path, compare the two paths and return the last common junction.
+
+```python
+def lowest_common_ancestor(root, p, q):
+    def path_to(target):
+        path, node = [], root
+        while node is not target:
+            path.append(node)
+            node = node.left if target.val < node.val else node.right
+        path.append(node)
+        return path
+    pp, qq = path_to(p), path_to(q)
+    lca = None
+    for a, b in zip(pp, qq):
+        if a is b:
+            lca = a
+    return lca
+```
+
+Two walks, O(h) memory for the stored paths, and... hold on, `path_to` is already *using* the numbers to navigate. The naive version accidentally proves the insight: in a BST you don't search for a node, you *walk toward it*, the comparisons tell you the way. So why store the paths at all? The shared prefix of two guided walks can be detected *while walking*, with nothing remembered.
+
+---
+
+## The weapon: follow both hikers until they part
+
+Stand at the summit. Three cases, and the rule decides everything:
+
+- **Both targets smaller than me:** both hikers turned left here. Their fork is somewhere down-left. Follow.
+- **Both bigger:** both turned right. Follow.
+- **Otherwise**, one is ≤ me and the other ≥ me: they split *here* (or one of them **is** me, and the other is in my territory, same conclusion). I am the fork.
+
+<MermaidBlock>
+graph TB
+    A["standing at node"]
+    B["p and q both smaller\nboth went left\nfollow left"]
+    C["p and q both bigger\nboth went right\nfollow right"]
+    D["they straddle me\nor one of them is me\nI am the fork"]
+    A --> B
+    A --> C
+    A --> D
+    B --> A
+    C --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+The deep thing to notice: **no recursion is needed, and no backtracking ever happens.** The walk only descends, one comparison per junction, never looks at a sibling, never returns. The BST rule converts a global question ("which junction has both in its territory, and is lowest?") into a local compass reading. This is the identical magic Dungeon 4 pulled on sorted arrays, wearing branches.
+
+---
+
+## Watching it work
+
+P = 3, Q = 5, the deep pair:
+
+```
+at 6:  3 < 6 and 5 < 6      → both left, walk to 2
+at 2:  3 > 2 and 5 > 2      → both right, walk to 4
+at 4:  3 < 4 but 5 > 4      → they straddle me → fork is 4 ✓
+```
+
+P = 2, Q = 4, the ancestor-of-itself pair:
+
+```
+at 6:  both smaller          → walk to 2
+at 2:  2 is me (p.val == 2)  → not both-smaller, not both-bigger → fork is 2 ✓
+```
+
+Three comparisons, two comparisons. In a balanced trail system of a million junctions: about twenty.
+
+---
+
+## The code
+
+```python
+def lowest_common_ancestor(root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode:
+    node = root
+    while node:
+        if p.val < node.val and q.val < node.val:
+            node = node.left
+        elif p.val > node.val and q.val > node.val:
+            node = node.right
+        else:
+            return node
+```
+
+Iterative, O(1) space, and the `else` gracefully absorbs all three flavors of "found it": straddle, exact-match-P, exact-match-Q.
+
+<Callout type="info" title="LCA without the BST rule">
+LeetCode 236 is the same question on a plain binary tree, and it's worth previewing the contrast: with no compass, you must actually *search* both subtrees recursively (if left and right each report finding one target, you're the LCA). O(n) instead of O(h), recursion instead of a stroll. Same question, and the data structure's guarantee is worth an entire complexity class. That's the whole sales pitch for keeping data ordered.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Testing only the children, not the territories.**
+A junction where `left.val < node.val < right.val` can still violate the BST rule three levels down (this trap is the *whole* of Boss 11, coming soon). Today you're told it's a valid BST; never *assume* it elsewhere.
+
+**2. Forgetting a node is its own ancestor.**
+Writing strict `<`/`>` cases plus a separate equality branch that descends further. If `node` equals P, the fork is P, full stop, descending past it loses the answer.
+
+**3. Straddle logic with `<=` sloppiness.**
+The two guarded cases use strict inequalities, and everything else, including equality, lands in the return. Reorganize the branches and it's easy to send an equal value down a branch. Keep "both strictly smaller / both strictly bigger / otherwise return".
+
+**4. Searching for p and q first "to be safe".**
+They're guaranteed present. Adding two O(h) existence checks isn't wrong, but it signals you didn't read the contract. In interviews, stated guarantees are load-bearing.
+
+---
+
+## Complexity
+
+One descent, one comparison pair per level.
+
+**Time: O(h)**, which is O(log n) balanced, O(n) degenerate. **Space: O(1)** iterative.
+
+---
+
+## Boss down. XP gained.
+
+The ranger radios junction 4, and the hikers' lost dog is waiting exactly there, at the last fork both of them passed.
+
+What you walked away with:
+
+- The **BST rule**: left territory strictly smaller, right strictly bigger, at *every* node, all the way down
+- Ordered values turn searching into **navigation**: one comparison per level, no backtracking, O(h)
+- LCA in a BST = walk down until the targets straddle you (or one *is* you)
+- A node is its own ancestor; equality belongs to the "found it" case
+
+The next boss abandons depth entirely. Instead of diving down one trail, you'll sweep the whole mountain one *altitude* at a time, and meet the queue that's been waiting since Dungeon 6 to show what it does best.
+
+Next up: **Boss 8 — The Yearbook Rows.** A school photographer must shoot a family-tree mural generation by generation: everyone in row one, then everyone in row two, left to right, no one out of place. Breadth-first search, the level-order traversal, and the small queue discipline that turns "a flood of nodes" into tidy rows.

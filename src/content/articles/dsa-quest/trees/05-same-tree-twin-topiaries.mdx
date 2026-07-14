@@ -1,0 +1,178 @@
+---
+title: "Same Tree — The Twin Topiaries"
+slug: same-tree-twin-topiaries
+category: dsa
+series: trees
+seriesOrder: 5
+description: "Dungeon 7, Boss 5. A client ordered two identical garden sculptures: same shape, same plant at every position. Walk both trees in lockstep, and let three little cases carry everything."
+tags:
+  - DSA
+  - Trees
+  - Recursion
+  - Beginner
+icon: "🌳"
+color: orange
+createdAt: "2026-07-14T16:00:00Z"
+updatedAt: "2026-07-14T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A fancy hotel ordered two topiary sculptures for the twin gates, and the contract says identical, not similar. Same branching shape, same plant species at every single position. The head gardener inspects them the only sane way: stand at both trunks at once, compare the plants, then send an inspector down the two left branches together, and another down the two right branches together. If anyone finds a mismatch, a branch where one tree grows and the other doesn't, or two different plants at the same spot, the whole inspection fails on the spot.
+  bn: |
+    এক অভিজাত হোটেল যমজ গেটের জন্য দুটো টোপিয়ারি ভাস্কর্য অর্ডার করেছে, আর চুক্তিতে লেখা "হুবহু এক", কাছাকাছি নয়। একই শাখার গড়ন, প্রতিটা জায়গায় একই প্রজাতির গাছ। হেড গার্ডেনার পরীক্ষাটা করেন একমাত্র বুদ্ধিমান উপায়ে: দুটো কাণ্ডের সামনে একসাথে দাঁড়ান, গাছ দুটো মেলান, তারপর একজন পরিদর্শক পাঠান দুটো বাঁ শাখা ধরে একসাথে, আরেকজন দুটো ডান শাখা ধরে। কেউ যদি গরমিল পায়, এমন শাখা যেটা এক গাছে আছে অন্যটায় নেই, বা একই জায়গায় দুই রকম গাছ, তাহলে পুরো পরিদর্শন সেখানেই ব্যর্থ।
+  hi: |
+    एक आलीशान होटल ने जुड़वां गेटों के लिए दो टोपियरी मूर्तियां मंगवाईं, और कॉन्ट्रैक्ट में लिखा है हूबहू एक जैसी, मिलती-जुलती नहीं। वही शाखाओं की बनावट, हर एक जगह पर वही पौधे की प्रजाति। हेड माली जांच का एकमात्र समझदार तरीका अपनाता है: दोनों तनों के सामने एक साथ खड़े हो, पौधे मिलाओ, फिर एक इंस्पेक्टर दोनों बाईं शाखाओं पर साथ भेजो और दूसरा दोनों दाईं शाखाओं पर। अगर किसी को बेमेल मिला, ऐसी शाखा जो एक पेड़ में है दूसरे में नहीं, या एक ही जगह दो अलग पौधे, तो पूरी जांच वहीं फेल।
+  ar: |
+    طلب فندق فاخر منحوتتين نباتيتين للبوابتين التوأمين، والعقد يقول متطابقتين لا متشابهتين. نفس شكل التفرع ونفس نوع النبتة في كل موضع. يفحصهما كبير البستانيين بالطريقة العاقلة الوحيدة: يقف أمام الجذعين معاً، يقارن النبتتين، ثم يرسل مفتشاً ينزل الفرعين الأيسرين معاً وآخر ينزل الأيمنين معاً. إن وجد أحدهم اختلافاً، فرعاً ينمو في شجرة دون الأخرى، أو نبتتين مختلفتين في نفس الموضع، فشل الفحص كله في مكانه.
+---
+
+## Boss 5: The Twin Topiaries
+
+A short boss, on purpose. Its one new idea, **recursing on two trees in lockstep**, needs to sit alone for a moment, because the next boss builds a bigger machine around it and you'll want this part to already feel boring.
+
+---
+
+## The story
+
+The Grandview Hotel ordered twin topiaries for its twin gates. The contract is blunt: *identical*. Not "equally beautiful". Identical: the same branching structure, and the same plant at every position.
+
+```
+   Tree A          Tree B
+   Boxwood         Boxwood
+    /    \          /    \
+  Holly  Yew     Holly   Yew
+```
+
+Identical. But:
+
+```
+   Tree A          Tree B
+   Boxwood         Boxwood
+    /                  \
+  Holly               Holly
+```
+
+Same three plants, same *count*, and **not identical**: A branches left where B branches right. Shape counts. And:
+
+```
+   Tree A          Tree B
+   Boxwood         Boxwood
+    /    \          /    \
+  Holly  Yew     Holly  Rose
+```
+
+One plant differs. Rejected.
+
+The head gardener's inspection protocol: stand before both trunks *simultaneously*. Three possible situations at any pair of positions:
+
+1. **Both empty** (no branch here on either tree): fine, move on. Emptiness matches emptiness.
+2. **One empty, one growing**, or **different plants**: contract violated, stop everything.
+3. **Both growing, same plant**: promising, now send inspectors down *both lefts together* and *both rights together*.
+
+---
+
+## The problem, dressed up properly
+
+> Given the roots of two binary trees `p` and `q`, write a function to check if they are the same or not.
+>
+> Two binary trees are considered the same if they are structurally identical, and the nodes have the same value.
+
+LeetCode 100.
+
+---
+
+## The naive attempt
+
+Serialize both trees to lists via a traversal, compare the lists. The bug is instructive: a plain traversal (say, collect values in-order) throws away *shape*. The two lopsided boxwood-holly trees above produce identical value lists from different structures. You can patch this by recording None markers for missing children, and that patched version is actually legitimate (it returns in Boss 15!). But it does two full walks plus a comparison, with extra memory, to answer a question the lockstep walk answers in one.
+
+---
+
+## The weapon: one function, two pointers, three cases
+
+The gardener's protocol is the code. Walk both trees with one recursion holding a node from each:
+
+<MermaidBlock>
+graph TB
+    A["same(p, q)"]
+    B["both None\nreturn true"]
+    C["one None, or\nvalues differ\nreturn false"]
+    D["same(p.left, q.left)\nAND\nsame(p.right, q.right)"]
+    A --> B
+    A --> C
+    A --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+The case *order* carries the logic. "Both None" must be tested before "one None", because the second test assumes the first failed. Get the ladder right and the function is impossible to write incorrectly; get it wrong and every bug is a None dereference.
+
+```python
+def is_same_tree(p: TreeNode | None, q: TreeNode | None) -> bool:
+    if not p and not q:
+        return True                     # emptiness matches emptiness
+    if not p or not q or p.val != q.val:
+        return False                    # shape or plant mismatch
+    return is_same_tree(p.left, q.left) and is_same_tree(p.right, q.right)
+```
+
+Three lines of cases, one line of lockstep descent. The `and` short-circuits: the first mismatch anywhere stops the inspection, right branches unvisited, exactly like the gardener walking off the job.
+
+---
+
+## Watching it work
+
+The shape-mismatch pair: A has Holly on the left, B has Holly on the right.
+
+```
+same(Boxwood_A, Boxwood_B)   values match → descend
+├─ same(Holly, None)         one empty → FALSE
+└─ (right pair never visited, short-circuit)
+
+verdict: not the same ✓
+```
+
+Two comparisons total. The protocol fails fast and loudly, which is precisely what you want from a contract inspection.
+
+---
+
+## Gotchas
+
+**1. `p.val == q.val` before the None checks.**
+Dereferencing before verifying both exist. The case ladder exists to make this impossible, respect its order.
+
+**2. Comparing values only.**
+The naive attempt's disease: any check that could pass the two lopsided-but-same-values trees is broken. Shape is half the contract, and shape lives in the *pattern of Nones*.
+
+**3. `or` instead of `and` on the descent.**
+"Left sides match OR right sides match" approves half-identical topiaries. The hotel's lawyers will find you.
+
+**4. Overbuilding.**
+This function is four lines. If yours has queues, flags, or helper classes, you've imported machinery the problem didn't order. Small bosses deserve small kills.
+
+---
+
+## Complexity
+
+Every pair of positions visited at most once.
+
+**Time: O(min(n, m)). Space: O(min(h_p, h_q))** for the lockstep stack.
+
+---
+
+## Boss down. XP gained.
+
+Both topiaries pass, position by position, and the twin gates get their twins.
+
+What you walked away with:
+
+- **Lockstep recursion**: one function advancing through two trees simultaneously
+- The three-case ladder: both empty / mismatch / descend both sides, in that exact order
+- Emptiness is *information*: None matching None is a passing check, not an edge case
+- Short-circuit `and` as free early termination
+
+Now, the reason this boss came fifth: what if the twin isn't standing at the gate, but *hiding somewhere inside* a bigger garden?
+
+Next up: **Boss 6 — The Hedge Stamp.** A landscape designer suspects a rival stamped her signature hedge pattern somewhere inside his sprawling estate garden. Today's `same()` becomes the inner loop of a search: try every position in the big tree as a potential trunk, and run the twin inspection at each. Two recursions, nested, and a complexity conversation worth having out loud.
