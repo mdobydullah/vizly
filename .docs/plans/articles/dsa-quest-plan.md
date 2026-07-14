@@ -23,8 +23,8 @@ Full dungeon list (ship in order):
 2. **Two Pointers** — Dungeon 2 (COMPLETE)
 3. **Stack** — Dungeon 3 (COMPLETE)
 4. **Binary Search** — Dungeon 4 (COMPLETE)
-5. **Sliding Window** — Dungeon 5 (next to build)
-6. **Linked List** — Dungeon 6
+5. **Sliding Window** — Dungeon 5 (COMPLETE)
+6. **Linked List** — Dungeon 6 (next to build)
 7. **Trees** — Dungeon 7
 8. **Tries** — Dungeon 8
 9. **Backtracking** — Dungeon 9
@@ -135,8 +135,17 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 6: Time Based Key-Value Store (Ticker Tape)
 - [x] Boss 7: Median of Two Sorted Arrays (Twin Libraries)
 
-### Dungeons 5-18
-- [ ] Sliding Window, Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 5 — Sliding Window (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Best Time to Buy and Sell Stock (Flea Market Flip)
+- [x] Boss 2: Longest Substring Without Repeating Characters (Tasting Counter)
+- [x] Boss 3: Longest Repeating Character Replacement (Marquee Letters)
+- [x] Boss 4: Permutation in String (Spice Blend)
+- [x] Boss 5: Minimum Window Substring (Market Run)
+- [x] Boss 6: Sliding Window Maximum (Parade Watch)
+
+### Dungeons 6-18
+- [ ] Linked List, Trees, Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

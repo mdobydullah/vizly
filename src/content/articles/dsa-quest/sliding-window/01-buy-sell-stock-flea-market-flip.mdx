@@ -1,0 +1,202 @@
+---
+title: "Best Time to Buy and Sell Stock — The Flea Market Flip"
+slug: buy-sell-stock-flea-market-flip
+category: dsa
+series: sliding-window
+seriesOrder: 1
+description: "Dungeon 5, Boss 1. A vintage guitar changes price every day for a week. Buy once, sell once, pocket the biggest gap. Your first window: one edge chasing the cheapest buy, the other hunting the richest sell."
+tags:
+  - DSA
+  - Sliding Window
+  - Arrays
+  - Beginner
+icon: "🎸"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    There's a vintage guitar at the flea market, and its price jumps around all week. You're a reseller with one move: buy it on some day, sell it on a later day, keep the difference. Sell first, buy later? Not allowed, that's time travel. So you walk the week's prices with two fingers, one stuck on the cheapest day you've seen, one on today. Whenever today beats your buy day, you note the profit. That pair of moving fingers is your first sliding window.
+  bn: |
+    ফ্লি মার্কেটে একটা পুরনো গিটার আছে, আর সারা সপ্তাহ ধরে তার দাম ওঠানামা করে। আপনি রিসেলার, আপনার চাল একটাই: কোনো একদিন কিনবেন, পরের কোনো দিন বেচবেন, লাভটা পকেটে। আগে বেচে পরে কেনা? চলবে না, ওটা তো টাইম ট্রাভেল। তাই সপ্তাহের দামগুলোর উপর দুটো আঙুল রাখুন, একটা এখন পর্যন্ত দেখা সবচেয়ে সস্তা দিনে, আরেকটা আজকের দিনে। আজকের দাম কেনার দামের চেয়ে বেশি হলেই লাভটা টুকে রাখুন। এই দুটো চলমান আঙুলই আপনার প্রথম sliding window।
+  hi: |
+    फ्ली मार्केट में एक पुराना गिटार है, और हफ्ते भर उसका दाम ऊपर-नीचे होता रहता है। आप रीसेलर हैं और आपके पास एक ही चाल है: किसी दिन खरीदो, उसके बाद किसी दिन बेचो, फर्क जेब में। पहले बेचकर बाद में खरीदना? नहीं चलेगा, वो तो टाइम ट्रैवल है। तो हफ्ते के दामों पर दो उंगलियां रखिए, एक अब तक के सबसे सस्ते दिन पर, एक आज पर। जब भी आज का दाम खरीद वाले दिन से ज्यादा हो, मुनाफा नोट कर लीजिए। यही दो चलती उंगलियां आपकी पहली sliding window हैं।
+  ar: |
+    في سوق الأشياء المستعملة غيتار قديم يتقلب سعره طوال الأسبوع. أنت تاجر إعادة بيع ولديك حركة واحدة: تشتريه في يوم ما وتبيعه في يوم لاحق وتحتفظ بالفرق. تبيع أولاً ثم تشتري؟ ممنوع، هذا سفر عبر الزمن. لذلك تمشي على أسعار الأسبوع بإصبعين، إصبع ثابت على أرخص يوم رأيته وإصبع على اليوم الحالي. كلما تجاوز سعر اليوم سعر يوم الشراء، سجّل الربح. هذان الإصبعان المتحركان هما أول sliding window لك.
+---
+
+## Welcome to Dungeon 5
+
+Dungeon 4 taught you to cut a search space in half over and over. Fast, surgical, and honestly a little cold.
+
+This dungeon moves differently. No halving. You slide a **window** across the data, one smooth pass, and the window grows and shrinks as rules break and recover.
+
+If Dungeon 2's Two Pointers were two fingers walking toward each other, Sliding Window is two fingers walking the *same direction*, keeping a stretch of the data between them. Everything inside the stretch is "the window". The whole dungeon is about deciding when each edge moves.
+
+Boss 1 keeps it gentle. The window here is just two days on a calendar.
+
+---
+
+## The story
+
+Saturday flea market. One stall has a vintage guitar you know is underpriced, and the seller changes the tag every morning depending on his mood.
+
+You got a tip: here's what the tag will say each day this week.
+
+```
+prices = [7, 1, 5, 3, 6, 4]
+```
+
+Your plan is the oldest one in commerce: buy on some day, sell on a **later** day, pocket the difference. One buy, one sell, that's it.
+
+Stare at the week. Buy at 7, sell at... nothing good, every later price is lower. Buy at 1 though? Sell at 5 makes 4 profit. Sell at 6 makes 5. That's the best this week offers: **buy day 2, sell day 5, profit 5**.
+
+Easy with six prices. Now do it for a year of prices, and no, you can't just grab the lowest and highest tag. If the highest day comes *before* the lowest, that trade needs a time machine.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array `prices` where `prices[i]` is the price of a given stock on the `i`-th day.
+>
+> You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.
+>
+> Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return `0`.
+
+LeetCode 121. Guitars, stocks, sneakers, same math.
+
+---
+
+## The naive attempt
+
+Try every buy day, and for each one, try every later sell day.
+
+```python
+def max_profit(prices):
+    best = 0
+    for buy in range(len(prices)):
+        for sell in range(buy + 1, len(prices)):
+            best = max(best, prices[sell] - prices[buy])
+    return best
+```
+
+Correct, and O(n²). A year of prices is 365 days, so ~66,000 pairs. Fine. Ten years of hourly prices is ~87,000 entries, so ~3.8 billion pairs. Not fine.
+
+The waste is obvious once you see it: if day 3 is cheaper than day 1, why would you *ever* buy on day 1 again? Every future sell pairs better with day 3. The naive loop keeps re-checking buy days that are already beaten.
+
+---
+
+## The weapon: a window with a left edge that never looks back
+
+Put two markers on the price list. `L` is your buy day, `R` is your sell day. The stretch between them is the window: one candidate trade.
+
+Walk `R` forward one day at a time, and follow two rules:
+
+- **Price at R is higher than at L?** That's a real trade. Compute the profit, keep it if it's the best so far.
+- **Price at R is *lower* than at L?** Then R just became the best buy day anyone has seen. Jump `L` straight to `R`. Don't crawl it forward, nothing between the old L and R can be cheaper than R, or L would have jumped earlier.
+
+The window slides. The left edge chases the cheapest price seen so far, the right edge samples every possible sell day exactly once.
+
+<MermaidBlock>
+graph TB
+    A["Window L to R\nL = buy day, R = sell day"]
+    B["price at R above price at L\nprofit = R minus L\nkeep best"]
+    C["price at R below price at L\nnew cheapest found\njump L to R"]
+    D["R moves right every step\neach day checked once"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+Why is this safe? The best trade has some buy day. Whatever that day is, when `R` later passes over the matching sell day, `L` is guaranteed to be sitting on that buy day or somewhere even cheaper. Either way the profit we record is at least as good. No trade escapes.
+
+---
+
+## Watching it work
+
+`prices = [7, 1, 5, 3, 6, 4]`
+
+```
+step   L(price)   R(price)   action                    best
+1      0 (7)      1 (1)      1 < 7 → jump L to 1       0
+2      1 (1)      2 (5)      profit 4                  4
+3      1 (1)      3 (3)      profit 2, not better      4
+4      1 (1)      4 (6)      profit 5                  5
+5      1 (1)      5 (4)      profit 3, not better      5
+```
+
+Answer: **5**. Buy at 1, sell at 6, exactly the trade we eyeballed.
+
+Notice `L` moved once all week. It only ever moves when a new all-time-cheap shows up, and it never moves backward. Between the two markers, every element gets visited once each. That's the sliding window signature: **total work O(n), no matter how the window wiggles**.
+
+---
+
+## The code
+
+```python
+def max_profit(prices: list[int]) -> int:
+    l = 0          # buy day: cheapest price seen so far
+    best = 0
+    for r in range(1, len(prices)):
+        if prices[r] < prices[l]:
+            l = r                      # better buy found, window resets here
+        else:
+            best = max(best, prices[r] - prices[l])
+    return best
+```
+
+Ten lines, one pass, no extra memory.
+
+<Callout type="tip" title="The same idea, wearing different clothes">
+Some people write this without any window talk: track `min_so_far`, and at every price check `price - min_so_far`. It's the identical algorithm. `l` *is* min-so-far, just stored as an index. Recognizing that one algorithm can be narrated two ways is half of getting comfortable with patterns.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Selling before buying.**
+The classic wrong answer is `max(prices) - min(prices)`. On `[5, 10, 1]` that gives 9, but the 1 comes *after* the 10. The real answer is 5. Order matters, that's the whole problem.
+
+**2. Forgetting the all-loss week.**
+On `[7, 6, 5, 4]` there is no profitable trade. The loop never updates `best`, so it stays 0. That's correct, the problem says return 0, and it's why `best` must start at 0, not at `-infinity` or `prices[1] - prices[0]`.
+
+**3. Updating best and moving L in the same step.**
+When `prices[r] < prices[l]`, some people also try to record a "profit" first. There is none, it would be negative. The two branches are exclusive: either R is a sell candidate, or R is the new buy. Never both.
+
+**4. Starting both markers at 0.**
+If `r` starts at 0, you'd compute `prices[0] - prices[0] = 0` and waste a step, or worse, in some variants compare an element with itself and think a trade exists. Buy and sell must be different days, so `r` starts at 1.
+
+---
+
+## Complexity
+
+`R` walks the array once. `L` only ever jumps forward, and never past `R`. Every element is looked at a constant number of times.
+
+**Time: O(n). Space: O(1).**
+
+The naive version's 3.8 billion pair-checks collapse into 87,000 single steps.
+
+---
+
+## Boss down. XP gained.
+
+You buy Tuesday, sell Friday, and walk off with the vintage guitar money.
+
+What you walked away with:
+
+- A **window** is just two indices moving the same direction, with meaning attached to the stretch between them
+- The left edge advances only when the window's *reason to exist* improves (a cheaper buy day)
+- One pass, O(n), because neither edge ever moves backward
+- Sliding window and "track the running min" can be the same algorithm in different costumes
+
+This boss had a peaceful window: it only ever reset, never had to shrink step by step. The next one isn't so tidy.
+
+Next up: **Boss 2 — The Tasting Counter.** A street chef hands you dish after dish, and your streak ends the moment you're served something you've already tasted. Find the longest run of all-different dishes. The window will stretch, snag on duplicates, and drag its left edge to recover. This is the boss where the window truly earns the name.

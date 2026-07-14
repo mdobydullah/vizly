@@ -1,0 +1,222 @@
+---
+title: "Sliding Window Maximum — The Parade Watch"
+slug: sliding-window-maximum-parade-watch
+category: dsa
+series: sliding-window
+seriesOrder: 6
+description: "Dungeon 5, Boss 6. A parade rolls past a camera frame showing exactly k floats, and the director wants the tallest float in every frame, instantly. The monotonic deque: a window with a bodyguard that never looks back."
+tags:
+  - DSA
+  - Sliding Window
+  - Monotonic Deque
+  - Hard
+icon: "🎈"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're filming a parade for live TV. Floats roll past your camera in a fixed line, and the frame shows exactly k floats at a time. After every step forward, the director yells "tallest float in frame, now!" Recounting all k floats every time is too slow for live TV. Then you notice something: when a tall float enters, every shorter float in front of it stops mattering forever, it will leave the frame before the tall one does. So you keep a short list of floats that could still matter. That list is the trick, and it answers the director instantly.
+  bn: |
+    আপনি লাইভ টিভির জন্য একটা প্যারেড শুট করছেন। ফ্লোটগুলো নির্দিষ্ট লাইনে ক্যামেরার সামনে দিয়ে যাচ্ছে, আর ফ্রেমে একসাথে ঠিক k টা ফ্লোট দেখা যায়। প্রতিবার এক ধাপ এগোলেই ডিরেক্টর চেঁচিয়ে ওঠেন "ফ্রেমের সবচেয়ে লম্বা ফ্লোট, এক্ষুনি!" প্রতিবার k টা ফ্লোট গুনে দেখা লাইভ টিভির জন্য বড্ড ধীর। তখন একটা জিনিস চোখে পড়ে: লম্বা কোনো ফ্লোট ঢুকলেই তার সামনের সব খাটো ফ্লোট চিরতরে অপ্রাসঙ্গিক হয়ে যায়, কারণ লম্বাটার আগেই ওরা ফ্রেম ছেড়ে বেরিয়ে যাবে। তাই আপনি শুধু সেই ফ্লোটগুলোর একটা ছোট লিস্ট রাখেন, যারা এখনো ম্যাটার করতে পারে। ওই লিস্টটাই আসল ট্রিক, আর ডিরেক্টরের প্রশ্নের জবাব আসে সাথে সাথে।
+  hi: |
+    आप लाइव टीवी के लिए एक परेड शूट कर रहे हैं। फ्लोट तय लाइन में कैमरे के सामने से गुजरते हैं, और फ्रेम में एक बार में ठीक k फ्लोट दिखते हैं। हर कदम आगे बढ़ते ही डायरेक्टर चिल्लाता है "फ्रेम का सबसे ऊंचा फ्लोट, अभी!" हर बार k फ्लोट गिनना लाइव टीवी के लिए बहुत धीमा है। तभी आपको एक चीज दिखती है: जब कोई ऊंचा फ्लोट आता है, तो उसके आगे के सारे छोटे फ्लोट हमेशा के लिए बेमतलब हो जाते हैं, क्योंकि वे ऊंचे वाले से पहले ही फ्रेम से निकल जाएंगे। तो आप सिर्फ उन फ्लोटों की छोटी लिस्ट रखते हैं जो अभी भी मायने रख सकते हैं। वही लिस्ट पूरी ट्रिक है, और डायरेक्टर को जवाब तुरंत मिल जाता है।
+  ar: |
+    تصوّر عرضاً في الشارع لبث تلفزيوني مباشر. العربات تمر أمام كاميرتك في خط ثابت، والإطار يعرض k عربة في كل لحظة. مع كل خطوة للأمام يصرخ المخرج "أطول عربة في الإطار، الآن!" إعادة فحص k عربة في كل مرة أبطأ من أن تصلح للبث المباشر. ثم تلاحظ شيئاً: عندما تدخل عربة طويلة، كل عربة أقصر أمامها تفقد أهميتها إلى الأبد، لأنها ستغادر الإطار قبل الطويلة. لذلك تحتفظ بقائمة قصيرة فقط بالعربات التي ما زال بإمكانها أن تهم. هذه القائمة هي الحيلة كلها، وبها تجيب المخرج فوراً.
+---
+
+## Boss 6: The Parade Watch
+
+Final boss of the dungeon.
+
+Every window so far cared about **what's inside**: counts, quotas, duplicates. This one asks about **who's in charge**: the maximum of each window. Sounds simpler. Isn't. The maximum is a diva, when it leaves the window you need to know who's next in line, and the window's counts can't tell you that.
+
+The answer is a new tool riding inside the window. This boss is really a two-for-one: you clear the dungeon *and* pick up the monotonic deque, which returns in the Stack dungeon's harder cousins and all over LeetCode Hard.
+
+---
+
+## The story
+
+Independence day parade, live broadcast, you're on camera duty. Floats roll past in a fixed line. Your frame shows exactly **k = 3** floats at once, and it slides forward one float at a time.
+
+Float heights, in parade order:
+
+```
+heights = [1, 3, -1, -3, 5, 3, 6, 7]
+```
+
+(Yes, one float is height -3. It's a submarine on wheels. Parades are weird.)
+
+After every slide, the director wants the tallest float currently in frame, instantly, for the on-screen graphic:
+
+```
+frame [1  3  -1]           → tallest 3
+frame    [3  -1  -3]       → tallest 3
+frame       [-1  -3  5]    → tallest 5
+frame          [-3  5  3]  → tallest 5
+frame             [5  3  6] → tallest 6
+frame                [3  6  7] → tallest 7
+```
+
+Expected output: `[3, 3, 5, 5, 6, 7]`.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array of integers `nums` and an integer `k`. There is a sliding window of size `k` moving from the very left of the array to the very right. You can only see the `k` numbers in the window. Each time the sliding window moves right by one position, return the max of the window.
+>
+> Return an array of each window's max.
+
+LeetCode 239, marked Hard.
+
+---
+
+## The naive attempt
+
+Scan all k floats per frame.
+
+```python
+def max_sliding_window(nums, k):
+    return [max(nums[i:i+k]) for i in range(len(nums) - k + 1)]
+```
+
+One line, and O(n·k). With 100,000 floats and k = 50,000, that's billions of comparisons. The broadcast lags, the director throws a headset.
+
+The frustrating part: consecutive frames share k-1 floats. All that shared knowledge, recomputed from zero every step. But you can't just "keep the max and update it", because when the current max *exits* the frame, you have no idea who the runner-up was. That's the real puzzle: maintaining not just the champion, but the whole line of succession.
+
+---
+
+## The weapon: the line of succession
+
+Here's the observation that cracks it. A new float enters the frame. Look at any shorter float that entered *before* it:
+
+- It's shorter, so it can't be the max while the new float is in frame.
+- It entered earlier, so it *leaves* the frame before the new float does.
+
+Shorter **and** gone sooner. There is no future frame in which that float matters. Not "probably won't matter", *provably never*. Delete it from consideration, permanently.
+
+So keep a **deque** (double-ended queue) of floats that could still matter, storing their indices. Maintain it with three moves per step:
+
+1. **New float enters:** pop everyone off the *back* of the deque who is shorter than it (they're obsolete, by the argument above), then push the new float's index on the back.
+2. **Front too old?** If the index at the front has slid out of the frame, pop it from the front.
+3. **Answer the director:** the front of the deque is the current frame's max. Always.
+
+<MermaidBlock>
+graph TB
+    A["New float at index R"]
+    B["Pop back while\nback float shorter\nthan new float"]
+    C["Push R on back"]
+    D["Front index outside\nframe? pop front"]
+    E["Front of deque\nis the frame max"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Because every entering float purges the shorter ones behind it, the heights in the deque are always **strictly decreasing** from front to back. That's why it's called a *monotonic* deque. The front is the champion, and behind it stands the succession line: each member is the tallest float that entered after everyone in front of it. When the champion retires out of frame, the next in line is already standing there. No recount, no election.
+
+---
+
+## Watching it work
+
+`heights = [1, 3, -1, -3, 5, 3, 6, 7]`, `k = 3`. Deque shown as heights, front on the left.
+
+```
+R   float   pop back?          deque after   front old?   output
+0   1       -                  [1]           -            (frame not full)
+1   3       pop 1 (shorter)    [3]           -            (frame not full)
+2   -1      no                 [3, -1]       no           3
+3   -3      no                 [3, -1, -3]   no           3
+4   5       pop -3, -1, 3!     [5]           no           5
+5   3       no                 [5, 3]        no           5
+6   6       pop 3, pop 5       [6]           no           6
+7   7       pop 6              [7]           no           7
+```
+
+Step 4 is the boss fight in miniature: the submarine era ends, float 5 walks in and dismisses the *entire* deque, including the reigning champion 3, which was about to age out anyway. And note step 3: `-3` gets to join the line even though it's pathetic, because everyone ahead of it is taller, it's legitimately third in succession. If floats 3 and -1 had left the frame with -3 still inside, -3 would have been the max. Every member of the deque has a possible future in which it reigns. That's the membership test.
+
+Output: `[3, 3, 5, 5, 6, 7]`. Matches.
+
+---
+
+## The code
+
+```python
+from collections import deque
+
+def max_sliding_window(nums: list[int], k: int) -> list[int]:
+    dq = deque()          # indices; heights strictly decreasing front→back
+    out = []
+    for r in range(len(nums)):
+        # 1. new float dismisses shorter floats at the back
+        while dq and nums[dq[-1]] < nums[r]:
+            dq.pop()
+        dq.append(r)
+
+        # 2. front retired out of frame?
+        if dq[0] <= r - k:
+            dq.popleft()
+
+        # 3. frame full → front is the answer
+        if r >= k - 1:
+            out.append(nums[dq[0]])
+    return out
+```
+
+<Callout type="info" title="Why store indices, not heights">
+The deque holds indices because step 2 needs to know *when* the front entered. A bare height can't tell you whether it's still in frame, two floats can share a height, and only the index knows which copy is which. Store indices, look up heights. This applies to nearly every monotonic stack or deque problem.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Storing values instead of indices.**
+See the callout. Without indices, expiring the front is guesswork, and duplicates break everything.
+
+**2. Popping the back with `<=` versus `<`.**
+With `<` (strict), equal-height floats coexist in the deque, which is correct but keeps a few extra members. With `<=`, an equal newcomer dismisses the older equal, also correct, since the newcomer leaves the frame later it fully replaces the older one. Both pass. Popping the *front* eagerly, though, is wrong: only expire the front when it's actually out of frame.
+
+**3. Expiring the front with the wrong boundary.**
+The frame at step `r` covers indices `r - k + 1` through `r`. The front expires when `dq[0] <= r - k`, not `< r - k`, not `<= r - k + 1`. Off-by-one here returns wrong answers only on inputs where the max sits at the frame's trailing edge, which is exactly the kind of bug that survives casual testing.
+
+**4. Reaching for a heap.**
+A max-heap gives you the max, sure, but lazy-deleting expired floats costs O(log n) per step and a whole lot of bookkeeping, O(n log n) total. The deque is O(n) flat and simpler once you know the succession argument. Heaps hold grudges, deques let go.
+
+---
+
+## Complexity
+
+Every index enters the deque exactly once and leaves at most once, from one end or the other. All the whiles in the world can't exceed that budget, the same amortized argument as Boss 2.
+
+**Time: O(n). Space: O(k)** for the deque.
+
+---
+
+## Boss down. Dungeon down. XP gained.
+
+The graphic updates instantly, the director calls it the smoothest broadcast in years, and the submarine float wins "most creative" for some reason.
+
+What you're carrying out of Dungeon 5:
+
+- The **grow-shrink rhythm**: extend right while valid, pull left until valid again (Tasting Counter)
+- **Budgeted validity**: a window may be broken by at most k, checked as `length - maxf ≤ k` (Marquee)
+- **Fixed windows** with enter-and-leave fingerprint updates, no shrink logic at all (Spice Blend)
+- The **minimum-window inversion**: squeeze while valid, record every squeeze (Market Run)
+- The **monotonic deque**: a line of succession that answers "max of window" in O(1) (Parade)
+- And under all of it, one amortized argument: edges that only move forward means O(n), always
+
+One dungeon, one shape: a contiguous stretch and two edges with rules. You'll recognize it now in problems that never say the word "window".
+
+**Next dungeon: Linked List.** The arrays end here. In Dungeon 6, data stops sitting in neat rows and starts hiding behind pointers, each node knowing only where the next one lives. Reversal, cycle detection with two runners on a track, merging chains, and the pointer surgery that either clicks forever or crashes on a null. Bring gloves.
+
+See you in Dungeon 6.

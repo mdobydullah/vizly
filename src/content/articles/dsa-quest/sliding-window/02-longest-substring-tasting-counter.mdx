@@ -1,0 +1,205 @@
+---
+title: "Longest Substring Without Repeating Characters — The Tasting Counter"
+slug: longest-substring-tasting-counter
+category: dsa
+series: sliding-window
+seriesOrder: 2
+description: "Dungeon 5, Boss 2. A street chef serves dishes in a fixed order, and your tasting streak dies the moment a dish repeats. Find the longest all-different run. The window grows, snags, and shrinks for the first time."
+tags:
+  - DSA
+  - Sliding Window
+  - Strings
+  - Hash Set
+icon: "🍜"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    There's a night market chef who serves one small dish at a time, always in the same fixed order. You want the longest streak of dishes with zero repeats, because the moment you taste something twice the streak is over. You can't skip dishes and you can't reorder them. So you keep a window over the dish lineup: stretch the right side with every new plate, and when a repeat shows up, eat your way in from the left until the older copy is gone. Longest window you ever held is your answer.
+  bn: |
+    নাইট মার্কেটে এক শেফ একটার পর একটা ছোট ডিশ সার্ভ করেন, সবসময় একই নির্দিষ্ট ক্রমে। আপনি চান এমন সবচেয়ে লম্বা স্ট্রিক, যেখানে কোনো ডিশ দুবার আসেনি। কারণ একই জিনিস দ্বিতীয়বার মুখে দিলেই স্ট্রিক শেষ। ডিশ বাদ দেওয়া যাবে না, ক্রম পাল্টানোও যাবে না। তাই ডিশের লাইনের উপর একটা window ধরে রাখুন: নতুন প্লেট এলেই ডান দিকটা বাড়ান, আর কোনো ডিশ রিপিট হলে বাঁ দিক থেকে এগোতে থাকুন যতক্ষণ না পুরনো কপিটা বাদ পড়ে। যত বড় window একবারও ধরতে পেরেছিলেন, সেটাই উত্তর।
+  hi: |
+    नाइट मार्केट में एक शेफ एक-एक करके छोटी डिश परोसता है, हमेशा एक ही तय क्रम में। आपको चाहिए बिना किसी रिपीट वाली सबसे लंबी स्ट्रीक, क्योंकि जैसे ही कोई डिश दोबारा चखी, स्ट्रीक खत्म। न डिश छोड़ सकते हैं, न क्रम बदल सकते हैं। तो डिशों की लाइन पर एक window रखिए: हर नई प्लेट पर दायां सिरा बढ़ाइए, और रिपीट आते ही बाएं सिरे से तब तक खिसकिए जब तक पुरानी कॉपी बाहर न हो जाए। जो सबसे बड़ी window कभी बनी, वही जवाब है।
+  ar: |
+    في سوق الليل طاهٍ يقدم طبقاً صغيراً واحداً في كل مرة، وبنفس الترتيب الثابت دائماً. تريد أطول سلسلة أطباق بلا أي تكرار، لأنك لحظة تذوق طبق للمرة الثانية تنتهي السلسلة. لا يمكنك تخطي الأطباق ولا إعادة ترتيبها. لذلك أمسك نافذة فوق صف الأطباق: مدّد طرفها الأيمن مع كل طبق جديد، وعندما يظهر تكرار تقدّم من اليسار حتى تخرج النسخة القديمة. أكبر نافذة أمسكتها يوماً هي الجواب.
+---
+
+## Boss 2: The Tasting Counter
+
+Boss 1's window was polite. It never shrank, it only teleported its left edge when a cheaper buy showed up.
+
+This boss serves you the full experience: a window that **grows** while things are fine and **shrinks step by step** when a rule breaks. Nearly every sliding window problem you'll ever meet is a variation of what happens at this counter.
+
+---
+
+## The story
+
+A night market. One counter, one chef, dishes coming out in a fixed lineup, one at a time:
+
+```
+"abcabcbb"
+```
+
+Read each letter as a dish: `a` is dumplings, `b` is bao, `c` is chili noodles.
+
+The chef has a house rule for the tasting challenge: your streak counts only while **every dish in it is different**. Taste dumplings twice inside one streak and the streak is void.
+
+You can't skip a dish and you can't ask him to reorder. The only question is: **what's the longest clean streak hiding in the lineup?**
+
+For `"abcabcbb"`: the run `abc` is clean, 3 dishes. Then the second `a` arrives and dumplings repeat. Restarting cleverly, `bca`, `cab`, `abc` are also 3. Nothing longer exists. Answer: **3**.
+
+Human eyes solve 8 letters instantly. The chef's full menu tape is 100,000 dishes long. Now what?
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s`, find the length of the **longest substring** without duplicate characters.
+
+LeetCode 3, one of the most-asked interview questions on the planet. Note it says *substring*, contiguous, in order. Not subsequence.
+
+---
+
+## The naive attempt
+
+Check every substring for duplicates.
+
+```python
+def length_of_longest_substring(s):
+    best = 0
+    for i in range(len(s)):
+        seen = set()
+        for j in range(i, len(s)):
+            if s[j] in seen:
+                break
+            seen.add(s[j])
+        best = max(best, len(seen))
+    return best
+```
+
+Every start index walks forward until it hits a repeat. That's O(n²) in the worst case. For 100,000 dishes, ten billion operations. The night market closes.
+
+And look at the waste. Starting from index 0 you discover `abc` breaks at the second `a`. Then you restart from index 1 and re-taste `b` and `c` all over again, as if you'd learned nothing. The naive loop has amnesia.
+
+---
+
+## The weapon: grow right, shrink left
+
+Keep one window `[L, R]` and one hash set holding exactly the dishes currently inside the window.
+
+Every step, the right edge takes the next dish:
+
+- **Dish not in the set?** Great, streak continues. Add it, and check if the window is your longest yet.
+- **Dish already in the set?** The rule broke. Now *shrink*: remove the dish at `L`, move `L` right, and repeat until the older copy of the offending dish has left the window. Then the new one can come in.
+
+The key insight is what you *don't* do: you don't restart from scratch. When the second `a` arrives, everything between the old `a` and the new one (`bc`) is still perfectly clean. Shrinking just past the old `a` keeps all of it. That's the memory the naive version lacked.
+
+<MermaidBlock>
+graph TB
+    A["New dish at R"]
+    B["Not in window set\nadd it, grow window\nupdate best length"]
+    C["Already in window set\nrule broken"]
+    D["Shrink from L\nremove s at L, L plus 1\nrepeat until duplicate gone"]
+    E["Add new dish\nwindow clean again"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+This grow-then-shrink rhythm is the heartbeat of the whole dungeon. Window fine? Push right. Window broken? Pull left until it's fine. Track the best along the way.
+
+---
+
+## Watching it work
+
+`s = "abcabcbb"`
+
+```
+R   dish   window before   action                       window after   best
+0   a      ""              add                          "a"            1
+1   b      "a"             add                          "ab"           2
+2   c      "ab"            add                          "abc"          3
+3   a      "abc"           dup! drop 'a', then add      "bca"          3
+4   b      "bca"           dup! drop 'b', then add      "cab"          3
+5   c      "cab"           dup! drop 'c', then add      "abc"          3
+6   b      "abc"           dup! drop a, then b, add     "cb"  → "b"... 3
+7   b      "cb"            dup! drop c, drop b, add     "b"            3
+```
+
+Step 6 is the interesting one: the incoming `b` forces the left edge to walk *twice*, dropping `a` and then the old `b`, before the new `b` may enter. The shrink is a `while`, not a single step.
+
+Answer: **3**.
+
+---
+
+## The code
+
+```python
+def length_of_longest_substring(s: str) -> int:
+    window = set()
+    l = 0
+    best = 0
+    for r in range(len(s)):
+        while s[r] in window:      # shrink until the duplicate is gone
+            window.remove(s[l])
+            l += 1
+        window.add(s[r])
+        best = max(best, r - l + 1)
+    return best
+```
+
+That inner `while` looks like it should make this O(n²). It doesn't. Each character enters the window once and leaves at most once, ever. Total adds across the whole run: n. Total removes: at most n. The two loops *share* a budget of 2n steps. This "each element in once, out once" argument is called **amortized analysis**, and it's the reason every window algorithm in this dungeon is linear.
+
+<Callout type="tip" title="The jump-ahead variant">
+A slicker version stores each character's last-seen index in a hash map, and when a duplicate arrives, teleports `l` directly past the old copy instead of walking it. Same complexity, fewer steps in practice. Learn the while-shrink version first: it generalizes to every other boss in this dungeon, the teleport trick doesn't.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Using `if` instead of `while` for the shrink.**
+One shrink step is not always enough, step 6 in the trace needed two. With `if`, the duplicate survives inside the window and your set silently lies to you.
+
+**2. Window length is `r - l + 1`, not `r - l`.**
+Both edges are inclusive. A window from index 2 to index 2 holds one dish, not zero. This off-by-one shows up in every window problem, tattoo it somewhere.
+
+**3. Forgetting to remove from the set while shrinking.**
+Moving `l` without `window.remove(s[l])` leaves ghosts in the set. The window and the set must describe the same stretch at all times, they're one thing in two forms.
+
+**4. Confusing substring with subsequence.**
+`"abd"` picked out of `"abcd"` is a subsequence, not a substring. Windows only ever model contiguous runs. If a problem allows skipping, sliding window is the wrong weapon.
+
+---
+
+## Complexity
+
+`R` moves n times. `L` moves at most n times total across all shrinks. Set operations are O(1) average.
+
+**Time: O(n). Space: O(min(n, alphabet))**, the set never holds more than one copy of each possible character.
+
+---
+
+## Boss down. XP gained.
+
+Longest clean streak: three dishes. The chef nods, unimpressed. The dishes were free anyway.
+
+What you walked away with:
+
+- The **grow-shrink rhythm**: right edge extends while the window is valid, left edge advances until validity returns
+- A hash set as the window's memory, always mirroring exactly what's inside
+- The amortized argument: two pointers that only move forward means O(n), even with a nested `while`
+- `r - l + 1` is the window length, forever and always
+
+So far the window's rule was binary: a dish is either a repeat or it isn't. The next boss makes the rule *quantitative*, and gives you a budget to spend.
+
+Next up: **Boss 3 — The Marquee Letters.** An old cinema marquee holds a row of letter tiles, and you've got k blank tiles in your pocket. Swap in at most k of them to build the longest run of one repeated letter. The window is allowed to be *slightly broken* now, and knowing exactly how broken is the whole game.

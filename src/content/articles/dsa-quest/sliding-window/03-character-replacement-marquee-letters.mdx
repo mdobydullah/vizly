@@ -1,0 +1,206 @@
+---
+title: "Longest Repeating Character Replacement — The Marquee Letters"
+slug: character-replacement-marquee-letters
+category: dsa
+series: sliding-window
+seriesOrder: 3
+description: "Dungeon 5, Boss 3. A cinema marquee holds a row of letter tiles and you may swap at most k of them. Build the longest run of one repeated letter. The window is now allowed to be slightly broken, with a budget."
+tags:
+  - DSA
+  - Sliding Window
+  - Strings
+icon: "🎬"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run an old cinema and the marquee out front is a long row of letter tiles. Tonight you want the longest stretch showing one single repeated letter, because it looks great from the highway. The catch is you only have k spare tiles, so you can replace at most k letters in whatever stretch you pick. Any stretch works if the letters you'd have to swap number k or fewer. Keep the letter that already appears most, swap out the rest, and slide a window to find the longest stretch where that's affordable.
+  bn: |
+    আপনি একটা পুরনো সিনেমা হল চালান, আর সামনের marquee টা লম্বা এক সারি অক্ষরের টাইল। আজ রাতে আপনি চান সবচেয়ে লম্বা একটা অংশ, যেখানে একটাই অক্ষর বারবার দেখা যাবে, কারণ হাইওয়ে থেকে ওটা দারুণ লাগে। ঝামেলা একটাই, আপনার হাতে মাত্র k টা বাড়তি টাইল। মানে যে অংশই বাছুন, তাতে বড়জোর k টা অক্ষর পাল্টাতে পারবেন। যে অক্ষরটা অংশে সবচেয়ে বেশিবার আছে সেটাই রাখুন, বাকিগুলো পাল্টান। এবার window স্লাইড করে বের করুন সবচেয়ে লম্বা অংশটা, যেখানে এই খরচটা k এর মধ্যে থাকে।
+  hi: |
+    आप एक पुराना सिनेमा चलाते हैं और बाहर का marquee अक्षरों की टाइलों की लंबी कतार है। आज रात आपको सबसे लंबा ऐसा हिस्सा चाहिए जिसमें एक ही अक्षर बार-बार दिखे, क्योंकि हाईवे से वह शानदार दिखता है। दिक्कत बस इतनी है कि आपके पास सिर्फ k फालतू टाइलें हैं, यानी जो भी हिस्सा चुनें उसमें ज्यादा से ज्यादा k अक्षर बदल सकते हैं। जो अक्षर उस हिस्से में सबसे ज्यादा बार है उसे रखिए, बाकी बदल दीजिए। अब window स्लाइड करके सबसे लंबा हिस्सा ढूंढिए जहां यह खर्च k के अंदर रहे।
+  ar: |
+    تدير سينما قديمة واللوحة الأمامية صف طويل من بلاطات الحروف. الليلة تريد أطول مقطع يعرض حرفاً واحداً مكرراً، لأنه يبدو رائعاً من الطريق السريع. المشكلة أن لديك k بلاطة احتياطية فقط، أي يمكنك استبدال k حرفاً على الأكثر في أي مقطع تختاره. أبقِ الحرف الأكثر ظهوراً في المقطع واستبدل الباقي. الآن حرّك نافذة لتجد أطول مقطع تكون فيه هذه الكلفة ضمن k.
+---
+
+## Boss 3: The Marquee Letters
+
+Boss 2's window had a strict rule: one duplicate and it's broken.
+
+This boss loosens the collar. The window is allowed to be *imperfect*, as long as fixing it costs no more than `k` swaps. Budgeted imperfection. Most mid-tier window problems look exactly like this.
+
+---
+
+## The story
+
+Your cinema's marquee currently reads:
+
+```
+"AABABBA"       k = 1
+```
+
+Seven letter tiles. You have **one** spare tile in your pocket. You want the longest contiguous stretch that can show a single repeated letter after at most one swap.
+
+Look at `ABBA` (positions 3 to 6). It has three... wait, two `B`s and two `A`s. One swap can't fix that. But `ABB` (positions 3 to 5)? Two `B`s, one `A`. Swap the `A` and you get `BBB`. Length 3 for one tile.
+
+Can we do better? Take `AABA` (positions 0 to 3): three `A`s, one `B`. One swap gives `AAAA`. **Length 4.** And nothing of length 5 works with a single tile, every 5-stretch of this marquee needs at least 2 swaps.
+
+Answer: **4**.
+
+The mental move you just made, without noticing: in any stretch, you obviously keep the letter that appears **most** and swap out everyone else. The cost of a stretch is `length - count_of_most_common_letter`. Affordable means that cost is `≤ k`.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a string `s` and an integer `k`. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most `k` times.
+>
+> Return the length of the longest substring containing the same letter you can get after performing the above operations.
+
+LeetCode 424. Uppercase English letters only, so 26 possible characters. Keep that in your back pocket.
+
+---
+
+## The naive attempt
+
+For every substring, count the letters, find the most common, check if `length - max_count ≤ k`.
+
+```python
+def character_replacement(s, k):
+    best = 0
+    for i in range(len(s)):
+        counts = {}
+        for j in range(i, len(s)):
+            counts[s[j]] = counts.get(s[j], 0) + 1
+            if (j - i + 1) - max(counts.values()) <= k:
+                best = max(best, j - i + 1)
+    return best
+```
+
+O(n²) substrings, and each step scans up to 26 counts. Same disease as always: quadratic, with the same cure.
+
+---
+
+## The weapon: a window that's broken by at most k
+
+Slide a window and keep a count of every letter inside it. The window's health check:
+
+```
+window_length - max_frequency_inside ≤ k
+```
+
+If that holds, the window can be repainted into one letter within budget. If it breaks, shrink from the left.
+
+<MermaidBlock>
+graph TB
+    A["Extend window right\ncount of s at R plus 1"]
+    B["Health check\nlength minus maxf\nat most k?"]
+    C["Healthy\nrecord window length"]
+    D["Over budget\nshrink one step from L\ncount of s at L minus 1"]
+    A --> B
+    B --> C
+    B --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+One subtlety separates this boss from the last one, and it's worth slowing down for.
+
+**The max frequency is expensive to maintain honestly.** When a letter enters the window, updating `maxf` is easy: `maxf = max(maxf, count[new_letter])`. But when a letter *leaves* during a shrink, recomputing the true max means scanning all 26 counts.
+
+Here's the boss's secret weakness: **you don't have to.** Let `maxf` go stale. Keep the possibly-outdated value.
+
+Why is that legal? Because `maxf` only ever being too *large* would be a problem, and stale `maxf` is only ever too large... which makes the health check too *lenient*, letting the window stay bigger than it deserves. And here's the trick: **the answer is the biggest window we ever had, and a window only grows when a genuinely higher `maxf` is seen.** A too-big window that's secretly unhealthy just coasts along without shrinking below its record size, and records are only *set* by honest windows. The stale value can never manufacture a longer answer than truth allows.
+
+That argument feels slippery the first three times. The trace helps.
+
+---
+
+## Watching it work
+
+`s = "AABABBA"`, `k = 1`
+
+```
+R   letter  counts after     maxf   len   len-maxf   action        best
+0   A       A:1              1      1     0          ok            1
+1   A       A:2              2      2     0          ok            2
+2   B       A:2 B:1          2      3     1          ok (=k)       3
+3   A       A:3 B:1          3      4     1          ok (=k)       4
+4   B       A:3 B:2          3      5     2 > 1      shrink L=1    4
+5   B       A:2 B:3          3      5     2 > 1      shrink L=2    4
+6   A       A:2 B:3          3      5     2 > 1      shrink L=3    4
+```
+
+Best: **4**, the `AABA` stretch, exactly as we eyeballed.
+
+Two things to notice. After each over-budget step we shrink exactly once, not in a loop, so the window never gets smaller, it slides at its record size like a caterpillar. And from step 4 on, `maxf = 3` is stale (the window at step 5 is `ABABB`, whose true max is 3, fine, but even when it drifts wrong later in other inputs, the record 4 already stands and can only be beaten honestly).
+
+---
+
+## The code
+
+```python
+def character_replacement(s: str, k: int) -> int:
+    count = {}
+    l = 0
+    maxf = 0
+    best = 0
+    for r in range(len(s)):
+        count[s[r]] = count.get(s[r], 0) + 1
+        maxf = max(maxf, count[s[r]])
+        if (r - l + 1) - maxf > k:      # over budget: slide, don't shrink-to-fit
+            count[s[l]] -= 1
+            l += 1
+        best = max(best, r - l + 1)
+    return best
+```
+
+<Callout type="info" title="Why `if` and not `while`?">
+Boss 2 needed `while` because the window had to become fully valid again. Here, one shrink after one grow keeps the window size constant, and since the answer only cares about the *maximum* size ever reached, a never-shrinking window is exactly what we want. A `while` that recomputed the true max and shrank to full health would also be correct, just more code and a 26x constant. Both pass interviews. Know why each works.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Recomputing max frequency on every shrink.**
+Correct but wasteful, and worse, it signals you don't know the stale-maxf argument. If the interviewer asks "can maxf be outdated?", the answer is "yes, and it can't hurt the result, only delay shrinking a window that can no longer set a record."
+
+**2. Checking `length - maxf < k` instead of `≤ k`.**
+Cost exactly k is affordable, you have k tiles. Strict inequality silently throws away valid windows and fails on cases like `"AB"`, k=1.
+
+**3. Trying to decide which letter to keep upfront.**
+You don't pick the target letter, the window does, and it changes as the window moves. Running the whole algorithm 26 times, once per letter, works but is the long way around.
+
+**4. Window length after the slide.**
+`best = max(best, r - l + 1)` must come *after* the possible shrink, or you'll record an over-budget window. In the code above the order is grow, fix, record. Keep it.
+
+---
+
+## Complexity
+
+`R` moves n times, `L` moves at most n times, counts update in O(1).
+
+**Time: O(n). Space: O(26) = O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The marquee reads `AAAA BBA` and from the highway nobody can tell the fourth A used to be a B.
+
+What you walked away with:
+
+- Windows can tolerate **budgeted imperfection**: validity is `length - maxf ≤ k`, not perfection
+- The keep-the-majority insight: repaint cost is always length minus the most common letter's count
+- The stale-maxf trick, and the argument for why a lazy maximum can't inflate the answer
+- The caterpillar variant: slide-at-record-size instead of shrink-to-fit, when only the max window matters
+
+Every window so far had a size the problem let *you* choose. The next boss fixes the size in advance and asks a sharper question: does some window of exactly this size match a fingerprint?
+
+Next up: **Boss 4 — The Spice Blend.** A rival merchant claims your secret five-spice recipe is somewhere on his shelf, jars in a row, exact amounts, order scrambled. Slide a fixed-size window down the shelf and compare fingerprints without recounting from scratch. Permutations, meet windows.

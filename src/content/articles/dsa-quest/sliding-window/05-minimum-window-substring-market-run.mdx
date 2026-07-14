@@ -1,0 +1,254 @@
+---
+title: "Minimum Window Substring — The Market Run"
+slug: minimum-window-substring-market-run
+category: dsa
+series: sliding-window
+seriesOrder: 5
+description: "Dungeon 5, Boss 5. A shopping list with duplicates, one long street of stalls, tired feet. Find the shortest contiguous stretch of stalls that covers the whole list. The pattern's final form: expand until covered, squeeze while covered."
+tags:
+  - DSA
+  - Sliding Window
+  - Strings
+  - Hash Map
+  - Hard
+icon: "🧺"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Your mother hands you a shopping list and points at the market street: one long row of stalls, each selling one thing. Some items are on the list twice, and yes, you need both. Your feet already hurt, so you want to park once and walk the shortest possible stretch of stalls that covers the whole list. Extra stalls inside the stretch are fine, you just walk past them. So you stretch a window down the street until everything is covered, then squeeze it from the back until it barely holds. Every squeeze is a candidate. The tightest one wins.
+  bn: |
+    মা আপনার হাতে একটা বাজারের লিস্ট ধরিয়ে বাজারের রাস্তাটা দেখিয়ে দিলেন: লম্বা এক সারি দোকান, প্রতিটাতে একটা করে জিনিস। লিস্টে কিছু জিনিস দুবার আছে, আর হ্যাঁ, দুটোই লাগবে। পা আগে থেকেই ব্যথা, তাই আপনি চান একবার দাঁড়িয়ে সবচেয়ে ছোট একটানা অংশটা হেঁটে পুরো লিস্ট শেষ করতে। মাঝে বাড়তি দোকান থাকলে সমস্যা নেই, পাশ কাটিয়ে গেলেই হলো। তাই রাস্তা বরাবর window টা টেনে বড় করুন যতক্ষণ না সব জিনিস পাওয়া যায়, তারপর পেছন থেকে চেপে ছোট করুন যতক্ষণ ভাঙার আগ পর্যন্ত পারা যায়। প্রতিটা চাপাই একটা ক্যান্ডিডেট। সবচেয়ে টাইট টাই জেতে।
+  hi: |
+    मां ने आपके हाथ में खरीदारी की लिस्ट थमाई और बाजार की गली की ओर इशारा किया: दुकानों की एक लंबी कतार, हर दुकान पर एक चीज। लिस्ट में कुछ चीजें दो बार हैं, और हां, दोनों चाहिए। पैर पहले से दुख रहे हैं, इसलिए आप एक बार रुककर दुकानों का सबसे छोटा लगातार हिस्सा चलकर पूरी लिस्ट निपटाना चाहते हैं। बीच में फालतू दुकानें हों तो कोई बात नहीं, बस आगे बढ़ जाइए। तो गली पर window को तब तक फैलाइए जब तक सब कुछ मिल न जाए, फिर पीछे से तब तक निचोड़िए जब तक वह टूटने की कगार पर न आ जाए। हर निचोड़ एक कैंडिडेट है। सबसे कसा हुआ जीतता है।
+  ar: |
+    تضع أمك في يدك قائمة مشتريات وتشير إلى شارع السوق: صف طويل من الأكشاك، كل كشك يبيع شيئاً واحداً. بعض الأصناف مكررة في القائمة مرتين، ونعم تحتاج الاثنين. قدماك تؤلمانك أصلاً، لذا تريد أن تقف مرة واحدة وتمشي أقصر مقطع متصل من الأكشاك يغطي القائمة كلها. وجود أكشاك زائدة داخل المقطع لا يضر، تتجاوزها فحسب. مدّد نافذة على طول الشارع حتى تتغطى القائمة، ثم اضغطها من الخلف حتى تكاد تنكسر. كل ضغطة مرشّح للجواب، والأضيق يفوز.
+---
+
+## Boss 5: The Market Run
+
+This is the one. When people say "sliding window question" in interview war stories, they usually mean this problem or one of its children. LeetCode marks it Hard.
+
+Here's the good news: you've already built every piece. Boss 2 gave you grow-shrink. Boss 4 gave you count fingerprints with quotas. This boss just makes you play both hands at once, and flips one thing on its head: for the first time, you're hunting the **minimum** window, not the maximum.
+
+---
+
+## The story
+
+Friday afternoon. Your mother hands you a list and points at the market street. Stalls in one long row, each selling exactly one thing.
+
+The street, one letter per stall:
+
+```
+s = "ADOBECODEBANC"
+```
+
+The list:
+
+```
+t = "ABC"        (one Apple stall, one Banana stall, one Carrot stall)
+```
+
+Your condition, non-negotiable: you'll park once, walk one **contiguous stretch** of stalls, and everything on the list must be inside that stretch. Extra stalls in between are fine, you walk past them. You just refuse to zigzag across the whole street.
+
+Which stretch is shortest?
+
+`ADOBEC` (stalls 0 to 5) covers A, B, C. Length 6. Decent. But look near the end: `BANC` (stalls 9 to 12). B, A, N, C. Everything's there. **Length 4.** Nothing shorter works.
+
+Answer: **"BANC"**.
+
+And remember the duplicates rule: if the list were `"AABC"`, a stretch with a single A wouldn't cut it. Quotas, not checkmarks.
+
+---
+
+## The problem, dressed up properly
+
+> Given two strings `s` and `t`, return the **minimum window substring** of `s` such that every character in `t` (**including duplicates**) is included in the window. If there is no such substring, return the empty string `""`.
+
+LeetCode 76. The "including duplicates" clause is where half of all wrong submissions die.
+
+---
+
+## The naive attempt
+
+Check every substring for coverage, keep the shortest that qualifies.
+
+```python
+from collections import Counter
+
+def min_window(s, t):
+    need = Counter(t)
+    best = ""
+    for i in range(len(s)):
+        for j in range(i + len(t), len(s) + 1):
+            if not (need - Counter(s[i:j])):     # everything covered?
+                if best == "" or j - i < len(best):
+                    best = s[i:j]
+                break    # longer j only adds stalls, stop
+    return best
+```
+
+O(n²) substrings, each rebuilding counts. On LeetCode's worst case, s runs to 100,000 characters. You know this disease by now, and you know the cure.
+
+---
+
+## The weapon: expand until covered, squeeze while covered
+
+Two count structures:
+
+- `need`: the list's quotas, computed once. `A:1, B:1, C:1`.
+- `window`: counts of what's currently between `L` and `R`.
+
+And the single cleverest variable in this dungeon: **`have`**, the number of *distinct* characters whose quota is currently met. The list is covered exactly when `have == len(need)`. No full-array comparison on every step, coverage is one integer equality.
+
+The rhythm:
+
+1. **Expand.** Move `R` right, add the stall to `window`. If that stall's count just hit its quota *exactly*, `have += 1`.
+2. **Squeeze.** While `have == need_count`, the window is valid: record it if it's the shortest so far, then remove the stall at `L` and advance `L`. If a removal drops some count *below* its quota, `have -= 1` and the squeeze stops.
+3. Repeat until `R` exhausts the street.
+
+<MermaidBlock>
+graph TB
+    A["Expand right\nadd stall at R\nquota hit exactly? have plus 1"]
+    B["have equals needed?\nwindow covers the list"]
+    C["Record window\nif shortest so far"]
+    D["Squeeze from left\nremove stall at L\nquota broken? have minus 1"]
+    E["Coverage lost\nback to expanding"]
+    A --> B
+    B --> C
+    C --> D
+    D --> B
+    D --> E
+    E --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Compare this to Boss 2 and feel the inversion. There, the window shrank when it *broke*, and the answer was the biggest healthy window. Here, the window shrinks *because* it's healthy, squeezing out slack to find the tightest fit, and stops shrinking when it breaks. Maximum problems shrink on failure. Minimum problems shrink on success.
+
+---
+
+## Watching it work
+
+`s = "ADOBECODEBANC"`, `t = "ABC"`. Need: A, B, C. Coverage = 3.
+
+**Round 1 — first coverage.** `R` expands through `A, D, O, B, E` and hits `C` at index 5. Coverage! Window `ADOBEC`, length 6, recorded. Squeeze: dropping the `A` breaks A's quota immediately, `have` drops to 2, squeeze ends after one step. Best: 6.
+
+**Round 2 — the long squeeze.** `R` keeps expanding: `O`, `D`, `E` are noise, `B` at index 9 makes B's count 2 (over quota, `have` doesn't move, it was already met). Then `A` at index 10 refills A's quota. Covered again, window `DOBECODEBA`. Now watch the squeeze drop stalls one at a time, losing coverage only when a *quota* breaks:
+
+```
+drop D  → OBECODEBA   still covered
+drop O  → BECODEBA    still covered
+drop B  → ECODEBA     still covered! B count 2→1, quota is 1, still met
+drop E  → CODEBA      still covered, length 6, ties best, no update
+drop C  → ODEBA       C quota breaks → have 2, squeeze ends
+```
+
+That third line is the whole reason quotas beat checkmarks: the window happily discards its *first* B because a spare B sits at index 9. Best: still 6.
+
+**Round 3 — the kill.** `N` at 11 is noise, `C` at 12 restores coverage. Window `ODEBANC`. Squeeze:
+
+```
+drop O  → DEBANC   covered, length 6, tie
+drop D  → EBANC    covered, length 5 → record 5
+drop E  → BANC     covered, length 4 → record 4
+drop B  → ANC      B quota breaks, squeeze ends
+```
+
+Final answer: **"BANC"**, length 4.
+
+The trace is fiddly on paper, and that's the honest truth of this problem: the *algorithm* is two nested loops and four rules, but hand-simulating it demands bookkeeping discipline. Do it once with your own hand for `t = "AABC"`. It's the best 15 minutes you'll spend this dungeon.
+
+---
+
+## The code
+
+```python
+def min_window(s: str, t: str) -> str:
+    if not t or not s or len(t) > len(s):
+        return ""
+
+    need = {}
+    for ch in t:
+        need[ch] = need.get(ch, 0) + 1
+
+    window = {}
+    have, needed = 0, len(need)
+    best_len = float("inf")
+    best_l = 0
+    l = 0
+
+    for r in range(len(s)):
+        ch = s[r]
+        window[ch] = window.get(ch, 0) + 1
+        if ch in need and window[ch] == need[ch]:   # quota hit exactly now
+            have += 1
+
+        while have == needed:                       # valid: squeeze
+            if r - l + 1 < best_len:
+                best_len = r - l + 1
+                best_l = l
+            left = s[l]
+            window[left] -= 1
+            if left in need and window[left] < need[left]:
+                have -= 1                           # quota broken, squeeze ends
+            l += 1
+
+    return "" if best_len == float("inf") else s[best_l:best_l + best_len]
+```
+
+<Callout type="info" title="Why `have` only moves on exact boundaries">
+`have += 1` fires only when a count becomes *equal* to its quota, not every time it grows. B's count going from 1 to 2 when the quota is 1 changes nothing about coverage, it was already met. Symmetrically, `have -= 1` fires only when a count drops *below* quota. These two exactness checks are what let `have` stand in for a full fingerprint comparison. Get either one wrong and `have` drifts, and the window lies about being valid.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Checkmarks instead of quotas.**
+Using a set ("have I seen a B?") fails the moment `t` has duplicates. `t = "AAB"` needs two A's *in the window at once*. Counts or death.
+
+**2. Recording the window before it's fully squeezed only.**
+The record step must live *inside* the squeeze loop, checked on every shrink. The valid window right before coverage breaks is often the shortest, and if you only record when coverage is first achieved, you'll return `"ADOBEC"` instead of `"BANC"`.
+
+**3. Counting characters that aren't on the list.**
+Adding `N` or `O` to `window` is harmless, but touching `have` for them is fatal. Guard both quota checks with `ch in need`.
+
+**4. Storing the best substring instead of its indices.**
+Slicing `s[l:r+1]` on every record inside a hot loop copies strings and can blow the time limit. Store `best_l` and `best_len`, slice once at the end.
+
+**5. Returning wrong on "no answer".**
+If coverage is never reached, `best_len` stays infinite. Return `""`, not the whole string, not None. Read the problem statement's fine print, it's always in the fine print.
+
+---
+
+## Complexity
+
+`R` walks n stalls. `L` walks at most n stalls, ever, across all squeezes. Each step is O(1) dictionary work.
+
+**Time: O(n + m)** with m for counting `t`. **Space: O(alphabet of t)**.
+
+An O(n²) Hard problem in one linear pass, using nothing but two counters and an integer.
+
+---
+
+## Boss down. XP gained. Big one.
+
+You park at stall 9, walk four stalls, and you're home before the samosas get cold.
+
+What you walked away with:
+
+- The **minimum-window inversion**: expand until valid, then squeeze *while* valid, recording as you go
+- Quota coverage with `have` and `needed`, one integer standing in for an entire fingerprint compare
+- Exact-boundary updates: `have` moves only when a quota is exactly met or freshly broken
+- Indices over slices when recording candidates in a loop
+
+Five bosses, and the window has always cared about *what's inside* it: counts, sets, quotas. The final boss asks a different kind of question, one about *order and dominance*, and the window alone can't answer it. It needs a bodyguard.
+
+Next up: **Boss 6 — The Parade Watch.** A parade of floats rolls past a fixed camera frame that shows exactly k floats at a time, and the director wants the tallest float in every single frame, instantly. Recomputing the max per frame is too slow, and a heap holds grudges too long. Enter the monotonic deque, the sliding window's final form and the bounciest data structure in this whole quest.

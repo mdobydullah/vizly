@@ -1,0 +1,211 @@
+---
+title: "Permutation in String — The Spice Blend"
+slug: permutation-in-string-spice-blend
+category: dsa
+series: sliding-window
+seriesOrder: 4
+description: "Dungeon 5, Boss 4. Your secret spice recipe is hidden somewhere on a rival's shelf, exact jars, scrambled order. Slide a fixed-size window down the shelf and compare fingerprints in O(1) per step."
+tags:
+  - DSA
+  - Sliding Window
+  - Strings
+  - Hash Map
+icon: "🌶️"
+color: orange
+createdAt: "2026-07-14T14:00:00Z"
+updatedAt: "2026-07-14T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You sell a secret spice blend, and a rival across the market suddenly sells something that smells suspiciously familiar. His shelf is one long row of spice jars. Your recipe is a fixed set of jars, say two cumin and one chili, and if he copied it, those exact jars sit somewhere on his shelf side by side, in any order. Order doesn't matter, amounts do. So you slide a frame exactly the size of your recipe along his shelf, one jar at a time, and check if what's inside ever matches your recipe's fingerprint.
+  bn: |
+    আপনি একটা সিক্রেট মশলার ব্লেন্ড বেচেন, আর বাজারের ওপারের এক প্রতিদ্বন্দ্বী হঠাৎ এমন কিছু বেচতে শুরু করেছে যার গন্ধটা বড্ড চেনা চেনা। তার তাকে লম্বা এক সারি মশলার বয়াম। আপনার রেসিপি মানে নির্দিষ্ট কিছু বয়াম, ধরুন দুটো জিরা আর একটা মরিচ। সে যদি নকল করে থাকে, তাহলে ঠিক ওই বয়ামগুলোই তার তাকের কোথাও পাশাপাশি আছে, যেকোনো ক্রমে। ক্রম ব্যাপার না, পরিমাণটাই আসল। তাই রেসিপির সমান মাপের একটা ফ্রেম তার তাক বরাবর এক বয়াম করে স্লাইড করান, আর দেখুন ভেতরের জিনিস কখনো আপনার রেসিপির fingerprint এর সাথে মেলে কি না।
+  hi: |
+    आप एक सीक्रेट मसाला ब्लेंड बेचते हैं, और बाजार के उस पार का एक प्रतिद्वंद्वी अचानक कुछ ऐसा बेचने लगा है जिसकी खुशबू कुछ ज्यादा ही जानी-पहचानी है। उसकी शेल्फ पर मसाले के जारों की लंबी कतार है। आपकी रेसिपी यानी तय जार, मान लीजिए दो जीरा और एक मिर्च। अगर उसने नकल की है, तो ठीक वही जार उसकी शेल्फ पर कहीं अगल-बगल रखे हैं, किसी भी क्रम में। क्रम मायने नहीं रखता, मात्रा रखती है। तो अपनी रेसिपी के बराबर साइज का एक फ्रेम उसकी शेल्फ पर एक-एक जार खिसकाइए, और देखिए अंदर का सामान कभी आपकी रेसिपी के fingerprint से मिलता है या नहीं।
+  ar: |
+    تبيع خلطة توابل سرية، وفجأة بدأ منافس في السوق يبيع شيئاً رائحته مألوفة أكثر من اللازم. رفّه صف طويل من برطمانات التوابل. وصفتك مجموعة محددة من البرطمانات، مثلاً كمّون اثنان وفلفل واحد. إن كان قد نسخها فهذه البرطمانات بعينها موجودة في مكان ما على رفّه متجاورة وبأي ترتيب. الترتيب لا يهم، الكميات هي المهمة. لذلك مرّر إطاراً بحجم وصفتك تماماً على طول رفّه، برطماناً واحداً في كل خطوة، وتحقق هل ما بداخله يطابق يوماً بصمة وصفتك.
+---
+
+## Boss 4: The Spice Blend
+
+The last two bosses let the window pick its own size. This boss locks the size in advance.
+
+Fixed-size windows are the easier half of the pattern family, but they come with their own signature move: **update the fingerprint incrementally**. One jar enters, one jar leaves, nothing gets recounted.
+
+---
+
+## The story
+
+You sell a spice blend everyone at the market wants and no one can copy. Or so you thought, until the stall across the aisle started selling "Uncle Rahim's Famous Mix" that smells exactly like yours.
+
+Your recipe, written as one letter per jar:
+
+```
+s1 = "ab"        (one jar of anise, one of basil)
+```
+
+His shelf, jars left to right:
+
+```
+s2 = "eidbaooo"
+```
+
+If he copied you, your recipe sits somewhere on that shelf as a **contiguous block**: the same jars, the same amounts, any order. `"ab"` or `"ba"`, both count, a permutation is a permutation.
+
+Scan the shelf. `ei`, no. `id`, no. `db`, no. `ba`... one basil, one anise. **That's your recipe.** Busted.
+
+Notice what made two jars match: not the order, the *counts*. A permutation of your recipe is any block whose ingredient counts are identical to yours. Counts are the fingerprint.
+
+---
+
+## The problem, dressed up properly
+
+> Given two strings `s1` and `s2`, return `true` if `s2` contains a **permutation** of `s1`, or `false` otherwise.
+>
+> In other words, return `true` if one of `s1`'s permutations is a substring of `s2`.
+
+LeetCode 567. Lowercase English letters, so once again the alphabet is a cozy 26.
+
+---
+
+## The naive attempt
+
+Generate every permutation of `s1` and search for each in `s2`? If `s1` has 10 characters, that's 3.6 million permutations. If it has 20, more permutations than grains of sand on Earth. Dead on arrival.
+
+Second try, smarter: slide a frame of length `len(s1)` along `s2` and count the letters inside from scratch each time.
+
+```python
+from collections import Counter
+
+def check_inclusion(s1, s2):
+    need = Counter(s1)
+    m = len(s1)
+    for i in range(len(s2) - m + 1):
+        if Counter(s2[i:i+m]) == need:
+            return True
+    return False
+```
+
+Correct, and O(n * m): every position rebuilds a count of `m` jars. The right *idea* is already here, the frame just has amnesia again. When the frame slides one step, `m - 1` of its jars didn't move. Why recount them?
+
+---
+
+## The weapon: one jar in, one jar out
+
+Count `s1` once: that's the target fingerprint. Count the first `m` jars of the shelf: that's the window's fingerprint. Then slide:
+
+- The jar entering on the right: its count goes up by one.
+- The jar leaving on the left: its count goes down by one.
+- Compare fingerprints.
+
+<MermaidBlock>
+graph TB
+    A["Target fingerprint\ncounts of s1, computed once"]
+    B["Window fingerprint\nfirst m jars of shelf"]
+    C["Slide one step\nentering jar count plus 1\nleaving jar count minus 1"]
+    D["Fingerprints equal?\nyes: permutation found\nno: slide again"]
+    A --> D
+    B --> C
+    C --> D
+    D --> C
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Comparing two 26-slot count arrays is O(26) per step. Already linear, already fast, and for interviews, fully acceptable.
+
+But there's a sharper version, and it's worth knowing because interviewers love the follow-up: track a single number, **`matches`**, the count of letters (out of 26) whose window count currently equals the target count. Start by comparing the two initial arrays once. From then on, each slide touches exactly two letters, the enterer and the leaver, and each can only flip its own matched/unmatched status. Update `matches` by looking at just those two letters. Fingerprints are equal exactly when `matches == 26`. The comparison drops from O(26) to O(1).
+
+---
+
+## Watching it work
+
+`s1 = "ab"`, `s2 = "eidbaooo"`, `m = 2`. Target: `a:1, b:1`.
+
+```
+window   counts        matches target?
+"ei"     e:1 i:1       no
+"id"     i:1 d:1       no
+"db"     d:1 b:1       no  (b matches, a and d don't)
+"ba"     b:1 a:1       YES → return true
+```
+
+The window walked four steps, each step adjusting exactly two counts. No recounting, no drama, rival exposed.
+
+---
+
+## The code
+
+```python
+def check_inclusion(s1: str, s2: str) -> bool:
+    m, n = len(s1), len(s2)
+    if m > n:
+        return False
+
+    need = [0] * 26
+    window = [0] * 26
+    a = ord('a')
+    for i in range(m):
+        need[ord(s1[i]) - a] += 1
+        window[ord(s2[i]) - a] += 1
+
+    if window == need:
+        return True
+
+    for r in range(m, n):
+        window[ord(s2[r]) - a] += 1        # jar enters on the right
+        window[ord(s2[r - m]) - a] -= 1    # jar leaves on the left
+        if window == need:
+            return True
+    return False
+```
+
+This is the O(26)-compare version, clean and plenty fast. The `matches` optimization replaces the two `window == need` checks with counter bookkeeping on the two touched letters.
+
+<Callout type="tip" title="Fixed window = no L pointer">
+Notice there's no `l` variable and no shrink logic anywhere. When the window size is fixed, the left edge is always exactly `r - m`, it's arithmetic, not a decision. Whenever a problem says "window of size k" or "substring of length equal to...", expect this simpler shape: no while-loops, just enter-and-leave.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the length guard.**
+If `s1` is longer than `s2`, no window exists at all. Without the early `return False`, the setup loop reads past the end of `s2` and crashes.
+
+**2. Checking the first window.**
+The slide loop starts at `r = m`, so the initial window (indices 0 to m-1) never gets compared inside it. The standalone check before the loop is load-bearing. Delete it and `check_inclusion("ab", "ba")` returns false.
+
+**3. Removing the wrong jar.**
+The leaver is `s2[r - m]`, not `s2[l]` of some imaginary pointer, and not `s2[r - m + 1]`. Off-by-one here corrupts the fingerprint silently, and every later comparison is garbage. If your window algorithm "almost works", check the leaver index first.
+
+**4. Comparing sorted windows instead of counts.**
+Sorting each window to compare against sorted `s1` works but costs O(m log m) per step. Counts do the same job in O(1) per step. Same fingerprint idea, wildly different price.
+
+---
+
+## Complexity
+
+Setup counts cost O(m). The slide runs n - m steps, each O(26) with array compare, O(1) with the matches trick.
+
+**Time: O(n). Space: O(26) = O(1).**
+
+---
+
+## Boss down. XP gained.
+
+You slap your own label on the fourth and fifth jars of his shelf in front of the whole market. Uncle Rahim closes early.
+
+What you walked away with:
+
+- **Fixed-size windows** drop all shrink logic: the left edge is `r - m`, pure arithmetic
+- Count arrays as fingerprints: a permutation is just "same counts", order never enters the picture
+- Incremental updates: one enters, one leaves, never recount the middle
+- The `matches` counter, turning an O(26) compare into O(1)
+
+You now hold both window shapes: variable-size with grow-shrink, fixed-size with enter-leave. The next boss is the dungeon's mini-final, the problem this entire pattern exists for, and it needs everything at once.
+
+Next up: **Boss 5 — The Market Run.** A shopping list with duplicates, a street of stalls in a fixed row, and your feet already hurt. Find the *shortest* contiguous stretch of stalls that covers the entire list. Variable window, counts with quotas, and a shrink phase that squeezes every answer to its minimum. This is Minimum Window Substring, and interviewers have been ending loops with it for a decade.
