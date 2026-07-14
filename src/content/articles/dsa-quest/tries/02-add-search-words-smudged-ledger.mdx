@@ -1,0 +1,226 @@
+---
+title: "Design Add and Search Words Data Structure — The Smudged Ledger"
+slug: add-search-words-smudged-ledger
+category: dsa
+series: tries
+seriesOrder: 2
+description: "Dungeon 8, Boss 2. A detective searches a name ledger where some letters are illegible smudges that could be anything. One smudge means trying all 26 doors, and the trie walk learns to branch."
+tags:
+  - DSA
+  - Tries
+  - DFS
+  - Design
+icon: "🕵️"
+color: orange
+createdAt: "2026-07-14T17:00:00Z"
+updatedAt: "2026-07-14T17:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A detective inherits a water-damaged guest ledger from a hotel fire case. Names were copied into the station's pigeonhole registry just fine, but the queries are the problem: witnesses remember names with gaps. "It was B, something, D." Every smudged letter could be anything at all. Filing names works exactly like the post office. Searching changes: a readable letter follows one door as usual, but a smudge means opening all 26 doors at that spot and trying each, abandoning the ones that dead-end. One match down any branch and the name is confirmed.
+  bn: |
+    এক গোয়েন্দা হোটেলের আগুনের কেস থেকে পানিতে নষ্ট হওয়া একটা গেস্ট লেজার হাতে পান। নামগুলো থানার পিজনহোল রেজিস্ট্রিতে ঠিকঠাকই তোলা হয়েছিল, সমস্যাটা প্রশ্নে: সাক্ষীরা নাম মনে রাখে ফাঁক রেখে। "B ছিল, তারপর কী যেন, তারপর D।" প্রতিটা ঝাপসা অক্ষর যা খুশি হতে পারে। নাম ফাইল করা চলে ঠিক পোস্ট অফিসের মতোই। খোঁজাটা পাল্টায়: পড়া যায় এমন অক্ষর আগের মতোই একটা দরজা ধরে এগোয়, কিন্তু ঝাপসা মানে ওই জায়গার ২৬টা দরজাই খুলে একেকটা করে দেখা, যেগুলো মরা গলিতে ঠেকে সেগুলো ছেড়ে দেওয়া। যেকোনো একটা শাখায় একটা মিল পেলেই নামটা নিশ্চিত।
+  hi: |
+    एक जासूस को होटल की आग वाले केस से पानी से खराब हुआ गेस्ट लेजर मिलता है। नाम थाने की पिजनहोल रजिस्ट्री में ठीक से चढ़ाए गए थे, दिक्कत सवालों में है: गवाह नाम याद रखते हैं खाली जगहों के साथ। "B था, फिर कुछ, फिर D।" हर धुंधला अक्षर कुछ भी हो सकता है। नाम फाइल करना पोस्ट ऑफिस जैसा ही चलता है। खोज बदल जाती है: पढ़ने लायक अक्षर हमेशा की तरह एक दरवाजा पकड़ता है, पर धुंधलेपन का मतलब है उस जगह के सारे 26 दरवाजे खोलकर हरेक को आजमाना, जो बंद गली में खत्म हों उन्हें छोड़ देना। किसी भी शाखा में एक मिलान मिला और नाम पक्का।
+  ar: |
+    يرث محقق سجل نزلاء أتلفه الماء من قضية حريق فندق. قُيّدت الأسماء في سجل خانات المخفر كما ينبغي، لكن المشكلة في الاستعلامات: الشهود يتذكرون الأسماء بفجوات. "كانت B، ثم شيء ما، ثم D." كل حرف ملطّخ قد يكون أي شيء. تقييد الأسماء يجري تماماً كمكتب البريد. البحث هو ما يتغير: الحرف المقروء يتبع باباً واحداً كالعادة، أما اللطخة فتعني فتح الأبواب الست والعشرين كلها في ذلك الموضع وتجربة كل واحد، وهجر ما ينتهي بطريق مسدود. تطابق واحد في أي فرع يؤكد الاسم.
+---
+
+## Boss 2: The Smudged Ledger
+
+Boss 1's walks were deterministic: each letter named its door, one path, no choices. This boss adds a single character to the query alphabet, the wildcard `.`, and that one character changes the walk's *shape*: from a line into a **tree of attempts**. Recursion, which the trie seemed to have left behind in Dungeon 7, walks right back in.
+
+---
+
+## The story
+
+Hotel fire, water-soaked ledger, and a precinct registry built exactly like the post office wall: names filed letter by letter, flags on the final holes.
+
+Filed so far: **bad**, **dad**, **mad**.
+
+```
+root ── b ── a ── d🚩
+    ├── d ── a ── d🚩
+    └── m ── a ── d🚩
+```
+
+The witnesses, though:
+
+- "The name was **bad**." Plain walk: b, a, d, flag. Confirmed.
+- "It was **.ad**, I couldn't see the first letter." First letter unknown: try *every* first door. `b`? leads to a-d🚩, match. Confirmed (via bad, and dad and mad would've matched too, one is enough).
+- "It was **b..**." Walk b, then two unknowns: from `a` (the only door after b), then from `d`... flag. Confirmed.
+- "It was **.a**" Two letters only. Walks reach `a`-holes... no flags two letters deep (all names here are three letters). Not confirmed. Length is still length; smudges aren't elastic.
+
+The rule the detective works by: a readable letter follows its one door; a smudge **fans out through every door at that position**, and each fanned branch continues the rest of the name independently. Any branch reaching the final letter *with a flag* confirms.
+
+---
+
+## The problem, dressed up properly
+
+> Design a data structure that supports adding new words and finding if a string matches any previously added string.
+>
+> Implement the `WordDictionary` class:
+>
+> - `WordDictionary()` initializes the object.
+> - `void addWord(word)` adds `word` to the data structure.
+> - `bool search(word)` returns `true` if there is any string in the data structure that matches `word`, or `false` otherwise. `word` may contain dots `.` where a dot can be matched with any letter.
+
+LeetCode 211. Added words are plain lowercase; only *queries* carry dots.
+
+---
+
+## The naive attempt
+
+A list of words; on search, compare the query against every stored word, letter by letter, dots matching anything:
+
+```python
+def search(self, word):
+    return any(
+        len(w) == len(word) and all(q == '.' or q == c for q, c in zip(word, w))
+        for w in self.words
+    )
+```
+
+Correct, trivially. O(n · L) per query, every stored word scanned every time. The trie's whole promise was cost independent of n, and the promise survives the wildcard *partially*: readable letters still prune to one door, and pruning is the whole game. The naive version can't prune at all.
+
+---
+
+## The weapon: fan out at the dot, walk everywhere else
+
+`addWord` is Boss 1's insert, unchanged, character for character.
+
+`search` becomes a recursion over (position in query, node in trie):
+
+- **Past the last letter:** success exactly if this node carries the flag.
+- **Readable letter:** its door or bust; follow it, recurse on the rest.
+- **Dot:** try **every** door this node has, recurse on the rest through each, succeed if *any* branch succeeds.
+
+<MermaidBlock>
+graph TB
+    A["match(i, node)"]
+    B["i past end?\nreturn node.is_word"]
+    C["letter: one door\nno door? false\nelse recurse i+1"]
+    D["dot: fan out\nfor every child door\nrecurse i+1"]
+    E["any branch true?\nconfirmed"]
+    A --> B
+    A --> C
+    A --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Notice the fan-out tries the doors *the node actually has*, not all 26 letters blindly. After `b`, there's one door (`a`); a dot there fans out to exactly one branch. The trie's sparseness is the pruning: dead prefixes were never built, so the recursion can't waste time in them. That's what the naive list version fundamentally lacked, its dead ends must be walked to be discovered.
+
+---
+
+## Watching it work
+
+Query `.ad` against bad/dad/mad:
+
+```
+match(0, root): '.' → fan out over root's doors: b, d, m
+├─ b: match(1, b-node): 'a' → door exists → match(2, ba-node): 'd' → door, flag ✓
+│                                                    CONFIRMED, short-circuit
+├─ d: (never tried)
+└─ m: (never tried)
+```
+
+Query `b..`:
+
+```
+match(0): 'b' → one door
+match(1): '.' → fan out over b-node's doors: only 'a'
+match(2): '.' → fan out over ba-node's doors: only 'd'
+match(3): past end → is_word? ✓
+```
+
+The scary-sounding "26-way explosion" was, in practice, a fan of one. Real tries are sparse; wildcards are expensive only where the registry is genuinely dense.
+
+---
+
+## The code
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
+
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def addWord(self, word: str) -> None:
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNode()
+            node = node.children[ch]
+        node.is_word = True
+
+    def search(self, word: str) -> bool:
+        def match(i, node):
+            if i == len(word):
+                return node.is_word
+            ch = word[i]
+            if ch == '.':
+                return any(match(i + 1, child)
+                           for child in node.children.values())
+            if ch not in node.children:
+                return False
+            return match(i + 1, node.children[ch])
+
+        return match(0, self.root)
+```
+
+`any()` over a generator short-circuits: the first confirming branch stops the fan-out cold, exactly like the detective closing the file at the first match.
+
+<Callout type="info" title="What this really is">
+Wildcard-in-trie is your first taste of **backtracking**: try a choice, descend, and if it dies, return and try the next choice. The "un-choosing" here is free (nothing was mutated, the recursion just returns), which makes it backtracking with training wheels. Dungeon 9 removes the training wheels. And regex engines? A `.` is the smallest atom of exactly this machinery; you've implemented the seed of one.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Dots in `addWord`.**
+The contract says added words are plain letters. If you defensively handle dots on insert, you've built a different (and ambiguous) structure. Insert stores *literals*; only search interprets.
+
+**2. The flag check at the end, again.**
+`match` past the last character must return `node.is_word`, not `True`. Query `ba` against "bad" reaches a real node, flagless. Boss 1's App-family lesson, restated under recursion.
+
+**3. Fanning over the alphabet instead of the doors.**
+`for ch in 'abcdefghijklmnopqrstuvwxyz'` then checking existence works but does 26 lookups where `node.children.values()` touches only real doors. Same complexity class, sloppier constant, and it reads like you don't trust your own structure.
+
+**4. Early length check... that you can't do.**
+Tempting: reject queries longer than the longest stored word. Fine as an optimization with bookkeeping, but *within* the walk, don't guess: the recursion's `i == len(word)` boundary is the single source of truth. Length mismatches die naturally at dead ends or flagless finals.
+
+---
+
+## Complexity
+
+`addWord`: O(L). `search`: O(L) with no dots; worst case with dots is O(total nodes in the trie), a query of all dots visits everything, though sparseness and short-circuiting make typical cases far cheaper.
+
+**Space:** the trie itself, O(total letters added), plus O(L) recursion depth.
+
+---
+
+## Boss down. XP gained.
+
+"B, something, something" closes the case: one branch of the fan lands on a flag, and the suspect's alias is confirmed by a registry that never once scanned its full list of names.
+
+What you walked away with:
+
+- Wildcards turn the walk into a **tree of attempts**: fan out at the dot, over *actual doors only*
+- `any()` + generator = short-circuiting search, first success ends everything
+- The trie's sparseness *is* the pruning; structures that store dead ends must walk them
+- Proto-backtracking: choose, descend, return, re-choose, Dungeon 9's opening move, previewed
+
+One boss left in this short dungeon, and it's the crescendo: the trie leaves the registry and gets dragged across a *grid*, guiding a search through letter tiles in four directions. It's the problem this entire data structure gets hired for.
+
+Next up: **Boss 3 — The Treasure Grid.** A farmer's field of letter tiles, a list of treasure words, and paths that snake through adjacent tiles. Searching the grid for each word separately drowns; planting the *whole word list* into one trie and walking the field once, pruning every path the trie doesn't bless, flies. Word Search II, the boss that makes grids and tries shake hands.

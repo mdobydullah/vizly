@@ -1,0 +1,230 @@
+---
+title: "Word Search II — The Treasure Grid"
+slug: word-search-ii-treasure-grid
+category: dsa
+series: tries
+seriesOrder: 3
+description: "Dungeon 8, Boss 3. A field of letter tiles, a list of treasure words, paths snaking through adjacent tiles. Plant the whole word list into one trie and walk the field once, pruning every path the trie doesn't bless."
+tags:
+  - DSA
+  - Tries
+  - Backtracking
+  - Matrix
+  - Hard
+icon: "🗺️"
+color: orange
+createdAt: "2026-07-14T17:00:00Z"
+updatedAt: "2026-07-14T17:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A farmer inherits a field paved with letter tiles and a list of treasure words from an eccentric grandfather. A word counts as found if you can walk it tile by tile, stepping only to neighboring tiles, never standing on the same tile twice. Hunting each word separately means re-walking the whole field per word, and the list is long. The trick: file the entire word list into a pigeonhole trie first, then walk the field once, every step must follow a door that exists in the trie, and any path the trie doesn't recognize dies instantly. Flags collect treasures as the walk finds them.
+  bn: |
+    এক চাষি খেয়ালি দাদুর কাছ থেকে উত্তরাধিকারে পান অক্ষরের টাইলে মোড়া একটা জমি আর গুপ্তধন-শব্দের একটা লিস্ট। কোনো শব্দ পাওয়া গেছে ধরা হবে যদি সেটা টাইল ধরে ধরে হেঁটে বানানো যায়, শুধু পাশের টাইলে পা ফেলে, একই টাইলে দুবার না দাঁড়িয়ে। প্রতিটা শব্দ আলাদা করে খুঁজতে গেলে শব্দপ্রতি গোটা জমি আবার হাঁটতে হয়, আর লিস্টটা লম্বা। কৌশলটা হলো: আগে পুরো শব্দের লিস্টটা একটা পিজনহোল trie-তে ফাইল করে ফেলুন, তারপর জমিটা হাঁটুন একবারই, প্রতিটা পা ফেলতে হবে trie-তে থাকা কোনো দরজা ধরে, আর trie যে পথ চেনে না সেটা সাথে সাথেই মরে যায়। হাঁটা যেসব গুপ্তধন পায়, পতাকাগুলো সেগুলো কুড়িয়ে রাখে।
+  hi: |
+    एक किसान को सनकी दादाजी से विरासत में मिलता है अक्षर की टाइलों से पटा खेत और खजाना-शब्दों की एक लिस्ट। कोई शब्द मिला माना जाएगा अगर उसे टाइल दर टाइल चलकर बनाया जा सके, सिर्फ पड़ोसी टाइल पर कदम रखते हुए, एक ही टाइल पर दो बार खड़े हुए बिना। हर शब्द अलग-अलग ढूंढने का मतलब है हर शब्द के लिए पूरा खेत दोबारा चलना, और लिस्ट लंबी है। तरकीब यह है: पहले पूरी शब्द-लिस्ट को एक पिजनहोल trie में फाइल कर दो, फिर खेत को एक ही बार चलो, हर कदम trie में मौजूद किसी दरवाजे के पीछे-पीछे ही पड़े, और जिस रास्ते को trie नहीं पहचानता वह तुरंत मर जाता है। चाल को जो खजाने मिलते हैं, झंडे उन्हें बटोरते जाते हैं।
+  ar: |
+    يرث مزارع من جدّ غريب الأطوار حقلاً مرصوفاً ببلاطات حروف وقائمة كلمات كنز. تُعتبر الكلمة موجودة إذا أمكنك مشيها بلاطة بلاطة، بالخطو إلى البلاطات المجاورة فقط، دون الوقوف على نفس البلاطة مرتين. مطاردة كل كلمة على حدة تعني إعادة مشي الحقل كله لكل كلمة، والقائمة طويلة. الحيلة: أرشِف قائمة الكلمات كلها في trie الخانات أولاً، ثم امشِ الحقل مرة واحدة، وكل خطوة يجب أن تتبع باباً موجوداً في الـ trie، وأي مسار لا يعرفه الـ trie يموت فوراً. والرايات تلتقط الكنوز كلما وجدها المشي.
+---
+
+## Boss 3: The Treasure Grid
+
+The finale, and the payoff for the whole short dungeon. Bosses 1 and 2 built and queried the registry; this boss takes the registry *outdoors* and uses it as a **guide for a search through something else entirely**, a grid. That inversion, trie as pruning oracle rather than as container, is what makes this a Hard, a classic, and the single best demonstration of why tries exist.
+
+---
+
+## The story
+
+The grandfather's field, tiles and all:
+
+```
+o  a  a  n
+e  t  a  e
+i  h  k  r
+i  f  l  v
+```
+
+The treasure list: `["oath", "pea", "eat", "rain"]`.
+
+A word is *found* if you can spell it by walking: start on any tile, each next letter on a tile **adjacent up/down/left/right**, and never stand on the same tile twice within one word.
+
+Check "oath": start at the `o` (top-left), step right to `a`, down-right? no, diagonals don't count, from `a` step down to `t`, then down to `h`. o→a→t→h, all adjacent, no reuse. **Found.** "eat": the `e` (top-right), down to... there's an `a` to its left, then `t`? e(0,3)→a(1,2)→t(1,1). **Found.** "pea": there's no `p` anywhere. Dead before it starts. "rain": r(2,3)... needs `a` adjacent, there's `e` above, `k` left, `v` below. Dead.
+
+Answer: `["oath", "eat"]`.
+
+Now the scale problem. The real job posting: field up to 12×12, **up to 30,000 treasure words**. Hunting word-by-word (that's Word Search I, LC 79, run 30,000 times) re-walks the field per word, and each hunt explores paths that mostly share prefixes with other words' hunts... wasted, repeated, prefix work. Prefixes. *Prefixes.* The dungeon's entire theme, ringing like a dinner bell.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` board of characters and a list of strings `words`, return all words on the board.
+>
+> Each word must be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.
+
+LeetCode 212.
+
+---
+
+## The naive attempt
+
+Word Search I in a loop:
+
+```python
+def find_words(board, words):
+    return [w for w in words if exists(board, w)]   # LC 79's DFS, per word
+```
+
+Per word: O(m·n · 3^L) worst case (every cell as a start, three-way branching after the first step). Times 30,000 words. The overlap it wastes: hunting "oath", "oaths", and "oat" walks the same o→a→t path three separate times from scratch. Any two words sharing a prefix share hunt-work, and the naive loop shares nothing.
+
+---
+
+## The weapon: plant the list, walk the field once
+
+Invert it. Don't search the grid for each word, **walk the grid once, and let a trie of ALL words decide which walks are worth continuing.**
+
+**Setup:** insert all 30,000 words into one trie. The shared prefixes collapse: "oath", "oaths", "oat" become one o→a→t path with flags along it.
+
+**The walk:** from every tile, start a DFS that carries a trie node alongside the grid position:
+
+1. Standing on tile with letter `ch`, holding trie node `node`: if `node` has no door `ch`, **this entire path is a dead end for every one of the 30,000 words simultaneously**. Return. That sentence is the whole algorithm's power.
+2. Door exists: step through it. If the new node has a flag, a treasure is complete, collect it (and un-flag it, so the same word isn't collected via another path).
+3. Mark the tile as in-use, recurse into the four neighbors, then **unmark it**, other paths may use this tile, just not this path.
+
+<MermaidBlock>
+graph TB
+    A["Plant all words\ninto one trie"]
+    B["DFS from every tile\ncarry grid pos + trie node"]
+    C["tile letter has no door?\nprune: dead for ALL words"]
+    D["door exists: step\nflag here? collect word\nun-flag to dedupe"]
+    E["mark tile, recurse\n4 neighbors, unmark"]
+    A --> B
+    B --> C
+    B --> D
+    D --> E
+    E --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+The mark/unmark pair is full **backtracking**, the training wheels from Boss 2 are off: this time you *mutate* shared state (the board) on the way down and must restore it on the way up. Do it symmetrically, mark before the neighbor loop, unmark after, and the invariant holds: when a call returns, the board is exactly as it found it.
+
+---
+
+## Watching it work
+
+Hunting from the top-left `o`, with the trie planted from ["oath","pea","eat","rain"]:
+
+```
+tile o: root has door 'o' → step. mark o.
+  tile a (right): 'a' door exists → step. mark a.
+    tile a (right): 'a' door? o→a node has only 't'. PRUNE.
+    tile t (down): 't' door → step. mark t.
+      tile h (down): 'h' door → step. FLAG: collect "oath", un-flag.
+        (h's neighbors: no doors onward. return.)
+      unmark t... (return chain)
+  unmark a
+unmark o
+
+tile e (top-right): root has 'e' → step...  → collects "eat"
+tiles i, t, a, n, ...: root has doors o, p, e, r only → most tiles PRUNE at step zero
+```
+
+Feel where the time goes and doesn't: the tile `f` never starts a walk (no `f` door at root). The second `a` next to the first died in one comparison, killing that direction *for all 30,000 hypothetical words at once*. The naive loop would have tested each word against that dead corner separately.
+
+---
+
+## The code
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.word = None            # store the word itself as the flag
+
+def find_words(board: list[list[str]], words: list[str]) -> list[str]:
+    root = TrieNode()
+    for w in words:
+        node = root
+        for ch in w:
+            node = node.children.setdefault(ch, TrieNode())
+        node.word = w
+
+    rows, cols = len(board), len(board[0])
+    found = []
+
+    def dfs(r, c, node):
+        ch = board[r][c]
+        nxt = node.children.get(ch)
+        if not nxt:
+            return                              # prune: dead for every word
+        if nxt.word:
+            found.append(nxt.word)              # treasure
+            nxt.word = None                     # dedupe: collect once
+        board[r][c] = '#'                       # mark: in use by this path
+        for dr, dc in ((1,0), (-1,0), (0,1), (0,-1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and board[nr][nc] != '#':
+                dfs(nr, nc, nxt)
+        board[r][c] = ch                        # unmark: restore exactly
+
+    for r in range(rows):
+        for c in range(cols):
+            dfs(r, c, root)
+    return found
+```
+
+Storing the *word itself* at the flag node (instead of a boolean) saves reassembling it from the path, and makes the dedupe a one-line `None` assignment.
+
+<Callout type="tip" title="The pruning upgrade, for the follow-up">
+Once a word is collected, its trie path may become dead weight, a corridor of doors leading to nothing. The classy optimization: after exploring a child, if it has no children and no word, delete the door (`del node.children[ch]`). The trie *shrinks as treasures are found*, and late walks prune even earlier. On LeetCode's worst tests this is the difference between passing comfortably and sweating the time limit. Mention it; add it if pressed.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting to unmark.**
+The board stays scarred with `#`, and later walks find a field full of holes. Every mark needs its symmetric unmark, *after* the neighbor loop, before returning. If your answer misses words that clearly exist, look here first.
+
+**2. Deduping by luck.**
+"oath" reachable via two different paths gets collected twice without the un-flag. A `set` for results also works, but the `word = None` trick is cleaner and doubles as pruning fuel.
+
+**3. Carrying the parent node instead of stepping first.**
+The code steps through the door (`nxt`) *before* recursing into neighbors, so each call's `node` argument is "the trie node matching everything walked so far, excluding my own tile". Off-by-one-node here makes single-letter words uncollectable or everything shift by a letter. Pick the convention, trace a one-letter word, trust it.
+
+**4. Diagonals and revisits.**
+Adjacency is 4-directional, and "may not be used more than once" is per-word, not global, tiles unmark and get reused across different walks. Both are contract details the story encoded; both are classic silent-wrong-answer bugs.
+
+**5. Starting walks the root can't bless.**
+Minor but free: the DFS's first door check handles it, and if you want the micro-optimization, skip tiles whose letter isn't in `root.children`. Same prune, one call earlier.
+
+---
+
+## Complexity
+
+Building the trie: O(total letters in all words). The walk: O(m·n · 3^L) worst case (L = longest word), same *ceiling* as one naive hunt, but shared across all 30,000 words, and the trie's pruning makes typical cases collapse far below it.
+
+**Space:** the trie, plus O(L) recursion.
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained.
+
+Two treasures dug from the field, 30,000 words hunted in one walk, and the grandfather's will, read again carefully, turns out to say "the real treasure was amortized prefix sharing". He was that kind of grandfather.
+
+The full haul from Dungeon 8, short but dense:
+
+- **Words as paths**: the trie stores shared prefixes once, and every operation costs the word's length, not the dictionary's size
+- **Path vs flag**: existence of a route and existence of a word are different questions, split them cleanly
+- **Wildcards**: fan out over real doors, short-circuit on first success, proto-backtracking
+- **Trie as oracle**: dragged alongside another search, one door-check prunes entire dictionaries at once
+- Full backtracking: mark, recurse, unmark, the symmetric mutation discipline
+
+**Next dungeon: Backtracking.** The training wheels are fully off. Subsets, permutations, combination sums, N-Queens: problems where the answer is *every* valid configuration, and the method is the rhythm you just learned, choose, explore, un-choose, performed on nothing but your own decisions. The dungeon where the call stack becomes a time machine.
+
+See you in Dungeon 9.

@@ -6,6 +6,10 @@
   "color": "orange",
   "tags": ["DSA", "Tries"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-14T17:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "implement-trie-post-office-pigeonholes", "title": "Implement Trie (Prefix Tree) — The Post Office Pigeonholes" },
+    { "order": 2, "slug": "add-search-words-smudged-ledger", "title": "Design Add and Search Words Data Structure — The Smudged Ledger" },
+    { "order": 3, "slug": "word-search-ii-treasure-grid", "title": "Word Search II — The Treasure Grid" }
+  ]
 }

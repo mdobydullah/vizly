@@ -26,8 +26,8 @@ Full dungeon list (ship in order):
 5. **Sliding Window** — Dungeon 5 (COMPLETE)
 6. **Linked List** — Dungeon 6 (COMPLETE)
 7. **Trees** — Dungeon 7 (COMPLETE)
-8. **Tries** — Dungeon 8 (next to build)
-9. **Backtracking** — Dungeon 9
+8. **Tries** — Dungeon 8 (COMPLETE)
+9. **Backtracking** — Dungeon 9 (next to build)
 10. **Heap / Priority Queue** — Dungeon 10
 11. **Graphs** — Dungeon 11
 12. **1-D DP** — Dungeon 12
@@ -176,8 +176,14 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 14: Maximum Path Sum (Gold Vein)
 - [x] Boss 15: Serialize and Deserialize (Bonsai Courier)
 
-### Dungeons 8-18
-- [ ] Tries, Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 8 — Tries (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Implement Trie (Post Office Pigeonholes)
+- [x] Boss 2: Design Add and Search Words (Smudged Ledger)
+- [x] Boss 3: Word Search II (Treasure Grid)
+
+### Dungeons 9-18
+- [ ] Backtracking, Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

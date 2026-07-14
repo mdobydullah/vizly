@@ -1,0 +1,198 @@
+---
+title: "Implement Trie (Prefix Tree) — The Post Office Pigeonholes"
+slug: implement-trie-post-office-pigeonholes
+category: dsa
+series: tries
+seriesOrder: 1
+description: "Dungeon 8, Boss 1. A village post office files names letter by letter into nested pigeonholes, and shared prefixes get filed exactly once. Build insert, search, and startsWith, and meet the structure behind every autocomplete box."
+tags:
+  - DSA
+  - Tries
+  - Design
+  - Beginner
+icon: "📮"
+color: orange
+createdAt: "2026-07-14T17:00:00Z"
+updatedAt: "2026-07-14T17:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A village postmaster files mail by walking the name one letter at a time through nested pigeonholes: the A hole contains 26 smaller holes, and so on down. Families named Apple and Applegate share the walk for A-p-p-l-e, that path exists exactly once, and each family just hangs a little "a family lives here" flag at their final hole. Filing a name, checking if a family exists, and answering "does anyone's name start with App?" all cost one walk of the name's length, no matter if the office serves ten families or ten million.
+  bn: |
+    এক গ্রামের পোস্টমাস্টার চিঠি ফাইল করেন নামটা এক অক্ষর করে হেঁটে, খোপের ভেতর খোপ সাজানো পিজনহোলে: A খোপের ভেতরে ২৬টা ছোট খোপ, তার ভেতরে আবার ২৬টা, এভাবে নিচে। Apple আর Applegate পরিবার A-p-p-l-e পর্যন্ত হাঁটাটা ভাগ করে নেয়, ওই পথটা ঠিক একবারই বানানো, আর প্রতিটা পরিবার তাদের শেষ খোপে ছোট্ট একটা "এখানে এক পরিবার থাকে" পতাকা ঝুলিয়ে দেয়। নাম ফাইল করা, কোনো পরিবার আছে কি না দেখা, আর "App দিয়ে কারো নাম শুরু হয়?" এই তিন প্রশ্নের প্রতিটার খরচ নামের দৈর্ঘ্যের একটা হাঁটা, অফিসে দশটা পরিবার থাকুক বা এক কোটি।
+  hi: |
+    एक गांव का पोस्टमास्टर चिट्ठियां फाइल करता है नाम को एक-एक अक्षर चलकर, खानों के अंदर खाने वाले पिजनहोल में: A खाने के अंदर 26 छोटे खाने, उनके अंदर फिर 26, ऐसे ही नीचे। Apple और Applegate परिवार A-p-p-l-e तक की चाल साझा करते हैं, वह रास्ता ठीक एक बार बना है, और हर परिवार बस अपने आखिरी खाने पर छोटा सा "यहां एक परिवार रहता है" झंडा टांग देता है। नाम फाइल करना, परिवार का होना जांचना, और "क्या किसी का नाम App से शुरू होता है?" इन तीनों का खर्च नाम की लंबाई भर की एक चाल है, चाहे दफ्तर दस परिवारों का हो या एक करोड़ का।
+  ar: |
+    يؤرشف ساعي بريد القرية الرسائل بالمشي في الاسم حرفاً حرفاً عبر خانات متداخلة: خانة A تحوي ست وعشرين خانة أصغر، وهكذا نزولاً. عائلتا Apple وApplegate تتشاركان المشوار حتى A-p-p-l-e، فذلك الممر مبني مرة واحدة بالضبط، وكل عائلة تعلّق راية صغيرة "هنا تسكن عائلة" عند خانتها الأخيرة. أرشفة اسم، والتحقق من وجود عائلة، والإجابة عن "هل يبدأ اسم أحدهم بـ App؟" كلها تكلف مشوار واحد بطول الاسم، سواء خدم المكتب عشر عائلات أو عشرة ملايين.
+---
+
+## Welcome to Dungeon 8
+
+Dungeon 7 ended with trees whose nodes point twice. This dungeon's tree points **twenty-six times**, once per letter, and stores something no binary tree can: *words as paths*.
+
+It's called a **trie** (from re*trie*val; most people say "try", some say "tree", nobody agrees, everybody understands). It's the shortest dungeon in the quest, three bosses, and it punches absurdly above its weight in real software: the autocomplete under every search box, spell-checkers, IP routing tables, the T9 keypad your parents texted on. One structure, one idea: **shared prefixes, stored once.**
+
+---
+
+## The story
+
+A village post office sorts mail by family name. The old postmaster's system is a wall of pigeonholes, but nested: the hole for `a` contains its own little wall of 26 holes, each of those another 26, as deep as names go.
+
+To file the name **"apple"**: walk into `a`, then `p`, then `p`, then `l`, then `e`, and at that final hole, hang a small red flag: *a family lives here*.
+
+Now file **"applegate"**: the walk starts identically, `a-p-p-l-e` already exists, so you just continue: `g`, `a`, `t`, `e`, new holes, new flag at the end. The shared prefix cost nothing new. File **"april"**: shares only `a-p`, then branches off at `r`.
+
+```
+a → p → p → l → e🚩 → g → a → t → e🚩
+         \
+          r → i → l🚩
+```
+
+Three names, and every shared beginning built exactly once. Now the queries the postmaster answers all day:
+
+- **"Does the Apple family live here?"** Walk a-p-p-l-e. Path exists, flag present: yes.
+- **"Does the App family live here?"** Walk a-p-p. Path exists... **no flag**. No. The holes exist only because longer names pass through. This is the distinction the whole structure lives on: *path* versus *flagged path*.
+- **"Does anyone's name start with 'app'?"** Walk a-p-p. Path exists, and that's all that matters, flags irrelevant. Yes. (This is the query arrays and hash maps are terrible at, and tries were born for.)
+
+Every answer cost one walk of the query's length. Not "how many families are filed", the *query's own length*. A million families, five letters, five steps.
+
+---
+
+## The problem, dressed up properly
+
+> Implement the `Trie` class:
+>
+> - `Trie()` initializes the trie object.
+> - `void insert(String word)` inserts the string `word` into the trie.
+> - `boolean search(String word)` returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.
+> - `boolean startsWith(String prefix)` returns `true` if there is a previously inserted string `word` that has the prefix `prefix`, and `false` otherwise.
+
+LeetCode 208. Lowercase English letters only, so 26 is a constant you may lean on.
+
+---
+
+## The naive attempt
+
+A hash set of words. `insert` and `search`: O(1)-ish, lovely. But `startsWith("app")`? A set indexes *whole* words; prefixes mean scanning every stored word: O(n · L). Store all prefixes of every word in a second set? Now insertion of a 20-letter word writes 20 entries and memory multiplies by average word length, and you *still* can't do Boss 3's grid walk (you'll see). The hash set answers "is this exact thing here", and that's the only question it answers well. The trie answers "walk me this sequence", which contains the prefix question natively.
+
+---
+
+## The weapon: nodes of 26 doors and a flag
+
+A trie node is nothing but doors and a flag:
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}          # letter -> TrieNode
+        self.is_word = False        # the red flag
+```
+
+All three operations are the same walk with different endings:
+
+- **insert:** walk the word, *building any missing hole* as you pass, flag the last one.
+- **search:** walk the word, no building, dead end means false; at the end, **return the flag**.
+- **startsWith:** same walk, but at the end, **return true regardless of flag**, the path existing is the answer.
+
+<MermaidBlock>
+graph TB
+    A["walk(word)\none step per letter"]
+    B["insert: missing door?\nbuild it, keep walking\nflag the final node"]
+    C["search: missing door?\nfalse. at end:\nreturn the flag"]
+    D["startsWith: missing door?\nfalse. at end:\nreturn true, flag ignored"]
+    A --> B
+    A --> C
+    A --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+---
+
+## The code
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word: str) -> None:
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNode()
+            node = node.children[ch]
+        node.is_word = True
+
+    def _walk(self, s: str) -> TrieNode | None:
+        node = self.root
+        for ch in s:
+            if ch not in node.children:
+                return None
+            node = node.children[ch]
+        return node
+
+    def search(self, word: str) -> bool:
+        node = self._walk(word)
+        return node is not None and node.is_word
+
+    def startsWith(self, prefix: str) -> bool:
+        return self._walk(prefix) is not None
+```
+
+`search` and `startsWith` share `_walk` and differ in exactly one condition, that's the path-vs-flag distinction, made structural.
+
+<Callout type="tip" title="Dict children vs array children">
+`children = {}` is flexible (any alphabet, memory proportional to doors actually used). The classic alternative for lowercase-only problems is a fixed array of 26 slots indexed by `ord(ch) - ord('a')`: faster constant, fatter memory (26 pointers per node even for a node with one child). Interviews accept either; production tries (routing tables, dictionaries) pick per workload, and fancier variants (compressed/radix tries, storing whole substrings per edge) exist for when nodes chain without branching. Name-drop, don't implement.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Flagging every node along the way.**
+Flag only the *last* node. Flag the whole path and `search("app")` returns true after inserting "apple", the postmaster invents families.
+
+**2. `search` ignoring the flag.**
+Path-exists is `startsWith`'s answer. `search` without `node.is_word` is just `startsWith` wearing a name tag. The App-family story is the test: insert "apple", search "app" must be false, startsWith "app" must be true.
+
+**3. Rebuilding existing doors.**
+Insert must reuse existing children (`if ch not in node.children`). Unconditionally overwriting orphans every family already filed beneath that hole. Insert "apple" then "april", then search "apple": false, if you bulldozed.
+
+**4. Inserting the same word twice.**
+Should be a harmless no-op (walk existing path, re-set the flag). If your code errors or duplicates, you've built something stranger than a trie.
+
+---
+
+## Complexity
+
+For a word/prefix of length L:
+
+**insert, search, startsWith: O(L) time**, each. **Space: O(total letters inserted)** worst case, less with every shared prefix.
+
+The headline: no operation's cost mentions n, the number of stored words. The postmaster's wall answers in the time it takes to *say the name*.
+
+---
+
+## Boss down. XP gained.
+
+The pigeonhole wall hums along: three families filed, five queries answered, and the walk never gets longer than the name being walked.
+
+What you walked away with:
+
+- A trie stores **words as root-paths**, shared prefixes built exactly once
+- The two-question split: *does the path exist* (startsWith) vs *does the path exist and carry a flag* (search)
+- All operations are one walk, O(word length), independent of how much is stored
+- Dict-children for flexibility, array-children for speed, radix tries for the curious
+
+Boss 1's walks were literal: every letter known, every step forced. The next boss smudges the letters.
+
+Next up: **Boss 2 — The Smudged Ledger.** A detective searches a name ledger where some letters are illegible, a dot that could be anything. One smudge means trying all 26 doors at once, and the walk becomes a *branching* walk: recursion returns to the dungeon two bosses after you thought you'd left it behind.
