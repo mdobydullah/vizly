@@ -1,0 +1,175 @@
+---
+title: "Kth Largest Element in a Stream — The Arcade Leaderboard"
+slug: kth-largest-stream-arcade-leaderboard
+category: dsa
+series: heap-priority-queue
+seriesOrder: 1
+description: "Dungeon 10, Boss 1. An arcade cabinet shows the top-3 cutoff score as new games finish all night. Meet the heap: a tree that lives in an array, never fully sorted, always instantly ready with its minimum."
+tags:
+  - DSA
+  - Heap
+  - Design
+  - Beginner
+icon: "🕹️"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An arcade cabinet keeps a top-3 leaderboard, and the question players actually ask isn't who's first, it's what score gets you ON the board: the third-highest so far, the cutoff. New scores arrive all night, and after each one the cutoff must update instantly. The trick is to keep exactly three scores, the reigning top three, in a little bag with one magic property: the smallest of the bag is always on top. A new score walks up, and if it beats the bag's smallest, the smallest is tossed and the newcomer climbs in. Whatever sits on top of the bag is, at every moment, the answer.
+  bn: |
+    এক আর্কেড ক্যাবিনেট টপ-৩ লিডারবোর্ড রাখে, আর খেলোয়াড়রা আসলে যেটা জিজ্ঞেস করে সেটা কে প্রথম তা নয়, বোর্ডে উঠতে কত লাগবে: এখন পর্যন্ত তৃতীয় সর্বোচ্চ স্কোর, মানে কাটঅফ। সারা রাত নতুন স্কোর আসতে থাকে, আর প্রতিটার পরে কাটঅফটা সাথে সাথে আপডেট হতে হবে। কৌশলটা হলো ঠিক তিনটা স্কোর, রাজত্ব করা টপ থ্রি, একটা ছোট্ট থলেতে রাখা, যে থলের একটাই জাদু: থলের সবচেয়ে ছোটটা সবসময় উপরে থাকে। নতুন স্কোর এগিয়ে আসে, আর থলের সবচেয়ে ছোটটাকে হারালে ছোটটা বাদ, নতুনটা ঢুকে পড়ে। প্রতিটা মুহূর্তে থলের উপরে যেটা বসে আছে, সেটাই উত্তর।
+  hi: |
+    एक आर्केड कैबिनेट टॉप-3 लीडरबोर्ड रखता है, और खिलाड़ी असल में यह नहीं पूछते कि पहला कौन है, बल्कि यह कि बोर्ड पर चढ़ने के लिए कितना स्कोर चाहिए: अब तक का तीसरा सबसे ऊंचा, यानी कटऑफ। रात भर नए स्कोर आते रहते हैं, और हर एक के बाद कटऑफ तुरंत अपडेट होना चाहिए। तरकीब है ठीक तीन स्कोर, राज करते टॉप थ्री, एक छोटी थैली में रखना, जिसकी एक ही जादुई खासियत है: थैली का सबसे छोटा हमेशा ऊपर रहता है। नया स्कोर आता है, और अगर वह थैली के सबसे छोटे को हरा दे, तो छोटा बाहर और नया अंदर। हर पल थैली के ऊपर जो बैठा है, वही जवाब है।
+  ar: |
+    تحتفظ خزانة ألعاب أركيد بلوحة صدارة لأفضل ثلاثة، والسؤال الذي يطرحه اللاعبون فعلاً ليس من الأول، بل ما النتيجة التي تُدخلك اللوحة: ثالث أعلى نتيجة حتى الآن، أي حد القبول. تصل نتائج جديدة طوال الليل، وبعد كل واحدة يجب أن يتحدث الحد فوراً. الحيلة أن تُبقي ثلاث نتائج بالضبط، الثلاثي المتوّج، في كيس صغير له خاصية سحرية واحدة: أصغر ما في الكيس يجلس دائماً في الأعلى. تأتي نتيجة جديدة، فإن غلبت أصغر الكيس طُرد الأصغر وصعد الوافد. ما يجلس فوق الكيس، في كل لحظة، هو الجواب.
+---
+
+## Welcome to Dungeon 10
+
+Dungeon 9 enumerated *everything*. This dungeon is its temperamental opposite: it cares only about **extremes**, the largest, the smallest, the k-th, the closest, and it refuses to sort anything it doesn't have to.
+
+The tool is the **heap** (interchangeably: priority queue). One sentence definition: *a bag of items that can always hand you its minimum instantly, and accepts or releases items in logarithmic time.* Not sorted. Never sorted. Just always sure about its minimum. That asymmetry, total knowledge of one extreme, cheerful ignorance about everything else, is why heaps beat sorted structures wherever data *moves*: streams, schedulers, leaderboards, simulations. Seven bosses, all riffs on knowing the extreme cheaply.
+
+First, the machine itself, because this dungeon's boss 1 is partly a hardware tour.
+
+---
+
+## The machine: a tree living in an array
+
+A heap is a **complete binary tree** (every level full, last level filling left to right) with one rule, the **heap property**: every parent ≤ its children (a *min-heap*; flip the inequality for a max-heap). The minimum is therefore always the root. Nothing else is promised, siblings can be in any order, the second-smallest might be at either child of the root.
+
+The elegant part: completeness means the tree needs **no pointers**. Lay the nodes into an array level by level, and the structure becomes arithmetic: node `i`'s children live at `2i+1` and `2i+2`, its parent at `(i-1)//2`. Dungeon 7's trees needed a node class; heaps need a list.
+
+Two repair moves maintain the property:
+
+- **Insert**: append at the end (keeping completeness), then *sift up*, swap with the parent while smaller than it. At most one swap per level: **O(log n)**.
+- **Pop the min**: take the root, move the *last* element into its place (completeness again), then *sift down*, swap with the smaller child while larger than either. **O(log n)**.
+
+In Python it's the `heapq` module operating on plain lists (`heappush`, `heappop`, min-heap only). Java: `PriorityQueue`. C++: `priority_queue` (max by default, mind the flip). You'll implement sift-up/down once in your life for the interview where it's demanded; every other day, the library.
+
+---
+
+## The story
+
+The arcade's *Galaxia* cabinet shows a **top-3** leaderboard. Players don't ask who's first, first is some legend named AAA from 2019. They ask: **"what's the cutoff?"** The third-highest score, the one you must beat to get on the board.
+
+Scores stream in all night: the cabinet starts with history `[4, 5, 8, 2]`, and new games finish with 3, then 5, then 10, then 9, then 4. After *each* game, the cutoff (3rd largest so far) must be current:
+
+```
+history [4,5,8,2]: top three are 8,5,4 → cutoff 4
+add 3:  top three still 8,5,4        → 4
+add 5:  top three 8,5,5              → 5
+add 10: top three 10,8,5             → 5
+add 9:  top three 10,9,8             → 8
+add 4:  unchanged                    → 8
+```
+
+The insight that runs the cabinet: you never need the whole night's history. You need **exactly three numbers**, the reigning top three, and of those three, the one you *consult* is their smallest, and the one you might *evict* is also their smallest. A bag of three where the smallest is always on top. That's a min-heap, capped at size k, and the counterintuitive punchline of the whole boss: **to track the k largest, keep a min-heap.** The heap's top is the k-th largest, the gatekeeper; everything greater hides untouched behind it.
+
+---
+
+## The problem, dressed up properly
+
+> Design a class to find the `k`-th largest element in a stream. Note that it is the k-th largest element in the sorted order, not the k-th distinct element.
+>
+> Implement `KthLargest`: the constructor takes `k` and the initial array `nums`; `int add(int val)` appends `val` to the stream and returns the current k-th largest element.
+
+LeetCode 703.
+
+---
+
+## The naive attempt
+
+Keep every score in a list; on each add, sort and index:
+
+```python
+def add(self, val):
+    self.scores.append(val)
+    self.scores.sort()
+    return self.scores[-self.k]
+```
+
+O(n log n) per add, on a list that grows all night, and the crime is philosophical as much as computational: sorting establishes the order of *everything*, thousands of scores in perfect rank, to answer a question about *one position*. The night's ten-thousandth game pays for a full re-ranking of history. The heap version's cost never grows past log k, because it never remembers more than k numbers.
+
+---
+
+## The weapon: a min-heap capped at k
+
+<MermaidBlock>
+graph TB
+    A["min-heap of size k\nthe reigning top-k\nsmallest on top"]
+    B["new score arrives\npush into heap"]
+    C["heap now k+1 big?\npop the min\nweakest of the elite exits"]
+    D["heap top = k-th largest\nthe cutoff, always"]
+    A --> B
+    B --> C
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+class KthLargest:
+    def __init__(self, k: int, nums: list[int]):
+        self.k = k
+        self.heap = nums[:]
+        heapq.heapify(self.heap)             # O(n), see callout
+        while len(self.heap) > k:
+            heapq.heappop(self.heap)         # trim history to the elite k
+
+    def add(self, val: int) -> int:
+        heapq.heappush(self.heap, val)
+        if len(self.heap) > self.k:
+            heapq.heappop(self.heap)         # evict the weakest
+        return self.heap[0]                  # the cutoff
+```
+
+Why does this work? An **invariant**, the dungeon's favorite word: *after every add, the heap holds exactly the k largest scores seen so far.* A newcomer either beats the current weakest elite (push in, weakest pops out) or doesn't (pushed, then immediately popped as the new minimum, net no change). Either way the invariant survives, and its corollary is the return statement: the smallest of the k largest *is* the k-th largest. `self.heap[0]` peeks the top for free, `heapq` keeps the min at index 0.
+
+<Callout type="tip" title="heapify is O(n), and that's not a typo">
+Building a heap from n items by pushing one at a time costs O(n log n). `heapify` does it in **O(n)** flat, by sifting *down* from the middle outward, most nodes are near the leaves and sift almost nowhere. The math: half the nodes sift 0 levels, a quarter sift 1, an eighth sift 2... the series converges to n. It's the standard opening move whenever you're handed a full array, and interviewers enjoy asking why.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. A max-heap "because we want largest".**
+The reflex, and it's wrong twice: a max-heap of everything keeps all history (memory), and finding its k-th largest means popping k times per query (time). The min-heap-of-k inversion is *the* lesson of this boss; expect its mirror (max-heap for k smallest) in Boss 3.
+
+**2. Evicting before pushing.**
+Pop-then-push rejects a newcomer without comparing it: if the heap's at capacity and you pop first, the weakest elite dies even when the newcomer is weaker still. Push first, then trim, the heap itself performs the comparison.
+
+**3. Assuming the constructor's array has at least k items.**
+LeetCode allows fewer (and adds arrive later to fill it out). The code above handles it, `add` maintains the cap and returns the top once k exist, but any version indexing `nums[k-1]` at init crashes. Contract fine print, as always.
+
+**4. Peeking by popping.**
+`heappop` to read the top, then `heappush` it back: two O(log k) operations impersonating an O(1) array access. `heap[0]` reads without disturbing. Every language's PQ has a peek; find it.
+
+---
+
+## Complexity
+
+**add: O(log k)** push, maybe pop, peek. **Init: O(n + (n−k) log n)** with heapify then trim. **Space: O(k)**, the whole night in three numbers.
+
+---
+
+## Boss down. XP gained.
+
+Cutoff 8, blinking on the marquee. Somewhere a kid with 7 feeds in another quarter, and the cabinet, holding just three numbers, is instantly, permanently sure.
+
+What you walked away with:
+
+- The heap: complete tree in an array, parent ≤ children, min on top, **push/pop O(log n), peek O(1), heapify O(n)**
+- The inversion: **k largest ⇒ min-heap of size k**; the top is the gatekeeper and the answer
+- Invariant thinking: state one sentence the structure always satisfies, and the code writes itself
+- Streams reward structures whose cost tracks k, not n
+
+Next up: **Boss 2 — The Rock Smash.** A yard full of stones and one game: repeatedly smash the two heaviest together, the smaller vanishes, the difference survives. A simulation that begs for "hand me the maximum, again and again", plus the little negation trick Python forces on anyone who wants a max-heap.

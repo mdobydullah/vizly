@@ -1,0 +1,202 @@
+---
+title: "Kth Largest Element in an Array — The Silent Auction"
+slug: kth-largest-array-silent-auction
+category: dsa
+series: heap-priority-queue
+seriesOrder: 4
+description: "Dungeon 10, Boss 4. A sealed-bid box and one question: the k-th highest bid. The heap answer in one line, then quickselect: partition logic aimed at a rank, average O(n), and an honest talk about the worst case."
+tags:
+  - DSA
+  - Heap
+  - Quickselect
+  - Divide and Conquer
+icon: "🔨"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The charity auction closes and the bid box is dumped on the table, slips in no order at all. The rules say the item goes at the second-highest bid price, so that one number is all anyone needs, nobody asked for a full ranking. The auctioneer's trick: pull any slip, split the pile into bids above it and bids below it, and see where it lands. Counting the above pile tells you which side your target hides on, and the other side never gets touched again. Each split works on a smaller pile, and on average the total work is barely more than one pass through the box.
+  bn: |
+    চ্যারিটি নিলাম শেষ, আর বিডের বাক্সটা টেবিলে উপুড় করা হলো, চিরকুটগুলো কোনো ক্রম ছাড়াই। নিয়ম বলে জিনিসটা বিক্রি হবে দ্বিতীয় সর্বোচ্চ বিডের দামে, তাই সবার দরকার ওই একটাই সংখ্যা, পুরো র‍্যাংকিং কেউ চায়নি। নিলামদারের কৌশল: যেকোনো একটা চিরকুট তুলুন, স্তূপটাকে ভাগ করুন তার চেয়ে বেশি আর তার চেয়ে কম বিডে, আর দেখুন সেটা কোথায় দাঁড়ায়। উপরের স্তূপটা গুনলেই বোঝা যায় লক্ষ্যটা কোন পাশে লুকিয়ে, আর অন্য পাশটা আর কখনো ছোঁয়াই হয় না। প্রতিটা ভাগ কাজ করে আরো ছোট স্তূপে, আর গড়ে মোট কাজটা বাক্সের ভেতর দিয়ে এক পাসের চেয়ে সামান্যই বেশি।
+  hi: |
+    चैरिटी नीलामी बंद हुई और बोली का डिब्बा मेज पर उलट दिया गया, पर्चियां बिना किसी क्रम के। नियम कहता है चीज दूसरी सबसे ऊंची बोली की कीमत पर जाएगी, तो सबको बस वही एक नंबर चाहिए, पूरी रैंकिंग किसी ने नहीं मांगी। नीलामकर्ता की तरकीब: कोई भी पर्ची उठाओ, ढेर को उससे ऊपर और उससे नीचे की बोलियों में बांटो, और देखो वह कहां ठहरती है। ऊपर वाले ढेर को गिनते ही पता चल जाता है निशाना किस तरफ छिपा है, और दूसरी तरफ को फिर कभी छुआ नहीं जाता। हर बंटवारा छोटे ढेर पर काम करता है, और औसतन कुल काम डिब्बे से एक बार गुजरने से जरा ही ज्यादा बैठता है।
+  ar: |
+    أُغلق مزاد الجمعية الخيرية وقُلب صندوق العطاءات على الطاولة، قصاصات بلا أي ترتيب. تقول القواعد إن القطعة تُباع بسعر ثاني أعلى عطاء، فذلك الرقم الواحد هو كل ما يحتاجه أحد، ولم يطلب أحد ترتيباً كاملاً. حيلة الدلّال: اسحب أي قصاصة، اقسم الكومة إلى عطاءات فوقها وعطاءات تحتها، وانظر أين تستقر. عدّ كومة الأعلى يخبرك في أي جهة يختبئ هدفك، والجهة الأخرى لا تُلمس بعدها أبداً. كل قسمة تعمل على كومة أصغر، وفي المتوسط يكاد العمل الكلي لا يتجاوز مروراً واحداً عبر الصندوق.
+---
+
+## Boss 4: The Silent Auction
+
+The last boss promised an O(n) door. This is it, and fittingly for a heap dungeon, the star algorithm... isn't a heap. **Quickselect** is what happens when Dungeon 4's discard-half philosophy meets an unsorted pile: no structure built, no order maintained, just partitions aimed at a rank. The heap solution opens the boss in one line; quickselect finishes it. Knowing *both*, and when each wins, is the boss.
+
+---
+
+## The story
+
+The charity auction's sealed-bid box, dumped out: `[3, 2, 1, 5, 6, 4]`. House rules: the winner pays the **second-highest** bid (k = 2, a real auction format, ask any economist about Vickrey). One number wanted. Nobody needs to know that 1 came last.
+
+The auctioneer doesn't sort. She pulls a random slip, say the **4**, and deals the rest into two piles: higher-than-4 on the left, lower on the right:
+
+```
+higher: [5, 6]     the 4     lower: [3, 2, 1]
+```
+
+Now count. The "higher" pile has 2 slips, so 4 is the **3rd** highest overall. Target is the 2nd highest, which must live in the higher pile, and the lower pile, four slips including the pivot, is *dead*. Never touched again. Recurse into `[5, 6]` for the 2nd highest... pull 6: higher pile empty, so 6 is 1st; target is one deeper, it's **5**. Done.
+
+Answer: **5**, found by two little deals, most of the box never re-handled. That's the whole idea: each partition costs one pass over the *current* pile, and each round throws a chunk of the pile away forever. Average piles shrink geometrically: n + n/2 + n/4 + ... = **2n**. Linear, on average.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums` and an integer `k`, return the `k`-th largest element in the array. Note that it is the k-th largest element in the sorted order, not the k-th distinct element.
+>
+> Can you solve it without sorting?
+
+LeetCode 215. The follow-up line is the whole assignment.
+
+---
+
+## The two honest openers
+
+**Sort:** `sorted(nums)[-k]`. O(n log n), one line, and the baseline everything else must beat.
+
+**Heap:** Boss 1's machine, batch mode:
+
+```python
+import heapq
+def find_kth_largest(nums, k):
+    return heapq.nlargest(k, nums)[-1]      # min-heap of k, under the hood
+```
+
+O(n log k), O(k) space, and `nlargest` is literally the capped min-heap from Boss 1 wearing a stdlib name. For small k this is excellent and *predictable*, hold that word, and if the data streamed, it'd be the only game in town. The box is static, though, and the follow-up wants better.
+
+---
+
+## The weapon: quickselect
+
+Reframe: k-th largest = element at index `n - k` of the *sorted* array (0-indexed). We don't need the sort, just the element that *would* land there. Partition gives exactly that power:
+
+**Partition** (quicksort's engine): pick a pivot, rearrange the pile so everything smaller sits left of it, everything larger right, and the pivot lands at its final sorted position `p`, without sorting either side.
+
+Then aim: if `p` equals the target index, done, the pivot *is* the answer. If the target index is smaller, recurse left; larger, recurse right. **One side, not both**, and that single word is the entire gap between quicksort's O(n log n) and quickselect's O(n): quicksort must sort both halves; quickselect follows a rank into one.
+
+<MermaidBlock>
+graph TB
+    A["target index = n - k\nin sorted order"]
+    B["partition around a\nrandom pivot\npivot lands at index p"]
+    C["p == target?\npivot IS the answer"]
+    D["target < p?\nrecurse LEFT only\nright side dead forever"]
+    E["target > p?\nrecurse RIGHT only\nleft side dead forever"]
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    D --> B
+    E --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+import random
+
+def find_kth_largest(nums: list[int], k: int) -> int:
+    target = len(nums) - k                   # index in sorted order
+
+    def partition(lo, hi):
+        p = random.randint(lo, hi)           # random pivot: the whole defense
+        nums[p], nums[hi] = nums[hi], nums[p]
+        pivot = nums[hi]
+        store = lo
+        for i in range(lo, hi):
+            if nums[i] < pivot:
+                nums[store], nums[i] = nums[i], nums[store]
+                store += 1
+        nums[store], nums[hi] = nums[hi], nums[store]
+        return store                         # pivot's final sorted index
+
+    lo, hi = 0, len(nums) - 1
+    while True:
+        p = partition(lo, hi)
+        if p == target:
+            return nums[p]
+        if target < p:
+            hi = p - 1                       # right side: dead
+        else:
+            lo = p + 1                       # left side: dead
+```
+
+Written as a loop, not recursion, quickselect is naturally tail-recursive, and the loop version can't stack-overflow on adversarial piles.
+
+---
+
+## The honest conversation about the worst case
+
+Random pivots make the *expected* time O(n), and the expectation is robust, no input distribution breaks it, because the randomness is yours, not the data's. But any *single* run can get unlucky: pivot always lands at an extreme, piles shrink by 1, **O(n²)**. Three things a senior answer says about that:
+
+1. **Randomization makes adversarial inputs irrelevant** , nobody can craft a killer input against dice. (A *fixed* pivot, first element, is O(n²) on already-sorted data, which real data loves to be. Never fix the pivot.)
+2. **Median-of-medians** exists: a deterministic pivot strategy guaranteeing O(n) worst case. Legendary, beautiful, and its constants are bad enough that nobody ships it; its role is to make "guaranteed linear selection exists" a true sentence in your interview.
+3. **The heap doesn't gamble.** O(n log k) every single time, no variance. Latency-critical system with unpredictable stalls forbidden? The "slower" heap is the right call. Average-fast versus always-predictable is an engineering axis, not a correctness one.
+
+That triple is the real deliverable of this boss, more than any code.
+
+---
+
+## Watching it work
+
+`[3,2,1,5,6,4]`, k=2, target index 4:
+
+```
+partition(0,5), random pivot 4 (value):
+  smaller slips [3,2,1] settle left, 4 lands at index 3
+  p=3 < target 4 → left side [3,2,1,4] dead, lo=4
+
+partition(4,5) on [6,5], pivot 5:
+  5 lands at index 4
+  p=4 == target → answer nums[4] = 5 ✓
+```
+
+Six slips, one full deal plus one two-slip deal, ≈ 8 touches. Sorting would have spent ≈ 16 and learned the ranking of 1, 2, and 3, knowledge nobody paid for.
+
+---
+
+## Gotchas
+
+**1. Off-by-one on the target.**
+K-th *largest* is sorted index `n - k`; k-th *smallest* is `k - 1`. Mixing them returns the mirror-image rank, and on symmetric test arrays it can even pass once. Write the conversion line first, comment it, trust it.
+
+**2. Fixed pivot.**
+`pivot = nums[hi]` without the random swap is O(n²) on sorted and reverse-sorted input, the two most common real-world distributions. The one-line `random.randint` is not optional decoration; LeetCode's adversarial tests specifically punish its absence with TLE.
+
+**3. Infinite loop on duplicates.**
+This partition puts equals *after* the pivot slot, which handles duplicates correctly if the loop bounds shrink properly (`hi = p - 1`, `lo = p + 1`, both *excluding* p). Keep p in the next round and equal-heavy arrays can spin. Three-way partition (smaller / equal / larger) is the industrial fix for massive duplication.
+
+**4. Quickselect mutates.**
+The array is rearranged in place. Caller minds? Copy first, or use the heap. Contract awareness, Dungeon 6's museum lesson, still compounding.
+
+---
+
+## Complexity
+
+**Quickselect: O(n) average, O(n²) worst (randomized: vanishingly unlikely), O(1) extra space.** Heap: O(n log k), no variance. Sort: O(n log n), no thought.
+
+---
+
+## Boss down. XP gained.
+
+Item hammered at 5, the second-highest bid, and the box's losing slips were never even ranked among themselves. The auctioneer's dice never apologize.
+
+What you walked away with:
+
+- **Quickselect**: partition until the pivot lands on the target rank, recurse one side, average O(n)
+- The k-th largest ⇔ index `n - k` conversion, written first, always
+- Random pivots as a *defense mechanism*; median-of-medians as the theoretical guarantee nobody ships
+- The engineering axis: average-fast (quickselect) vs always-predictable (heap) vs simple (sort), three tools, no dogma
+
+Next up: **Boss 5 — The Setlist Rule.** A band's contract says the same song can't repeat within n slots, filler tunes are allowed, and the gig must be as short as possible. Greedy scheduling by remaining count, a max-heap running the show, and a closed-form shortcut that solves the whole thing in arithmetic when you only need the length.

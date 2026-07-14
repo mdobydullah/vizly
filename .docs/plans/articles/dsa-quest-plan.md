@@ -28,8 +28,8 @@ Full dungeon list (ship in order):
 7. **Trees** — Dungeon 7 (COMPLETE)
 8. **Tries** — Dungeon 8 (COMPLETE)
 9. **Backtracking** — Dungeon 9 (COMPLETE)
-10. **Heap / Priority Queue** — Dungeon 10 (next to build)
-11. **Graphs** — Dungeon 11
+10. **Heap / Priority Queue** — Dungeon 10 (COMPLETE)
+11. **Graphs** — Dungeon 11 (next to build)
 12. **1-D DP** — Dungeon 12
 13. **Intervals** — Dungeon 13
 14. **Greedy** — Dungeon 14
@@ -194,8 +194,18 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 8: Letter Combinations (Vanity Number)
 - [x] Boss 9: N-Queens (Rival Queens)
 
-### Dungeons 10-18
-- [ ] Heap/PQ, Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 10 — Heap / Priority Queue (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Kth Largest in a Stream (Arcade Leaderboard)
+- [x] Boss 2: Last Stone Weight (Rock Smash)
+- [x] Boss 3: K Closest Points (Delivery Radius)
+- [x] Boss 4: Kth Largest in an Array (Silent Auction)
+- [x] Boss 5: Task Scheduler (Setlist Rule)
+- [x] Boss 6: Design Twitter (Notice Board)
+- [x] Boss 7: Find Median from Data Stream (Seesaw)
+
+### Dungeons 11-18
+- [ ] Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

@@ -1,0 +1,214 @@
+---
+title: "Design Twitter — The Notice Board"
+slug: design-twitter-notice-board
+category: dsa
+series: heap-priority-queue
+seriesOrder: 6
+description: "Dungeon 10, Boss 6. A village notice board where everyone follows their neighbors and the board shows each visitor the ten freshest notices from their people. Dungeon 6's k-way merge reborn, with follow lists, timestamps, and API shapes around it."
+tags:
+  - DSA
+  - Heap
+  - Design
+  - Hash Map
+icon: "📌"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The village runs on a notice board. Everyone pins notices, everyone quietly keeps a list of whose notices they care about, and the board keeper's job is personal service: when someone walks up, show them the ten freshest notices from their people, newest first. Each villager's own pinned notices are already in time order, that's just how pinning works. So the keeper's task is merging a handful of already-sorted stacks and stopping after ten, which is exactly the ferry terminal trick from the linked list days: compare the tops, take the freshest, let that stack reveal its next.
+  bn: |
+    গ্রামটা চলে একটা নোটিশ বোর্ডে। সবাই নোটিশ সাঁটে, সবাই চুপচাপ একটা লিস্ট রাখে কার কার নোটিশ তার দরকারি, আর বোর্ডরক্ষকের কাজটা ব্যক্তিগত সেবা: কেউ এগিয়ে এলে তাকে দেখাতে হবে তার লোকজনের দশটা টাটকা নোটিশ, নতুনটা আগে। প্রতিটা গ্রামবাসীর নিজের সাঁটা নোটিশগুলো এমনিতেই সময়ের ক্রমে থাকে, সাঁটার নিয়মই তো তাই। কাজেই রক্ষকের কাজ হলো কয়েকটা আগে-থেকে-সাজানো তাড়া মিলিয়ে দেওয়া আর দশটার পরে থেমে যাওয়া, যেটা হুবহু লিংকড লিস্টের দিনগুলোর ফেরি টার্মিনালের কৌশল: চূড়াগুলো মেলান, সবচেয়ে টাটকাটা নিন, আর সেই তাড়াটাকে তার পরেরটা দেখাতে দিন।
+  hi: |
+    गांव एक नोटिस बोर्ड पर चलता है। सब नोटिस टांगते हैं, सब चुपचाप एक सूची रखते हैं कि किसके नोटिस उन्हें चाहिए, और बोर्ड रखवाले का काम निजी सेवा है: कोई पास आए तो उसे उसके लोगों के दस सबसे ताजे नोटिस दिखाओ, सबसे नया पहले। हर गांव वाले के अपने टांगे नोटिस पहले से समय के क्रम में हैं, टांगने का तरीका ही यही है। तो रखवाले का काम है कुछ पहले-से-सजी गड्डियों को मिलाना और दस पर रुक जाना, जो हूबहू लिंक्ड लिस्ट के दिनों वाली फेरी टर्मिनल की तरकीब है: चोटियां मिलाओ, सबसे ताजा उठाओ, और उस गड्डी को उसका अगला दिखाने दो।
+  ar: |
+    تعيش القرية على لوحة إعلانات. الكل يعلّق إشعارات، والكل يحتفظ بهدوء بقائمة بمن تهمّه إشعاراتهم، وعمل حارس اللوحة خدمة شخصية: حين يتقدم أحدهم، أرِه أحدث عشرة إشعارات من جماعته، الأجدّ أولاً. إشعارات كل قروي المعلّقة مرتبة زمنياً أصلاً، فهذه طبيعة التعليق. إذاً مهمة الحارس دمج حفنة أكوام مرتبة سلفاً والتوقف بعد عشرة، وهي بالضبط حيلة محطة العبّارات من أيام القوائم المتصلة: قارن القمم، خذ الأحدث، ودع تلك الكومة تكشف تاليها.
+---
+
+## Boss 6: The Notice Board
+
+The dungeon's system-design boss. "Design Twitter" sounds like an architecture interview, and at its algorithmic core sits one move you already own: the **k-way merge** from Dungeon 6's Grand Terminal, now embedded in a live system with users, follows, and timestamps. The boss is half data-modeling (three hash maps and a clock), half recognizing an old friend in new clothes.
+
+---
+
+## The story
+
+The village notice board. Its keeper offers four services:
+
+- **Pin a notice** (a villager posts).
+- **Follow** and **unfollow** (quietly maintained care-lists).
+- **The personal feed**: walk up, and the keeper shows you the **10 freshest notices** posted by you and the people you follow, newest first.
+
+The keeper's ledger design, honed by years of village drama:
+
+- Each villager's notices are kept as **their own stack, newest on top**, pinning order *is* time order, no sorting ever needed per person.
+- Follow lists are just sets of names. Unfollow = scratch a name out.
+- **One clock** stamps every notice globally. Two notices, any two villagers: the stamp settles freshness, no arguing at the board.
+
+Feed time is where it gets fun. A visitor follows 4 people (plus themselves): 5 stacks, each already time-sorted. Show the 10 freshest overall. Flatten-and-sort all their history? The blacksmith has pinned six hundred notices since 1994. No, this is *k sorted stacks, take the best few*, the ferry terminal exactly: look at each stack's **top** (its freshest), take the freshest of those, and let that stack expose its next-freshest. A heap of stack-tops, popping at most 10 times.
+
+---
+
+## The problem, dressed up properly
+
+> Design a simplified version of Twitter where users can post tweets, follow/unfollow another user, and is able to see the 10 most recent tweets in the user's news feed.
+>
+> Implement: `postTweet(userId, tweetId)`, `getNewsFeed(userId)` (the 10 most recent tweet IDs from the user and followees, most recent first), `follow(followerId, followeeId)`, `unfollow(followerId, followeeId)`.
+
+LeetCode 355.
+
+---
+
+## The naive attempt
+
+One global list of (time, user, tweet). Feed = walk backward, filter by followees, take 10:
+
+```python
+def getNewsFeed(self, userId):
+    people = self.follows[userId] | {userId}
+    return [tw for t, u, tw in reversed(self.all_tweets)
+            if u in people][:10]
+```
+
+Correct, and the feed scans the *entire village history*, every notice ever pinned by anyone, to serve one visitor. O(total tweets) per feed call, and feeds are the hot path: people check boards far more often than they pin. Per-user stacks exist precisely so the hot path touches only relevant data. That's a system-design instinct in algorithm clothing, and it's the half of this boss that isn't the merge.
+
+---
+
+## The weapon: three maps, one clock, one merge
+
+State:
+
+```python
+self.time = 0                      # global stamp, decremented per post
+self.tweets = defaultdict(list)   # user -> [(stamp, tweetId)], newest last
+self.follows = defaultdict(set)  # user -> set of followees
+```
+
+One cheeky trick: the clock counts **down** (0, −1, −2...). `heapq` is a min-heap and feeds want *newest first*, so making the newest stamp the smallest number lets the raw heap serve freshness directly, Boss 2's negation costume, sewn into the clock itself so no merge code ever thinks about it.
+
+Feed time: seed the heap with **each followee's newest tweet**, each entry carrying the index of that person's *next*-newest. Pop the freshest overall, and push that same person's next. The Grand Terminal gangway, verbatim.
+
+<MermaidBlock>
+graph TB
+    A["feed for user U\npeople = follows(U) plus U"]
+    B["seed heap: each person's\nnewest tweet, plus index\nof their next-newest"]
+    C["pop freshest overall\nappend to feed"]
+    D["that person has older?\npush their next tweet"]
+    E["10 collected, or heap\nempty: serve the feed"]
+    A --> B
+    B --> C
+    C --> D
+    D --> C
+    C --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+from collections import defaultdict
+
+class Twitter:
+    def __init__(self):
+        self.time = 0
+        self.tweets = defaultdict(list)    # user -> [(stamp, id)], newest last
+        self.follows = defaultdict(set)
+
+    def postTweet(self, userId: int, tweetId: int) -> None:
+        self.tweets[userId].append((self.time, tweetId))
+        self.time -= 1                     # countdown: newest = smallest stamp
+
+    def getNewsFeed(self, userId: int) -> list[int]:
+        heap = []
+        for u in self.follows[userId] | {userId}:
+            if self.tweets[u]:
+                i = len(self.tweets[u]) - 1           # newest at the end
+                stamp, tid = self.tweets[u][i]
+                heap.append((stamp, tid, u, i - 1))   # i-1: their next-newest
+        heapq.heapify(heap)
+
+        feed = []
+        while heap and len(feed) < 10:
+            stamp, tid, u, nxt = heapq.heappop(heap)
+            feed.append(tid)
+            if nxt >= 0:
+                s2, t2 = self.tweets[u][nxt]
+                heapq.heappush(heap, (s2, t2, u, nxt - 1))
+        return feed
+
+    def follow(self, followerId: int, followeeId: int) -> None:
+        self.follows[followerId].add(followeeId)
+
+    def unfollow(self, followerId: int, followeeId: int) -> None:
+        self.follows[followerId].discard(followeeId)
+```
+
+Follow and unfollow are set operations, one line each, `discard` over `remove` because unfollowing a stranger shouldn't throw. The heavy thinking all lives in the feed, where it belongs: optimize the hot path, keep the writes dumb.
+
+---
+
+## Watching it work
+
+User 1 posts notice 101, user 2 posts 201 then 202, user 1 follows user 2, then asks for the feed:
+
+```
+stamps:  101→0,  201→-1,  202→-2
+
+feed(1): people {1, 2}
+  seed: (0, 101, u1, -1)  and  (-2, 202, u2, 0)     ← 202 is u2's newest
+  pop (-2, 202) → feed [202], push u2's next: (-1, 201, u2, -1)
+  pop (-1, 201) → feed [202, 201]
+  pop (0, 101)  → feed [202, 201, 101]
+  heap empty → serve ✓  (newest first, cross-user order correct)
+```
+
+The blacksmith's six hundred historical notices? Only as many get touched as actually make the top ten. The merge reads stacks lazily, exactly as deep as freshness demands.
+
+<Callout type="info" title="The real-world epilogue">
+Actual Twitter-scale systems split into *pull* (merge followees' lists at read time, this boss) and *push* (fan out each new post into followers' precomputed feeds at write time). Pull suffers with celebrity follow-lists at read; push suffers celebrity *fan-out* at write; production systems hybridize (push for most, pull for celebrities). Your ten-line heap merge is the "pull" half of a genuine architecture debate, worth one sentence in any interview where this problem appears.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting yourself in your own feed.**
+The union `| {userId}` is load-bearing: your feed includes *your* notices. LeetCode tests it early; villages consider it obvious.
+
+**2. Following yourself, then unfollowing.**
+If `follow(1, 1)` sneaks a self-entry into the set, the union hides it, but an `unfollow(1, 1)` followed by feed logic that *doesn't* re-add self would silently drop your own posts. The `| {userId}` at feed time (rather than storing self in follows) sidesteps the whole class.
+
+**3. Timestamps per user instead of global.**
+Stamping each user's tweets 1, 2, 3... makes cross-user comparison meaningless, the merge interleaves nonsense. One clock for the whole village, no exceptions.
+
+**4. Seeding the heap with entire tweet lists.**
+Pushing all of everyone's tweets is the naive version wearing a heap costume: O(total) per feed. Seed with *one entry per person*, walk lazily. The index-in-the-tuple is what makes the merge lazy; don't lose it.
+
+**5. `remove` on unfollow.**
+Unfollowing someone never followed throws KeyError with `remove`. `discard` is the shrug that keeps the API contract calm.
+
+---
+
+## Complexity
+
+Post, follow, unfollow: **O(1)**. Feed: seed k followees + 10 pops, **O(k + 10 log k)**, independent of tweet history length. **Space: O(users + tweets + follow edges)**, all of it necessary.
+
+---
+
+## Boss down. XP gained.
+
+The visitor gets their ten freshest notices in one heap-breath, the blacksmith's 1994 archives sleep untouched, and the keeper's ledger design gets copied by the next village over.
+
+What you walked away with:
+
+- **K-way merge, systematized**: per-source sorted stacks + heap of tops + lazy walk = feeds, log-structured storage, external sort, one pattern, many buildings
+- The countdown clock: encode desired order into the *key* so the structure needs no adaptation
+- Hot-path thinking: dumb O(1) writes, clever reads, optimize where the traffic is
+- Tuple cargo with a resume-index, the piece that keeps merges lazy
+
+Next up: **Boss 7 — The Seesaw.** The dungeon finale: a stream of numbers, and after every arrival, the *median*, the exact middle, on demand. One heap can't see the middle, but two heaps leaning against each other, a max-heap of the lower half facing a min-heap of the upper half, balance the stream on a knife's edge. The two-heap technique: the most elegant trick in the heap repertoire.

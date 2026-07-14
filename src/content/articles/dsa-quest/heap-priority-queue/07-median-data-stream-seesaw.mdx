@@ -1,0 +1,196 @@
+---
+title: "Find Median from Data Stream — The Seesaw"
+slug: median-data-stream-seesaw
+category: dsa
+series: heap-priority-queue
+seriesOrder: 7
+description: "Dungeon 10, Boss 7. A stream of numbers, and after every arrival, the exact middle on demand. Two heaps leaning against each other, a max-heap of the lower half facing a min-heap of the upper, balance the stream on a knife's edge."
+tags:
+  - DSA
+  - Heap
+  - Design
+  - Hard
+icon: "🌗"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A property site shows the median house price for the neighborhood, and it must stay current as sales stream in all day. The median is a middle, and heaps only know their extremes, so one heap is helpless. The fix is a seesaw: split all prices into a lower half and an upper half, with the lower half arranged so its biggest sits on top, and the upper half so its smallest sits on top. The two tops face each other across the middle, and the median is one of them, or their average. Each new sale lands on one side, and if a side gets two heavier, its top hops across.
+  bn: |
+    একটা প্রপার্টি সাইট এলাকার বাড়ির দামের median দেখায়, আর সারাদিন বিক্রির খবর আসতে থাকায় সেটা সবসময় হালনাগাদ থাকতে হবে। Median হলো মাঝখান, আর হিপ শুধু নিজের প্রান্তটাই চেনে, তাই একটা হিপ এখানে অসহায়। সমাধান একটা ঢেঁকি: সব দামকে ভাগ করুন নিচের অর্ধেক আর উপরের অর্ধেকে, নিচের অর্ধেকটা এমনভাবে সাজানো যাতে তার সবচেয়ে বড়টা উপরে বসে, আর উপরের অর্ধেকটা যাতে তার সবচেয়ে ছোটটা উপরে। দুটো চূড়া মাঝখানটার দুপাশ থেকে মুখোমুখি, আর median হয় তাদেরই একটা, নয়তো দুটোর গড়। প্রতিটা নতুন বিক্রি এক পাশে নামে, আর কোনো পাশ দুই বেশি ভারী হয়ে গেলে তার চূড়াটা লাফিয়ে ওপারে চলে যায়।
+  hi: |
+    एक प्रॉपर्टी साइट मोहल्ले के घरों की median कीमत दिखाती है, और दिन भर बिक्री की खबरें आती रहने से उसे हर पल ताजा रहना है। Median एक बीच है, और हीप सिर्फ अपने सिरे जानते हैं, इसलिए अकेला हीप यहां बेबस है। हल है एक सीसॉ: सारी कीमतों को निचले आधे और ऊपरी आधे में बांटो, निचला आधा ऐसे सजा कि उसका सबसे बड़ा ऊपर बैठे, और ऊपरी आधा ऐसे कि उसका सबसे छोटा ऊपर। दोनों चोटियां बीच के आर-पार आमने-सामने हैं, और median उन्हीं में से एक है, या दोनों का औसत। हर नई बिक्री एक तरफ उतरती है, और कोई तरफ दो ज्यादा भारी हो जाए तो उसकी चोटी उछलकर उस पार चली जाती है।
+  ar: |
+    يعرض موقع عقارات الوسيط median لأسعار البيوت في الحي، ويجب أن يبقى محدثاً وصفقات البيع تتدفق طوال اليوم. الوسيط منتصفٌ، والأكوام لا تعرف إلا أطرافها، فكومة واحدة عاجزة هنا. الحل أرجوحة توازن: اقسم كل الأسعار إلى نصف أدنى ونصف أعلى، النصف الأدنى مرتب بحيث يجلس أكبره في القمة، والأعلى بحيث يجلس أصغره في القمة. القمتان تتواجهان عبر المنتصف، والوسيط إحداهما أو متوسطهما. كل صفقة جديدة تهبط في جهة، وإذا ثقلت جهة باثنين قفزت قمتها إلى الجهة الأخرى.
+---
+
+## Boss 7: The Seesaw
+
+The finale, and a genuine puzzle: heaps know their **extremes**, and the median is the **middle**, the one place no single heap can see. The resolution is the prettiest structural trick in the heap repertoire: *make the middle be two extremes.* Two heaps, mouth to mouth, and the stream balances on the line between them.
+
+LeetCode marks it Hard. It's four lines of insert logic once the picture is right, which tells you where the difficulty actually lives.
+
+---
+
+## The story
+
+The property site's neighborhood widget: **median sale price, live**. Sales stream in; after each one, the median must be ready instantly. (Median, not mean, one castle sale shouldn't drag the "typical house" number into fantasy. That robustness is why dashboards love medians and why this problem is everywhere.)
+
+The median is the middle of the *sorted* prices, but nobody wants to keep a growing list sorted per insert (O(n) shifting) or re-sort per query. The keeper's trick, the **seesaw**:
+
+Split all prices seen so far into two halves:
+
+- **Low side**: the smaller half of prices, arranged with its **largest on top** (max-heap).
+- **High side**: the larger half, **smallest on top** (min-heap).
+
+The two tops face each other exactly at the middle of the data. Odd count: keep the low side one bigger; the median *is* the low side's top. Even: the median is the average of the two facing tops. Nothing below either top ever matters to the median, which is the entire point: the middle of everything is the *extreme of each half*, and extremes are what heaps serve for free.
+
+Two invariants, and the whole machine is their maintenance:
+
+1. **Every low ≤ every high.** (Enough to check tops: low's max ≤ high's min.)
+2. **Sizes differ by at most one**, low side allowed the extra.
+
+---
+
+## The problem, dressed up properly
+
+> Implement the MedianFinder class: `addNum(int num)` adds a number from the data stream; `double findMedian()` returns the median of all elements so far. Answers within 10⁻⁵ of the actual are accepted.
+>
+> Follow up: what if all numbers are in the range [0, 100]? What if 99% of numbers are in that range?
+
+LeetCode 295.
+
+---
+
+## The naive attempts
+
+**Sorted list, insert by bisect**: O(log n) to find the spot, **O(n)** to shift elements in. Query O(1). The shifting is the killer at scale.
+
+**Plain list, sort at query**: O(1) insert, O(n log n) query. Fine when queries are rare; medians-per-insert is this problem's contract, so it isn't.
+
+Both fail the same way, they maintain *total order* (or rebuild it) when the median needs only the *boundary between halves*. Sound familiar? It's the dungeon's founding grievance (Boss 1's sorted leaderboard), at its most refined.
+
+---
+
+## The weapon: two heaps and a rebalance
+
+The insert dance, four beats, no cases:
+
+1. Push the new price onto the **low** side.
+2. Move the low side's top to the high side. (This launders the newcomer through invariant 1: whatever was largest on the low side, newcomer or incumbent, crosses over, so low ≤ high *always* holds after this beat.)
+3. If the high side is now bigger, move *its* top back to the low side. (Restores invariant 2.)
+4. Done. Median reads off the tops.
+
+Beats 2 and 3 look wasteful, sometimes an element crosses and comes right back, and that's the *feature*: unconditional moves mean zero case analysis, no "which side does it belong on?" branching to get subtly wrong. Three heap operations, flat, per insert, correctness by ritual.
+
+<MermaidBlock>
+graph TB
+    A["new price arrives"]
+    B["push onto LOW\n(max-heap, lower half)"]
+    C["move LOW's top to HIGH\nlaunders ordering:\nlow max never above high min"]
+    D["HIGH now bigger?\nmove its top back\nsizes rebalanced"]
+    E["median = LOW top (odd)\nor avg of both tops (even)"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+class MedianFinder:
+    def __init__(self):
+        self.low = []     # max-heap (negated): smaller half
+        self.high = []    # min-heap: larger half
+
+    def addNum(self, num: int) -> None:
+        heapq.heappush(self.low, -num)                    # 1. onto low
+        heapq.heappush(self.high, -heapq.heappop(self.low))   # 2. launder across
+        if len(self.high) > len(self.low):                # 3. size repair
+            heapq.heappush(self.low, -heapq.heappop(self.high))
+
+    def findMedian(self) -> float:
+        if len(self.low) > len(self.high):
+            return -self.low[0]                           # odd: low's top
+        return (-self.low[0] + self.high[0]) / 2          # even: the two tops
+```
+
+The low side wears Boss 2's negation costume (max-heap in a min-heap library); the high side is a plain min-heap. Border discipline: minus signs appear only at pushes and pops of `low`, never in logic.
+
+---
+
+## Watching it work
+
+Stream: 5, 15, 1, 3
+
+```
+add 5:  low[5] → launder → high[5] → size repair → low[5], high[]
+        median 5
+add 15: low[15,?]... push 15 to low, launder its max (15) to high
+        low[5]  high[15]         median (5+15)/2 = 10
+add 1:  push 1 low → launder max (5) → high[5,15] bigger → repair: 5 back
+        low[5,1]  high[15]       median 5
+add 3:  push 3 → launder max (5) → high[5,15] → sizes 2,2 ok
+        low[3,1]  high[5,15]     median (3+5)/2 = 4
+```
+
+Check the last state against a sorted view [1,3,5,15]: middle pair 3 and 5, median 4. ✓ The seesaw's tops are always exactly the sorted array's middle, without the array ever existing.
+
+<Callout type="tip" title="The follow-ups are a different data structure">
+Range [0,100]? Keep 101 counters, the median is found by walking cumulative counts: O(1) insert, O(101) query, no heaps at all. 99% in range? Counters plus two small overflow heaps for the tails. The lesson worth quoting: *constraints are data structures in disguise*, when the value domain shrinks, counting beats comparing. Interviewers ask this follow-up to see whether you'll force the elegant tool where a bucket array wins.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Branching on where the newcomer "belongs".**
+`if num < -low[0]: push low else push high`, then patch sizes... it can be made correct, and every branch is a bug candidate. The launder-through ritual (always low, always across, repair if needed) has no branches to get wrong. Prefer rituals to case analysis in invariant maintenance.
+
+**2. Letting the high side hold the extra.**
+Pick a convention and let `findMedian` trust it. The code above says low-side-heavy; if your repair step lets high outgrow low, the odd-count median reads the wrong top. Symptom: median off by one position on every odd count.
+
+**3. Negation leaking into findMedian.**
+`-self.low[0]`, the minus at the read border. Forget it and medians come back negative or averaged into garbage. (Boss 2's discipline, final exam.)
+
+**4. Integer division.**
+`(a + b) / 2` with true division, the contract wants 3.5 for [3,4]. In Python 2 relics and C-family languages, `/2` on ints floors, use 2.0 or cast. The 10⁻⁵ tolerance in the problem statement is the hint that floats are expected.
+
+**5. Rebalancing by more than one.**
+Sizes can only drift by one per insert, so one repair move suffices. A `while` loop there is harmless but signals you don't trust (or didn't prove) the invariant. Know *why* one move is enough: each insert adds one element; beats 2-3 shuffle at most one across each way.
+
+---
+
+## Complexity
+
+**addNum: O(log n)**, three heap ops. **findMedian: O(1)**, two peeks. **Space: O(n)**, every price lives in exactly one heap.
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained.
+
+The widget updates before the ink dries on each deed, the castle sale nudges the seesaw by one hop instead of dragging the average into the clouds, and the neighborhood's "typical house" stays honest.
+
+The full haul from Dungeon 10:
+
+- The heap itself: complete tree in an array, **peek O(1), push/pop O(log n), heapify O(n)**, sure about one extreme, silent about the rest
+- The **gatekeeper inversion**: k largest ⇒ min-heap of k; k smallest ⇒ max-heap of k, worst-of-the-kept on top
+- **Simulation heaps**: extract, transform, reinsert, stones, schedulers, event loops
+- **Quickselect**: the non-heap door, average O(n), random pivots, and the fast-vs-predictable axis
+- **Greedy + heap**: serve the biggest threat first, with the bottleneck proof; formulas when only totals matter
+- **K-way merge as a system**: lazy stack-tops with resume indices, feeds and external sorts
+- **Two heaps**: the middle of a stream is the facing extremes of its halves, the seesaw
+- And throughout: negation costumes, tuple cargo, border discipline, invariants stated in one sentence
+
+**Next dungeon: Graphs.** The structures stop being trees, cycles are legal, anything may point anywhere, and the questions become *reachability*: islands in a grid, courses with prerequisites, networks that must stay connected. BFS and DFS graduate from tree walks to territory exploration, and a new tool, union-find, joins for the connectivity fights.
+
+See you in Dungeon 11.

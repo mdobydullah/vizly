@@ -1,0 +1,168 @@
+---
+title: "K Closest Points to Origin — The Delivery Radius"
+slug: k-closest-points-delivery-radius
+category: dsa
+series: heap-priority-queue
+seriesOrder: 3
+description: "Dungeon 10, Boss 3. A pizza shop with k drivers wants the k closest orders on the map. Boss 1's inversion, mirrored: a max-heap for the k smallest, squared distances with no square roots, and tuple entries that rank one thing while carrying another."
+tags:
+  - DSA
+  - Heap
+  - Math
+icon: "🍕"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Friday rush at the pizza shop, orders pinned all over the map, and exactly two drivers on shift. The manager wants the two closest orders, straight-line distance from the shop, and she wants them without measuring the whole map twice. The trick mirrors the leaderboard: keep a small tray of the k closest orders so far, arranged so the farthest of them sits on top. Each new pin gets compared to that farthest tray member: closer means the tray swaps, farther means ignore. And nobody computes a single square root, because comparing squared distances ranks pins exactly the same.
+  bn: |
+    পিৎজার দোকানে শুক্রবারের ভিড়, ম্যাপ জুড়ে অর্ডারের পিন, আর শিফটে ঠিক দুজন ড্রাইভার। ম্যানেজার চান সবচেয়ে কাছের দুটো অর্ডার, দোকান থেকে সরলরেখার দূরত্বে, আর তিনি চান পুরো ম্যাপ দুবার না মেপেই। কৌশলটা লিডারবোর্ডের আয়না-উল্টো: এখন পর্যন্ত সবচেয়ে কাছের k টা অর্ডারের একটা ছোট ট্রে রাখুন, এমনভাবে সাজানো যাতে তাদের মধ্যে সবচেয়ে দূরেরটা উপরে বসে। প্রতিটা নতুন পিন ওই সবচেয়ে দূরের ট্রে-সদস্যের সাথে তুলনায় যায়: কাছের হলে ট্রে বদলায়, দূরের হলে বাদ। আর কেউ একটাও বর্গমূল হিসাব করে না, কারণ দূরত্বের বর্গ তুলনা করলেই পিনগুলোর র‍্যাংক হুবহু একই থাকে।
+  hi: |
+    पिज्जा शॉप पर शुक्रवार की भीड़, नक्शे भर में ऑर्डरों की पिनें, और शिफ्ट पर ठीक दो ड्राइवर। मैनेजर को चाहिए दो सबसे नजदीकी ऑर्डर, दुकान से सीधी रेखा की दूरी पर, और वह चाहती है पूरा नक्शा दो बार नापे बिना। तरकीब लीडरबोर्ड का उल्टा आईना है: अब तक के k सबसे नजदीकी ऑर्डरों की एक छोटी ट्रे रखो, ऐसे सजी कि उनमें से सबसे दूर वाला ऊपर बैठे। हर नई पिन की तुलना उसी सबसे दूर वाले ट्रे-सदस्य से होती है: नजदीक हो तो ट्रे बदलती है, दूर हो तो नजरअंदाज। और कोई एक भी वर्गमूल नहीं निकालता, क्योंकि दूरियों के वर्ग की तुलना पिनों की रैंकिंग हूबहू वही रखती है।
+  ar: |
+    زحمة الجمعة في محل البيتزا، دبابيس الطلبات في كل أنحاء الخريطة، وسائقان فقط في المناوبة. تريد المديرة أقرب طلبين، بخط مستقيم من المحل، وتريدهما دون قياس الخريطة كلها مرتين. الحيلة مرآة لوحة الصدارة: احتفظ بصينية صغيرة لأقرب k طلباً حتى الآن، مرتبة بحيث يجلس أبعدها في الأعلى. كل دبوس جديد يُقارن بذلك العضو الأبعد: أقرب يعني تبديل في الصينية، وأبعد يعني تجاهل. ولا أحد يحسب جذراً تربيعياً واحداً، لأن مقارنة مربعات المسافات ترتّب الدبابيس بالضبط سواء.
+---
+
+## Boss 3: The Delivery Radius
+
+Boss 1 tracked the k *largest* with a *min*-heap. This boss wants the k *smallest* (closest), so the mirror rule fires: **max-heap of size k, farthest on top as gatekeeper**. Same inversion, opposite polarity, and two workhorse techniques ride along: ranking by squared distance (geometry without square roots) and heap entries as tuples (rank by one field, carry the rest).
+
+---
+
+## The story
+
+The shop sits at the map's origin. Order pins: `[(1,3), (-2,2), (5,8), (0,1)]`. Two drivers, so the manager wants the **2 closest** pins, straight-line distance.
+
+Distances from the shop: (1,3) is √10 ≈ 3.16. (-2,2) is √8 ≈ 2.83. (5,8) is √89, far. (0,1) is 1. Closest two: **(0,1) and (-2,2)**.
+
+Two observations before the algorithm, each worth money:
+
+**Nobody needs the square roots.** √8 < √10 exactly when 8 < 10, square root is monotonic, so *squared* distances rank identically. Skip the `sqrt` and the ranking is integer arithmetic: exact, faster, immune to float precision nonsense. This trick generalizes: any monotonic transform of a sort key can be dropped. (Nearest-neighbor libraries do exactly this internally.)
+
+**The tray logic mirrors the leaderboard.** Keep the k best-so-far; the *disposable* one, the one a newcomer must beat, is the **worst of the best**. For k largest, that was the elite's minimum (min-heap top). For k closest, it's the tray's *farthest*, so the farthest must sit on top: **max-heap**. Symmetric rule, worth engraving: *the gatekeeper is the worst of the kept, so heap polarity is the opposite of what you're keeping.*
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of `points` where `points[i] = [xᵢ, yᵢ]` represents a point on the X-Y plane and an integer `k`, return the `k` closest points to the origin `(0, 0)`. The distance between two points is the Euclidean distance. You may return the answer in **any order**.
+
+LeetCode 973. "Any order" is a gift: no final sort needed.
+
+---
+
+## The naive attempt
+
+Sort all pins by distance, slice the front:
+
+```python
+def k_closest(points, k):
+    return sorted(points, key=lambda p: p[0]**2 + p[1]**2)[:k]
+```
+
+O(n log n), one line, and, real talk, in production with no streaming and modest n, you'd write exactly this and go to lunch. Its waste is Boss 1's waste: full ranking for a k-sized question. The heap drops it to O(n log k), which matters when n is millions and k is 5, and the *streaming* variant (pins arriving live) kills the sort outright. Interviews want the heap; engineering judgment knows when the one-liner is fine. Say both out loud.
+
+---
+
+## The weapon: max-heap of k, tuple entries
+
+One pass over the pins. The heap holds at most k entries, each a tuple `(-dist², x, y)`, negated distance first (the max-heap costume from Boss 2), coordinates riding along.
+
+Tuples are how `heapq` ranks *records*: comparison reads elements left to right, so the first field is the sort key and the rest is cargo. (Cargo can still be *compared* on ties, Dungeon 6's Grand Terminal added an index field to prevent exactly that from crashing on unorderable objects. Coordinates here are plain ints, so ties resolve harmlessly.)
+
+<MermaidBlock>
+graph TB
+    A["max-heap, size cap k\nentry: neg dist², x, y\nfarthest kept on top"]
+    B["heap not full yet?\npush the pin"]
+    C["pin closer than\nthe top (farthest kept)?\npushpop: swap it in"]
+    D["pin farther?\nignore it entirely\nno heap operation"]
+    E["after one pass:\nheap = the k closest"]
+    A --> B
+    A --> C
+    A --> D
+    B --> E
+    C --> E
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def k_closest(points: list[list[int]], k: int) -> list[list[int]]:
+    heap = []                                    # holds (-dist², x, y)
+    for x, y in points:
+        d = x*x + y*y                            # squared: no sqrt, ever
+        if len(heap) < k:
+            heapq.heappush(heap, (-d, x, y))
+        elif d < -heap[0][0]:                    # closer than farthest kept
+            heapq.heapreplace(heap, (-d, x, y))  # pop+push, one sift
+    return [[x, y] for _, x, y in heap]
+```
+
+Two micro-refinements over Boss 1's push-then-trim, both worth knowing: the `elif` *skips the heap entirely* for pins that can't qualify (most of them, when k ≪ n, the common case costs O(1)), and `heapreplace` does pop-and-push in a single sift instead of two.
+
+---
+
+## Watching it work
+
+k = 2, pins in order:
+
+```
+(1,3)  d=10: heap not full → push        tray: (1,3)
+(-2,2) d=8:  not full → push             tray: (1,3) top, (-2,2)
+(5,8)  d=89: 89 < 10? no → ignored       (no heap op at all)
+(0,1)  d=1:  1 < 10? yes → replace       tray: (-2,2) top, (0,1)
+
+answer: [(-2,2), (0,1)] ✓
+```
+
+The far pin (5,8) touched nothing, one comparison against the gatekeeper and gone. On a Friday map of ten thousand pins with two drivers, that's the fate of nearly every pin: one integer compare, no allocation, no sift.
+
+<Callout type="tip" title="The O(n) door, and who's behind it">
+"Any order" + "no stream" unlocks a faster door: **quickselect**, partition the array around a pivot until the k-th boundary lands, average O(n), no heap at all. It's the star of the very next boss, so the details wait one article. In interviews, this problem's arc is: one-liner sort → heap O(n log k) → "and if you want average O(n), quickselect", three answers, escalating, each with its niche (simplicity / streaming / raw batch speed).
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Min-heap of everything, pop k.**
+Correct, O(n + k log n) with heapify, and honestly competitive! The trap is *memory*: it keeps all n entries where the capped version keeps k. For the streaming variant it's disqualified outright. Know it as an alternative, know why it loses at scale.
+
+**2. Polarity flip-flops.**
+K closest with a min-heap capped at k evicts the *closest* pin at every trim, you'll return the k farthest, perfectly confidently. If your answer is exactly wrong, the gatekeeper's polarity is backwards. Worst-of-the-kept on top. Always.
+
+**3. `sqrt` for ranking.**
+Adds float precision risk ((3,4) vs (5,0), fine; astronomically distant near-ties, not fine) and CPU cost, for zero ranking benefit. Squared distances or bust, and mention monotonicity if asked why.
+
+**4. Comparing against `heap[0][0]` without un-negating.**
+The stored key is `-d`. The gatekeeper's true distance is `-heap[0][0]`, forget the minus and every comparison inverts. Boss 2's border discipline: negation lives inside the structure only.
+
+---
+
+## Complexity
+
+**Time: O(n log k)** worst case, with the `elif` making non-qualifying pins O(1). **Space: O(k).**
+
+---
+
+## Boss down. XP gained.
+
+Two drivers, two pins, (0,1) and (-2,2), and the kid five miles away at (5,8) gets a courtesy call and a coupon.
+
+What you walked away with:
+
+- The mirror rule: **k smallest ⇒ max-heap gatekeeper**, worst-of-the-kept on top, polarity opposite the goal
+- Squared distances: monotonic transforms of sort keys are droppable, exactness is a bonus
+- Tuple entries: first field ranks, the rest rides, the universal heap-record idiom
+- The three-answer escalation: sort for simplicity, heap for streams, quickselect for batch O(n)
+
+Next up: **Boss 4 — The Silent Auction.** One sealed-bid box, one question: the k-th highest bid, and a promised average-O(n) answer with no heap at all. Quickselect: Dungeon 4's partition logic aimed at a rank instead of a value, the coin-flip analysis that makes it linear, and the honest conversation about its worst case.

@@ -1,0 +1,182 @@
+---
+title: "Last Stone Weight — The Rock Smash"
+slug: last-stone-weight-rock-smash
+category: dsa
+series: heap-priority-queue
+seriesOrder: 2
+description: "Dungeon 10, Boss 2. Smash the two heaviest stones together, the smaller vanishes, the difference survives, repeat until one or none remains. Simulation heaps, and the negation trick for max-heaps in a min-heap world."
+tags:
+  - DSA
+  - Heap
+  - Simulation
+  - Beginner
+icon: "🪨"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Kids at the quarry invent a game: take the two heaviest stones and smash them together. Equal stones shatter to dust, unequal ones leave a chip weighing the difference, which goes back in the pile. Repeat until one stone or none is left, and the bet is on what that last stone weighs. The game keeps demanding the same thing: the two heaviest, right now, from a pile that changes after every smash. Keep the pile in a bag that always serves its heaviest first, and the whole game is pop, pop, maybe push, over and over until the bag runs dry.
+  bn: |
+    খনির ধারে বাচ্চারা একটা খেলা বানালো: সবচেয়ে ভারী দুটো পাথর নিয়ে একটার সাথে আরেকটা ঠুকে দাও। সমান পাথর হলে দুটোই গুঁড়ো, অসমান হলে ফারাকের সমান ওজনের একটা টুকরো বাঁচে, সেটা আবার স্তূপে ফেরত যায়। একটা পাথর বা কিছুই না থাকা পর্যন্ত চালিয়ে যাও, আর বাজি হলো শেষ পাথরটার ওজন নিয়ে। খেলাটা বারবার একই জিনিস চায়: এই মুহূর্তের সবচেয়ে ভারী দুটো, এমন স্তূপ থেকে যেটা প্রতিটা ঠোকার পরে পাল্টে যায়। স্তূপটা এমন থলেতে রাখুন যেটা সবসময় সবচেয়ে ভারীটা আগে বাড়িয়ে দেয়, তাহলে পুরো খেলাটাই পপ, পপ, হয়তো পুশ, থলে খালি হওয়া পর্যন্ত।
+  hi: |
+    खदान के पास बच्चे एक खेल बनाते हैं: दो सबसे भारी पत्थर लो और आपस में टकरा दो। बराबर पत्थर चूरा हो जाते हैं, गैर-बराबर में फर्क जितना वजनी टुकड़ा बचता है, जो वापस ढेर में जाता है। एक पत्थर या कुछ नहीं बचने तक दोहराओ, और शर्त इस पर है कि आखिरी पत्थर कितना भारी होगा। खेल बार-बार वही मांगता है: इस पल के दो सबसे भारी, ऐसे ढेर से जो हर टक्कर के बाद बदल जाता है। ढेर को ऐसी थैली में रखो जो हमेशा सबसे भारी पहले थमाती है, फिर पूरा खेल है पॉप, पॉप, शायद पुश, थैली खाली होने तक।
+  ar: |
+    يخترع أطفال المحجر لعبة: خذ أثقل حجرين واصدمهما ببعض. الحجران المتساويان يتفتتان غباراً، وغير المتساويين يتركان شظية تزن الفرق تعود إلى الكومة. كرر حتى يبقى حجر واحد أو لا شيء، والرهان على وزن ذلك الحجر الأخير. اللعبة تطلب الشيء نفسه مراراً: الأثقلان، الآن، من كومة تتغير بعد كل صدمة. ضع الكومة في كيس يقدّم الأثقل أولاً دائماً، فتصير اللعبة كلها: اسحب، اسحب، ربما أعد، حتى يجف الكيس.
+---
+
+## Boss 2: The Rock Smash
+
+Boss 1 used a heap as a *filter*, k survivors, everyone else forgotten. This boss uses one as a **simulation engine**: a process that repeatedly consumes its current extremes and produces new elements, with the heap as the pile that keeps up. It's the lightest boss in the dungeon, and it exists to install two reflexes: recognizing repeated-extraction-of-the-max as a heap's home turf, and the negation trick that gets a max-heap out of a min-heap library.
+
+---
+
+## The story
+
+The pile: stones weighing `[2, 7, 4, 1, 8, 1]`. The game, each round:
+
+- Take the **two heaviest** stones, weights y ≥ x.
+- Smash. Equal (x == y): both gone. Unequal: both gone, but a chip weighing `y - x` drops back into the pile.
+- Repeat until one stone or none remains.
+
+Play it out:
+
+```
+pile [2,7,4,1,8,1]:  smash 8,7 → chip 1     pile [2,4,1,1,1]
+smash 4,2 → chip 2                          pile [2,1,1,1]
+smash 2,1 → chip 1                          pile [1,1,1]
+smash 1,1 → dust                            pile [1]
+one stone left: weight 1
+```
+
+Every round, the same request: *the two heaviest, right now.* And the pile *changes* between rounds, chips drop in, so any precomputed order goes stale immediately. That's the signature: not "the k largest of a fixed set" but "the current largest of an evolving set, again and again". Sorting is a photograph; the game needs a live feed.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array of integers `stones` where `stones[i]` is the weight of the `i`-th stone. On each turn, we choose the **heaviest two stones** and smash them together... At the end of the game, there is **at most one** stone left. Return the weight of the last remaining stone. If there are no stones left, return `0`.
+
+LeetCode 1046.
+
+---
+
+## The naive attempt
+
+Re-sort (or re-scan for the two maxima) every round:
+
+```python
+def last_stone_weight(stones):
+    stones = list(stones)
+    while len(stones) > 1:
+        stones.sort()
+        y, x = stones.pop(), stones.pop()
+        if y != x:
+            stones.append(y - x)
+    return stones[0] if stones else 0
+```
+
+O(n log n) per round, up to n rounds: O(n² log n). On this problem's tiny constraints (30 stones), honestly? It passes, and an interviewer will say so, then ask what you'd do with a million stones. The re-sort recomputes the *entire* ranking to serve two elements; the heap maintains just enough order to serve extremes, which is all the game ever asks.
+
+---
+
+## The weapon: a max-heap, worn as a negative min-heap
+
+The algorithm is the story: pop, pop, compare, maybe push, loop. The only engineering note is the hat-trick Python demands. `heapq` speaks min-heap *only*, and this game wants maxima. The standard costume: **store every weight negated**. The most negative number is the heaviest stone; pop the min, negate, and you're holding the max.
+
+<MermaidBlock>
+graph TB
+    A["pile as min-heap\nof NEGATED weights\nheaviest = most negative"]
+    B["pop y, pop x\nthe two heaviest"]
+    C["y == x?\nboth to dust\nnothing returns"]
+    D["y > x?\npush -(y - x)\nchip rejoins the pile"]
+    E["pile down to 1 or 0?\nanswer: the survivor, or 0"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    E --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def last_stone_weight(stones: list[int]) -> int:
+    heap = [-s for s in stones]          # negate: min-heap becomes max-heap
+    heapq.heapify(heap)                  # O(n)
+    while len(heap) > 1:
+        y = -heapq.heappop(heap)         # heaviest
+        x = -heapq.heappop(heap)         # second heaviest
+        if y != x:
+            heapq.heappush(heap, -(y - x))
+    return -heap[0] if heap else 0
+```
+
+Negation discipline: **in at the border, out at the border.** Weights are negative *inside* the heap and positive everywhere else, negate at push, negate at pop, and no line of game logic ever touches a negative weight. Smear the negations through the logic instead and every comparison becomes a coin flip. (Java/C++ folks: pass a reversed comparator and skip the costume entirely. The trick is a Pythonism worth knowing because `heapq` is everywhere.)
+
+---
+
+## Watching it work
+
+`[2, 7, 4, 1, 8, 1]`, stored as `[-8, -7, -4, -1, -2, -1]` post-heapify:
+
+```
+pop → 8, pop → 7:  y≠x, push -(1)      heap holds 4,2,1,1,1
+pop → 4, pop → 2:  push -(2)           heap holds 2,1,1,1
+pop → 2, pop → 1:  push -(1)           heap holds 1,1,1
+pop → 1, pop → 1:  dust                heap holds 1
+size 1 → return 1 ✓
+```
+
+Same trace as the story, and each round cost two O(log n) pops and at most one push, no re-ranking, ever.
+
+<Callout type="tip" title="Recognizing simulation heaps in the wild">
+The pattern, "repeatedly extract extreme(s), transform, reinsert", is everywhere once named: Huffman coding merges the two *lightest* trees the same way; event-driven simulators pop the *soonest* event and push its consequences; CPU schedulers pop the highest-priority task. Boss 5 is exactly this shape wearing a work uniform. When a problem's process mutates the pool between extractions, sorting dies and heaps thrive.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Negation leaks.**
+Comparing `y != x` on negated values works by luck; computing `y - x` on them flips the chip's sign and corrupts the pile silently. Border discipline: negative only inside the structure.
+
+**2. Forgetting the empty ending.**
+All stones can annihilate (try `[1, 1]`). `return -heap[0] if heap else 0`, the `else 0` is the contract's last line, and skipping it indexes into an empty list.
+
+**3. Pushing the chip when x == y.**
+Equal stones leave *nothing*; pushing `-(0)` adds phantom weightless stones that pair with real ones in later rounds and warp the endgame. Push only when the difference is positive.
+
+**4. Popping once and peeking for the second.**
+The two heaviest are two *pops*, the second-heaviest isn't reliably `heap[0]` after one pop... actually it is, after the sift completes, but grabbing `heap[1]` or peeking before re-sift is the real version of this bug. Two clean pops; resist cleverness at the top of a heap.
+
+---
+
+## Complexity
+
+Each round removes at least one stone net: at most n rounds, O(log n) each, plus O(n) heapify.
+
+**Time: O(n log n). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+One kid wins the bet, the last stone weighs 1, and the pile that answered every "heaviest?" query never once knew its own full ranking.
+
+What you walked away with:
+
+- **Simulation heaps**: extract extremes, transform, reinsert, the live feed a changing pool demands
+- The negation costume for max-heaps in min-heap libraries, with border discipline
+- `heapify` first when handed a full pile; the O(n) opener from Boss 1, now habit
+- Sorting is a photograph; heaps are a feed
+
+Next up: **Boss 3 — The Delivery Radius.** A pizza shop with k drivers wants the k *closest* orders on the map, distances measured as the crow flies, no square roots required. Boss 1's inversion returns mirrored, max-heap for k smallest, plus the tuple-keyed heap entries that let you rank one thing while carrying another.

@@ -1,0 +1,201 @@
+---
+title: "Task Scheduler — The Setlist Rule"
+slug: task-scheduler-setlist-rule
+category: dsa
+series: heap-priority-queue
+seriesOrder: 5
+description: "Dungeon 10, Boss 5. A band contract forbids repeating a song within n slots, filler is allowed, and the gig must be as short as possible. A max-heap runs the greedy show, a cooldown queue holds benched songs, and arithmetic shortcuts the whole thing."
+tags:
+  - DSA
+  - Heap
+  - Greedy
+  - Simulation
+icon: "🎤"
+color: orange
+createdAt: "2026-07-14T19:00:00Z"
+updatedAt: "2026-07-14T19:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A cover band's contract has one strange clause: after playing a song, they can't play that same song again for the next two slots. The playlist demands three plays of song A and three of song B, fillers are allowed but every slot counts, and the venue charges by the slot. Play A, play B, and now both are benched, so slot three is a filler. Then A and B are free again. The winning instinct: always play the song with the most remaining plays among those off the bench, because the biggest pile is the one that threatens to force fillers later. Eight slots, two of them filler, and no shorter gig exists.
+  bn: |
+    এক কাভার ব্যান্ডের চুক্তিতে অদ্ভুত একটা ধারা: একটা গান বাজানোর পরে পরের দুই স্লটে সেই গানটা আর বাজানো যাবে না। প্লেলিস্টে গান A তিনবার আর গান B তিনবার বাজাতেই হবে, ফিলার চলবে, কিন্তু প্রতিটা স্লটের হিসাব হয়, ভেন্যু স্লট ধরে ভাড়া নেয়। A বাজান, B বাজান, এখন দুটোই বেঞ্চে, তাই তৃতীয় স্লটে ফিলার। তারপর A আর B আবার ফ্রি। জেতার বুদ্ধিটা হলো: বেঞ্চের বাইরে যাদের সবচেয়ে বেশি বাজানো বাকি, সবসময় সেটাই বাজান, কারণ সবচেয়ে বড় স্তূপটাই পরে ফিলার বাধ্য করার হুমকি। আট স্লট, তার দুটো ফিলার, আর এর চেয়ে ছোট গিগ হয় না।
+  hi: |
+    एक कवर बैंड के कॉन्ट्रैक्ट में अजीब शर्त है: कोई गाना बजाने के बाद अगले दो स्लॉट में वही गाना दोबारा नहीं बजा सकते। प्लेलिस्ट में गाना A तीन बार और गाना B तीन बार बजाना ही है, फिलर चलेंगे पर हर स्लॉट गिनता है, वेन्यू स्लॉट के हिसाब से पैसे लेता है। A बजाओ, B बजाओ, अब दोनों बेंच पर हैं, तो तीसरा स्लॉट फिलर। फिर A और B फिर से फ्री। जीतने वाली सूझ: बेंच से बाहर वालों में हमेशा वही गाना बजाओ जिसके सबसे ज्यादा प्ले बाकी हैं, क्योंकि सबसे बड़ा ढेर ही आगे चलकर फिलर मजबूर करने की धमकी है। आठ स्लॉट, उनमें दो फिलर, और इससे छोटा गिग मुमकिन नहीं।
+  ar: |
+    في عقد فرقة أغانٍ بند غريب: بعد عزف أغنية لا يجوز عزفها ثانية في الفتحتين التاليتين. القائمة تفرض ثلاث مرات للأغنية A وثلاثاً للأغنية B، والحشو مسموح لكن كل فتحة تُحسب، والقاعة تحاسب بالفتحة. اعزف A ثم B، فيجلس كلاهما على مقاعد البدلاء، فتكون الفتحة الثالثة حشواً. ثم يتحرر A وB من جديد. الحدس الرابح: اعزف دائماً الأغنية ذات أكبر عدد متبقٍ من العزفات بين المتاحات، لأن الكومة الأكبر هي التي تهدد بفرض الحشو لاحقاً. ثماني فتحات، اثنتان منها حشو، ولا وجود لحفلة أقصر.
+---
+
+## Boss 5: The Setlist Rule
+
+Boss 2 promised this shape would return in a work uniform. Here it is: a **scheduler**, the most literal use of a *priority* queue in the dungeon, and the boss where **greedy** reasoning joins the toolkit: at every step, do the locally-smartest thing, and (this is the part that needs *proof*, not vibes) show it can't hurt. Plus a bonus exit: when the question only asks *how long*, arithmetic answers without simulating a single slot.
+
+---
+
+## The story
+
+The contract: songs `[A, A, A, B, B, B]`, cooldown `n = 2`, after playing a song, it's benched for the next 2 slots. Fillers (crowd banter, drum solo) burn a slot but are always legal. Venue bills per slot. Minimize slots.
+
+Play it greedily, always choosing the *most-remaining* unbenched song:
+
+```
+slot 1: A (A benched till 4)      remaining A:2 B:3... 
+```
+
+wait, B had 3 and A had 3, tie, pick either. Do it properly:
+
+```
+slot 1: A(3→2)   bench: A until slot 4
+slot 2: B(3→2)   bench: A(4), B(5)
+slot 3: filler   nothing unbenched
+slot 4: A(2→1)   bench: A(7), B(5)
+slot 5: B(2→1)   bench: A(7), B(8)
+slot 6: filler
+slot 7: A(1→0)
+slot 8: B(1→0)
+```
+
+**8 slots**, two fillers. Why "most remaining first" is right, in one sentence: the *biggest pile is the bottleneck*, its copies must sit ≥ n apart no matter what, framing the gig like fence posts, and every other song's plays are just material to fill the gaps between those posts; spending scarce gap-space on the bottleneck's rivals first would leave the fence unfillable and force *more* fillers, never fewer.
+
+That fence-post picture is about to become a formula. But first, the machine.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array of CPU tasks... and a cooling time `n`. Each cycle allows one task or idle. Two same tasks must be separated by at least `n` intervals. Return the **minimum number of intervals** required to complete all tasks.
+
+LeetCode 621. (Songs, tasks, same contract. LeetCode's version is a CPU; ours has better merch.)
+
+---
+
+## The naive attempt
+
+Simulate slot by slot, scanning all 26 counts each time for the best legal choice:
+
+```python
+def least_interval(tasks, n):
+    from collections import Counter
+    counts = Counter(tasks)
+    last_played = {}
+    t = 0
+    while any(c > 0 for c in counts.values()):
+        best = max((c for c in counts if counts[c] > 0
+                    and t - last_played.get(c, -10**9) > n),
+                   key=lambda c: counts[c], default=None)
+        if best:
+            counts[best] -= 1
+            last_played[best] = t
+        t += 1
+    return t
+```
+
+Correct, O(total_slots × 26), and with 26 task types honestly not tragic. Its sin is shape: a linear scan re-asking "who's the max?" every slot, the question heaps exist to answer, plus bench-checking smeared into timestamp arithmetic. The heap version separates the two concerns cleanly: *available* songs in a max-heap, *benched* songs in a queue stamped with their release slot.
+
+---
+
+## The weapon: a max-heap on stage, a cooldown queue backstage
+
+Two structures, one clock:
+
+- **Stage (max-heap):** remaining-play counts of every *available* song. Pop = play the most-remaining one.
+- **Bench (FIFO queue):** pairs of (remaining count, slot when free). The *front* is always the next to free up, cooldowns are uniform, so bench order is release order, a plain queue suffices, no second heap needed.
+
+Each clock tick: free anyone whose release time arrived (bench front → heap), then play the heap's top (count minus one; if plays remain, onto the bench with release stamp `now + n`), or if the heap's empty, that tick is a filler. A subtle speed-up: when the stage is empty but the bench isn't, **jump the clock** straight to the bench front's release, no need to simulate each filler tick one by one.
+
+<MermaidBlock>
+graph TB
+    A["clock tick"]
+    B["bench front due?\nmove back to heap"]
+    C["heap top: play it\ncount minus 1\nstill plays left?\nbench until now plus n"]
+    D["heap empty, bench not?\njump clock to next release\nfillers counted in bulk"]
+    E["both empty: gig over\nanswer = clock"]
+    A --> B
+    B --> C
+    B --> D
+    C --> A
+    D --> A
+    B --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+from collections import Counter, deque
+
+def least_interval(tasks: list[str], n: int) -> int:
+    heap = [-c for c in Counter(tasks).values()]   # max-heap of counts
+    heapq.heapify(heap)
+    bench = deque()                                # (neg_count, free_at)
+    t = 0
+    while heap or bench:
+        if not heap:
+            t = bench[0][1]                        # jump over the fillers
+        else:
+            t += 1
+        if bench and bench[0][1] <= t:
+            heapq.heappush(heap, bench.popleft()[0])
+        if heap:
+            c = heapq.heappop(heap) + 1            # play: one fewer (negated)
+            if c < 0:
+                bench.append((c, t + n))           # plays remain: bench it
+    return t
+```
+
+Note what the heap holds: **counts, not song names**. The scheduler never cares *which* song plays, only how threatening its pile is. Anonymizing state down to what the algorithm actually reads is a quiet senior habit, less to carry, nothing to confuse.
+
+---
+
+## The arithmetic exit
+
+The fence-post picture, cashed. Let `maxc` = the largest count, and `ties` = how many songs share it. The bottleneck song forms `maxc - 1` gaps, each `n` wide, plus the final row of tied finishers:
+
+```
+slots ≥ (maxc - 1) × (n + 1) + ties
+```
+
+For A,A,A,B,B,B, n=2: (3−1)×3 + 2 = **8**. ✓ And if the playlist is so rich that gaps overflow (more material than idle space), fillers vanish and the answer is simply `len(tasks)`. Final formula: **max(that expression, len(tasks))**. O(1) after counting, no heap, no clock.
+
+So why does the simulation exist? Because the formula answers only *how long*, the variant that asks for the actual *order* (or non-uniform cooldowns, or priorities, real schedulers) needs the machine. Interviews adore this pair: derive the formula, then show you could still build the engine. Do both, in that order.
+
+---
+
+## Gotchas
+
+**1. Greedy without the why.**
+"Play the biggest pile first" asserted without the bottleneck/fence argument is a vibe, not an answer. One sentence of proof separates the levels.
+
+**2. Benching a finished song.**
+The `if c < 0` guard: a song at zero remaining plays must *not* rejoin the bench, or the gig never ends. (Negated counts: `c < 0` means plays remain. Border discipline, Boss 2, still active.)
+
+**3. Freeing the bench after playing instead of before.**
+A song due *this* tick must be a candidate *this* tick. Un-bench first, then choose. Swap the order and cooldowns silently lengthen by one.
+
+**4. Formula without the `max(..., len(tasks))` clamp.**
+Rich playlists overflow the gaps; the fence formula undercounts them. `[A,A,B,B,C,C]`, n=1: formula gives (2−1)×2+... check it, clamp saves it. Both terms, always.
+
+---
+
+## Complexity
+
+Simulation: each play is one heap pop+push over at most 26 distinct counts, **O(total · log 26) = O(total)**. Formula: **O(total)** to count, O(1) to answer. **Space: O(26) = O(1).**
+
+---
+
+## Boss down. XP gained.
+
+Eight slots, two drum solos, contract satisfied, and the venue's per-slot invoice is provably minimal. The bassist takes credit for the formula.
+
+What you walked away with:
+
+- **Greedy + heap**: always serve the most-threatening pile, with the bottleneck argument as the proof
+- Two-structure scheduling: max-heap for *available*, time-stamped queue for *cooling*, uniform cooldowns need no second heap
+- Clock-jumping over idle stretches, simulate work, not waiting
+- The fence-post formula `(maxc−1)(n+1) + ties`, clamped by `len(tasks)`, arithmetic beating simulation when only the length matters
+
+Next up: **Boss 6 — The Notice Board.** A village where everyone posts notices and follows their neighbors, and the board must show each visitor the ten freshest notices from *their* people. Design Twitter, for real, this is the problem, and it's Dungeon 6's k-way ferry merge reborn with follow lists, timestamps, and API shapes around it.

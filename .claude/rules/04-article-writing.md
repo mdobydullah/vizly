@@ -63,6 +63,7 @@ graph TB
 
 ### MDX Syntax
 - **No bare curly braces in prose.** MDX parses `{...}` outside code blocks as a JSX expression: `{3's territory}` breaks the build ("Unexpected content after expression"), and `{2,0,4,3,5}` builds but silently renders as `5` (JS comma operator). Wrap set/dict notation in backticks (`` `{9, 3, 15}` ``) or reword. Code fences and frontmatter are safe.
+- **No `<=` / `<` glued to a symbol in prose or MermaidBlock labels.** MDX parses `<` as a JSX tag opener when followed by a non-space character: `size <= 1` breaks the build ("Unexpected character `=` before name"). `<` followed by a space (`a < b`) is safe. For `<=`, wrap in backticks or reword ("at most", "not above"). MermaidBlock children are MDX text, so this applies inside diagram labels too.
 
 ## 6. CSS Rules for Articles
 - **Never write custom CSS for articles.** All article styling (code blocks, tables, callouts, blockquotes, inline code, headings) is handled by `src/styles/articles/articles.css`.
