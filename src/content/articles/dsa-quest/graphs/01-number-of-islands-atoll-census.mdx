@@ -1,0 +1,218 @@
+---
+title: "Number of Islands — The Atoll Census"
+slug: number-of-islands-atoll-census
+category: dsa
+series: graphs
+seriesOrder: 1
+description: "Dungeon 11, Boss 1. A coast guard surveyor counts islands on a satellite grid of land and water. Meet the graph: nodes, edges, and the flood fill that surveys a whole landmass so it never gets counted twice."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - BFS
+  - Matrix
+  - Beginner
+icon: "🏝️"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're a coast guard surveyor, and a satellite photo lands on your desk: a grid where 1 is land and 0 is water. The office wants a census, how many distinct islands are out there. Counting land cells is useless, one big island has hundreds of them. The trick is that the moment you step on land nobody has surveyed, that is exactly one island, so you walk every connected cell right then with DFS and stamp it all as surveyed. Whatever unstamped land you find after that has to be a brand new island.
+  bn: |
+    ভাবুন, আপনি কোস্ট গার্ডের জরিপকারী। ডেস্কে একটা স্যাটেলাইট ছবি এলো, গ্রিডে ১ মানে ডাঙা, ০ মানে পানি। অফিস জানতে চায় আলাদা দ্বীপ মোট কয়টা। ডাঙার ঘর গুনে লাভ নেই, একটা বড় দ্বীপেই শত শত ঘর থাকে। কৌশলটা হলো, যেই মুহূর্তে এমন ডাঙায় পা পড়ে যেটা কেউ জরিপ করেনি, সেটাই ঠিক একটা দ্বীপ, আর তখনই DFS দিয়ে সংযুক্ত প্রতিটা ঘরে হেঁটে সবগুলোতে জরিপের সিল মেরে দিন। এরপর সিলছাড়া যে ডাঙা পাবেন, সেটা নিশ্চিত নতুন দ্বীপ।
+  hi: |
+    मान लीजिए आप कोस्ट गार्ड के सर्वेयर हैं। डेस्क पर एक सैटेलाइट तस्वीर आती है, ग्रिड में 1 मतलब जमीन और 0 मतलब पानी। दफ्तर को गिनती चाहिए कि अलग-अलग टापू कितने हैं। जमीन के खाने गिनना बेकार है, एक बड़े टापू में ही सैकड़ों खाने होते हैं। तरकीब यह है कि जैसे ही ऐसी जमीन पर पैर पड़े जिसका सर्वे नहीं हुआ, वही ठीक एक टापू है, और उसी वक्त DFS से हर जुड़े खाने पर घूमकर सर्वे की मुहर लगा दो। उसके बाद बिना मुहर की जो जमीन मिले, वह पक्का नया टापू है।
+  ar: |
+    تخيل أنك مسّاح في خفر السواحل، وتصلك صورة قمر صناعي: شبكة فيها 1 يعني يابسة و0 يعني ماء. المكتب يريد إحصاء، كم جزيرة مختلفة هناك. عدّ خانات اليابسة لا يفيد، فجزيرة واحدة كبيرة فيها مئات الخانات. الحيلة أنك لحظة تطأ يابسة لم يمسحها أحد، فهذه جزيرة واحدة بالضبط، فتمشي فوراً بالـ DFS على كل الخانات المتصلة وتختمها كلها بأنها مُسحت. أي يابسة بلا ختم تجدها بعد ذلك لا بد أن تكون جزيرة جديدة.
+---
+
+## Welcome to Dungeon 11
+
+Dungeon 10 cared about extremes, the largest, the smallest, the k-th, and stayed cheerfully blind to everything else. This dungeon asks a bigger and older question: **can you get there from here?** Islands in a grid, courses with prerequisites, networks that must stay connected, and later, union-find joins that answer "same group?" without walking a single step. Reachability. Thirteen bosses, the longest dungeon in the quest, because half the real world is secretly a graph.
+
+---
+
+## The machine: nodes, edges, and grids in disguise
+
+A **graph** is just two things: **nodes** (the places) and **edges** (the connections between them). If edges go one way, the graph is *directed*, prerequisites, one-way streets. If they go both ways, *undirected*, friendships, bridges. That's the whole vocabulary.
+
+How do you store one? The workhorse is the **adjacency list**: for each node, the list of its direct neighbors.
+
+```python
+subway = {
+    "A": ["B", "C"],
+    "B": ["A", "D"],
+    "C": ["A"],
+    "D": ["B"],
+}
+```
+
+Space proportional to nodes plus edges, and "who are my neighbors?" is a single lookup. You'll build these by hand from Boss 8 onward.
+
+But this boss hands you no adjacency list, and here's the dungeon's first insight: **a 2D grid is already a graph.** Every cell is a node. Every cell's edges go to its 4 neighbors, up, down, left, right. Nobody writes the list down because the neighbors are arithmetic: from `(r, c)` you reach `(r+1, c)`, `(r-1, c)`, `(r, c+1)`, `(r, c-1)`. An *implicit* graph. Bosses 1 through 7 all live on one.
+
+Two ways to explore territory. **DFS** (depth-first) dives: pick a neighbor, go, pick again, go deeper, backtrack only when stuck. **BFS** (breadth-first) ripples: visit everything 1 step away, then everything 2 steps away, expanding like rings on water. For "touch every reachable cell" they're interchangeable, pick whichever you type faster. BFS earns its keep when *distance* matters, which is Boss 4's whole personality.
+
+One discipline binds both, and it is non-negotiable: the **visited set**. Mark every node the moment you commit to visiting it. Graphs, unlike Dungeon 7's trees, have cycles, and an unmarked cycle is an infinite loop wearing a scenic route costume.
+
+---
+
+## The story
+
+A coast guard surveyor gets the morning satellite pass: a grid of the atoll, `1` for land, `0` for water. The census office wants one number, **how many distinct islands**.
+
+```
+1 1 0 0 0
+1 1 0 0 1
+0 0 0 1 1
+0 0 0 0 0
+1 0 1 1 0
+```
+
+She scans row by row, and every time she hits land no one has surveyed, she declares a new island and walks *all* of it before moving on:
+
+```
+scan hits (0,0): unsurveyed land → island #1
+  walk the whole landmass: (0,0),(0,1),(1,0),(1,1) all stamped
+scan hits (1,4): unsurveyed → island #2
+  stamp (1,4),(2,4),(2,3)
+scan hits (4,0): unsurveyed → island #3, stamped alone
+scan hits (4,2): unsurveyed → island #4
+  stamp (4,2),(4,3)
+census: 4 islands
+```
+
+The insight that runs the survey: stepping on unvisited land means **one** island, exactly one, and flood-filling it right then guarantees you never count any of its cells again. Count the *discoveries*, not the land.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` 2D binary grid `grid` which represents a map of `'1'`s (land) and `'0'`s (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands **horizontally or vertically**. You may assume all four edges of the grid are surrounded by water.
+
+LeetCode 200.
+
+---
+
+## The naive attempt
+
+First instinct: count the land.
+
+```python
+def num_islands(grid):
+    return sum(row.count("1") for row in grid)   # returns 9, not 4
+```
+
+That counts *cells*. The northwest island alone contributes four. Second instinct: count runs of 1s per row and merge runs that touch the row above. Now you're hand-rolling connectivity bookkeeping, and it collapses the moment an island snakes down one column and back up another, two "separate" runs that meet three rows later. Connectivity is a 2D property; row-local logic can't see it. (Making the merge bookkeeping actually work is real machinery, it's called union-find, and it guards the end of this dungeon.)
+
+---
+
+## The weapon: flood fill
+
+<MermaidBlock>
+graph TB
+    A["scan every cell\nrow by row"]
+    B["unsurveyed land found\ncount += 1\nthis is a NEW island"]
+    C["flood fill from it\nDFS through 4-neighbors\nstamp every cell surveyed"]
+    D["scan resumes\nstamped land is skipped\nnext fresh 1 = next island"]
+    A --> B
+    B --> C
+    C --> D
+    D --> B
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def num_islands(grid: list[list[str]]) -> int:
+    rows, cols = len(grid), len(grid[0])
+
+    def sink(r: int, c: int) -> None:
+        if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] != "1":
+            return                        # off the map, water, or already surveyed
+        grid[r][c] = "#"                  # stamp it BEFORE exploring onward
+        sink(r + 1, c)
+        sink(r - 1, c)
+        sink(r, c + 1)
+        sink(r, c - 1)
+
+    count = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == "1":
+                count += 1                # a discovery, one whole island
+                sink(r, c)                # survey all of it right now
+    return count
+```
+
+Marking the grid in place (`"#"`) *is* the visited set here, the map doubles as the ledger. If mutating the input is off the table, keep a separate `visited` set of `(r, c)` pairs; the logic doesn't change.
+
+The BFS variant swaps recursion for a queue: push the starting cell, and while the queue isn't empty, pop a cell and push its unstamped land neighbors, stamping each **as it's pushed**. Same cells, same count, rings instead of dives.
+
+---
+
+## Watching it work
+
+The scan on our atoll touches all 25 cells, but the interesting moments are four:
+
+```
+(0,0): "1" → count=1, sink() stamps the 4-cell block
+       later cells (0,1),(1,0),(1,1) read "#", skipped
+(1,4): "1" → count=2, sink() runs down to (2,4), left to (2,3)
+(4,0): "1" → count=3, all 4 neighbors water, fill ends instantly
+(4,2): "1" → count=4, stamps (4,3) too
+scan ends → 4 ✓
+```
+
+Each cell is visited by the scan once and by at most one flood fill. No cell pays twice.
+
+<Callout type="tip" title="Recognizing flood fill in the wild">
+The shape is "count or process **connected regions**": provinces in a friendship matrix, the paint-bucket tool in every image editor (literally named flood fill), minesweeper's zero-cascade, blob detection in vision. The tell is a grid or graph plus the word "connected", "region", "group", or "island". One traversal per region, visited marks so regions never overlap, and the answer is either the region count or something computed per region, which is exactly Boss 2.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Stamping after the recursive calls.**
+Mark the cell *before* exploring its neighbors. Mark after, and two adjacent cells happily recurse into each other forever. This is the visited discipline; it will appear in every one of the thirteen bosses.
+
+**2. `'1'` the string versus `1` the number.**
+LeetCode 200 hands you *characters*. `grid[r][c] == 1` is silently false everywhere and returns 0 islands. Boss 2's grid uses ints. Read the type, every time.
+
+**3. Counting diagonal neighbors.**
+Islands connect horizontally and vertically only. Adding the four diagonal moves merges islands the problem considers separate. (Some problems do want 8 directions, the contract decides, not habit.)
+
+**4. Recursion depth.**
+A 300 by 300 grid of solid land nests the DFS ninety thousand calls deep; Python's default limit is 1000. The BFS variant, or an explicit stack, is the production-grade fill. Interviewers accept recursion but love asking about this.
+
+**5. Forgetting the bounds check comes first.**
+Test `r` and `c` against the edges *before* indexing `grid[r][c]`, or negative indices wrap around Python-style and stamp the wrong coast.
+
+---
+
+## Complexity
+
+Every cell is scanned once and flood-filled at most once, constant work each.
+
+**Time: O(m · n). Space: O(m · n)** worst case for the recursion stack (or queue), one giant all-land island.
+
+---
+
+## Boss down. XP gained.
+
+Census filed: four islands. The surveyor never measured a coastline twice, because the stamp went down the moment her boot did.
+
+What you walked away with:
+
+- A graph is nodes plus edges; adjacency lists store it, and a **grid is an implicit graph** with arithmetic neighbors
+- **Flood fill**: one discovery = one component, consume the whole region on contact
+- The visited discipline: mark on commitment, not on convenience, cycles forgive nothing
+- DFS dives, BFS ripples; for pure reachability they tie, and distance problems will break the tie later
+
+Next up: **Boss 2 — The Homestead Claim.** Counting islands told you *how many*. The land office wants to know *how big*, which means teaching the flood fill to come back from its walk carrying a number.

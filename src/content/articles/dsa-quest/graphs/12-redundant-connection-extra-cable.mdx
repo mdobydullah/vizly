@@ -1,0 +1,205 @@
+---
+title: "Redundant Connection — The Extra Cable"
+slug: redundant-connection-extra-cable
+category: dsa
+series: graphs
+seriesOrder: 12
+description: "Dungeon 11, Boss 12. An office network that was a clean tree until someone plugged in one extra cable and made a loop. Union-find goes live: process cables in plug-in order, and the first one whose ends already share a root is the culprit."
+tags:
+  - DSA
+  - Graphs
+  - Union-Find
+  - Intermediate
+icon: "🔌"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The office network used to be a clean tree, one path between any two machines. Then somebody plugged in one extra cable, and now broadcasts chase their own tails and the switches are melting. You have the install log, every cable in the order it went in. Replay it with Union-Find: each cable merges two groups, and the first cable whose two ends already sit in the same group is the one that closed the loop. Unplug that one and the storm dies.
+  bn: |
+    অফিসের নেটওয়ার্কটা ছিল পরিষ্কার একটা গাছ, যেকোনো দুই মেশিনের মাঝে একটাই পথ। তারপর কেউ একটা বাড়তি তার লাগিয়ে দিলো, আর এখন ব্রডকাস্ট নিজের লেজ ধরে ঘুরছে, সুইচগুলো গরমে গলে যাওয়ার দশা। আপনার হাতে ইনস্টল লগ আছে, কোন তারটা কখন লাগানো হয়েছে সেই ক্রমে। লগটা Union-Find দিয়ে আবার চালান: প্রতিটা তার দুটো দলকে জোড়া লাগায়, আর যে তারের দুই মাথা আগে থেকেই এক দলে, সেটাই লুপটা বন্ধ করেছে। ওটা খুলে ফেলুন, ঝড় থেমে যাবে।
+  hi: |
+    दफ्तर का नेटवर्क पहले एक साफ पेड़ था, किन्हीं दो मशीनों के बीच बस एक ही रास्ता। फिर किसी ने एक फालतू केबल लगा दी, और अब ब्रॉडकास्ट अपनी ही पूंछ के पीछे घूम रहे हैं और स्विच पिघलने की कगार पर हैं। आपके पास इंस्टॉल लॉग है, हर केबल उसी क्रम में जिस क्रम में लगी। उसे Union-Find से दोबारा चलाओ: हर केबल दो टोलियों को जोड़ती है, और जिस केबल के दोनों सिरे पहले से एक ही टोली में हों, वही लूप की गुनहगार है। उसे निकालो और तूफान थम जाता है।
+  ar: |
+    كانت شبكة المكتب شجرة نظيفة، مسار واحد بين أي جهازين. ثم وصل أحدهم كابلاً زائداً واحداً، فصارت رسائل البث تدور خلف ذيلها والمحولات تكاد تذوب. عندك سجل التركيب، كل كابل بترتيب توصيله. أعد تشغيل السجل بـ Union-Find: كل كابل يدمج مجموعتين، وأول كابل يجد طرفيه في المجموعة نفسها هو الذي أغلق الحلقة. افصله وتهدأ العاصفة.
+---
+
+## Boss 12: The Extra Cable
+
+Boss 11 used union-find as a *post-mortem*: pour in all the friendships, then count how many groups are left standing. This boss uses the same structure as a **live detector**. The edges arrive one by one, and instead of tallying the damage afterward, union-find catches the criminal in the act, the exact edge that broke the tree. Along the way it completes the toolkit Boss 11 opened: path compression *and* union by size, plus a `union` that reports whether it actually merged anything.
+
+---
+
+## The story
+
+An office network of five machines, wired up one cable at a time. IT kept the install log:
+
+```
+cable 1: (1, 2)
+cable 2: (2, 3)
+cable 3: (3, 4)
+cable 4: (1, 4)
+cable 5: (1, 5)
+```
+
+Five machines, five cables. Boss 10 already taught you to flinch at that: a tree on five nodes needs exactly **four** edges. One cable is extra, and sure enough there's a loop, 1 to 2 to 3 to 4 and back to 1. Broadcast packets ride that carousel forever and the switches are screaming.
+
+Unplugging any of the four loop cables would fix it. But the ticket says: if several cables would work, pull the one that was **plugged in last**. Here that's cable 4, the (1, 4) that closed the ring. Cables inside the loop that went in earlier were innocent at the time; the last one is the one that actually committed the crime.
+
+---
+
+## The problem, dressed up properly
+
+> In this problem, a tree is an undirected graph that is connected and has no cycles. You are given a graph that started as a tree with `n` nodes labeled from 1 to `n`, with **one additional edge** added. Return an edge that can be removed so that the resulting graph is a tree of `n` nodes. If there are multiple answers, return the answer that **occurs last in the input**.
+
+LeetCode 684.
+
+---
+
+## The naive attempt
+
+Test each cable, starting from the last: unplug it mentally, then DFS the rest to check it's a valid tree (connected, no cycle).
+
+```python
+def find_redundant_connection(edges):
+    n = len(edges)
+    for skip in range(n - 1, -1, -1):        # try removing each edge, last first
+        adj = {i: [] for i in range(1, n + 1)}
+        for j, (a, b) in enumerate(edges):
+            if j != skip:
+                adj[a].append(b)
+                adj[b].append(a)
+        seen = set()
+        def dfs(node, prev):                 # False if a cycle is found
+            if node in seen:
+                return False
+            seen.add(node)
+            return all(dfs(nb, node) for nb in adj[node] if nb != prev)
+        if dfs(1, 0) and len(seen) == n:     # acyclic AND connected
+            return list(edges[skip])
+```
+
+It works, and it rebuilds the entire graph and re-walks it for every candidate: O(E · (V + E)). Worse, it treats the input as a static blob when the input is literally a *chronology*. The order the cables went in is information, and this code throws it away.
+
+---
+
+## The weapon: union-find, watching the edges arrive
+
+Replay the install log. Keep every machine in a group (its union-find set). Each cable `(a, b)` is a question: *are a and b already connected?*
+
+- **Different roots**: the cable is useful, merge the two groups, move on.
+- **Same root**: a path between them already exists. This cable adds a second path, which is the definition of a cycle. Culprit found, stop.
+
+And here's the free lunch: because you process cables in plug-in order, the first union that fails is *automatically* the last-in-input answer. Every other edge of the cycle was unioned before the culprit arrived, so they all succeeded. Only the final edge of the ring finds its endpoints already related. No sorting, no tie-breaking logic, the chronology does it for you.
+
+<MermaidBlock>
+graph TB
+    A["cable arrives: (a, b)"]
+    B["find(a) and find(b)\nwalk to the roots\ncompress the path on the way"]
+    C["different roots?\nmerge: union by size\nsmall group hangs under big"]
+    D["same root?\na and b were already connected\nthis cable closed the loop"]
+    E["report (a, b)\nunplug it, storm over"]
+    A --> B
+    B --> C
+    B --> D
+    C --> A
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def find_redundant_connection(edges: list[list[int]]) -> list[int]:
+    parent = list(range(len(edges) + 1))    # machines are 1-indexed
+    size = [1] * (len(edges) + 1)
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]   # path compression: skip a generation
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> bool:
+        root_a, root_b = find(a), find(b)
+        if root_a == root_b:
+            return False                    # already connected: cycle closer
+        if size[root_a] < size[root_b]:     # union by size: small under big
+            root_a, root_b = root_b, root_a
+        parent[root_b] = root_a
+        size[root_a] += size[root_b]
+        return True
+
+    for a, b in edges:                      # input order IS plug-in order
+        if not union(a, b):
+            return [a, b]                   # first failure = last-plugged culprit
+```
+
+Two upgrades over Boss 11's bare-bones version, and they're a matched pair. **Path compression** flattens the tree as `find` walks it, so future lookups get shorter. **Union by size** hangs the small group under the big one, so the tree never grows tall in the first place. Together they push each operation down to amortized α(n), the inverse Ackermann function, which is at most 4 for any input that fits in this universe. Effectively constant.
+
+---
+
+## Watching it work
+
+The log again, with roots tracked:
+
+```
+(1,2): find(1)=1, find(2)=2  → merge, 2 joins 1     groups: {1,2} {3} {4} {5}
+(2,3): find(2)=1, find(3)=3  → merge, 3 joins 1     groups: {1,2,3} {4} {5}
+(3,4): find(3)=1, find(4)=4  → merge, 4 joins 1     groups: {1,2,3,4} {5}
+(1,4): find(1)=1, find(4)=1  → SAME ROOT. Culprit.
+return [1, 4] ✓
+```
+
+Cable 5, the innocent (1, 5), is never even examined. The detector fired on contact and machine 5 got to keep its link.
+
+<Callout type="tip" title="Recognizing live cycle detection in the wild">
+"Does adding this edge create a cycle?" asked repeatedly is union-find's signature move. Kruskal's minimum spanning tree algorithm is exactly this loop with a price tag: take edges cheapest-first, skip any whose union fails. Network provisioning tools, deduplication passes, and "accounts that share an email" merging all run the same probe. When edges arrive as a stream and you need connectivity answers between arrivals, DFS is too slow to rerun and union-find is the tool.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Comparing parents instead of roots.**
+`parent[a] == parent[b]` only works if the trees happen to be flat. The test is always `find(a) == find(b)`, walk to the top. Half of all union-find bugs are this one line.
+
+**2. A `union` that doesn't report.**
+The whole algorithm lives in that boolean. A void `union` forces you to call `find` twice more to check what happened, or worse, tempts you to skip the check.
+
+**3. Off-by-one on the labels.**
+Machines are numbered 1 to n, so the parent array needs n + 1 slots. Size the array with `range(n)` and machine n walks off the end.
+
+**4. Sorting or deduplicating the edges first.**
+Any reshuffle destroys the chronology, and the chronology *is* the tie-breaker. The "last in input" requirement is satisfied by doing nothing clever. Don't sort what's already telling a story.
+
+**5. Skipping both optimizations.**
+Compression alone or size alone still gives near-constant behavior. Skipping both lets the parent chains degenerate into linked lists, and each `find` becomes O(n). The two-line upgrades are the difference between α(n) and a quadratic worst case.
+
+---
+
+## Complexity
+
+E union/find operations, each amortized α(V) with compression plus union by size.
+
+**Time: O(E · α(V)), effectively linear. Space: O(V).**
+
+---
+
+## Boss down. XP gained.
+
+The (1, 4) cable comes out, the carousel stops mid-spin, and the install log that looked like boring paperwork turned out to be the entire solution.
+
+What you walked away with:
+
+- **Union-find, completed**: path compression + union by size, operations amortized to effectively O(1)
+- `union` as a **boolean probe**: "did this edge connect anything new, or was it redundant?"
+- **Live cycle detection**: process edges in order, the first failed union is the edge that closed the loop
+- Input order can be a feature: the chronology satisfied "last in input" with zero extra code
+
+Next up: **Boss 13 — The Password Drift**, the dungeon finale. A graph with no edge list at all. You get a dictionary of words and a rule, change one letter at a time, and you must *invent* the edges yourself while BFS hunts the shortest path through them. Every earlier boss handed you the graph. The finale hands you nothing.

@@ -1,0 +1,211 @@
+---
+title: "Walls and Gates — The Fire Drill Map"
+slug: walls-and-gates-fire-drill-map
+category: dsa
+series: graphs
+seriesOrder: 4
+description: "Dungeon 11, Boss 4. Every room needs a sign showing steps to the nearest exit. Seed the queue with all the gates at once and flood outward in rings, first arrival wins. Multi-source BFS, properly introduced."
+tags:
+  - DSA
+  - Graphs
+  - BFS
+  - Matrix
+  - Intermediate
+icon: "🚪"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're the safety officer in an office building. Fire code says every room needs a sign with the number of steps to the nearest exit. You could walk out from each room hunting for a door, but that measures the same hallways hundreds of times. So you flip it: open every exit at once and let the count spread outward, one ring per step. Whichever exit reaches a room first is its nearest one, and that idea is multi-source BFS.
+  bn: |
+    ভাবুন, আপনি একটা অফিস বিল্ডিংয়ের সেফটি অফিসার। ফায়ার কোডের নিয়মে প্রতিটা ঘরে সাইন লাগাতে হবে, সবচেয়ে কাছের এক্সিট কত ধাপ দূরে। প্রতিটা ঘর থেকে হেঁটে দরজা খুঁজলে একই করিডোর শতবার মাপা হবে। তাই উল্টো করুন: সব এক্সিট একসাথে খুলে দিন আর গোনাটা বাইরের দিকে ছড়াতে দিন, প্রতি ধাপে এক রিং। যে এক্সিট কোনো ঘরে আগে পৌঁছায় সেটাই তার সবচেয়ে কাছেরটা, আর এটাই multi-source BFS।
+  hi: |
+    मान लीजिए आप एक ऑफिस बिल्डिंग के सेफ्टी ऑफिसर हैं। फायर कोड कहता है हर कमरे में साइन चाहिए, सबसे पास वाला एग्ज़िट कितने कदम दूर है। हर कमरे से निकलकर दरवाज़ा ढूंढेंगे तो वही गलियारे सौ बार नापेंगे। तो उल्टा करो: सारे एग्ज़िट एक साथ खोल दो और गिनती को बाहर की तरफ फैलने दो, हर कदम पर एक रिंग। जो एग्ज़िट किसी कमरे तक पहले पहुंचे वही उसका सबसे पास वाला है, और यही multi-source BFS है।
+  ar: |
+    تخيل أنك مسؤول السلامة في مبنى مكاتب. قانون الحريق يقول إن كل غرفة تحتاج لافتة تبين عدد الخطوات حتى أقرب مخرج. لو مشيت من كل غرفة تبحث عن باب، ستقيس الممرات نفسها مئات المرات. فاقلب الفكرة: افتح كل المخارج مرة واحدة ودع العد ينتشر للخارج، حلقة مع كل خطوة. أول مخرج يصل إلى غرفة هو الأقرب إليها، وهذه هي فكرة multi-source BFS.
+---
+
+## Boss 4: The Fire Drill Map
+
+Boss 3 cloned a graph by *walking* it, DFS diving down one corridor at a time, backtracking when it hit a dead end. This boss retires the dive and installs the other fundamental walk: **BFS**, the ring-by-ring sweep that visits everything at distance 1, then everything at distance 2, and so on. Then it supercharges it with the twist that makes it a boss: **many starting points at once**. One queue, all sources seeded together, and every cell in the grid learns its true nearest distance in a single pass.
+
+---
+
+## The story
+
+You're the safety officer for a small office floor. Fire code says every room gets a sign: *nearest exit, N steps*. The floor plan is a grid, exits are `0`, walls are `-1`, and empty rooms start as `INF` (a placeholder meaning "no sign yet"):
+
+```
+INF  -1    0  INF
+INF  INF  INF  -1
+INF  -1   INF  -1
+ 0   -1   INF  INF
+```
+
+Two exits: top row and bottom-left corner. Instead of pacing out each room, you stand at *both* exits and let the count ripple outward:
+
+```
+seed: both gates in the queue          (0,2) and (3,0), distance 0
+
+ring 1:  (0,3)=1  (1,2)=1              one step from the top gate
+         (2,0)=1                       one step from the bottom gate
+ring 2:  (1,1)=2  (2,2)=2  (1,0)=2     spreading from ring 1
+ring 3:  (0,0)=3  (3,2)=3
+ring 4:  (3,3)=4                       queue empty, done
+
+3   -1   0   1
+2    2   1  -1
+1   -1   2  -1
+0   -1   3   4
+```
+
+Notice room (1,0). The top gate could reach it in 3 steps, the bottom gate in 2. It got stamped **2**, and nobody compared anything. The bottom gate's ripple simply *arrived first*, and in BFS, first arrival is always the shortest path. That's the whole trick.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `m x n` grid `rooms` initialized with three possible values: `-1` for a wall, `0` for a gate, and `INF` (2147483647) for an empty room. Fill each empty room with the distance to its **nearest** gate. If a room cannot reach any gate, leave it as `INF`.
+
+LeetCode 286. It's a premium problem there, but the exact same puzzle is free on NeetCode under the name "Islands and Treasure".
+
+---
+
+## The naive attempt
+
+Run a fresh search from every room until it finds a gate:
+
+```python
+from collections import deque
+
+def walls_and_gates(rooms):
+    INF = 2147483647
+    rows, cols = len(rooms), len(rooms[0])
+    for r in range(rows):
+        for c in range(cols):
+            if rooms[r][c] == INF:
+                rooms[r][c] = bfs_from(rooms, r, c)   # O(mn) each time
+```
+
+Each search can sweep the whole grid, and there are up to `m*n` rooms: **O((mn)²)**. Running one BFS *per gate* and keeping the minimum has the same problem, k gates times a full-grid sweep each, plus a min-merge. Both versions re-walk the same hallways over and over. The floor doesn't change between searches, so all that repetition is pure waste.
+
+---
+
+## The weapon: multi-source BFS
+
+First, BFS itself, since bosses 1 through 3 leaned on DFS. BFS uses a **queue** (first in, first out). You seed it with starting cells, then loop: pop the front, look at its 4 neighbors, push any unvisited ones to the back. Because the queue serves cells in the order they were discovered, the walk proceeds in **rings**: every cell at distance 1 comes out before any cell at distance 2. A **visited** check stops cells from entering twice.
+
+The boss move: don't pick one start. Seed the queue with **every gate at once**, all at distance 0. The rings now grow from all gates simultaneously, like ripples from several stones tossed in a pond. Wherever two ripples would overlap, the nearer gate's ripple got there first, so each room is stamped exactly once, with its true nearest distance.
+
+<MermaidBlock>
+graph TB
+    A["seed: ALL gates enter\nthe queue together\neach at distance 0"]
+    B["pop the front cell\nlook at its 4 neighbors"]
+    C["neighbor still INF?\nstamp my distance plus 1\npush it to the back"]
+    D["neighbor is a wall\nor already stamped?\nignore it"]
+    E["queue empty:\nevery reachable room holds\nits true nearest distance"]
+    A --> B
+    B --> C
+    B --> D
+    C --> B
+    D --> B
+    B --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+from collections import deque
+
+def walls_and_gates(rooms: list[list[int]]) -> None:
+    INF = 2147483647
+    rows, cols = len(rooms), len(rooms[0])
+    queue = deque()
+
+    for r in range(rows):                     # seed: every gate, distance 0
+        for c in range(cols):
+            if rooms[r][c] == 0:
+                queue.append((r, c))
+
+    while queue:
+        r, c = queue.popleft()
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and rooms[nr][nc] == INF:
+                rooms[nr][nc] = rooms[r][c] + 1   # first arrival wins
+                queue.append((nr, nc))
+```
+
+No separate visited set needed. A room stops being `INF` the moment it's stamped, so the `== INF` check does triple duty: skips walls, skips gates, skips anything already reached. The grid is its own bookkeeping.
+
+---
+
+## Watching it work
+
+The story's floor plan, with the queue's actual contents:
+
+```
+queue: (0,2) (3,0)                        both gates, distance 0
+pop (0,2): stamp (0,3)=1, (1,2)=1         queue: (3,0) (0,3) (1,2)
+pop (3,0): stamp (2,0)=1                  queue: (0,3) (1,2) (2,0)
+pop (0,3): nothing new (wall, stamped)
+pop (1,2): stamp (1,1)=2, (2,2)=2
+pop (2,0): stamp (1,0)=2
+pop (1,1), (2,2), (1,0): stamp (0,0)=3, (3,2)=3
+pop (0,0), (3,2): stamp (3,3)=4
+pop (3,3): nothing new, queue empty ✓
+```
+
+Distance-1 cells all left the queue before any distance-2 cell entered play. The rings never interleave, which is exactly why the first stamp is always the smallest possible.
+
+<Callout type="tip" title="Recognizing multi-source BFS in the wild">
+The tell is "for every cell, the distance to the nearest X". Nearest hospital on a city map, nearest 0 in a binary matrix (LeetCode 542), nearest land from water. The reflex to install: don't search *from* each asker, flood *from* all the answers at once. One pass, and every asker is served by whichever source reaches it first.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Using a stack instead of a queue.**
+Swap `popleft()` for `pop()` and you've silently built DFS. It still visits everything, but stamps arrive in dive order, not ring order, so the distances are garbage. BFS's shortest-path guarantee lives entirely in the FIFO queue.
+
+**2. Marking visited at pop time instead of push time.**
+Stamp the room *when you push it*, not when it comes out. Delay the mark and the same room gets pushed by several neighbors before its turn comes, bloating the queue and overwriting good distances.
+
+**3. Seeding gates one at a time.**
+Running a full BFS per gate and taking the minimum is the naive solution wearing a BFS costume. The magic is one shared queue, all gates in it *before* the loop starts.
+
+**4. Forgetting walls exist.**
+The `== INF` check quietly handles them, walls are `-1`, never `INF`. But if you track visited in a separate set and check that instead, you must remember to also skip walls, or the flood walks through concrete.
+
+**5. Stamping the popped cell instead of the neighbor.**
+The popped cell already knows its distance. You're writing `rooms[nr][nc] = rooms[r][c] + 1`, new cell, old value plus one. Mixing up which side gets written is a classic 2 a.m. bug.
+
+---
+
+## Complexity
+
+Every cell enters the queue at most once and checks 4 neighbors when popped.
+
+**Time: O(mn). Space: O(mn).**
+
+---
+
+## Boss down. XP gained.
+
+The safety officer prints one map, every sign truthful, and never once walked a hallway twice. The inspector signs off before lunch.
+
+What you walked away with:
+
+- **BFS proper**: a FIFO queue, ring-by-ring expansion, visited marked at push time
+- **Multi-source seeding**: many starts, one queue, and first arrival is provably nearest
+- The grid as its own visited set, `INF` means "not yet reached"
+- "Nearest X for every cell" means flood from the X's, not from the askers
+
+Next up: **Boss 5 — The Fruit Stall Mold.** Same multi-source flood, but now the rings *are* the clock: each BFS level is one hour of mold spreading through a crate of oranges, and you have to notice when some fruit can never be reached at all.

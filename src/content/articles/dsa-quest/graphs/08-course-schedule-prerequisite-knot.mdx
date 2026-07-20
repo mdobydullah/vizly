@@ -1,0 +1,227 @@
+---
+title: "Course Schedule — The Prerequisite Knot"
+slug: course-schedule-prerequisite-knot
+category: dsa
+series: graphs
+seriesOrder: 8
+description: "Dungeon 11, Boss 8. Edges get direction, and direction breeds a new monster: the dependency loop. A course catalog where prereq chains circle back makes graduation impossible. Catch the knot with DFS and three states, where the set of nodes on your current path is the tripwire."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Topological Sort
+  - Intermediate
+icon: "🎓"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You finally sit down to plan your degree, and the page fills with arrows: this course needs that one first. Then you hit a poisoned chain. One course needs a second, the second needs a third, and the third needs the first again. Nobody can ever start, graduation is mathematically dead. The real question is how to catch a loop like that in a huge catalog, and the answer is DFS with three colors.
+  bn: |
+    অবশেষে বসলেন ডিগ্রির প্ল্যান করতে, খাতা ভরে গেল তীর চিহ্নে: এই কোর্সের আগে ওইটা লাগবে। হঠাৎ একটা বিষাক্ত চেইনে আটকে গেলেন। একটা কোর্সের জন্য দ্বিতীয়টা লাগে, দ্বিতীয়টার জন্য তৃতীয়টা, আর তৃতীয়টার জন্য আবার প্রথমটা। কেউই শুরু করতে পারবে না, গ্র্যাজুয়েশন অসম্ভব। বিশাল ক্যাটালগে এমন লুপ ধরার অস্ত্র হলো তিন রঙের DFS।
+  hi: |
+    आखिरकार आप डिग्री का प्लान बनाने बैठे, और कागज तीरों से भर गया: इस कोर्स से पहले वह चाहिए। तभी एक जहरीली चेन मिलती है। एक कोर्स को दूसरा चाहिए, दूसरे को तीसरा, और तीसरे को वापस पहला। कोई शुरू ही नहीं कर सकता, graduation नामुमकिन। असली सवाल यह है कि बड़े catalog में ऐसा loop पकड़ें कैसे, और जवाब है तीन रंगों वाला DFS।
+  ar: |
+    جلست أخيراً لتخطط لشهادتك، فامتلأت الورقة بالأسهم: هذه المادة تحتاج تلك أولاً. ثم اصطدمت بسلسلة مسمومة. مادة تحتاج ثانية، والثانية تحتاج ثالثة، والثالثة تحتاج الأولى من جديد. لا أحد يستطيع أن يبدأ، والتخرج مستحيل رياضياً. السؤال الحقيقي هو كيف تصطاد حلقة كهذه في كتالوج ضخم، والجواب DFS بثلاثة ألوان.
+---
+
+## Boss 8: The Prerequisite Knot
+
+The first seven bosses were undirected territory: grids and edges you could walk in both directions. This boss hands you edges with arrowheads, and direction breeds a monster that undirected land never showed you, the dependency loop, a cycle nobody inside can ever start. It installs directed edges, building an adjacency list from a bare edge list, three-state DFS coloring, and a hard-earned warning: your undirected cycle instincts do not transfer.
+
+---
+
+## The story
+
+You sit down with the course catalog and a pen. Four courses to graduation:
+
+```
+course 0  Intro to Programming   needs nothing
+course 1  Data Structures        needs 0
+course 2  Algorithms             needs 1
+course 3  Compilers              needs 2
+```
+
+Easy: take 0, 1, 2, 3, done. Then you open next year's catalog. Someone edited it:
+
+```
+course 1  needs 0, and also needs 3
+course 2  needs 1
+course 3  needs 2
+```
+
+Try to build a plan:
+
+```
+want 1 → must take 3 first
+want 3 → must take 2 first
+want 2 → must take 1 first
+want 1 → ...that's where we started.
+```
+
+Three courses, each politely waiting for another, forever. No student did anything wrong. The catalog itself is broken, and a registrar's system has to catch this *before* publishing. The question: **can anyone actually finish?**
+
+---
+
+## The problem, dressed up properly
+
+> There are `numCourses` courses labeled `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [a, b]` means you **must take course `b` before course `a`**. Return `true` if you can finish all courses, otherwise `false`.
+
+LeetCode 207.
+
+---
+
+## The naive attempt
+
+Two tempting dead ends. First: try every possible order of courses and check if one works. That's n! orders, 479 million for a 12-course catalog. Dead on arrival. Second, much sneakier: DFS with a plain visited set, shouting "cycle!" whenever you meet a visited node.
+
+```python
+def can_finish_naive(num_courses, prerequisites):
+    graph = [[] for _ in range(num_courses)]
+    for course, prereq in prerequisites:
+        graph[course].append(prereq)
+
+    def dfs(node, visited):
+        if node in visited:
+            return False              # "cycle!"... is it, though?
+        visited.add(node)
+        return all(dfs(nxt, visited) for nxt in graph[node])
+
+    return all(dfs(c, set()) for c in range(num_courses))
+```
+
+Feed it a diamond, a catalog with no cycle at all:
+
+```
+course 3 needs 1 and 2, both need 0
+
+    3
+   / \
+  1   2
+   \ /
+    0
+```
+
+DFS from 3 walks 3 → 1 → 0, backs up, then walks 3 → 2 → 0... and 0 is already in `visited`. It cries cycle over a course that simply has two roads leading to it. Here's the transfer failure: in an *undirected* graph, meeting a visited node that isn't your parent really is a cycle. In a *directed* graph, a revisit might be a loop, or might just be a second road in. A visited set alone cannot tell them apart.
+
+---
+
+## The weapon: three states, one tripwire
+
+The fix is remembering not just *whether* you've seen a node, but *when*:
+
+- **State 0, unseen.** Never touched.
+- **State 1, on the current path.** The recursion is standing inside it right now.
+- **State 2, done.** Fully explored earlier, proven cycle-free.
+
+State 1 is the tripwire. Reaching a node that is already on *your own path* means you walked in a circle. Reaching a state 2 node means it was cleared earlier: safe, skip it. That single distinction fixes the diamond, because by the time the second road reaches course 0, it's state 2, not state 1.
+
+<MermaidBlock>
+graph TB
+    A["build adjacency list\nfrom the edge pairs"]
+    B["DFS every course\n0 unseen\n1 on current path\n2 fully done"]
+    C["meet a state 1 node\nit is on MY path\ncycle: return False"]
+    D["meet a state 2 node\ncleared earlier\nskip, not a cycle"]
+    E["every course ends state 2\nno knot anywhere\nreturn True"]
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def can_finish(num_courses: int, prerequisites: list[list[int]]) -> bool:
+    graph = [[] for _ in range(num_courses)]
+    for course, prereq in prerequisites:
+        graph[course].append(prereq)     # arrow: course points at its prereq
+
+    UNSEEN, ON_PATH, DONE = 0, 1, 2
+    state = [UNSEEN] * num_courses
+
+    def has_cycle(node):
+        if state[node] == ON_PATH:       # back on our own path: cycle
+            return True
+        if state[node] == DONE:          # verified earlier: safe shortcut
+            return False
+        state[node] = ON_PATH            # step onto the path
+        for nxt in graph[node]:
+            if has_cycle(nxt):
+                return True
+        state[node] = DONE               # step off, permanently cleared
+        return False
+
+    return not any(has_cycle(c) for c in range(num_courses))
+```
+
+The state changes hug the recursion's borders: `ON_PATH` on the way in, `DONE` on the way out. A node is only ever state 1 while the call stack is physically inside it. Textbooks call this white-gray-black coloring; same machine, fancier paint.
+
+---
+
+## Watching it work
+
+The knotted catalog. Arrows point course → prereq: 1 → 0, 1 → 3, 2 → 1, 3 → 2.
+
+```
+has_cycle(0): no prereqs → state[0]=DONE
+has_cycle(1): state[1]=ON_PATH
+  → 0 is DONE, skip
+  → has_cycle(3): state[3]=ON_PATH
+      → has_cycle(2): state[2]=ON_PATH
+          → 1 is ON_PATH. our own footprints. CYCLE → False
+```
+
+And the diamond: `has_cycle(3)` walks 3 → 1 → 0, both finish `DONE`. The second road hits 0, sees `DONE`, shrugs, moves on. No alarm. `True`.
+
+<Callout type="tip" title="Recognizing cycle detection in the wild">
+Anything phrased "can these dependencies all be satisfied?" is this boss in a costume. Package managers refusing a circular dependency, `make` warning about circular rules, spreadsheets flagging a circular reference, databases hunting deadlocks between transactions waiting on each other. The moment requirements point at requirements, ask about the knot first, everything else is Boss 9's job.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The two-state trap.**
+A plain visited set false-positives every diamond, and diamonds are everywhere in real prerequisite data. Two roads into the same node is normal. Three states or bust.
+
+**2. Marking `ON_PATH` but never `DONE`.**
+Forget the demotion on the way out and every node stays "on path" forever, so the next road in screams cycle. Same diamond bug wearing a new hat.
+
+**3. Starting from course 0 only.**
+Catalogs are disconnected: a knot among electives is invisible from the core courses. Loop over *every* course; state 2 nodes return instantly, so restarts are nearly free.
+
+**4. Edge direction confusion.**
+`[a, b]` means take `b` first. For pure cycle detection either orientation works, reverse every arrow and a loop is still a loop. But pick one and hold it, because Boss 9 produces an *order*, and order punishes a flipped graph hard.
+
+**5. Recursion depth.**
+A straight 5000-course chain hits Python's default limit. Raise it, or convert to an explicit stack. Mention it before the interviewer does.
+
+---
+
+## Complexity
+
+Each course is entered once, state 2 blocks re-entry, and each edge is walked once.
+
+**Time: O(V + E). Space: O(V + E).**
+
+---
+
+## Boss down. XP gained.
+
+You email the registrar three course numbers and the word "loop". Next year's catalog quietly gets fixed, and nobody ever knows a whole graduating class was saved by a colored array.
+
+What you walked away with:
+
+- **Directed edges** and the standard opener: adjacency list built from a bare edge list
+- **Three-state DFS**: unseen, on path, done, where the on-path set is the tripwire
+- Undirected instincts don't transfer: a revisit is only a cycle if it's on *your own* path
+- "Can these dependencies be satisfied" is cycle detection in disguise, every time
+
+Next up: **Boss 9 — The Degree Planner.** Knowing graduation is *possible* satisfies exactly no one. The advisor wants the actual course order, semester by semester, and topological sort is the machine that prints it.

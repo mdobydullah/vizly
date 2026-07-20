@@ -1,0 +1,230 @@
+---
+title: "Rotting Oranges — The Fruit Stall Mold"
+slug: rotting-oranges-fruit-stall-mold
+category: dsa
+series: graphs
+seriesOrder: 5
+description: "Dungeon 11, Boss 5. Mold jumps to adjacent fresh oranges every hour. Multi-source BFS again, but now each ring is one tick of the clock: count the levels, then check whether anything survived out of reach."
+tags:
+  - DSA
+  - Graphs
+  - BFS
+  - Matrix
+  - Intermediate
+icon: "🍊"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run a fruit stall. Overnight a few oranges in the crate grid went moldy, and every hour the mold jumps to any fresh orange touching a bad one. The owner wants one number: how many hours until the whole stall is gone. And if some orange sits walled off by empty slots, the mold never reaches it, so the honest answer is "never". Same flood as the fire drill map, except this time the rings are the clock.
+  bn: |
+    আপনি একটা ফলের দোকান চালান। রাতের মধ্যে ক্রেটের গ্রিডে কয়েকটা কমলায় ছাতা পড়ে গেছে, আর প্রতি ঘণ্টায় ছাতা পাশের তাজা কমলায় লাফ দেয়। মালিক একটাই সংখ্যা চান: পুরো দোকান নষ্ট হতে কত ঘণ্টা লাগবে। আর কোনো কমলা যদি খালি ঘর দিয়ে ঘেরা থাকে, ছাতা সেখানে কোনোদিন পৌঁছাবে না, তখন সৎ উত্তর হলো "কখনোই না"। বন্যাটা আগের বসের মতোই, শুধু এবার রিংগুলোই ঘড়ি।
+  hi: |
+    आप एक फलों की दुकान चलाते हैं। रात में क्रेट ग्रिड के कुछ संतरे सड़ गए, और हर घंटे फफूंद बगल के ताज़े संतरे पर कूद जाती है। मालिक को बस एक नंबर चाहिए: पूरा माल खराब होने में कितने घंटे लगेंगे। और कोई संतरा अगर खाली खानों से घिरा है तो फफूंद वहां कभी नहीं पहुंचेगी, तब ईमानदार जवाब है "कभी नहीं"। बाढ़ वही पिछले बॉस वाली है, बस इस बार रिंग ही घड़ी है।
+  ar: |
+    أنت تدير بسطة فواكه. في الليل تعفنت بعض البرتقالات في شبكة الصناديق، وكل ساعة يقفز العفن إلى أي برتقالة طازجة تلامس واحدة فاسدة. صاحب البسطة يريد رقماً واحداً: كم ساعة حتى يفسد كل شيء. وإذا كانت برتقالة معزولة خلف خانات فارغة فلن يصلها العفن أبداً، والجواب الصادق حينها "أبداً". نفس فيضان الدرس السابق، لكن هذه المرة الحلقات هي الساعة.
+---
+
+## Boss 5: The Fruit Stall Mold
+
+Boss 4 flooded *distance* outward from many gates, each room stamped with a number. This boss runs the exact same flood, but the question changes shape: nobody cares about per-cell distances anymore. The flood itself is the story, and **each BFS ring is one hour of real time**. What it installs: level-order BFS with an explicit ring boundary (snapshot the queue size, process exactly one round), plus the habit of checking, after the flood dies, whether anything survived out of its reach.
+
+---
+
+## The story
+
+Your fruit stall stores oranges in a crate grid. `2` is moldy, `1` is fresh, `0` is an empty slot mold can't cross. This morning's crate:
+
+```
+2  1  1
+1  1  0
+0  1  1
+```
+
+Every hour, mold jumps to any fresh orange sharing an edge with a moldy one. Play it out:
+
+```
+hour 0:   2 1 1      one moldy corner, six fresh
+          1 1 0
+          0 1 1
+
+hour 1:   2 2 1      (0,1) and (1,0) caught it
+          2 1 0
+          0 1 1
+
+hour 2:   2 2 2      (0,2) and (1,1)
+          2 2 0
+          0 1 1
+
+hour 3:   (2,1) goes          hour 4:   (2,2) goes
+
+answer: 4 hours, nothing fresh left
+```
+
+Now nudge the crate: put an empty slot at (1,1) instead. The bottom-right oranges are sealed behind gaps, mold can never touch them, and the honest answer becomes `-1`. Both endings matter. This boss is half "how fast does the flood finish" and half "did the flood actually finish".
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `m x n` grid where each cell is `0` (empty), `1` (a fresh orange), or `2` (a rotten orange). Every minute, any fresh orange 4-directionally adjacent to a rotten orange becomes rotten. Return the **minimum number of minutes** until no cell has a fresh orange. If that is impossible, return `-1`.
+
+LeetCode 994. (LeetCode says minutes, our stall keeps hours. Same clock.)
+
+---
+
+## The naive attempt
+
+Simulate the hours literally: scan the whole grid, find every fresh orange next to a rotten one, rot them, repeat.
+
+```python
+def oranges_rotting(grid):
+    rows, cols = len(grid), len(grid[0])
+    hours = 0
+    while True:
+        to_rot = []
+        for r in range(rows):                 # full-grid scan, every hour
+            for c in range(cols):
+                if grid[r][c] == 1 and any(
+                    0 <= r+dr < rows and 0 <= c+dc < cols
+                    and grid[r+dr][c+dc] == 2
+                    for dr, dc in ((1,0),(-1,0),(0,1),(0,-1))
+                ):
+                    to_rot.append((r, c))
+        if not to_rot:
+            break
+        for r, c in to_rot:
+            grid[r][c] = 2
+        hours += 1
+    return hours if all(1 not in row for row in grid) else -1
+```
+
+It's correct, and it even remembers the two-phase trick (collect first, rot after, so this hour's victims don't infect within the same hour). But every hour costs a full O(mn) scan, and a long thin snake of oranges can take mn hours: **O((mn)²)**. Almost every scanned cell is nowhere near the mold front. The action only ever happens at the boundary, so why keep re-reading the whole crate?
+
+---
+
+## The weapon: level-order BFS, rings as hours
+
+The mold front *is* a BFS frontier. Seed the queue with **every rotten orange at once** (multi-source, straight from Boss 4), and the flood advances exactly like the real mold: ring 1 is hour 1, ring 2 is hour 2. The new skill is keeping the rings separate. Snapshot `len(queue)` at the top of each round and pop exactly that many cells: that's one full hour, and everything those cells infect belongs to the *next* hour.
+
+One more piece: count the fresh oranges up front. Every infection decrements the counter, and when the flood dies you check it. Zero means done in `hours`. Anything left means some orange was unreachable: return `-1`.
+
+<MermaidBlock>
+graph TB
+    A["seed: every rotten orange\nin the queue, hour 0\ncount the fresh ones"]
+    B["snapshot queue size\npop exactly that many:\none full ring, one hour"]
+    C["fresh neighbor?\nrot it, fresh minus 1\npush for the next ring"]
+    D["ring finished\nhours plus 1"]
+    E["queue empty or\nnothing fresh left"]
+    F["fresh == 0: return hours\notherwise return -1"]
+    A --> B
+    B --> C
+    C --> D
+    D --> B
+    B --> E
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+from collections import deque
+
+def oranges_rotting(grid: list[list[int]]) -> int:
+    rows, cols = len(grid), len(grid[0])
+    queue = deque()
+    fresh = 0
+
+    for r in range(rows):                     # seed all mold, count all fresh
+        for c in range(cols):
+            if grid[r][c] == 2:
+                queue.append((r, c))
+            elif grid[r][c] == 1:
+                fresh += 1
+
+    hours = 0
+    while queue and fresh:                    # stop when spread is pointless
+        for _ in range(len(queue)):           # snapshot: one ring = one hour
+            r, c = queue.popleft()
+            for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:
+                    grid[nr][nc] = 2          # rot at push time
+                    fresh -= 1
+                    queue.append((nr, nc))
+        hours += 1
+
+    return hours if fresh == 0 else -1
+```
+
+The `while queue and fresh` guard is doing quiet, important work. The moment the last fresh orange rots, the loop stops, so you never count a final hour where the mold pushes outward and finds nobody left to infect.
+
+---
+
+## Watching it work
+
+The story's crate, ring by ring:
+
+```
+seed: queue = [(0,0)]                  fresh = 6, hours = 0
+ring 1 (pop 1): rot (0,1), (1,0)       fresh = 4, hours = 1
+ring 2 (pop 2): rot (0,2), (1,1)       fresh = 2, hours = 2
+ring 3 (pop 2): rot (2,1)              fresh = 1, hours = 3
+ring 4 (pop 1): rot (2,2)              fresh = 0, hours = 4
+guard sees fresh == 0, loop ends       return 4 ✓
+```
+
+Notice ring 3: two cells pop, (0,2) and (1,1), but only one infection lands, because (0,2)'s only fresh-ish neighbor is the empty slot. Rings shrink and grow with the terrain, and the snapshot keeps each one honest. And after ring 4 the guard kills the loop immediately, no fifth ring counted for a mold front with nothing left to eat.
+
+<Callout type="tip" title="Recognizing rings-as-time in the wild">
+Whenever a process spreads one step per tick and the question is "how long until...", the answer is a BFS level count. Fire spreading through a forest, gossip hopping between friends, infection through a network, water filling a cave. The signature phrase is "simultaneously, every unit of time". If you catch yourself simulating tick by tick with full scans, you're re-deriving BFS the expensive way.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The off-by-one hour.**
+Increment `hours` after every ring unconditionally and you count the final ring where mold expands into nothing. Guarding the loop with `while queue and fresh` (or only incrementing when something rotted) fixes it. This single bug accounts for most wrong answers on this problem.
+
+**2. No fresh oranges at hour zero.**
+A crate that starts all rotten or all empty needs `0`, not `1` and not `-1`. The guard handles it: `fresh` is 0, the loop never runs, and `hours` stays 0.
+
+**3. Forgetting the `-1` ending.**
+The flood ends when the queue empties, not when the crate is clean. Skip the final `fresh == 0` check and sealed-off oranges get silently ignored.
+
+**4. Not snapshotting the queue size.**
+`for _ in range(len(queue))` freezes the ring boundary. Pop from a live, growing queue instead and this hour's infections bleed into this hour's count, compressing the timeline.
+
+**5. Rotting at pop time instead of push time.**
+Mark `grid[nr][nc] = 2` the moment you push. Delay it and two mold cells both claim the same fresh neighbor in one ring, it enters the queue twice, and your fresh counter goes negative.
+
+---
+
+## Complexity
+
+Seeding scans the grid once, then every cell enters the queue at most once with 4 neighbor checks each.
+
+**Time: O(mn). Space: O(mn).**
+
+---
+
+## Boss down. XP gained.
+
+Four hours, the stall owner sighs, and at least the number is exact. In the sealed-crate timeline, you get to say "never" with proof instead of a shrug.
+
+What you walked away with:
+
+- **Rings as time**: BFS level count answers "how long until", no per-cell distances needed
+- The snapshot loop, `for _ in range(len(queue))`, the clean way to process exactly one level
+- Flood-then-verify: when the queue dies, check whether the job actually finished
+- A fresh counter beats a final full-grid rescan, and it powers the early-exit guard too
+
+Next up: **Boss 6 — The Two Watersheds.** Rain falls on an island and drains toward two oceans, and you need every cell whose water reaches both. The winning move is the strangest one yet: don't trace the water down from the cells. Start at the oceans and climb.

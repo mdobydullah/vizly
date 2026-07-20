@@ -1,0 +1,238 @@
+---
+title: "Surrounded Regions — The Go Board"
+slug: surrounded-regions-go-board
+category: dsa
+series: graphs
+seriesOrder: 7
+description: "Dungeon 11, Boss 7. Every O region fenced in by X gets captured, but a region touching the board's edge escapes. Don't hunt the trapped, mark the survivors from the border first, then one sweep flips the rest. Reverse survival and the temp-marker trick."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Matrix
+  - Intermediate
+icon: "⚫"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The Go match is at its endgame. The capture rule is brutal: any pocket of O stones fully fenced in by X gets taken, but a pocket touching the edge of the board has an escape route and lives. Your first instinct is to check every pocket and ask "are you trapped?" The smarter move is backwards. Walk the border, run DFS to mark everyone who can be saved, and whoever is left unmarked was dead the whole time.
+  bn: |
+    গো খেলা প্রায় শেষের দিকে। নিয়মটা নিষ্ঠুর: O পাথরের যে দল চারদিক থেকে X দিয়ে ঘেরা, সেটা পুরো দখল হয়ে যায়। কিন্তু বোর্ডের কিনারা ছুঁয়ে থাকা দল পালানোর পথ পায়, তাই বেঁচে যায়। প্রথমে মনে হবে প্রতিটা দল ধরে ধরে দেখি ঘেরা কি না। চালাক পথটা উল্টো, কিনারা থেকে DFS চালিয়ে যারা বাঁচবে তাদের আগে দাগ দিন, বাকি যারা দাগহীন তারা এমনিতেই শেষ।
+  hi: |
+    Go का खेल आखिरी दौर में है। कब्जे का नियम बेरहम है: O पत्थरों का जो झुंड चारों तरफ से X से घिरा है, वह पूरा ले लिया जाता है। लेकिन बोर्ड के किनारे को छूने वाला झुंड बच निकलता है। पहली सोच यही आती है कि हर झुंड को जांचो कि घिरा है या नहीं। चालाकी उल्टे रास्ते में है, किनारे से DFS चलाओ, बचने वालों पर पहले निशान लगाओ, और जो बिना निशान रह गया वह वैसे भी खत्म था।
+  ar: |
+    مباراة Go في نهايتها. قاعدة الأسر قاسية: أي مجموعة من أحجار O محاصرة تماماً بأحجار X تؤخذ كلها، لكن المجموعة التي تلمس حافة اللوح تجد طريق هروب وتنجو. أول فكرة تخطر لك أن تفحص كل مجموعة وتسأل هل هي محاصرة. الحركة الأذكى معكوسة تماماً. امش على الحافة، وشغل DFS لتعليم كل من سينجو، ومن بقي بلا علامة كان هالكاً من البداية.
+---
+
+## Boss 7: The Go Board
+
+Boss 6 flipped the question: instead of asking every cell "can you reach the ocean?", it started at the oceans and climbed inland. This boss is the same reversal, now with stones on the line. You're told to find every trapped region, and the winning move is to never look for trapped regions at all. Hunt the survivors instead, mark them, and whoever's unmarked was captured by definition. It installs border-first marking, the temp-marker flip trick, and "solve the complement" as a move you'll reuse far beyond grids.
+
+---
+
+## The story
+
+Endgame on a small Go-style board. `X` stones are yours, `O` stones belong to your opponent:
+
+```
+X X X X
+X O O X
+X X O X
+X O X X
+```
+
+Two rules settle the match:
+
+- Any group of connected `O` stones fenced in by `X` on every side is **captured**: the whole group flips to `X`.
+- Any group touching the **edge** of the board has an escape route and survives untouched.
+
+Play it out:
+
+```
+group A: (1,1) (1,2) (2,2)   every exit blocked by X → fenced → captured
+group B: (3,1)               sits on the bottom edge → escape route → lives
+
+final board:
+X X X X
+X X X X
+X X X X
+X O X X
+```
+
+Notice which rule is easy to check. "Fenced in on all sides" is an *absence*: you'd have to explore an entire region and prove no exit exists anywhere. "Touches the edge" is a *presence*: one glance at a coordinate. When one side of a rule is hard to verify and its complement is trivial, verify the complement.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` board containing `'X'` and `'O'`, capture all regions that are **surrounded**. A region is captured by flipping every `'O'` in it to `'X'`. A region is surrounded unless at least one of its cells sits on the border of the board. Modify the board **in place**.
+
+LeetCode 130.
+
+---
+
+## The naive attempt
+
+Chase the rule as written: find each O region, explore it fully, remember whether it ever touched an edge, then flip it if it didn't.
+
+```python
+def solve_naive(board):
+    rows, cols = len(board), len(board[0])
+    seen = set()
+    for r in range(rows):
+        for c in range(cols):
+            if board[r][c] == "O" and (r, c) not in seen:
+                region, escaped = [], False
+                stack = [(r, c)]
+                seen.add((r, c))
+                while stack:
+                    i, j = stack.pop()
+                    region.append((i, j))
+                    if i in (0, rows - 1) or j in (0, cols - 1):
+                        escaped = True          # touched an edge, region lives
+                    for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        ni, nj = i + di, j + dj
+                        if 0 <= ni < rows and 0 <= nj < cols \
+                           and board[ni][nj] == "O" and (ni, nj) not in seen:
+                            seen.add((ni, nj))
+                            stack.append((ni, nj))
+                if not escaped:
+                    for i, j in region:
+                        board[i][j] = "X"
+```
+
+It works, and it's even O(m·n). But look at the machinery: a `seen` set, a `region` buffer holding every cell until the verdict comes in, an `escaped` flag threaded through the walk. Every interior region gets fully explored just to learn its fate, and that flag-and-buffer logic is exactly the kind of fiddly code that grows off-by-one bugs under interview pressure. All that effort to detect an absence.
+
+---
+
+## The weapon: reverse survival
+
+Flip the hunt. Every O that survives is, by the rule itself, connected to some border O. So find the survivors directly:
+
+1. Walk the four borders. From every border O, DFS through its whole region and mark each cell `T`, a temporary marker meaning *safe*.
+2. One sweep of the board: any cell still `O` was never reached from an edge, flip it to `X`. Any `T` is a survivor, restore it to `O`.
+
+No region buffers, no flags, no verdicts. The board itself is the visited set. `T` does triple duty: visited flag, survival record, and something the DFS bound check can treat as a wall.
+
+<MermaidBlock>
+graph TB
+    A["walk the four borders\nfind every O on an edge"]
+    B["DFS from each border O\nmark its whole region T\nT means survivor"]
+    C["single sweep of the board"]
+    D["still O\nnever reached from an edge\nflip to X, captured"]
+    E["marked T\nsurvivor\nrestore to O"]
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def solve(board: list[list[str]]) -> None:
+    if not board or not board[0]:
+        return
+    rows, cols = len(board), len(board[0])
+
+    def mark_safe(r, c):
+        if r < 0 or c < 0 or r == rows or c == cols or board[r][c] != "O":
+            return
+        board[r][c] = "T"                # temp marker: this O survives
+        mark_safe(r + 1, c)
+        mark_safe(r - 1, c)
+        mark_safe(r, c + 1)
+        mark_safe(r, c - 1)
+
+    for r in range(rows):                # left and right border columns
+        mark_safe(r, 0)
+        mark_safe(r, cols - 1)
+    for c in range(cols):                # top and bottom border rows
+        mark_safe(0, c)
+        mark_safe(rows - 1, c)
+
+    for r in range(rows):                # one sweep settles everything
+        for c in range(cols):
+            if board[r][c] == "O":       # never saved: captured
+                board[r][c] = "X"
+            elif board[r][c] == "T":     # survivor: restore
+                board[r][c] = "O"
+```
+
+Same DFS skeleton as Bosses 1 and 2. The only new idea is *where it starts* and *what the mark means*.
+
+---
+
+## Watching it work
+
+The story board, border walk first:
+
+```
+row 0:  X X X X   nothing to save
+col 0:  all X     nothing
+col 3:  all X     nothing
+row 3:  X O X X   O at (3,1) → DFS!
+
+DFS from (3,1): mark T. neighbors (2,1)=X, (3,0)=X, (3,2)=X → done.
+
+after marking:      sweep:
+X X X X             (1,1) (1,2) (2,2) still O → flip to X
+X O O X             (3,1) is T → restore to O
+X X O X
+X T X X             result matches the endgame exactly
+```
+
+Group A was never touched by any DFS. That's the whole trick: the algorithm never even looks at the doomed. Their capture is a byproduct of not being saved.
+
+<Callout type="tip" title="Recognizing reverse survival in the wild">
+The tell is a condition phrased as *not connected to the boundary or source*: surrounded regions here, ocean-reachable cells in Boss 6, "closed islands" (LeetCode 1254), "number of enclaves" (LeetCode 1020). Testing "cannot reach X" cell by cell is expensive and awkward. Starting *from* X and marking everything reachable is one pass, and the complement falls out for free. When a problem asks about escape, start at the exits.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Marking only the border cell, not its region.**
+A border O saves its *entire connected group*, so DFS through it. Mark just the edge cell and the interior members of a safe region get wrongly executed in the sweep.
+
+**2. Missing a border.**
+Two loops cover all four sides: every row's first and last column, every column's first and last row. Corners get visited twice, which is harmless. Skipping one side quietly captures innocent stones.
+
+**3. Sweeping before the marking finishes.**
+The order is sacred: mark all survivors first, then one sweep. Interleave the two and you flip an O whose rescuing DFS simply hadn't arrived yet.
+
+**4. Recursion depth.**
+A snake-shaped O region thousands of cells long blows Python's default recursion limit. Swap in an explicit stack (the naive code above shows the shape) or raise the limit. Interviewers accept either, and they like that you noticed.
+
+**5. Forgetting to restore `T`.**
+The sweep must handle both letters: O to X, T back to O. Skip the restore and your "solved" board contains a mysterious third stone type.
+
+---
+
+## Complexity
+
+Each cell is visited a constant number of times: at most once by a marking DFS, once by the sweep.
+
+**Time: O(m · n). Space: O(m · n).**
+
+---
+
+## Boss down. XP gained.
+
+Your opponent counts the board: one lonely stone alive on the bottom edge, everything else yours. They never saw you check a single region for capture, because you never did.
+
+What you walked away with:
+
+- **Reverse survival**: when "trapped" is hard to test, mark the free and take the complement
+- **Border-first marking**: boundary cells are natural DFS roots, same as Boss 6's oceans
+- **The temp-marker trick**: the grid itself stores visited state and the verdict, zero extra structures
+- Solving the complement is a general move, not a grid trick
+
+Next up: **Boss 8 — The Prerequisite Knot.** Grids are done. Edges grow arrowheads, a course catalog ties itself into a loop, and you meet the question that haunts every dependency system ever built: is there a cycle?

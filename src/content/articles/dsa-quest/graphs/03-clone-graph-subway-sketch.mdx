@@ -1,0 +1,192 @@
+---
+title: "Clone Graph — The Subway Sketch"
+slug: clone-graph-subway-sketch
+category: dsa
+series: graphs
+seriesOrder: 3
+description: "Dungeon 11, Boss 3. Redraw a subway map you can only ride, station to station. The ledger of original-to-copy is the whole trick: it stops cycles from trapping you and stitches every loop into the sketch."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Hash Map
+  - Intermediate
+icon: "🚇"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You have to redraw a subway map for a rival city, but there is no master map. You can only ride it, station to station, and each station's sign lists its direct neighbors. So you keep a ledger: original station on the left, your sketched copy on the right. Reach a station that's already in the ledger and you don't redraw it, you just link to its copy. That ledger is the only thing standing between you and riding the subway's loops forever.
+  bn: |
+    প্রতিদ্বন্দ্বী শহরের জন্য আপনাকে সাবওয়ের ম্যাপ নতুন করে আঁকতে হবে, কিন্তু কোনো আসল ম্যাপ নেই। আপনি শুধু চড়তে পারেন, এক স্টেশন থেকে আরেক স্টেশনে, আর প্রতিটা স্টেশনের সাইনবোর্ডে লেখা তার সরাসরি প্রতিবেশীরা। তাই একটা খাতা রাখুন: বাঁয়ে আসল স্টেশন, ডানে আপনার আঁকা কপি। খাতায় আগে থেকেই আছে এমন স্টেশনে পৌঁছালে নতুন করে আঁকবেন না, শুধু তার কপির সাথে লাইন জুড়ে দেবেন। এই খাতাটাই একমাত্র জিনিস যেটা আপনাকে সাবওয়ের চক্করে চিরকাল ঘোরা থেকে বাঁচায়।
+  hi: |
+    आपको दूसरे शहर के लिए सबवे का नक्शा दोबारा बनाना है, पर कोई मास्टर मैप नहीं है। आप सिर्फ सवारी कर सकते हैं, स्टेशन दर स्टेशन, और हर स्टेशन के बोर्ड पर उसके सीधे पड़ोसी लिखे हैं। तो एक बहीखाता रखो: बाईं तरफ असली स्टेशन, दाईं तरफ आपकी बनाई कॉपी। जो स्टेशन बहीखाते में पहले से है, उस पर पहुंचो तो दोबारा मत बनाओ, बस उसकी कॉपी से लाइन जोड़ दो। यही बहीखाता अकेली चीज है जो आपको सबवे के चक्करों में हमेशा घूमते रहने से बचाती है।
+  ar: |
+    عليك أن تعيد رسم خريطة مترو لمدينة منافسة، لكن لا توجد خريطة أصلية. كل ما تستطيعه أن تركب، من محطة إلى محطة، وكل محطة تعرض لوحة بجيرانها المباشرين. فتمسك دفتراً: المحطة الأصلية في عمود ونسختك المرسومة في العمود المقابل. إن وصلت محطة موجودة أصلاً في الدفتر فلا ترسمها من جديد، بل تصل الخط بنسختها فحسب. هذا الدفتر هو الشيء الوحيد الذي يمنعك من الدوران في حلقات المترو إلى الأبد.
+---
+
+## Boss 3: The Subway Sketch
+
+Bosses 1 and 2 lived on grids, where the graph hid inside a matrix and neighbors were arithmetic. This boss hands you the real thing: **node objects carrying explicit neighbor lists**, the adjacency structure from the dungeon's opening lecture, now with pointers. And it upgrades the visited discipline: a visited *set* remembers where you've been, but this job needs a visited **map**, because "been there" isn't enough, you also need *what you made when you were there*. That map, keys original, values copy, is the entire boss.
+
+---
+
+## The story
+
+A rival city wants your subway's map, and corporate wants a fresh hand-drawn copy. Problem: the master blueprint burned in '09. The network exists only as itself, you can **ride it**, and every station posts a sign listing its direct neighbors. Four stations, one ring: station 1 connects to 2 and 4, station 2 to 1 and 3, station 3 to 2 and 4, station 4 to 1 and 3.
+
+So you ride with a sketchpad and a **ledger**, two columns: original station, my copy of it.
+
+```
+arrive at 1: not in ledger → sketch 1', write "1 → 1'"
+  sign says neighbor 2: not in ledger → ride there, sketch 2', write "2 → 2'"
+    sign says neighbor 1: IN the ledger → draw line 2'–1', do NOT re-sketch
+    sign says neighbor 3: not in ledger → sketch 3', write "3 → 3'"
+      neighbor 2: in ledger → line 3'–2'
+      neighbor 4: not in ledger → sketch 4', write "4 → 4'"
+        neighbor 3: in ledger → line 4'–3'
+        neighbor 1: in ledger → line 4'–1'   ← the ring closes
+done: 4 sketches, 4 ledger rows, every loop intact
+```
+
+The moment that matters is deep in the ride: station 4's sign says "neighbor: 1". A rider with no ledger sketches a *second* station 1 and rides off into the ring again, forever. The ledger rider flips back a page, finds `1 → 1'`, draws one line to the existing sketch, and the cycle that would have trapped her becomes a closed loop on paper. **The ledger is both the "have I been here?" check and the "where's its copy?" answer.** One structure, two jobs.
+
+---
+
+## The problem, dressed up properly
+
+> Given a reference of a node in a **connected undirected graph**, return a **deep copy** (clone) of the graph. Each node in the graph contains a value (`int val`) and a list (`List[Node]`) of its neighbors. The value of each node is the same as the node's index (1-indexed), and there are no repeated edges or self-loops.
+
+LeetCode 133.
+
+---
+
+## The naive attempt
+
+Copy a node, then recursively copy its neighbors. What could go wrong:
+
+```python
+def clone_graph(node):
+    if not node:
+        return None
+    clone = Node(node.val)
+    for nb in node.neighbors:
+        clone.neighbors.append(clone_graph(nb))   # no memory of anything
+    return clone
+```
+
+On our ring: cloning 1 clones 2, which clones 1 (a *new* 1), which clones 2 (a *new* 2)... the recursion never returns. On any graph with a cycle, which is most graphs worth having, this is an infinite loop; on a cycle-free graph it still duplicates every node reachable by two paths.
+
+The half-fix is Boss 1's reflex: add a visited *set* and skip stations you've seen. Now it terminates, but when station 4 meets already-visited station 1, "skip" means the edge from 4' back to 1' is simply never drawn. The sketch comes back a broken ring, all stations, missing edges. The set knows you've been there. It cannot tell you where the copy is, and linking requires the copy. You don't need less memory of the past, you need *richer* memory: a mapping.
+
+---
+
+## The weapon: the ledger, a visited map that stores the clones
+
+<MermaidBlock>
+graph TB
+    A["arrive at a station"]
+    B["already in the ledger?\nreturn its copy\nno redraw, no loop"]
+    C["new station:\nsketch the copy and\nregister it BEFORE\nwalking the neighbors"]
+    D["for each neighbor\nwire copy to\ncopy_of neighbor\nrecursively"]
+    E["every cycle closes onto\nan existing sketch\nring survives on paper"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def clone_graph(node: "Node") -> "Node":
+    if not node:
+        return None
+
+    ledger = {}                            # original node → its clone
+
+    def copy_of(station: "Node") -> "Node":
+        if station in ledger:
+            return ledger[station]         # already sketched: just hand back the copy
+        clone = Node(station.val)
+        ledger[station] = clone            # register BEFORE touching neighbors
+        for nb in station.neighbors:
+            clone.neighbors.append(copy_of(nb))
+        return clone
+
+    return copy_of(node)
+```
+
+The one line that defuses every cycle: `ledger[station] = clone` sits **above** the neighbor loop. When the recursion rides the ring back around to station 1, the ledger already has 1's entry, even though 1's own neighbor loop hasn't finished. Register on arrival, not on completion. Swap those two and the code is the naive attempt with extra steps.
+
+Notice what's keyed: the **node object**, not its value. Two stations could share a name; they can't share an identity. The map is memoization wearing a hard hat, "have I computed the clone of this input? then return that exact result", which is why this boss quietly rehearses a trick Dungeon 12 will run on every problem.
+
+---
+
+## Watching it work
+
+The ring, as ledger states:
+
+```
+copy_of(1): ledger {1:1'}          recurse into neighbor 2
+copy_of(2): ledger {1:1', 2:2'}    neighbor 1 → hit! append 1', recurse into 3
+copy_of(3): ledger {.., 3:3'}      neighbor 2 → hit! append 2', recurse into 4
+copy_of(4): ledger {.., 4:4'}      neighbor 3 → hit!  neighbor 1 → hit!
+  4' returns with both edges wired
+3' finishes (2', 4'), 2' finishes (1', 3'), 1' finishes (2', 4')
+four nodes created, four, not five, not infinity ✓
+```
+
+Each station is sketched exactly once; every later arrival is a one-lookup handshake with the ledger.
+
+<Callout type="tip" title="Recognizing the clone-registry pattern in the wild">
+Any time you copy or transform a structure that can **reference itself**, the visited map that stores results is the standard defense. Python's `copy.deepcopy` carries a `memo` dict that is exactly this ledger; serializers that survive circular references, garbage collectors tracing object graphs, and compilers duplicating IR all keep original-to-copy tables. The tell in interviews: the words "deep copy", "clone", or "duplicate" next to anything with cycles or shared references. Set for *detection*, map for detection **plus reconstruction**.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Registering the clone after the neighbor loop.**
+The classic. The recursion re-enters the current station before its ledger row exists, and the cycle spins until the stack overflows. Register on arrival, then explore.
+
+**2. Keying the ledger by `val` instead of the node.**
+LeetCode 133's values happen to be unique, so `ledger[station.val]` passes, and then fails silently the first time real data has two nodes with equal labels. Identity is the node, not the name on the sign.
+
+**3. Returning the original node.**
+`return node` passes a shallow eyeball test, the values all look right, because it *is* the original graph. Deep copy means every node and every neighbor list is newly allocated; graders check object identity, not values.
+
+**4. Skipping the null check.**
+The graph can be empty. `copy_of(None)` would try `None.val` and die; the guard clause costs one line.
+
+**5. Doing it with BFS but keeping a set.**
+The BFS version is fine, queue of originals, clone-on-first-sight, but it needs the same *map*: when you pop a station and wire its neighbors, you must find each neighbor's clone. A set-based BFS recreates the missing-edges bug in queue form. The data structure is the pattern; the traversal order is taste.
+
+---
+
+## Complexity
+
+Each node is cloned once and each edge is walked twice (once from each end), constant work per visit thanks to the O(1) ledger lookups.
+
+**Time: O(V + E). Space: O(V)** for the ledger plus the recursion stack.
+
+---
+
+## Boss down. XP gained.
+
+The sketch unrolls on the drafting table: four stations, one closed ring, and a ledger with exactly four rows, one per station, no matter how many times the ride looped past them.
+
+What you walked away with:
+
+- First contact with an **explicit graph**: node objects, neighbor lists, no grid arithmetic to lean on
+- The **visited map**: when revisits need an *answer* (the clone), not just a yes/no, upgrade the set to a map
+- **Register before recursing**, the ledger entry must exist before the cycle comes back around
+- Original-to-copy tables are how deep copies survive cycles everywhere, `deepcopy`'s memo included
+
+Next up: **Boss 4 — The Fire Drill Map.** DFS has carried three bosses; now BFS takes the stage. Every room in a building needs its distance to the nearest exit, all exits flooding outward *at once*, and the wave that arrives first is always the honest answer.

@@ -1,0 +1,212 @@
+---
+title: "Graph Valid Tree — The Village Waterline"
+slug: graph-valid-tree-village-waterline
+category: dsa
+series: graphs
+seriesOrder: 10
+description: "Dungeon 11, Boss 10. A village lays pipes between n houses and the inspector must certify a proper tree: every house wet, zero wasted loops. The n - 1 edge-count shortcut, one traversal, and why the right count makes connected imply acyclic for free."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Union-Find
+  - Intermediate
+icon: "🚰"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A village just finished laying water pipes between its houses, and you are the inspector. The rule for passing: every house gets water, and not one pipe is wasted on a loop. That sounds like a long day of walking pipes and hunting loops. Then you spot the shortcut: a proper network of n houses uses exactly n minus 1 pipes, no more, no less. Count first, and if the count is right, one walk from house zero settles the whole certificate.
+  bn: |
+    একটা গ্রাম সব বাড়ির মধ্যে পানির পাইপ বসানো শেষ করেছে, আর আপনি ইন্সপেক্টর। পাস করার শর্ত: প্রতিটা বাড়িতে পানি পৌঁছাবে, আর একটা পাইপও লুপে নষ্ট হবে না। শুনে মনে হয় সারাদিন পাইপ ধরে হেঁটে লুপ খোঁজার কাজ। তখনই শর্টকাটটা চোখে পড়ে: n বাড়ির ঠিকঠাক নেটওয়ার্কে পাইপ লাগে ঠিক n - 1 টা, একটাও কম বা বেশি না। আগে গুনে নিন, সংখ্যা মিললে শূন্য নম্বর বাড়ি থেকে একবার হাঁটলেই পুরো সার্টিফিকেট হয়ে যায়।
+  hi: |
+    एक गांव ने घरों के बीच पानी के पाइप बिछाने का काम पूरा किया है, और आप इंस्पेक्टर हैं। पास करने की शर्त: हर घर तक पानी पहुंचे, और एक भी पाइप लूप में बर्बाद न हो। सुनने में यह पूरे दिन पाइप के सहारे चलकर लूप ढूंढने वाला काम लगता है। तभी शॉर्टकट दिखता है: n घरों के सही नेटवर्क में पाइप लगते हैं ठीक n - 1, न एक कम न एक ज्यादा। पहले गिनो, गिनती सही निकले तो घर नंबर शून्य से एक चक्कर पूरा सर्टिफिकेट तय कर देता है।
+  ar: |
+    انتهت قرية للتو من مد أنابيب الماء بين بيوتها، وأنت المفتش. شرط النجاح: يصل الماء إلى كل بيت، ولا يضيع أنبوب واحد في حلقة مغلقة. يبدو الأمر يوماً طويلاً من المشي على الأنابيب بحثاً عن الحلقات. ثم تلمح الاختصار: الشبكة السليمة لعدد n من البيوت تستخدم بالضبط n - 1 أنبوباً، لا أكثر ولا أقل. عُدّ أولاً، فإن صح العدد، تكفي جولة واحدة من البيت صفر لحسم الشهادة كلها.
+---
+
+## Boss 10: The Village Waterline
+
+Boss 9 took a directed mess of prerequisites and put it in order, a DAG bowing to topological sort. This boss walks you back into undirected land, and the question turns structural: forget ordering, is this graph secretly a **tree**? It installs the tree characterization every graph interview leans on, connected plus acyclic, and the edge-count shortcut that lets you buy one of those properties for free.
+
+---
+
+## The story
+
+A village of 5 houses, numbered 0 to 4, just finished its waterline. The pipes are undirected, water flows both ways. You're the inspector, and the certificate has two boxes: **every house reachable** from the source, and **no wasted loops**, because a loop means someone paid for a pipe the network didn't need.
+
+Two villages submitted their paperwork this morning:
+
+```
+Village A: 5 houses, pipes 0-1, 0-2, 0-3, 1-4
+count: 4 pipes, and 5 - 1 = 4          count OK
+walk from house 0: reach 1, 2, 3, then 4 through 1
+reached 5 of 5 houses                  CERTIFIED
+
+Village B: 5 houses, pipes 0-1, 1-2, 2-0, 3-4
+count: 4 pipes, and 5 - 1 = 4          count OK... but
+walk from house 0: reach 1, reach 2, and stop
+houses 3 and 4 are dry                 REJECTED
+(and pipes 0-1-2-0 form a loop: one pipe wasted)
+```
+
+Look at Village B closely. It has the *right number* of pipes, but it spent one on a loop, which starved houses 3 and 4. That's not a coincidence. With exactly n - 1 pipes, every pipe wasted on a loop is a pipe some house needed. The count and the walk, together, are the whole inspection.
+
+---
+
+## The problem, dressed up properly
+
+> You have a graph of `n` nodes labeled from `0` to `n - 1`. You are given the integer `n` and a list of `edges` where `edges[i] = [a, b]` indicates that there is an undirected edge between nodes `a` and `b`. Return `true` if the edges of the given graph make up a valid tree, and `false` otherwise.
+
+LeetCode 261. It's LeetCode premium, but you can solve it free on LintCode or NeetCode.
+
+---
+
+## The naive attempt
+
+A tree is connected and acyclic, so check both, the long way. Detect a cycle with DFS, then verify everything was visited:
+
+```python
+def valid_tree(n, edges):
+    adj = [[] for _ in range(n)]
+    for a, b in edges:
+        adj[a].append(b)
+        adj[b].append(a)
+
+    seen = set()
+    def has_cycle(node, parent):
+        seen.add(node)
+        for nxt in adj[node]:
+            if nxt == parent:        # the pipe we came through, not a loop
+                continue
+            if nxt in seen or has_cycle(nxt, node):
+                return True
+        return False
+
+    return not has_cycle(0, -1) and len(seen) == n
+```
+
+This is *correct*, and it teaches a real lesson: in an undirected graph, every edge appears twice in the adjacency list, so a DFS that doesn't skip its parent sees the edge it just walked and screams "cycle!" at every step. Parent-skipping is mandatory.
+
+But it's doing two jobs when one is free. Cycle detection is fiddly, easy to get wrong under pressure, and here, entirely avoidable.
+
+---
+
+## The weapon: count the pipes, then take one walk
+
+Here's the fact this boss exists to install. A tree on n nodes has **exactly n - 1 edges**. Fewer, and something is disconnected. More, and something loops. And the beautiful part: if a graph has exactly n - 1 edges *and* is connected, it cannot contain a cycle, because a cycle would burn an edge that connectivity needed elsewhere, exactly what happened to Village B's dry houses.
+
+So the inspection collapses to two cheap checks, in this order:
+
+1. `len(edges) == n - 1`? If not, reject immediately, no traversal needed.
+2. One DFS or BFS from node 0. Reached all n nodes? It's a tree.
+
+<MermaidBlock>
+graph TB
+    A["count the pipes\nedges equal to n - 1 ?"]
+    B["reject\nwrong count can never\nbe a tree"]
+    C["build adjacency list\nfrom the edge list\neach pipe listed both ways"]
+    D["one DFS from house 0\nmark every house reached"]
+    E["reached == n ?\nconnected, and with n - 1 edges\nacyclic comes free"]
+    A -->|no| B
+    A -->|yes| C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def valid_tree(n: int, edges: list[list[int]]) -> bool:
+    if len(edges) != n - 1:          # a tree has exactly n - 1 edges, always
+        return False
+
+    adj = [[] for _ in range(n)]     # adjacency list from the edge list
+    for a, b in edges:
+        adj[a].append(b)             # undirected: register the pipe
+        adj[b].append(a)             # in both directions
+
+    seen = {0}                       # start the walk at house 0
+    stack = [0]
+    while stack:
+        house = stack.pop()
+        for nxt in adj[house]:
+            if nxt not in seen:      # a fresh house: water reaches it
+                seen.add(nxt)
+                stack.append(nxt)
+
+    return len(seen) == n            # every house wet = connected = tree
+```
+
+Notice what disappeared: no parent tracking, no cycle logic at all. The `seen` set quietly refuses to re-walk any house, and the edge count already guaranteed that connected implies acyclic. The hard property got bought with arithmetic.
+
+---
+
+## Watching it work
+
+Village A, `n = 5`, pipes `0-1, 0-2, 0-3, 1-4`:
+
+```
+count: 4 == 5 - 1                    proceed
+adj: 0→[1,2,3]  1→[0,4]  2→[0]  3→[0]  4→[1]
+pop 0: push 1, 2, 3        seen {0,1,2,3}
+pop 3: neighbor 0 seen     nothing new
+pop 2: neighbor 0 seen     nothing new
+pop 1: push 4              seen {0,1,2,3,4}
+pop 4: neighbor 1 seen     done
+len(seen) = 5 = n          CERTIFIED
+```
+
+Village B fails even faster in spirit: same count check passes, but the walk stalls at `seen = {0, 1, 2}`, and `3 != 5` rejects it. The loop was never hunted. It convicted itself by starving houses 3 and 4.
+
+<Callout type="tip" title="Recognizing the tree test in the wild">
+Any problem asking "is this network minimal?", "can we wire everyone with no redundancy?", or "is there exactly one path between every pair?" is this boss in disguise. The reflex: count edges first. Exactly n - 1 plus connected is the full definition of a tree, and each half is a one-liner to check. The same fact powers minimum spanning trees later, Kruskal's algorithm is basically building a valid tree one safe pipe at a time.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Checking connectivity but not the count.**
+A connected graph with extra edges reaches all n nodes and happily returns true, loops and all. The count check isn't an optimization, it's half the definition.
+
+**2. Cycle-hunting without parent-skipping.**
+If you do go the naive route, an undirected DFS that treats the edge it arrived by as a back-edge finds a "cycle" on the very first pipe. Skip the parent, always.
+
+**3. Forgetting the lonely village.**
+`n = 1` with zero edges is a valid tree. The formula holds, 0 edges equals 1 - 1, and the walk trivially reaches 1 of 1. Just don't special-case it into a bug.
+
+**4. Building the adjacency list one-directional.**
+Register each pipe both ways or the walk can only travel downhill, and perfectly good villages get rejected because water "couldn't flow back".
+
+**5. Recursive DFS on a long chain.**
+A valid tree can be one straight line of thousands of houses. Recursion hits Python's depth limit around a thousand. The iterative stack above doesn't care.
+
+---
+
+## Complexity
+
+The count check is O(1), and since we only traverse when there are exactly n - 1 edges, the walk touches n houses and n - 1 pipes.
+
+**Time: O(n). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+The inspector signs Village A's certificate without ever hunting a single loop. Count the pipes, take one walk, and the geometry confesses on its own.
+
+What you walked away with:
+
+- The tree characterization: **connected + acyclic**, and the edge-count shortcut that makes one property imply the other
+- Exactly n - 1 edges is a *precondition* you check before spending any traversal effort
+- Building an adjacency list from an edge list, registering undirected edges both ways
+- Parent-skipping in undirected DFS, the fix for the "every edge is a cycle" trap
+
+Next up: **Boss 11 — The Friend Circles.** Counting components again, Boss 1's oldest question, but a new weapon appears: union-find, which gets the answer without walking the graph at all.

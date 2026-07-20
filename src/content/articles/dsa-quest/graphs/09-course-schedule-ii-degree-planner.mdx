@@ -1,0 +1,222 @@
+---
+title: "Course Schedule II — The Degree Planner"
+slug: course-schedule-ii-degree-planner
+category: dsa
+series: graphs
+seriesOrder: 9
+description: "Dungeon 11, Boss 9. Knowing graduation is possible isn't enough, the advisor wants the actual order. Kahn's algorithm: count indegrees, queue the zero-indegree courses, take one, unlock its dependents, repeat. Topological sort, the canonical DAG tool, with cycle detection thrown in for free."
+tags:
+  - DSA
+  - Graphs
+  - Topological Sort
+  - BFS
+  - Intermediate
+icon: "📋"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Knowing you can graduate is not enough. Your advisor wants the actual order, which course first and which after that. So you count how many prerequisites each course still needs, and anything sitting at zero is ready right now. Take a ready course and it unlocks the ones waiting behind it, over and over until the plan is full. That's Topological Sort, and if the plan comes up short, a hidden cycle swallowed the rest.
+  bn: |
+    গ্র্যাজুয়েশন সম্ভব, শুধু এটা জানা যথেষ্ট না। অ্যাডভাইজার চান আসল অর্ডার, আগে কোন কোর্স, তারপর কোনটা। তাই প্রতিটা কোর্সের কয়টা প্রিরিকুইজিট এখনো বাকি সেটা গুনুন, যেটার শূন্য সেটা এখনই নেওয়া যায়। একটা রেডি কোর্স নিলেই তার পেছনে অপেক্ষায় থাকা কোর্সগুলো খুলে যায়, এভাবে চলুন প্ল্যান ভরা পর্যন্ত। এটাই Topological Sort, আর প্ল্যান ছোট পড়লে বুঝবেন লুকানো একটা cycle বাকিগুলো গিলে ফেলেছে।
+  hi: |
+    graduation मुमकिन है, इतना जानना काफी नहीं। advisor को असली क्रम चाहिए, पहले कौन सा कोर्स और फिर कौन सा। तो हर कोर्स के बचे हुए prerequisites गिनो, जिसके शून्य हैं वह अभी लिया जा सकता है। एक तैयार कोर्स लो और उसके पीछे रुके कोर्स खुल जाते हैं, ऐसा तब तक जब तक पूरा प्लान न बन जाए। यही Topological Sort है, और प्लान अधूरा रह जाए तो समझो छिपा हुआ cycle बाकी सब निगल गया।
+  ar: |
+    أن تعرف أن التخرج ممكن لا يكفي. المرشد الأكاديمي يريد الترتيب الفعلي، أي مادة أولاً وأيها بعدها. فتحسب لكل مادة كم متطلباً سابقاً بقي لها، وكل مادة عند الصفر جاهزة الآن. خذ مادة جاهزة فتنفتح المواد المنتظرة خلفها، وهكذا حتى تكتمل الخطة. هذا هو Topological Sort، وإن جاءت الخطة ناقصة فهناك حلقة خفية ابتلعت الباقي.
+---
+
+## Boss 9: The Degree Planner
+
+Boss 8 detected the knot. This boss produces the untangled rope. A yes/no answer isn't a plan, and "in what order?" turns out to be its own algorithm: **topological sort**, the canonical tool for putting any DAG in line. It installs indegree bookkeeping, a BFS-flavored ordering called Kahn's algorithm, and a free bonus: the sort detects cycles as a side effect, so it quietly answers Boss 8 too.
+
+---
+
+## The story
+
+Same catalog, but now the advisor wants dates on paper:
+
+```
+course 0  Intro            needs nothing
+course 1  Data Structures  needs 0
+course 2  Discrete Math    needs 0
+course 3  Algorithms       needs 1 and 2
+course 4  Compilers        needs 3
+```
+
+The advisor's method is beautifully dumb. Count each course's *unmet* prereqs. Anything at zero is takeable right now. Take one, cross it off, and every course waiting on it has one less unmet need, maybe dropping to zero itself:
+
+```
+unmet needs:  0:0  1:1  2:1  3:2  4:1
+
+ready [0]      take 0 → 1 and 2 drop to zero
+ready [1, 2]   take 1 → 3 drops to one
+ready [2]      take 2 → 3 drops to zero
+ready [3]      take 3 → 4 drops to zero
+ready [4]      take 4
+
+plan: 0, 1, 2, 3, 4
+```
+
+And here's the elegance. If the catalog has a knot, the knotted courses *never* reach zero, each one eternally waiting on another. The ready list dries up with courses left over, the plan comes up short, and the shortness itself is the cycle alarm.
+
+---
+
+## The problem, dressed up properly
+
+> There are `numCourses` courses labeled `0` to `numCourses - 1`, and `prerequisites[i] = [a, b]` means you must take course `b` before course `a`. Return **any valid order** in which you can take all courses. If no valid order exists, return an **empty array**.
+
+LeetCode 210.
+
+---
+
+## The naive attempt
+
+The advisor's method, minus the insight about *when* readiness changes. Every round, rescan the entire catalog for any course whose prereqs are all done:
+
+```python
+def find_order_naive(num_courses, prerequisites):
+    prereqs = [set() for _ in range(num_courses)]
+    for course, prereq in prerequisites:
+        prereqs[course].add(prereq)
+
+    order, done = [], set()
+    while len(order) < num_courses:
+        progressed = False
+        for c in range(num_courses):
+            if c not in done and prereqs[c] <= done:   # all prereqs finished?
+                order.append(c)
+                done.add(c)
+                progressed = True
+        if not progressed:
+            return []            # a full round with no progress: cycle
+    return order
+```
+
+Correct, and the stuck-round check even catches cycles. But every round rescans all V courses and rechecks their prereq sets: roughly O(V² + VE). The waste is glaring once you see it, a course's readiness only changes when *one of its own prereqs completes*. Rescanning courses whose situation cannot have changed is pure busywork. What's missing is a way to be *told* when a course becomes ready.
+
+---
+
+## The weapon: Kahn's algorithm
+
+Give every course an **indegree**: the count of prereqs still unmet. Then:
+
+1. Queue every course whose indegree is already zero. Those need nothing, they're semester one.
+2. Pop a course, append it to the order. It's officially taken.
+3. "Unlock" its dependents: each course waiting on it gets its indegree decremented. Any that hit zero just became ready, into the queue.
+4. When the queue dries up, check the count. Order holds all n courses: valid plan. Fewer: a cycle ate the rest, return empty.
+
+<MermaidBlock>
+graph TB
+    A["count indegree\nunmet prereqs per course"]
+    B["queue every course\nat indegree zero"]
+    C["pop a course\nappend it to the order"]
+    D["decrement indegree\nof each dependent\nany at zero? enqueue"]
+    E["queue empty\norder full? valid plan\nshort? cycle, return empty"]
+    A --> B
+    B --> C
+    C --> D
+    D --> C
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+from collections import deque
+
+def find_order(num_courses: int, prerequisites: list[list[int]]) -> list[int]:
+    graph = [[] for _ in range(num_courses)]    # prereq → courses it unlocks
+    indegree = [0] * num_courses
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        indegree[course] += 1
+
+    queue = deque(c for c in range(num_courses) if indegree[c] == 0)
+    order = []
+    while queue:
+        course = queue.popleft()
+        order.append(course)                    # taken, in a legal spot
+        for nxt in graph[course]:               # unlock dependents
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:              # last prereq just cleared
+                queue.append(nxt)
+
+    return order if len(order) == num_courses else []
+```
+
+This is BFS in spirit: a frontier of ready nodes, each processed once, unlocking the next frontier. There's also a DFS route: run Boss 8's three-state DFS, record each node in postorder, reverse the list at the end. Same output guarantees. Kahn's tends to win interviews because the cycle check is free and there's no recursion limit to trip over, but know both names.
+
+And notice: LeetCode 207 is literally this function with the last line swapped for `return len(order) == num_courses`. One algorithm, two bosses.
+
+---
+
+## Watching it work
+
+The advisor's catalog. Edges point prereq → dependent: 0 → 1, 0 → 2, 1 → 3, 2 → 3, 3 → 4.
+
+```
+indegree [0, 1, 1, 2, 1]     queue [0]
+
+pop 0 → order [0]            1 and 2 drop to zero → enqueue both
+pop 1 → order [0, 1]         3 drops to one
+pop 2 → order [0, 1, 2]      3 drops to zero → enqueue 3
+pop 3 → order [0, 1, 2, 3]   4 drops to zero → enqueue 4
+pop 4 → order [0, 1, 2, 3, 4]
+
+queue empty, len(order) == 5 == numCourses → valid plan ✓
+```
+
+Feed it Boss 8's knotted catalog instead and courses 1, 2, 3 sit forever at nonzero indegree. The queue drains after the innocents, `order` holds fewer than n, empty array comes back. The knot never even gets touched.
+
+<Callout type="tip" title="Recognizing topological sort in the wild">
+The trigger phrase is "these things depend on those things, give me an order". Build systems compiling modules in dependency order, package installers sequencing installs, spreadsheets deciding which cells to recalculate first, task pipelines like Airflow scheduling jobs. If the dependencies form a DAG, topo sort is not one option among many, it's *the* tool, and Kahn's indegree loop is its most common face.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Arrow direction, and this time it matters.**
+Boss 8 forgave a flipped graph, cycle detection doesn't care. Ordering does. Build `graph[prereq].append(course)`: the arrow points from unlocker to unlocked. Reverse it and your plan comes out backwards or nonsensical.
+
+**2. Seeding the queue with one node.**
+*Every* zero-indegree course starts in the queue. Real catalogs have several independent intro courses, and a disconnected cluster with no seed never gets processed.
+
+**3. Skipping the final length check.**
+Without `len(order) == num_courses` you hand back a partial "plan" that silently omits the knotted courses. The contract says empty array, all or nothing.
+
+**4. Using `list.pop(0)` as the queue.**
+That's O(n) per pop, turning O(V + E) into O(V²) on big inputs. `deque.popleft()` or a read index over a plain list.
+
+**5. Expecting one specific answer.**
+`[0, 2, 1, 3, 4]` is just as valid here, ties can pop in any order. Judges verify validity, not equality, so don't panic when your output differs from the example's.
+
+---
+
+## Complexity
+
+Every course is enqueued and popped once, every edge decremented once, plus the initial counting pass.
+
+**Time: O(V + E). Space: O(V + E).**
+
+---
+
+## Boss down. XP gained.
+
+The advisor pins the five-line plan to the corkboard. Semester one starts with Intro, the way it always did, except now it's provably correct, and the proof cost one integer per course.
+
+What you walked away with:
+
+- **Indegree**: unmet dependencies as a single number, making "ready?" an O(1) question
+- **Kahn's algorithm**: queue the ready, take one, unlock dependents, repeat until dry
+- Short output means cycle, so topological sort answers Boss 8 for free
+- The DFS alternative, postorder reversed, same guarantees, different engine
+- When a DAG needs an order, topo sort is the canonical tool, no auditions needed
+
+Next up: **Boss 10 — The Village Waterline.** Undirected graphs return with a structural question: n pumps, a list of pipes, and one clean test that decides whether the whole network is secretly a tree.

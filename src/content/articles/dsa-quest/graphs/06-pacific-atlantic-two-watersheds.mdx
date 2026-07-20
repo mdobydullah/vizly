@@ -1,0 +1,220 @@
+---
+title: "Pacific Atlantic Water Flow — The Two Watersheds"
+slug: pacific-atlantic-two-watersheds
+category: dsa
+series: graphs
+seriesOrder: 6
+description: "Dungeon 11, Boss 6. Rain drains downhill toward two oceans and you need the cells that reach both. Simulating from every cell drowns in repeated work, so run it backwards: climb uphill from each coast and intersect."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Matrix
+  - Intermediate
+icon: "🌧️"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Rain falls on an island of hills, and water flows to any neighbor at the same height or lower. The Pacific hugs the top and left coasts, the Atlantic the bottom and right. You need every cell whose rain can reach both oceans. Chasing water downhill from every single cell is a nightmare of repeated work, so flip it: start at the coasts and climb uphill instead. Whatever both climbs touch is your answer.
+  bn: |
+    পাহাড়ি এক দ্বীপে বৃষ্টি পড়ছে, আর পানি গড়িয়ে যায় সমান বা নিচু উচ্চতার পাশের ঘরে। Pacific ছুঁয়ে আছে উপরের আর বাঁদিকের উপকূল, Atlantic নিচের আর ডানদিকের। আপনার দরকার সেই ঘরগুলো, যেগুলোর বৃষ্টির পানি দুই সাগরেই পৌঁছায়। প্রতিটা ঘর থেকে পানির পিছু পিছু নামা মানে একই কাজ হাজারবার, তাই উল্টে দিন: উপকূল থেকে শুরু করে উপরের দিকে উঠুন। দুই চড়াই মিলে যেসব ঘর ছুঁয়েছে, সেটাই উত্তর।
+  hi: |
+    पहाड़ियों वाले एक टापू पर बारिश हो रही है, और पानी बराबर या नीची ऊंचाई वाले पड़ोसी खाने में बहता है। Pacific ऊपर और बाएं किनारे से लगा है, Atlantic नीचे और दाएं से। आपको वे खाने चाहिए जिनकी बारिश दोनों समुद्रों तक पहुंचती है। हर खाने से पानी के पीछे नीचे उतरना मतलब वही काम हज़ार बार, तो उल्टा करो: किनारों से शुरू करके ऊपर चढ़ो। जो खाने दोनों चढ़ाइयों में छुए गए, वही जवाब है।
+  ar: |
+    تمطر السماء على جزيرة من التلال، والماء يجري إلى أي جار بارتفاع مساوٍ أو أقل. المحيط الهادئ يلامس الساحلين العلوي والأيسر، والأطلسي السفلي والأيمن. المطلوب كل خلية يصل مطرها إلى المحيطين معاً. تتبع الماء نزولاً من كل خلية يعني تكرار العمل نفسه آلاف المرات، فاقلب الاتجاه: ابدأ من السواحل واصعد إلى أعلى. الخلايا التي لمسها الصعودان معاً هي الجواب.
+---
+
+## Boss 6: The Two Watersheds
+
+Bosses 4 and 5 flooded *outward* from sources: gates, mold, ripples spreading to wherever they could reach. This boss flips the direction entirely. The sources here are useless as starting points, every cell is one, but the *destinations* are two neat coastlines. So you start at the destinations and walk the flow backwards. It installs three tools at once: reverse traversal from targets, reversing the comparison that goes with it (walking backwards means climbing uphill), and combining two searches with a set intersection.
+
+---
+
+## The story
+
+An island survey team maps a 5 by 5 island of hills. Rain landing on a cell flows to any 4-directional neighbor of **equal or lower** height, and keeps going until it hits an ocean. The Pacific laps the entire top and left coasts, the Atlantic the bottom and right:
+
+```
+        Pacific
+      1  2  2  3  5
+ P    3  2  3  4  4    A
+ a    2  4  5  3  1    t
+ c    6  7  1  4  5    l
+      5  1  1  2  4
+        Atlantic
+```
+
+The mapmakers want the **divide cells**: places where rainwater can drain to *both* oceans. Take the peak at (2,2), height 5:
+
+```
+toward the Pacific:  5 → 3 at (1,2) → 2 at (1,1) → 2 at (0,1) → top coast ✓
+toward the Atlantic: 5 → 3 at (2,3) → 1 at (2,4) → right coast ✓
+```
+
+One raindrop, two oceans. (2,2) makes the list. The full answer for this island turns out to be seven cells: (0,4), (1,3), (1,4), (2,2), (3,0), (3,1), (4,0). Finding them by chasing raindrops is the trap this boss sets.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` matrix `heights` where `heights[r][c]` is the height above sea level, the Pacific Ocean touches the top and left edges and the Atlantic touches the bottom and right edges. Water can flow from a cell to neighboring cells with height **equal or lower**. Return a list of grid coordinates where rain water can flow to **both** the Pacific and Atlantic oceans.
+
+LeetCode 417.
+
+---
+
+## The naive attempt
+
+Do what the story does: from every cell, follow the water downhill and see which oceans it finds.
+
+```python
+def pacific_atlantic(heights):
+    rows, cols = len(heights), len(heights[0])
+
+    def drains(r, c, seen, ocean):
+        if r < 0 or c < 0:                      # fell off top or left edge
+            return ocean == "pacific"
+        if r >= rows or c >= cols:              # fell off bottom or right
+            return ocean == "atlantic"
+        if (r, c) in seen:
+            return False
+        seen.add((r, c))
+        return any(
+            drains(r + dr, c + dc, seen, ocean)
+            for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1))
+            if not (0 <= r + dr < rows and 0 <= c + dc < cols)
+            or heights[r + dr][c + dc] <= heights[r][c]
+        )
+
+    return [[r, c] for r in range(rows) for c in range(cols)
+            if drains(r, c, set(), "pacific")
+            and drains(r, c, set(), "atlantic")]
+```
+
+It works, and it's slow in a way worth naming. Each `drains` call can wander most of the grid, and you launch two of them from every one of the `m*n` cells: **O((mn)²)**, with staggering duplication. The downhill path from (2,2) walks straight through (1,2)'s and (1,1)'s territory, then you turn around and recompute those same paths from scratch when their turn comes. Millions of raindrops, all retracing each other's routes.
+
+---
+
+## The weapon: run the river backwards
+
+Here's the reframe. "Which cells can reach the Pacific?" is the same question as "**which cells can the Pacific reach, going backwards?**" Water flows downhill, so walking a flow in reverse means climbing: from a cell, you may step to a neighbor whose height is **equal or higher**. And the Pacific's entry points are known and few: the entire top row and left column.
+
+So: one DFS sweep climbing from every Pacific coast cell, collecting a set of everything it can reach. One more sweep from the Atlantic coasts. A cell drains to both oceans exactly when it shows up in **both sets**, and that's a set intersection. Two sweeps total, instead of two per cell.
+
+<MermaidBlock>
+graph TB
+    A["two sweeps\none per ocean\nstart on the coastlines"]
+    B["pacific sweep:\nseed top row\nand left column"]
+    C["atlantic sweep:\nseed bottom row\nand right column"]
+    D["climb uphill with DFS\nstep only to neighbors of\nequal or higher height"]
+    E["two reachable sets\npacific-set and atlantic-set"]
+    F["answer: cells present\nin BOTH sets\nset intersection"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def pacific_atlantic(heights: list[list[int]]) -> list[list[int]]:
+    rows, cols = len(heights), len(heights[0])
+    pacific, atlantic = set(), set()
+
+    def climb(r, c, seen, prev_height):
+        if (r < 0 or r >= rows or c < 0 or c >= cols
+                or (r, c) in seen
+                or heights[r][c] < prev_height):   # can only climb, not drop
+            return
+        seen.add((r, c))
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            climb(r + dr, c + dc, seen, heights[r][c])
+
+    for c in range(cols):                          # top and bottom coasts
+        climb(0, c, pacific, heights[0][c])
+        climb(rows - 1, c, atlantic, heights[rows - 1][c])
+    for r in range(rows):                          # left and right coasts
+        climb(r, 0, pacific, heights[r][0])
+        climb(r, cols - 1, atlantic, heights[r][cols - 1])
+
+    return [[r, c] for r, c in pacific & atlantic]
+```
+
+Read the comparison twice, because it's the heart of the boss. Forward rule: water moves to *equal or lower*. Reverse rule: the climb rejects any cell *lower than* where you came from. Same inequality, viewed from the other end. Each coast cell seeds with its own height as `prev_height`, so the border itself always passes the check.
+
+---
+
+## Watching it work
+
+The survey island, both sweeps:
+
+```
+pacific sweep: seeds top row and left column (9 cells)
+  climbs inland to (1,1) (1,2) (1,3) (1,4) (2,1) (2,2) (3,1)
+  pacific set: 16 cells
+
+atlantic sweep: seeds bottom row and right column (9 cells)
+  climbs inland to (2,2) (2,3) (3,0) (3,1) (3,2) (3,3) (1,3)
+  atlantic set: 16 cells
+
+intersection: (0,4) (1,3) (1,4) (2,2) (3,0) (3,1) (4,0)   ✓ seven cells
+```
+
+Follow one thread: the Atlantic enters at (2,4), height 1, climbs to (2,3) at height 3, then up to (2,2) at height 5. The Pacific reached (2,2) through (1,1) and (1,2). The peak lands in both sets, exactly matching the raindrop we traced by hand in the story. And corner cells like (0,4) and (4,0) get in for free, each one sits on two coasts at once... one of them belonging to each ocean.
+
+<Callout type="tip" title="Recognizing reverse traversal in the wild">
+The tell: "which of these MANY starting points can reach one of these FEW targets?" Flip it and search from the targets. Boss 7 uses the same reversal on a Go board, walking in from the border to find which stones can't be captured. It's also how you find all cells that can reach an exit in a maze, or every node that can reach a crash state in a state machine (search the reversed graph from the crash). Few targets, many askers: start at the targets.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting to flip the comparison.**
+Climbing means the next cell needs height *equal or higher*. Keep the forward rule while traversing from the coasts and your search flows downhill from the beach, which visits almost nothing and returns a near-empty answer. If your output is suspiciously tiny, check the inequality first.
+
+**2. Seeding partial coastlines.**
+The Pacific owns the *entire* top row and the *entire* left column, and the Atlantic mirrors it. Seeding just the corners, or just one edge per ocean, silently drops whole regions. The two corner cells (0, cols-1) and (rows-1, 0) each touch both oceans through different edges, and correct seeding gives them to both sets automatically.
+
+**3. Sharing one visited set between sweeps.**
+`pacific` and `atlantic` must be separate sets. Reuse one set for both sweeps and the second sweep gets blocked by the first sweep's footprints, then the intersection is nonsense. Two searches, two memories.
+
+**4. Rejecting equal heights.**
+Water flows to equal *or* lower, so the climb accepts equal or higher. Make the check strictly greater and flat plateaus become walls, splitting regions that actually drain fine.
+
+**5. Recursion depth on big grids.**
+A 200 by 200 grid can produce a climb path tens of thousands of cells long, past Python's default recursion limit. Interviews rarely care, production does: convert `climb` to an explicit stack, or raise the limit knowingly.
+
+---
+
+## Complexity
+
+Each sweep visits a cell at most once (its set doubles as visited), two sweeps plus an intersection over at most mn entries.
+
+**Time: O(mn). Space: O(mn).**
+
+---
+
+## Boss down. XP gained.
+
+The survey team inks seven divide cells onto the map without simulating a single raindrop. They walked the coasts and let the mountains tell on themselves.
+
+What you walked away with:
+
+- **Reverse traversal**: when destinations are few and sources are everywhere, search from the destinations
+- Reversing a walk means reversing its rule: downhill flow becomes an uphill climb
+- Two independent searches, two sets, and the answer is their intersection
+- The visited set can *be* the result set when the question is pure reachability
+
+Next up: **Boss 7 — The Go Board.** Same border-first reversal, new stakes: surrounded stones get captured, and the only survivors are regions that can touch the edge. You'll flood from the border to decide who lives.

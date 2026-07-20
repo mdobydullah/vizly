@@ -1,0 +1,207 @@
+---
+title: "Number of Connected Components — The Friend Circles"
+slug: connected-components-friend-circles
+category: dsa
+series: graphs
+seriesOrder: 11
+description: "Dungeon 11, Boss 11. A party host has n guests and a list of who knows who, and friend groups share tables. Union-Find arrives: parent array, path compression, merging captains, and counting components with no traversal at all."
+tags:
+  - DSA
+  - Graphs
+  - Union-Find
+  - DFS
+  - Beginner
+icon: "👥"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You are hosting a party for n guests, and you have a list of who knows who. Friend groups should share a table, so the real question is how many tables to set up. The old move is to sketch the whole friendship map and walk it group by group. This boss does not walk anything. Hand every guest a captain card, and each time a pair comes in, one captain joins the other. That is Union-Find, and the table count just falls out.
+  bn: |
+    আপনি n জন অতিথির জন্য পার্টি দিচ্ছেন, হাতে আছে কে কাকে চেনে তার লিস্ট। বন্ধুরা এক টেবিলে বসবে, তাই আসল প্রশ্ন হলো টেবিল লাগবে কয়টা। পুরনো কায়দা হলো বন্ধুত্বের পুরো ম্যাপ এঁকে দল ধরে ধরে হাঁটা। এই বস কোথাও হাঁটে না। প্রত্যেক অতিথির হাতে একটা ক্যাপ্টেন কার্ড দিন, আর প্রতিটা জোড়া আসামাত্র এক ক্যাপ্টেন আরেক ক্যাপ্টেনের দলে ঢুকে যায়। এটাই Union-Find, টেবিলের হিসাব নিজে থেকেই বেরিয়ে আসে।
+  hi: |
+    आप n मेहमानों की पार्टी दे रहे हैं, और आपके पास लिस्ट है कि कौन किसे जानता है। दोस्तों का ग्रुप एक ही टेबल पर बैठेगा, तो असली सवाल है कि टेबल कितनी लगेंगी। पुराना तरीका है दोस्ती का पूरा नक्शा बनाकर ग्रुप दर ग्रुप चलना। यह बॉस कहीं नहीं चलता। हर मेहमान को एक कैप्टन कार्ड दो, और हर जोड़ी आते ही एक कैप्टन दूसरे की टीम में मिल जाता है। यही Union-Find है, और टेबलों की गिनती अपने आप निकल आती है।
+  ar: |
+    تستضيف حفلة لعدد n من الضيوف، ومعك قائمة بمن يعرف من. أصحاب المجموعة الواحدة يجلسون على طاولة واحدة، فالسؤال الحقيقي: كم طاولة نجهز؟ الطريقة القديمة أن ترسم خريطة الصداقات كاملة وتمشي عليها مجموعة مجموعة. هذا الزعيم لا يمشي خطوة واحدة. أعط كل ضيف بطاقة قبطان، ومع كل ثنائي يصل ينضم قبطان إلى قبطان آخر. هذه هي Union-Find، وعدد الطاولات يخرج من تلقاء نفسه.
+---
+
+## Boss 11: The Friend Circles
+
+Boss 10's inspector walked the pipes to earn a certificate. This boss answers the same kind of question, *who is connected to whom*, without walking anything. It's Boss 1's oldest puzzle, count the groups, arriving one more time so a brand-new weapon can be forged on it: **union-find**, the data structure that tracks connectivity by bookkeeping instead of traversal. This is the article where you actually learn it, because the next boss is unwinnable without it.
+
+---
+
+## The story
+
+You're hosting a party. 8 guests, numbered 0 to 7, and your RSVP notes list who knows who: `0-1, 1-2, 3-4, 5-6`. House rule: friends sit together, and friends-of-friends count as friends. How many tables do you set up?
+
+Play matchmaker:
+
+```
+0 knows 1, and 1 knows 2   →  table {0, 1, 2}
+3 knows 4                  →  table {3, 4}
+5 knows 6                  →  table {5, 6}
+7 knows nobody             →  table {7}, party of one
+answer: 4 tables
+```
+
+Notice what the input looks like. Nobody handed you a map. You got a *list of pairs*, and the pairs chain: 0 never met 2, but they share a table because 1 vouches for both. The question isn't about paths or distances, only *"same group or not, and how many groups"*. That smell, edge list in, group count out, is this boss's scent.
+
+---
+
+## The problem, dressed up properly
+
+> You have a graph of `n` nodes. You are given an integer `n` and an array `edges` where `edges[i] = [a, b]` indicates that there is an undirected edge between `a` and `b` in the graph. Return the number of connected components in the graph.
+
+LeetCode 323. It's LeetCode premium, but you can solve it free on LintCode or NeetCode.
+
+---
+
+## The naive attempt
+
+You've killed this exact boss before. Boss 1 counted islands: DFS from every unvisited node, each launch is one component:
+
+```python
+def count_components(n, edges):
+    adj = [[] for _ in range(n)]
+    for a, b in edges:
+        adj[a].append(b)
+        adj[b].append(a)
+
+    seen = set()
+    def dfs(node):
+        for nxt in adj[node]:
+            if nxt not in seen:
+                seen.add(nxt)
+                dfs(nxt)
+
+    count = 0
+    for guest in range(n):
+        if guest not in seen:       # a table nobody claimed yet
+            seen.add(guest)
+            dfs(guest)
+            count += 1              # one launch = one friend circle
+    return count
+```
+
+O(n + e), optimal, accepted. So why is this the *naive* attempt? Look at the ceremony: we took an edge list, built a whole adjacency list, allocated a visited set, and walked every node and edge, all to answer "how many groups". The problem never asked about paths. We built a road network to answer a question about club membership.
+
+---
+
+## The weapon: union-find, connectivity without walking
+
+Here's the reframe. Give every guest a **captain card**. At the start, all n guests are their own captain, n one-person circles. Then read the pairs. For each pair, find each guest's *ultimate* captain (follow the cards up until someone is their own captain). Different captains? One captain joins the other's circle, and the circle count drops by one. Same captain? Old news, they were already merged through earlier pairs.
+
+That's the entire algorithm. Two operations, **find** (who's your root captain?) and **union** (merge two circles), and the answer is n minus the number of successful merges.
+
+<MermaidBlock>
+graph TB
+    A["parent array\nevery guest starts as\ntheir own captain\ncount = n"]
+    B["read pair a, b\nfrom the edge list"]
+    C["find both root captains\nfollow parent cards up\nflatten the trail on the way"]
+    D["same root?\nalready one circle\ncount unchanged"]
+    E["different roots?\none root joins the other\ncount minus 1"]
+    F["pairs exhausted\ncount = number of tables"]
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    D --> B
+    E --> B
+    B --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def count_components(n: int, edges: list[list[int]]) -> int:
+    parent = list(range(n))          # everyone starts as their own captain
+
+    def find(x: int) -> int:         # walk up to the root captain
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]   # path compression: skip a level
+            x = parent[x]
+        return x
+
+    count = n                        # n circles, then merge down
+    for a, b in edges:
+        root_a, root_b = find(a), find(b)
+        if root_a != root_b:         # different circles: merge them
+            parent[root_a] = root_b  # one captain joins the other
+            count -= 1               # one fewer table
+    return count
+```
+
+The sneaky line is inside `find`: `parent[x] = parent[parent[x]]`. As you walk up to the root, you re-point each card a level higher, so the *next* find along this trail is shorter. That's **path compression**, and it's why find is nearly O(1) amortized, the true bound involves the inverse Ackermann function, which grows so slowly you can read it as "effectively constant" and no interviewer will blink.
+
+Why does union-find win here? The graph arrived as an **edge list**, and the question needed no traversal, no paths, no order of visits. Union-find consumes the input in exactly the shape it arrived, one pair at a time, no adjacency list ever built. And unlike DFS, it stays cheap if edges keep *arriving*, which is precisely the trap the next boss springs.
+
+---
+
+## Watching it work
+
+Guests 0 to 7, pairs `0-1, 1-2, 3-4, 5-6`:
+
+```
+start: parent [0,1,2,3,4,5,6,7]           count 8
+pair 0-1: roots 0, 1 differ  → parent[0]=1   count 7
+pair 1-2: roots 1, 2 differ  → parent[1]=2   count 6
+pair 3-4: roots 3, 4 differ  → parent[3]=4   count 5
+pair 5-6: roots 5, 6 differ  → parent[5]=6   count 4
+pairs done                                 4 tables
+```
+
+Guest 7 was never mentioned and never touched, and that's the point: starting `count` at n means loners are counted before the first pair is even read. And if the list had contained a redundant pair like `0-2`, find would walk 0 up to root 2, see both roots equal, and change nothing.
+
+<Callout type="tip" title="Recognizing union-find in the wild">
+The trigger is the input shape plus the question shape: edges arrive as a *list of pairs*, and the ask is about *group membership*, never about paths. "Merge accounts with a shared email", "are these two computers on the same network", "how many provinces". Kruskal's minimum spanning tree runs on it. If pairs stream in over time and you must answer "same group?" between arrivals, DFS has to re-walk the world each time while union-find just checks two cards.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Merging nodes instead of roots.**
+`parent[a] = b` links the two guests directly and quietly orphans everyone above `a` in its tree. Always merge *roots*: `parent[root_a] = root_b`. This is the classic union-find corruption bug.
+
+**2. Decrementing count on every pair.**
+Only a *successful* union earns the decrement. Duplicate or redundant pairs (like `0-2` after `0-1` and `1-2`) have equal roots, and blindly subtracting for them undercounts your tables.
+
+**3. Forgetting the loners.**
+If you count merges and try to reconstruct the answer afterward, guest 7 vanishes. Start at n and subtract, and isolated guests are handled before you read a single pair.
+
+**4. Skipping path compression.**
+The code still works, but chains of captain cards can grow n long, and find degrades to O(n) each. One line, `parent[x] = parent[parent[x]]`, buys effectively-constant time. Union by rank helps too, but compression alone is enough at interview scale.
+
+**5. Recursive find.**
+The elegant `return find(parent[x])` version recurses once per level, and a degenerate chain overflows Python's stack. The iterative loop above compresses as it walks and never recurses.
+
+---
+
+## Complexity
+
+Initializing the parent array is O(n), and each of the e pairs costs two finds and maybe one union at effectively-constant amortized time (inverse Ackermann).
+
+**Time: O(n + e). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+Four tables, one loner seated with dignity, and the friendship map was never drawn. The parent array did in eight cells what Boss 1 needed a full traversal to learn.
+
+What you walked away with:
+
+- **Union-find**: a parent array, find with path compression, union of roots, connectivity as pure bookkeeping
+- Component counting as `n minus successful unions`, with loners covered from the start
+- Path compression's one-liner and why operations are "effectively constant" (inverse Ackermann)
+- The trigger: edge-list input plus a membership question means no traversal is needed at all
+
+Next up: **Boss 12 — The Extra Cable.** Union-find's signature move: a network where exactly one cable closes a loop, and find catches it live, the instant that edge arrives.

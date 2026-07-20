@@ -1,0 +1,188 @@
+---
+title: "Max Area of Island — The Homestead Claim"
+slug: max-area-island-homestead-claim
+category: dsa
+series: graphs
+seriesOrder: 2
+description: "Dungeon 11, Boss 2. Homesteaders may claim one connected plot of fertile land, and you want the biggest. The same flood fill as Boss 1, except now the walk reports back: every tile answers one plus whatever its neighbors add up to."
+tags:
+  - DSA
+  - Graphs
+  - DFS
+  - Matrix
+  - Beginner
+icon: "🚜"
+color: orange
+createdAt: "2026-07-15T14:00:00Z"
+updatedAt: "2026-07-15T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The land rush is on. The valley map is a grid, 1 for fertile soil and 0 for rock, and every homesteader may claim exactly one connected plot. You want the biggest one before anyone else finds it. It's the same flood fill that counted islands, but this time the walk reports back: every tile answers 1 plus whatever its neighbors add up to. Walk each plot once, keep the largest number you hear.
+  bn: |
+    জমি দখলের হিড়িক লেগেছে। উপত্যকার ম্যাপটা একটা গ্রিড, ১ মানে উর্বর মাটি, ০ মানে পাথর, আর প্রত্যেক চাষি ঠিক একটা সংযুক্ত প্লট দাবি করতে পারে। আপনি চান সবচেয়ে বড়টা, অন্য কেউ খুঁজে পাওয়ার আগেই। দ্বীপ গোনার সেই একই flood fill, তবে এবার হাঁটাটা হিসাব নিয়ে ফেরে: প্রতিটা ঘর জবাব দেয় ১ যোগ তার প্রতিবেশীদের যোগফল। প্রতিটা প্লটে একবার হাঁটুন, আর সবচেয়ে বড় সংখ্যাটা ধরে রাখুন।
+  hi: |
+    जमीन की दौड़ शुरू हो गई है। घाटी का नक्शा एक ग्रिड है, 1 मतलब उपजाऊ मिट्टी और 0 मतलब चट्टान, और हर किसान ठीक एक जुड़ा हुआ प्लॉट क्लेम कर सकता है। आप सबसे बड़ा चाहते हैं, इससे पहले कि कोई और उसे ढूंढ ले। टापू गिनने वाला वही flood fill, बस इस बार चलना हिसाब लेकर लौटता है: हर खाना जवाब देता है 1 और उसके पड़ोसियों का जोड़। हर प्लॉट पर एक बार चलो और सबसे बड़ी गिनती याद रखो।
+  ar: |
+    بدأ سباق الأراضي. خريطة الوادي شبكة، 1 للتربة الخصبة و0 للصخر، ولكل مستوطن أن يطالب بقطعة متصلة واحدة بالضبط. أنت تريد الأكبر قبل أن يجدها غيرك. إنه نفس الـ flood fill الذي عدّ الجزر، لكن هذه المرة المشي يعود بحساب: كل خانة تجيب 1 زائد ما جمعه جيرانها. امش على كل قطعة مرة واحدة واحتفظ بأكبر رقم تسمعه.
+---
+
+## Boss 2: The Homestead Claim
+
+Boss 1's flood fill was a silent worker: walk the landmass, stamp it, say nothing, and let the outer loop count discoveries. This boss teaches the fill to **report back**. Same walk, same stamps, but every call now *returns a number*, and the numbers add up the recursion tree into the size of the whole component. It installs three habits at once: DFS with return values, accumulating over a component, and taking a max across components. Small step in code, big step in what DFS can be.
+
+---
+
+## The story
+
+The territory opens for homesteading at dawn. The rule from the land office: each family may claim **one connected plot** of fertile tiles, edges touching, no diagonals, no skipping over rock. The survey map:
+
+```
+0 1 1 0 0
+0 1 0 0 1
+0 0 0 1 1
+1 1 0 0 1
+```
+
+Three plots hide in there. You want the biggest, so you measure each exactly once:
+
+```
+plot found at (0,1): walk it → (0,1),(0,2),(1,1)         size 3
+plot found at (1,4): walk it → (1,4),(2,4),(2,3),(3,4)   size 4  ← best
+plot found at (3,0): walk it → (3,0),(3,1)               size 2
+stake your claim: 4 tiles
+```
+
+Boss 1's question was "how many plots?", answered by counting *discoveries*. This question is "how big is the biggest?", and the discovery itself can't answer it, only the walk can, tile by tile, if each tile is willing to say what it's worth. It is: every fertile tile is worth **1 plus whatever its four neighbors report**. Rock reports zero. Already-claimed land reports zero. The plot measures itself on the way through.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `m x n` binary matrix `grid`. An island is a group of `1`'s (representing land) connected **4-directionally** (horizontal or vertical). The **area** of an island is the number of cells with a value `1` on the island. Return the maximum area of an island in `grid`. If there is no island, return `0`.
+
+LeetCode 695.
+
+---
+
+## The naive attempt
+
+The tempting shortcut: find each blob's bounding box, min and max row, min and max column, and multiply the sides.
+
+```python
+# for the plot at (1,4): rows 1..3, cols 3..4 → 3 * 2 = 6  ✗ (real area: 4)
+```
+
+Plots aren't rectangles. An L-shaped claim's box happily counts the rock in its elbow. Wrong answer, not just slow.
+
+The other instinct: run Boss 1 verbatim to *find* each island, then re-scan the grid counting which cells belong to it, perhaps by painting each island a distinct label first and tallying labels in a second pass. That works, and it's a real technique (connected-component labeling), but it's a two-pass ceremony for something one walk can do: the DFS already touches every cell of the plot, so let it count *while it's there*.
+
+---
+
+## The weapon: a flood fill that returns
+
+<MermaidBlock>
+graph TB
+    A["stand on an\nunclaimed fertile tile"]
+    B["stamp it claimed\nno tile counts twice"]
+    C["ask all 4 neighbors\neach returns its own count\nrock and claimed return 0"]
+    D["return 1 plus their sum\nthe plot measures itself"]
+    E["outer loop keeps the max\nacross every plot"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def max_area_of_island(grid: list[list[int]]) -> int:
+    rows, cols = len(grid), len(grid[0])
+
+    def measure(r: int, c: int) -> int:
+        if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] != 1:
+            return 0                      # off the map, rock, or already claimed
+        grid[r][c] = 0                    # stamp BEFORE asking the neighbors
+        return (1                         # this tile
+                + measure(r + 1, c)
+                + measure(r - 1, c)
+                + measure(r, c + 1)
+                + measure(r, c - 1))
+
+    best = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 1:
+                best = max(best, measure(r, c))
+    return best
+```
+
+Compare it to Boss 1's `sink`: the base case now returns `0` instead of nothing, the recursive case returns `1 +` the four calls instead of just making them. Two edits, and the fill went from marking territory to *appraising* it. Stamping fertile tiles to `0` merges the visited set into the map again, and conveniently makes claimed land report zero through the same `!= 1` check that rejects rock.
+
+---
+
+## Watching it work
+
+The big plot, entered at `(1,4)`:
+
+```
+measure(1,4): stamp, ask neighbors
+  measure(2,4): stamp, ask neighbors
+    measure(2,3): stamp, all neighbors rock/claimed → returns 1
+    measure(3,4): stamp, all neighbors rock/claimed → returns 1
+  measure(2,4) = 1 + 1 + 1 = 3
+measure(1,4) = 1 + 3 = 4          best = 4
+```
+
+Each `return` hands its subtotal up one level, and the entry call surfaces holding the whole plot. The outer loop compares 3, then 4, then 2, and `best` remembers the winner.
+
+<Callout type="tip" title="Recognizing returning DFS in the wild">
+The shape is "compute an **aggregate per region**": pixel counts in blob detection, total files under a directory (du walks exactly like this), province populations, subtree sums in Dungeon 7. The tell: the question isn't "how many regions" but "the largest / smallest / total *of* a region". The moment a traversal needs to hand information back to its caller, give DFS a return value; a visited-marking walk that returns numbers is the bridge to tree DP later in the quest.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Stamping after the recursion, again.**
+Same fatal bug as Boss 1, sharper teeth: two adjacent tiles recurse into each other and the sum grows forever until the stack dies. Stamp first, always.
+
+**2. Accumulating into an outer variable instead of returning.**
+A `nonlocal area` counter that each call increments does work, but you must remember to reset it before every new plot, and forgetting that reset makes plot two inherit plot one's size. Returning values has no reset to forget; the call boundary does the bookkeeping.
+
+**3. Int grid here, string grid in Boss 1.**
+LeetCode 695 uses integer `1`s; LeetCode 200 used character `'1'`s. Paste your island counter and change nothing, and every comparison silently fails. Same trap, opposite direction.
+
+**4. Returning the last area instead of the max.**
+The fill measures whichever plot it's standing on; only the outer loop's `max` compares them. Losing the `max(best, ...)` returns the *final* plot surveyed, which is just whichever sits closest to the grid's bottom-right.
+
+**5. The all-rock map.**
+No fertile tile means the loop never calls `measure`, and `best` must already be a valid answer. Initializing `best = 0` handles it; initializing with the first plot found crashes when there isn't one.
+
+---
+
+## Complexity
+
+Every cell is scanned once by the loop and measured at most once by a fill, constant work per visit.
+
+**Time: O(m · n). Space: O(m · n)** worst case recursion depth, one valley-sized plot.
+
+---
+
+## Boss down. XP gained.
+
+Four tiles by the river, staked and fenced before the second wagon crested the hill. The map got walked exactly once, and it did its own arithmetic on the way.
+
+What you walked away with:
+
+- **DFS with a return value**: base cases return 0, each node returns 1 plus its neighbors' reports
+- Aggregate per component, then **max across components**, two loops with two jobs
+- Stamping into the grid doubles as visited *and* makes claimed land report zero for free
+- One walk beats a find-then-recount two-pass, let the traversal compute while it travels
+
+Next up: **Boss 3 — The Subway Sketch.** Time to leave the grid. Real adjacency-list graphs, nodes that carry their own neighbor lists, and a job that sounds innocent until you try it: copy a graph you can only ride, station by station, where the loops will trap any copier without a ledger.
