@@ -1,0 +1,222 @@
+---
+title: "Minimum Interval to Include Each Query — The Tightest Contract"
+slug: min-interval-query-tightest-contract
+category: dsa
+series: intervals
+seriesOrder: 6
+description: "Dungeon 13, Boss 6. The finale. Thousands of service contracts, thousands of tickets, and each ticket wants the shortest contract covering its timestamp. Sort both sides, sweep once, keep candidates in a heap keyed by length, and evict the stale ones lazily."
+tags:
+  - DSA
+  - Intervals
+  - Heap
+  - Advanced
+icon: "🎫"
+color: orange
+createdAt: "2026-07-16T18:00:00Z"
+updatedAt: "2026-07-16T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A support desk keeps a pile of service contracts, each covering a window of time. Tickets arrive stamped with a moment, and policy says every ticket gets handled under the tightest contract that covers its timestamp. Checking every contract for every ticket would eat the whole week. The trick feels almost like cheating: answer the tickets in the order that suits you, not the order they came in. Slide contracts into a heap as you sweep, and toss expired ones only when they float to the top. Last boss of the dungeon.
+  bn: |
+    একটা সাপোর্ট ডেস্কে গাদা গাদা সার্ভিস কন্ট্রাক্ট, প্রতিটা একটা নির্দিষ্ট সময়ের জানালা কভার করে। টিকিট আসে একটা মুহূর্তের ছাপ নিয়ে, আর নিয়ম হলো প্রতিটা টিকিট হ্যান্ডেল হবে সেই মুহূর্ত কভার করা সবচেয়ে ছোট কন্ট্রাক্টের অধীনে। প্রতিটা টিকিটের জন্য সব কন্ট্রাক্ট ঘাঁটতে গেলে পুরো সপ্তাহ চলে যাবে। কৌশলটা শুনতে প্রায় চালাকির মতো: টিকিটের উত্তর দিন নিজের সুবিধার ক্রমে, আসার ক্রমে নয়। সুইপ করতে করতে কন্ট্রাক্টগুলো heap-এ ঢোকান, আর মেয়াদ ফুরানোগুলো ওপরে উঠলে তবেই ফেলে দিন। এটাই ডানজনের শেষ বস।
+  hi: |
+    एक सपोर्ट डेस्क पर सर्विस कॉन्ट्रैक्ट्स का ढेर है, हर एक समय की एक खिड़की कवर करता है। टिकट आते हैं एक पल की मोहर लेकर, और नियम है कि हर टिकट उसी सबसे छोटे कॉन्ट्रैक्ट के तहत निपटेगा जो उसका टाइमस्टैम्प कवर करता है। हर टिकट के लिए हर कॉन्ट्रैक्ट जांचने बैठो तो पूरा हफ्ता निकल जाए। तरकीब सुनने में लगभग चालाकी लगती है: टिकटों का जवाब अपनी सुविधा के क्रम में दो, आने के क्रम में नहीं। स्वीप करते हुए कॉन्ट्रैक्ट्स को heap में डालते चलो, और जिनकी मियाद खत्म हो गई उन्हें तभी फेंको जब वे ऊपर आ जाएं। डंजन का आखिरी बॉस।
+  ar: |
+    مكتب دعم يحتفظ بكومة من عقود الخدمة، كل عقد يغطي نافذة زمنية. تصل التذاكر مختومة بلحظة معينة، والسياسة تقول إن كل تذكرة تعالج تحت أضيق عقد يغطي توقيتها. فحص كل عقد لكل تذكرة سيأكل الأسبوع كله. الحيلة تبدو أقرب إلى الغش: أجب عن التذاكر بالترتيب الذي يناسبك لا بترتيب وصولها. أدخل العقود في heap أثناء المسح، وارم المنتهية فقط عندما تطفو إلى القمة. هذا هو الزعيم الأخير في الدنجن.
+---
+
+## Boss 6: The Tightest Contract
+
+Boss 5's heap tracked rooms, one end time per occupied resource, and the questions came pre-sorted because the day itself sorted them. The finale's heap holds something richer, candidate contracts ranked by size, and the new move is bolder than anything this dungeon has tried: when the questions arrive in an inconvenient order, **reorder the questions**. Answer them in the order that makes the sweep cheap, then hand the answers back in the order they were asked. That trick has a name, offline processing, and it's the last weapon Dungeon 13 installs.
+
+---
+
+## The story
+
+You run a support desk. The company holds service contracts, each covering a window of time: `[[1,4], [2,4], [3,6], [4,4]]`. A contract's *size* is how many moments it covers, so [1,4] covers 4, [2,4] covers 3, [3,6] covers 4, and [4,4] covers exactly 1.
+
+Tickets arrive stamped with a moment: `[2, 3, 4, 5]`. Policy: each ticket is handled under the **tightest** contract covering its timestamp, because narrow contracts are the specialist ones. No coverage, ticket bounces with -1.
+
+Play it out by hand:
+
+```
+ticket @2:  [1,4] covers (size 4), [2,4] covers (size 3)          → 3
+ticket @3:  [1,4] (4), [2,4] (3), [3,6] (4)                       → 3
+ticket @4:  [1,4] (4), [2,4] (3), [3,6] (4), [4,4] (1)            → 1
+ticket @5:  only [3,6] covers (size 4)                            → 4
+
+answers: [3, 3, 1, 4]
+```
+
+Four tickets, four contracts, easy. Now make it 100,000 of each, and "check every contract per ticket" becomes ten billion checks. The desk needs a way to *never rescan*.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a 2D array `intervals` where `intervals[i] = [left_i, right_i]` describes the interval starting at `left_i` and ending at `right_i` (inclusive), with size `right_i - left_i + 1`. You are also given an array `queries`. The answer to the `j`-th query is the **size of the smallest interval** containing `queries[j]`, or `-1` if no interval contains it. Return the answers array.
+
+LeetCode 1851.
+
+---
+
+## The naive attempt
+
+For each query, scan everything:
+
+```python
+def min_interval(intervals, queries):
+    ans = []
+    for q in queries:
+        best = -1
+        for left, right in intervals:
+            if left <= q <= right:                 # covers this moment?
+                size = right - left + 1
+                if best == -1 or size < best:
+                    best = size
+        ans.append(best)
+    return ans
+```
+
+O(q · n), the ten-billion-check plan. The waste is glaring: consecutive queries share almost all their covering contracts, and this code re-derives that overlap from scratch every single time. Query 3's candidate pool is query 2's pool plus a few new arrivals minus a few expiries, and *that* incremental shape is a sweep begging to happen. The only obstacle is that queries might arrive in any order. So change the order.
+
+---
+
+## The weapon: offline processing, a sweep, and a lazy heap
+
+Three sorted things, one pass:
+
+1. **Sort contracts by start.** They'll enter play as time moves forward.
+2. **Sort the queries too**, but remember each one's original index, because the caller wants answers in asking order.
+3. Sweep queries from smallest to largest. For each query `q`, push every contract whose start is at most `q` into a min-heap keyed by `(size, end)`. Then pop stale contracts off the top, the ones whose end is below `q`, they can never cover this query or any later one. Whatever survives at the top is the tightest live contract: that's the answer, written into the answers array at the query's **original index**.
+
+The heap never forgets a candidate early and never rescans one. Contracts enter once, leave once. The stale ones aren't hunted down the moment they expire; they sit in the heap until they float to the top and get noticed, the same lazy-deletion discipline some Dungeon 10 bosses used. Laziness is fine because a stale entry below the top can't affect any answer.
+
+<MermaidBlock>
+graph TB
+    A["sort contracts by start\nsort queries too\nkeep original index"]
+    B["next query q\nsmallest unanswered moment"]
+    C["push every contract\nstarting at or before q\nkeyed by size then end"]
+    D["pop stale tops\nended before q\nuseless forever now"]
+    E["heap top = tightest\nlive contract\nempty heap = -1"]
+    F["write answer at the\noriginal query index"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def min_interval(intervals: list[list[int]], queries: list[int]) -> list[int]:
+    intervals.sort()                                   # by start time
+    order = sorted(range(len(queries)), key=lambda j: queries[j])
+    ans = [-1] * len(queries)                          # default: no coverage
+    heap = []                                          # (size, end) candidates
+    i = 0                                              # next contract to admit
+    for j in order:                                    # queries, smallest first
+        q = queries[j]
+        while i < len(intervals) and intervals[i][0] <= q:
+            left, right = intervals[i]                 # contract now in play
+            heapq.heappush(heap, (right - left + 1, right))
+            i += 1
+        while heap and heap[0][1] < q:                 # top ended before q:
+            heapq.heappop(heap)                        # stale for good, evict
+        if heap:
+            ans[j] = heap[0][0]                        # tightest live contract
+    return ans
+```
+
+The `order` array is the offline trick in one line: it's the queries' indices arranged so the *values* come out ascending, and `ans[j] = ...` undoes the reordering as it goes.
+
+---
+
+## Watching it work
+
+Contracts sorted: `[1,4], [2,4], [3,6], [4,4]`. Queries sorted: 2, 3, 4, 5 (already ascending, indices 0 to 3).
+
+```
+q=2:  admit [1,4] as (4,4), admit [2,4] as (3,4)
+      top (3,4): end 4 not below 2, live          ans[0] = 3
+q=3:  admit [3,6] as (4,6)
+      top (3,4): still live                       ans[1] = 3
+q=4:  admit [4,4] as (1,4)
+      top (1,4): end 4 not below 4, live          ans[2] = 1
+q=5:  nothing left to admit
+      top (1,4): end 4 below 5, evict
+      top (3,4): stale too, evict
+      top (4,4): stale, evict
+      top (4,6): end 6, live                      ans[3] = 4
+
+answers: [3, 3, 1, 4] ✓
+```
+
+Watch what the last query did: three evictions, and each of those contracts had been quietly stale since the moment 4 passed. Nobody paid to notice earlier, and nothing was wrong in the meantime, because the tightest *live* contract was always at or above them. That's lazy deletion earning its keep.
+
+<Callout type="tip" title="Recognizing offline problems in the wild">
+The tell is a batch of independent queries against a dataset where each query would be expensive alone, but a sorted pass makes them nearly free. If nobody demands answers in real time, you own the processing order. Sort queries by the dimension the data sweeps on, run one pass with a heap or union-find carrying state between queries, and unscramble at the end. Range-sum batches, "smallest exceeding X" batches, connectivity-below-threshold batches: same skeleton every time.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Returning answers in sorted-query order.**
+The sweep answers queries smallest-first, but the caller asked in their order. Forget the original indices and every test with unsorted queries fails while the sorted ones pass, which makes it a maddening bug to spot. Carry the index, write through it.
+
+**2. Keying the heap by end (or start) instead of size.**
+The heap's job is to surface the *tightest* contract, so size must be the first tuple element. Key by end and you get the soonest-expiring contract instead, which is Boss 5's reflex sneaking into the wrong fight.
+
+**3. Evicting before admitting.**
+Pop stale, then push? A just-admitted contract can itself be stale, started at or before `q` but ended long ago, and it lands on top after your cleanup already ran. Admit first, evict second, answer third. The code's order is the correct order.
+
+**4. Hunting stale entries eagerly.**
+You can't remove from a heap's middle without wrecking it, and rebuilding per query costs more than the naive scan. Lazy is not a compromise here, it's the design: stale entries below the top are harmless, so let them surface on their own schedule.
+
+**5. Size off by one.**
+Endpoints are inclusive: [4,4] covers one moment, so size is `right - left + 1`. Drop the `+1` and every answer shrinks by one, and [4,4] reports a size of zero, which sorts *below* every real contract and poisons the heap top.
+
+---
+
+## Complexity
+
+Sorting dominates: contracts sort in O(n log n), queries in O(q log q), and then every contract enters and leaves the heap at most once while each query does O(log n) work.
+
+**Time: O(n log n + q log q). Space: O(n + q).**
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained.
+
+The desk clears 100,000 tickets in one pass, every one matched to its specialist contract, and nobody ever rescanned anything. The queue of questions turned out to be negotiable. That was the finale's whole secret: the data was sorted, so the questions got sorted to match.
+
+What you walked away with:
+
+- **Offline processing**: when answers aren't needed live, answer in the order that's convenient and restore the asked order at the end
+- Heap entries as tuples, size first, end second, so the top is always the tightest candidate
+- **Lazy eviction**: stale entries wait below the top, harmless until they surface
+- Why per-query scanning can't compete: the sweep shares candidate state between queries, the scan rebuilds it q times
+
+The full haul from Dungeon 13:
+
+- **The overlap test** and the three-phase insert into a sorted agenda (Boss 1)
+- **Sort by start, sweep**, extend or close the current block (Boss 2)
+- **Greedy by earliest end**, cancel the fewest, the exchange argument (Boss 3)
+- **After sorting, only your neighbor** can betray you first (Boss 4)
+- **Min-heap of end times**, peak concurrent load, the event sweep (Boss 5)
+- **Offline queries, sorted both ways**, a heap of candidates with lazy eviction (Boss 6)
+
+**Next dungeon: Greedy.** Boss 3 already smuggled a greedy proof into this dungeon, sort by earliest end and dare anyone to do better. Dungeon 14 makes that the whole diet: jump games, gas stations, local choices that have the nerve to be globally optimal, and hand-waving replaced by exchange arguments that actually close the case.
+
+See you in Dungeon 14.

@@ -1,0 +1,193 @@
+---
+title: "Non-Overlapping Intervals — The Overbooked Stage"
+slug: non-overlapping-intervals-overbooked-stage
+category: dsa
+series: intervals
+seriesOrder: 3
+description: "Dungeon 13, Boss 3. A promoter double-booked the festival stage and the fewest acts must be cancelled. Sort by end time, keep whatever finishes first, and greedy walks you to the doorway of Dungeon 14."
+tags:
+  - DSA
+  - Intervals
+  - Greedy
+  - Intermediate
+icon: "🎪"
+color: orange
+createdAt: "2026-07-16T18:00:00Z"
+updatedAt: "2026-07-16T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A festival promoter said yes to everybody, and now the main stage has acts booked on top of each other. An act can't be split or merged, so some have to be cancelled, and the organizer wants to cancel as few as possible. Here is the move: sort the acts by when they end, and always keep the one that finishes first. The act that gets off stage earliest leaves the most room for everyone after it. Anything that crashes into a kept act gets the bad news call.
+  bn: |
+    ফেস্টিভ্যালের প্রোমোটার সবাইকে হ্যাঁ বলে দিয়েছে, এখন মেইন স্টেজে অ্যাক্টগুলো একটার ওপর আরেকটা বুক হয়ে আছে। অ্যাক্ট ভাগ করা যায় না, জোড়াও যায় না, তাই কিছু বাতিল করতেই হবে, আর অর্গানাইজার চায় যত কম সম্ভব। কৌশলটা হলো: শেষ হওয়ার সময় ধরে সাজান, আর যেটা সবার আগে শেষ হয় সেটাই রাখুন। যে অ্যাক্ট আগে স্টেজ ছাড়ে, সে পরের সবার জন্য সবচেয়ে বেশি জায়গা রেখে যায়। রাখা অ্যাক্টের সাথে যেটার ধাক্কা লাগে, তার কাছেই বাতিলের ফোনটা যায়।
+  hi: |
+    फेस्टिवल के प्रमोटर ने सबको हां बोल दी, और अब मेन स्टेज पर एक्ट्स एक दूसरे के ऊपर बुक हैं। एक्ट को न काटा जा सकता है न जोड़ा, तो कुछ कैंसिल करने ही होंगे, और ऑर्गनाइज़र चाहता है कि कम से कम जाएं। तरीका यह है: खत्म होने के समय से सॉर्ट करो, और जो सबसे पहले खत्म होता है उसे रखो। जो एक्ट सबसे पहले स्टेज छोड़ता है, वह बाकी सबके लिए सबसे ज्यादा जगह छोड़ जाता है। जो रखे हुए एक्ट से टकराए, उसी को कैंसिल का फोन जाता है।
+  ar: |
+    منظم مهرجان قال نعم للجميع، والآن المسرح الرئيسي عليه عروض محجوزة فوق بعضها. العرض لا يُقسم ولا يُدمج، فلا بد من إلغاء بعضها، والمنظم يريد أقل عدد ممكن. الحيلة: رتب العروض حسب وقت انتهائها، واحتفظ دائماً بالعرض الذي ينتهي أولاً. العرض الذي يغادر المسرح مبكراً يترك أكبر مساحة لمن بعده. وكل عرض يصطدم بعرض محفوظ يصله اتصال الإلغاء.
+---
+
+## Boss 3: The Overbooked Stage
+
+Boss 2 took a wall of colliding shifts and welded them into clean blocks. That worked because shifts were just *time to be covered*, and covering it once was enough. This boss slams that door shut: the things on the calendar are **acts**, indivisible, unmergeable, one band per slot. When two acts collide, you can't fuse them into a super-band. Someone has to go. The boss installs **greedy by earliest end**, the single most famous greedy move in existence, and it is the doorway between this dungeon and the next: Dungeon 14 is *entirely* about greedy, and this fight is your first real taste.
+
+---
+
+## The story
+
+A festival promoter, high on enthusiasm and low on calendar skills, booked the main stage like this: `[[1, 2], [2, 3], [3, 4], [1, 3]]`. Each pair is an act's start and end hour. The organizer's job: **cancel the fewest acts** so no two overlap.
+
+One mercy in this dungeon room: touching is fine. An act ending at hour 2 and the next starting at hour 2 is a quick changeover, not a collision. (Boss 1 treated touching calendars as mergeable. Same dungeon, different house rules. Always read the room.)
+
+Lay the acts on the timeline:
+
+```
+hour     1    2    3    4
+[1,2]    ████
+[2,3]         ████
+[3,4]              ████
+[1,3]    █████████
+```
+
+The first three acts fit back to back, a perfect evening. The `[1,3]` act crashes into both `[1,2]` and `[2,3]`. One cancellation call, and the schedule is clean.
+
+Answer: cancel **1** act.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of intervals `intervals` where `intervals[i] = [start_i, end_i]`, return the **minimum number of intervals you need to remove** to make the rest of the intervals non-overlapping. Note that intervals which only touch at a point are non-overlapping.
+
+LeetCode 435.
+
+---
+
+## The naive attempt
+
+Brute force says: try every subset of acts to cancel, check the survivors, keep the smallest cancellation list. That's 2^n subsets. Dead on arrival past twenty acts.
+
+The smarter naive is DP, and if you fought Dungeon 12's Boss 11 it should smell familiar. Sort by start, and for each act ask "what's the longest chain of compatible acts ending here?" That is *exactly* the Longest Increasing Subsequence shape, with "increasing" swapped for "starts after the previous one ends":
+
+```python
+def erase_overlap_intervals(intervals):
+    intervals.sort()
+    n = len(intervals)
+    keep = [1] * n                       # keep[i]: most acts kept, ending with act i
+    for i in range(n):
+        for j in range(i):
+            if intervals[j][1] <= intervals[i][0]:   # j clears the stage before i starts
+                keep[i] = max(keep[i], keep[j] + 1)
+    return n - max(keep, default=0)      # cancellations = total - best kept chain
+```
+
+Correct, O(n²), and a genuinely useful realization: "max compatible intervals" and "LIS" are the same skeleton. But n² comparisons to schedule a festival is embarrassing when a single sorted sweep gets it done.
+
+---
+
+## The weapon: greedy by earliest end
+
+First, flip the question. "Cancel the fewest" is the same as "**keep the most** compatible acts", then report `total - kept`. Now the greedy:
+
+**Sort by end time. Sweep left to right. Always keep the act that finishes first, and cancel anything that starts before the kept act ends.**
+
+Why is grabbing the earliest finisher always safe? The exchange argument, in plain words: suppose some optimal schedule keeps a *different* first act. The earliest-ending act finishes at or before that one, so it leaves *at least as much* stage time for everything after. Swap it in, and the optimal schedule stays just as big. Repeat the swap down the line and greedy matches optimal, act for act. The act that ends earliest never blocks more than any alternative could. It only frees.
+
+That "prove one greedy choice safe, induct on the rest" move is the beating heart of Dungeon 14. This boss is the tutorial level for it.
+
+<MermaidBlock>
+graph TB
+    A["sort acts by END time"] --> B["free_at = -infinity\ncancelled = 0"]
+    B --> C["take next act\nstart, end"]
+    C --> D["start at or after free_at?\nKEEP: free_at = end"]
+    C --> E["starts before free_at?\nCANCEL: cancelled + 1"]
+    D --> C
+    E --> C
+    C --> F["no acts left\nanswer: cancelled"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def erase_overlap_intervals(intervals: list[list[int]]) -> int:
+    intervals.sort(key=lambda act: act[1])   # earliest end first
+    cancelled = 0
+    free_at = float("-inf")                  # when the stage next frees up
+    for start, end in intervals:
+        if start >= free_at:                 # touching endpoints are fine here
+            free_at = end                    # keep this act, stage busy till `end`
+        else:
+            cancelled += 1                   # collides with a kept act: cut it
+    return cancelled
+```
+
+Note what's *not* here: no merging, no stack of kept intervals, no second pass. One number tracks the whole schedule, the moment the stage frees up.
+
+---
+
+## Watching it work
+
+Sorted by end, the promoter's mess becomes `[1,2], [2,3], [1,3], [3,4]`:
+
+```
+[1,2]:  start 1 ≥ -inf   keep     stage free at 2
+[2,3]:  start 2 ≥ 2      keep     stage free at 3
+[1,3]:  start 1 < 3      CANCEL   cancelled = 1
+[3,4]:  start 3 ≥ 3      keep     stage free at 4
+answer: 1 ✓
+```
+
+Same verdict as the story, and notice the sort did the heavy thinking: once `[2,3]` was kept, `[1,3]` never stood a chance, because anything sorted after `[2,3]` ends at 3 or later, and `[1,3]` starts way back at 1.
+
+<Callout type="tip" title="Recognizing earliest-end greedy in the wild">
+The tell is a *selection* problem over intervals: keep or schedule as many as possible, or remove as few as possible, where items are atomic (no merging, no splitting). Textbooks call it activity selection. Maximum meetings in one room, non-overlapping ad slots, "Maximum Number of Events That Can Be Attended", all the same skeleton. The reflex: if the question is *how many fit*, sort by end. If the question is *what does the merged timeline look like*, that was Boss 2, sort by start.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Sorting by start instead of end.**
+The classic broken greedy. Sort `[[1,10], [2,3], [4,5]]` by start and you keep the ten-hour stage hog `[1,10]`, cancelling two acts when one cancellation was enough. Earliest *end* is the whole weapon.
+
+**2. Flipping the touch rule.**
+Here `start >= free_at` keeps the act, because touching endpoints don't conflict. Write a strict comparison and you'll cancel perfectly legal back-to-back acts. And remember Boss 1 played by the opposite convention. Read each problem's fine print on endpoints, every time.
+
+**3. Updating `free_at` on a cancel.**
+A cancelled act contributes nothing. If you let its end time leak into `free_at`, you're blocking the stage with an act you just cancelled, and later acts get cut for no reason.
+
+**4. Returning the kept count.**
+The problem wants removals. Keep the two framings straight: greedy *thinks* in "keep the most" but *answers* in `total - kept`, which the running `cancelled` counter tracks directly.
+
+**5. Boss 2 muscle memory.**
+Reaching for the merge-and-extend pattern here quietly answers a different question. Merging tells you what the busy timeline looks like. It cannot tell you which bookings to sacrifice, because merged blocks forget who was inside them.
+
+---
+
+## Complexity
+
+The sort is the whole bill, and the sweep after it touches each act once.
+
+**Time: O(n log n). Space: O(1)** beyond the sort.
+
+---
+
+## Boss down. XP gained.
+
+The organizer makes exactly one apologetic phone call, the `[1,3]` act, and the festival runs acts back to back all evening. Nobody in the crowd ever knows how overbooked hour 2 nearly was.
+
+What you walked away with:
+
+- **Greedy by earliest end**: sort by finish time, keep the first finisher, cancel what collides
+- The exchange argument: the earliest ender leaves the most room, so swapping it into any optimal solution never hurts
+- "Fewest removals" equals "most kept", pick whichever framing makes the code cleaner
+- The O(n²) DP fallback is LIS wearing an interval costume, worth knowing, rarely worth writing
+- Merging is for coverage, greedy selection is for atomic bookings, and endpoint rules change per room
+
+This fight was your preview ticket: Dungeon 14 runs entirely on arguments like the one you just used.
+
+Next up: **Boss 4 — The Solo Receptionist.** The easiest boss in the dungeon, and that's the trap: one person, one calendar, one honest yes-or-no about whether the day is even survivable. Boss 5 then takes that innocent little check and turns it into a weapon.

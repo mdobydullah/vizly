@@ -1,0 +1,214 @@
+---
+title: "Meeting Rooms II — The Conference Crunch"
+slug: meeting-rooms-ii-conference-crunch
+category: dsa
+series: intervals
+seriesOrder: 5
+description: "Dungeon 13, Boss 5. One booking sheet, and the minimum number of conference rooms so every meeting runs. A min-heap of end times tracks the rooms, an event sweep counts the same answer, and peak concurrent load turns out to be the real question."
+tags:
+  - DSA
+  - Intervals
+  - Heap
+  - Intermediate
+icon: "🏢"
+color: orange
+createdAt: "2026-07-16T18:00:00Z"
+updatedAt: "2026-07-16T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You manage an office floor, and the day's booking sheet just landed: one meeting from 0 to 30, another from 5 to 10, a third from 15 to 20. Book too many conference rooms and finance complains. Book too few and two meetings collide at the same door. The real question is simple: at the busiest moment of the day, how many meetings run at once. Keep the rooms in a heap that always shows the one finishing soonest, and the sheet answers itself.
+  bn: |
+    ধরুন আপনি একটা অফিস ফ্লোরের ম্যানেজার, আর সকালে বুকিং শিট এসে হাজির: একটা মিটিং 0 থেকে 30, আরেকটা 5 থেকে 10, তৃতীয়টা 15 থেকে 20। বেশি কনফারেন্স রুম বুক করলে খরচ নিয়ে কথা শুনতে হবে, কম করলে দুটো মিটিং একই দরজায় ধাক্কা খাবে। আসল প্রশ্নটা সোজা: দিনের সবচেয়ে ব্যস্ত মুহূর্তে একসাথে কটা মিটিং চলে। রুমগুলো এমন একটা heap-এ রাখুন যেটা সবসময় সবার আগে খালি হওয়া রুমটা দেখায়, তাহলে শিটটাই নিজের উত্তর বলে দেয়।
+  hi: |
+    मान लीजिए आप एक ऑफिस फ्लोर के मैनेजर हैं, और सुबह बुकिंग शीट आ गई: एक मीटिंग 0 से 30, दूसरी 5 से 10, तीसरी 15 से 20। ज्यादा कॉन्फ्रेंस रूम बुक करो तो खर्च पर सवाल उठेंगे, कम करो तो दो मीटिंग एक ही दरवाजे पर टकरा जाएंगी। असली सवाल सीधा है: दिन के सबसे व्यस्त पल में एक साथ कितनी मीटिंग चलती हैं। रूम्स को ऐसे heap में रखो जो हमेशा सबसे पहले खाली होने वाला रूम दिखाता है, फिर शीट खुद जवाब दे देती है।
+  ar: |
+    تخيل أنك مدير طابق في مكتب، ووصلتك ورقة حجوزات اليوم: اجتماع من 0 إلى 30، وآخر من 5 إلى 10، وثالث من 15 إلى 20. احجز قاعات كثيرة فتشتكي الإدارة المالية. احجز أقل من اللازم فيتصادم اجتماعان عند نفس الباب. السؤال الحقيقي بسيط: في أكثر لحظات اليوم ازدحاماً، كم اجتماعاً يعمل في نفس الوقت. ضع القاعات في heap يريك دائماً القاعة التي تفرغ أولاً، وستجيب الورقة عن نفسها.
+---
+
+## Boss 5: The Conference Crunch
+
+Boss 4 asked a yes-or-no question: can *one* person survive the calendar? Sort by start, check each neighbor pair, done. This boss drops the yes-or-no and asks for a number: how many rooms does the calendar itself demand? Not one, not "enough", the exact minimum. And to count rooms you need something that tracks *which room frees up first*, which is a job description the heap from Dungeon 10 was born for. This boss installs the min-heap as a room tracker, the event sweep as its rival weapon, and the idea that "peak concurrent load" is the question underneath both.
+
+---
+
+## The story
+
+You run the office floor. The day's bookings arrive: `[[0, 30], [5, 10], [15, 20]]`. Every meeting must run, no rescheduling. Your job: reserve the **minimum** number of conference rooms.
+
+Play it out:
+
+```
+time 0:   [0,30] starts.  no rooms open yet.  open room A.       rooms: 1
+time 5:   [5,10] starts.  room A busy until 30.  open room B.    rooms: 2
+time 10:  [5,10] ends.    room B is free again.
+time 15:  [15,20] starts. room B free since 10.  reuse room B.   rooms: 2
+time 20:  [15,20] ends.
+time 30:  [0,30] ends.
+
+peak: 2 meetings at once  →  2 rooms
+```
+
+Room A hosts the long meeting, room B hosts the other two back to back. Two rooms, and no arrangement does better, because at time 7 two meetings are genuinely running at the same instant. That's the whole game: the minimum number of rooms equals the **maximum number of meetings alive at one moment**. Servers per traffic spike, CPU cores per process burst, staff per rush hour. Same question, different uniform.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of meeting time intervals `intervals` where `intervals[i] = [start_i, end_i]`, return the **minimum number of conference rooms** required so that all meetings can take place.
+
+LeetCode 253. It's a premium problem there, but it's free as "Meeting Schedule II" on LintCode and NeetCode, and it shows up in interviews far too often to skip.
+
+---
+
+## The naive attempt
+
+Keep a list of rooms, each remembering when its last meeting ends. For every new meeting, scan all rooms for one that's free:
+
+```python
+def min_meeting_rooms(intervals):
+    intervals.sort(key=lambda it: it[0])
+    room_ends = []                        # last end time of each room
+    for start, end in intervals:
+        for i, room_end in enumerate(room_ends):
+            if room_end <= start:         # this room is free, take it
+                room_ends[i] = end
+                break
+        else:
+            room_ends.append(end)         # everyone busy, open a new room
+    return len(room_ends)
+```
+
+Correct, and O(n²): every meeting scans every room. The scan is looking for *any* free room, but there's a sharper question hiding in it. If the room that frees up **earliest** is still busy, every other room is busy too. You never needed the whole list. You needed its minimum, and Dungeon 10 built an entire weapon rack for structures that always know their minimum.
+
+---
+
+## The weapon: a min-heap of end times
+
+Sort meetings by start, so they arrive in the order the day actually unfolds. Keep a min-heap holding one end time per **occupied room**. For each meeting, look at the heap top, the room that frees up first:
+
+- Top end time is at or before this meeting's start? That room is free. Pop it, the meeting reuses it.
+- Top still busy? Then all rooms are busy. No pop, a new room opens.
+
+Either way, push this meeting's end time. The heap's size is the number of rooms in use, and because a reuse pairs every pop with a push, the size never shrinks. **The final heap size is the peak**, which is the answer.
+
+<MermaidBlock>
+graph TB
+    A["sort bookings by start\nthe day in order"]
+    B["next meeting arrives\ncheck the heap top\nthe earliest-ending room"]
+    C["that room free\nby this start?\npop it and reuse"]
+    D["still busy?\nall rooms busy\nopen a new room"]
+    E["push this meeting's end\nheap size = rooms in use"]
+    F["sheet done\nheap size = peak\n= rooms needed"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    E --> B
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def min_meeting_rooms(intervals: list[list[int]]) -> int:
+    if not intervals:
+        return 0
+    intervals.sort(key=lambda it: it[0])   # meetings in the order they begin
+    ends = []                              # min-heap: end time per occupied room
+    for start, end in intervals:
+        if ends and ends[0] <= start:      # earliest-ending room already free?
+            heapq.heappop(ends)            # reuse it (pop pairs with the push)
+        heapq.heappush(ends, end)          # this meeting occupies a room
+    return len(ends)                       # peak rooms ever in use
+```
+
+---
+
+## Watching it work
+
+`[[0, 30], [5, 10], [15, 20]]`, already sorted by start:
+
+```
+[0,30]:   heap empty, open a room.  push 30       ends: [30]      size 1
+[5,10]:   top 30 > 5, all busy, new room.         ends: [10,30]   size 2
+          push 10
+[15,20]:  top 10 ≤ 15, room free, pop 10.         ends: [20,30]   size 2
+          push 20
+sheet done → heap size 2 → 2 rooms ✓
+```
+
+Notice the middle line is where the answer was really decided: at meeting `[5,10]`, two meetings were alive at once, the heap grew to 2, and it never needed to grow again.
+
+---
+
+## The rival weapon: the event sweep
+
+There's a second classic here, and interviewers love hearing you name both. Forget which meeting owns which time. Sort all the **starts** into one array and all the **ends** into another, then walk the day: every start is "+1 room", every end already passed is "release one". Track the running count's peak:
+
+```python
+def min_meeting_rooms_sweep(intervals: list[list[int]]) -> int:
+    starts = sorted(i[0] for i in intervals)
+    ends = sorted(i[1] for i in intervals)
+    rooms = peak = e = 0
+    for s in starts:                       # each start demands a room
+        while ends[e] <= s:                # each finished meeting frees one
+            rooms -= 1
+            e += 1
+        rooms += 1
+        peak = max(peak, rooms)
+    return peak
+```
+
+It's the same "sweep a timeline with a running counter" move as counting anything over time: connections open on a server, cars inside a tunnel, guests at a party. Same O(n log n), no heap, but you lose the room identities. The heap version can tell you *which* room hosts which meeting; the sweep only counts.
+
+<Callout type="tip" title="Recognizing peak load in the wild">
+The tell is a question that sounds like scheduling but is secretly counting: minimum servers for these request windows, minimum runways for these landings, minimum cashiers for these customer visits. Anything shaped "resources so that overlapping demands never collide" is asking for the maximum number of intervals alive at one instant. Reach for the end-times heap when you need to know which resource serves what, and the event sweep when you only need the number.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Popping every free room in a loop.**
+It feels thorough: `while ends[0] <= start: pop`. But then the final heap size undercounts the peak, because pops stop pairing one-to-one with pushes. Try `[[0,5],[1,6],[10,11]]`: the loop pops both 5 and 6 at the last meeting and returns 1 instead of 2. One check, one pop at most, and the invariant holds.
+
+**2. Getting the touch rule backwards.**
+A meeting ending at 10 and one starting at 10 can share a room. The free test is `ends[0] <= start`, not strict less-than. Flip it and back-to-back bookings burn an extra room each.
+
+**3. Sorting by end time.**
+Boss 3's greedy sorted by end, and the habit lingers. Here the heap logic simulates the day, so meetings must arrive in **start** order. Sort by end and a late-starting short meeting gets processed before rooms it could never have seen.
+
+**4. Sweep ties: release before occupy.**
+In the event sweep, when a start and an end share the same timestamp, drain the end first (the `while` before the `+1` does exactly this). Occupy first and the shared-room pair from gotcha 2 counts as two simultaneous meetings.
+
+---
+
+## Complexity
+
+One sort, then each meeting does at most one pop and one push, O(log n) each.
+
+**Time: O(n log n). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+Two rooms reserved, every meeting runs, and finance never hears about a third room that was never needed. The booking sheet knew the answer all along; it just needed a structure that always knew which room frees up first.
+
+What you walked away with:
+
+- **Min-heap of end times**: heap top = the resource that frees first, and if *it's* busy, everything is
+- Pop-then-push discipline keeps heap size equal to peak concurrent load
+- **The event sweep**: sorted starts, sorted ends, a running counter and its max
+- Minimum rooms, servers, cores, staff: all the same question, the peak of overlapping demand
+
+Next up: **Boss 6 — The Tightest Contract.** The dungeon finale. Thousands of coverage windows, thousands of moments to look up, and for each moment you must find the *smallest* window that covers it. Sorting plus a heap, one pass, no rescanning, and one audacious new move: reordering the questions themselves.

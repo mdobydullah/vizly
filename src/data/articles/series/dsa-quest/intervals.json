@@ -6,6 +6,13 @@
   "color": "orange",
   "tags": ["DSA", "Intervals"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-16T18:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "insert-interval-calendar-slot", "title": "Insert Interval — The Calendar Slot" },
+    { "order": 2, "slug": "merge-intervals-shift-roster", "title": "Merge Intervals — The Shift Roster" },
+    { "order": 3, "slug": "non-overlapping-intervals-overbooked-stage", "title": "Non-Overlapping Intervals — The Overbooked Stage" },
+    { "order": 4, "slug": "meeting-rooms-solo-receptionist", "title": "Meeting Rooms — The Solo Receptionist" },
+    { "order": 5, "slug": "meeting-rooms-ii-conference-crunch", "title": "Meeting Rooms II — The Conference Crunch" },
+    { "order": 6, "slug": "min-interval-query-tightest-contract", "title": "Minimum Interval to Include Each Query — The Tightest Contract" }
+  ]
 }

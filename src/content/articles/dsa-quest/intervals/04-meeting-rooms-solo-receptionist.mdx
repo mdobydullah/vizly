@@ -1,0 +1,177 @@
+---
+title: "Meeting Rooms — The Solo Receptionist"
+slug: meeting-rooms-solo-receptionist
+category: dsa
+series: intervals
+seriesOrder: 4
+description: "Dungeon 13, Boss 4. One receptionist, one calendar, one honest question: can a single human attend every meeting? Sort by start, check each neighbor, done. The easiest boss in the dungeon, and the setup for the room-count crunch."
+tags:
+  - DSA
+  - Intervals
+  - Beginner
+icon: "🛎️"
+color: orange
+createdAt: "2026-07-16T18:00:00Z"
+updatedAt: "2026-07-16T18:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The office hands the receptionist today's calendar and says "sit in on every meeting." The list reads [0,30], [5,10], [15,20], and one human can't be in two rooms at once. So before promising anything, one honest question: is this day even possible? Sort the meetings by start time and check each one against the meeting right before it. If nothing starts before the previous one ends, the answer is yes. That single pass is the entire algorithm.
+  bn: |
+    অফিস রিসেপশনিস্টকে আজকের ক্যালেন্ডার ধরিয়ে বলল, "প্রতিটা মিটিংয়ে থাকতে হবে।" তালিকায় [0,30], [5,10], [15,20], অথচ একজন মানুষ তো একসাথে দুই ঘরে থাকতে পারে না। তাই কথা দেওয়ার আগে একটাই সৎ প্রশ্ন: দিনটা আদৌ সম্ভব? শুরুর সময় ধরে মিটিংগুলো সাজান, তারপর প্রতিটাকে ঠিক তার আগেরটার সাথে মিলিয়ে দেখুন। কোনোটা যদি আগেরটা শেষ হওয়ার আগে শুরু না হয়, উত্তর হ্যাঁ। ওই এক পাসেই পুরো অ্যালগরিদম শেষ।
+  hi: |
+    ऑफिस ने रिसेप्शनिस्ट को आज का कैलेंडर थमाया और कहा, "हर मीटिंग में बैठना है।" लिस्ट में [0,30], [5,10], [15,20], और एक इंसान दो कमरों में एक साथ नहीं हो सकता। तो वादा करने से पहले एक ईमानदार सवाल: क्या यह दिन मुमकिन भी है? मीटिंग्स को शुरू होने के समय से सॉर्ट करो और हर मीटिंग को ठीक उससे पहले वाली से मिलाओ। अगर कोई मीटिंग पिछली के खत्म होने से पहले शुरू नहीं होती, तो जवाब हां है। बस वही एक पास पूरा एल्गोरिदम है।
+  ar: |
+    المكتب يسلّم موظف الاستقبال جدول اليوم ويقول: "احضر كل الاجتماعات." القائمة فيها [0,30] و[5,10] و[15,20]، وإنسان واحد لا يمكن أن يكون في غرفتين معاً. فقبل أي وعد، سؤال صريح واحد: هل هذا اليوم ممكن أصلاً؟ رتّب الاجتماعات حسب وقت البداية وقارن كل اجتماع بالذي قبله مباشرة. إذا لم يبدأ أي اجتماع قبل انتهاء سابقه، فالجواب نعم. هذه الجولة الواحدة هي الخوارزمية كلها.
+---
+
+## Boss 4: The Solo Receptionist
+
+Boss 3 fixed a broken schedule by cancelling acts. This boss stands one step earlier in the pipeline and asks something humbler: **was the schedule ever fixable at all?** No cancellations, no merging, no counting. Just yes or no. It is the easiest boss in the dungeon, deliberately, because what it installs is a *lens*, not a machine: after sorting by start time, only neighbors can conflict first. Once that clicks, a whole family of interval problems collapses into one-pass scans.
+
+---
+
+## The story
+
+A small office has exactly one receptionist, and management, in its wisdom, wants them to personally sit in on every meeting of the day. Today's calendar: `[[0, 30], [5, 10], [15, 20]]`. Minutes since 9am, say.
+
+Before saying yes to the boss, the receptionist asks the only question that matters: *can one human actually do this?*
+
+Draw the day:
+
+```
+minute    0    5    10   15   20   25   30
+[0,30]    ██████████████████████████████
+[5,10]         ██████
+[15,20]                  ██████
+```
+
+The `[0,30]` meeting swallows the other two whole. At minute 5 the receptionist is needed in two rooms at once, and cloning is not in the job description.
+
+Answer: **no**, this schedule is impossible.
+
+House rule for this room: back-to-back is fine. A meeting ending at 10 and another starting at 10 is a brisk walk down the hallway, not a conflict. Endpoints touching don't count.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array of meeting time intervals where `intervals[i] = [start_i, end_i]`, determine if a person could attend **all** meetings.
+
+LeetCode 252. It sits behind LeetCode's premium wall, but the identical problem is free on LintCode and on NeetCode as "Meeting Schedule".
+
+---
+
+## The naive attempt
+
+A conflict is any two meetings that overlap, so check every pair with the overlap test from Boss 1:
+
+```python
+def can_attend_meetings(intervals):
+    n = len(intervals)
+    for i in range(n):
+        for j in range(i + 1, n):
+            a, b = intervals[i], intervals[j]
+            if a[0] < b[1] and b[0] < a[1]:   # Boss 1's overlap test
+                return False
+    return True
+```
+
+Correct, O(n²), and honestly not tragic for a day's calendar. But it interrogates every pair of meetings, including pairs hours apart that could never touch. All that work to answer a question the sorted order answers by itself.
+
+---
+
+## The weapon: sort by start, check the neighbors
+
+Sort the meetings by start time. Now here's the insight that makes the pair-checking pointless: **if any two meetings overlap, then some adjacent pair in sorted order overlaps too.**
+
+Why? Say a meeting conflicts with some earlier, non-adjacent meeting. That earlier meeting runs so long it reaches past the current one's start. But then it also reaches past every meeting *between* them, because those all start even sooner. The conflict shows up between neighbors before it shows up anywhere else. So scanning neighbors catches everything, and the scan is one line: does this meeting start before the previous one ends?
+
+<MermaidBlock>
+graph TB
+    A["sort meetings by START time"] --> B["walk neighbor pairs\nprev and cur"]
+    B --> C["cur starts before prev ends?\nconflict: return False"]
+    B --> D["cur starts at or after prev ends?\nno clash, step forward"]
+    D --> B
+    B --> E["ran out of pairs\nreturn True"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def can_attend_meetings(intervals: list[list[int]]) -> bool:
+    intervals.sort(key=lambda m: m[0])            # by start time
+    for i in range(1, len(intervals)):
+        if intervals[i][0] < intervals[i - 1][1]:  # starts before prev ends
+            return False                           # two rooms, one human
+    return True
+```
+
+That's it. That's the boss. After three dungeons of heaps, DP tables, and greedy proofs, the lesson is knowing when *none of that* is needed, because sorted adjacency already answers the question.
+
+---
+
+## Watching it work
+
+The receptionist's calendar, sorted by start: `[0,30], [5,10], [15,20]`.
+
+```
+pair [0,30] vs [5,10]:   5 < 30   conflict → False
+```
+
+One comparison and the day is officially impossible. For the happy path, try `[[5,8], [8,10], [11,12]]`:
+
+```
+pair [5,8]  vs [8,10]:   8 ≥ 8    fine (back-to-back)
+pair [8,10] vs [11,12]:  11 ≥ 10  fine
+end of pairs → True ✓
+```
+
+Note the `8 ≥ 8` case sailing through: the endpoint-touch convention, honored in code by using a strict comparison for the *conflict*.
+
+<Callout type="tip" title="Recognizing sorted adjacency in the wild">
+The tell is a question about *any pair*: does any pair conflict, what's the closest pair, does any value repeat. Sorting turns "any pair" into "any neighbor", shrinking n² checks into n. Duplicate detection, minimum gap between numbers, and this boss are all the same move. When a pair-question feels quadratic, ask what sorted order would put next to each other.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the sort.**
+On unsorted input, neighbor-checking is meaningless: `[[15,20], [0,30], [5,10]]` has quiet neighbors and a screaming conflict. The insight is "only neighbors conflict first *after sorting by start*". The sort is not optional seasoning.
+
+**2. Flagging back-to-back as a clash.**
+The conflict test must be strict: cur starts *before* prev ends. Write "or equal" into it and `[5,10]` followed by `[10,15]` fails a perfectly walkable day. Endpoint conventions flip between bosses in this dungeon, so check the fine print every time.
+
+**3. Comparing against the wrong end.**
+After sorting by start, the previous meeting is the only one that matters for the *first* conflict. But swap the check to compare starts against starts, or ends against ends, and overlapping meetings slide through. The question is always: did the last meeting finish before this one begins?
+
+**4. Overselling the answer.**
+This scan says yes or no for *one* attendee. It does not say how many meetings collide at once, or how many receptionists the day would take. The moment the question becomes "how many rooms", you're in Boss 5's arena, and this little check alone won't survive there.
+
+---
+
+## Complexity
+
+The scan is a single O(n) pass, so the sort is the whole bill, and it's honest to say so out loud in an interview.
+
+**Time: O(n log n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The receptionist walks back to management with a printout and a straight face: minute 5, two rooms, one body. The meeting about the meetings is rescheduled.
+
+What you walked away with:
+
+- **After sorting by start, only neighbors can conflict first**, so one pass answers the any-pair question
+- Feasibility questions ("can one person / one machine do all of this?") are sort-plus-scan, no machinery required
+- Strict versus non-strict comparisons carry the endpoint convention, one character of code, whole different answer
+- Honest complexity talk: the scan is linear, the sort dominates, say which part costs what
+
+Next up: **Boss 5 — The Conference Crunch.** Same building, crueler question: management no longer asks *whether* the day fits, they demand every meeting happens, so how many rooms does the day actually need? The neighbor check shatters, and a heap from Dungeon 10 walks back through the door.

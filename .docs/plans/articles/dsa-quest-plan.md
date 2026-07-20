@@ -29,10 +29,10 @@ Full dungeon list (ship in order):
 8. **Tries** — Dungeon 8 (COMPLETE)
 9. **Backtracking** — Dungeon 9 (COMPLETE)
 10. **Heap / Priority Queue** — Dungeon 10 (COMPLETE)
-11. **Graphs** — Dungeon 11 (next to build)
-12. **1-D DP** — Dungeon 12
-13. **Intervals** — Dungeon 13
-14. **Greedy** — Dungeon 14
+11. **Graphs** — Dungeon 11 (COMPLETE)
+12. **1-D DP** — Dungeon 12 (COMPLETE)
+13. **Intervals** — Dungeon 13 (COMPLETE)
+14. **Greedy** — Dungeon 14 (next to build)
 15. **Advanced Graphs** — Dungeon 15
 16. **2-D DP** — Dungeon 16
 17. **Bit Manipulation** — Dungeon 17
@@ -204,8 +204,48 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 6: Design Twitter (Notice Board)
 - [x] Boss 7: Find Median from Data Stream (Seesaw)
 
-### Dungeons 11-18
-- [ ] Graphs, 1-D DP, Intervals, Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 11 — Graphs (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Number of Islands (Atoll Census)
+- [x] Boss 2: Max Area of Island (Homestead Claim)
+- [x] Boss 3: Clone Graph (Subway Sketch)
+- [x] Boss 4: Walls and Gates (Fire Drill Map)
+- [x] Boss 5: Rotting Oranges (Fruit Stall Mold)
+- [x] Boss 6: Pacific Atlantic Water Flow (Two Watersheds)
+- [x] Boss 7: Surrounded Regions (Go Board)
+- [x] Boss 8: Course Schedule (Prerequisite Knot)
+- [x] Boss 9: Course Schedule II (Degree Planner)
+- [x] Boss 10: Graph Valid Tree (Village Waterline)
+- [x] Boss 11: Connected Components (Friend Circles)
+- [x] Boss 12: Redundant Connection (Extra Cable)
+- [x] Boss 13: Word Ladder (Password Drift)
+
+### Dungeon 12 — 1-D DP (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Climbing Stairs (Fire Escape)
+- [x] Boss 2: Min Cost Climbing Stairs (Toll Stairs)
+- [x] Boss 3: House Robber (Cul-de-Sac Heist)
+- [x] Boss 4: House Robber II (Roundabout Heist)
+- [x] Boss 5: Longest Palindromic Substring (Antique Engraving)
+- [x] Boss 6: Palindromic Substrings (Mirror Tally)
+- [x] Boss 7: Decode Ways (Numbers Station)
+- [x] Boss 8: Coin Change (Exact Fare)
+- [x] Boss 9: Maximum Product Subarray (Hot Streak)
+- [x] Boss 10: Word Break (Telegram Splice)
+- [x] Boss 11: Longest Increasing Subsequence (Marching Band Lineup)
+- [x] Boss 12: Partition Equal Subset Sum (Fair Split)
+
+### Dungeon 13 — Intervals (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Insert Interval (Calendar Slot)
+- [x] Boss 2: Merge Intervals (Shift Roster)
+- [x] Boss 3: Non-Overlapping Intervals (Overbooked Stage)
+- [x] Boss 4: Meeting Rooms (Solo Receptionist)
+- [x] Boss 5: Meeting Rooms II (Conference Crunch)
+- [x] Boss 6: Minimum Interval to Include Each Query (Tightest Contract)
+
+### Dungeons 14-18
+- [ ] Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed
