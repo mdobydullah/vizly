@@ -1,0 +1,190 @@
+---
+title: "Coin Change — The Exact Fare"
+slug: coin-change-exact-fare
+category: dsa
+series: dp-1d
+seriesOrder: 8
+description: "Dungeon 12, Boss 8. An old bus fare machine takes exact payment only, and you want to pay with the fewest coins. Greedy grabs the big coin and loses. Unbounded knapsack DP over amounts, with a BFS shortest-path lens on the side."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Intermediate
+icon: "🪙"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The old bus fare machine takes exact payment only, no change given. You have piles of 1, 3, and 4 unit coins and the fare is 6. Grabbing the biggest coin first feels smart: 4, then 1, then 1, three coins. But two 3s does it in two. The machine punishes greed, and the fewest coins come from DP walking every amount from 0 up to the fare.
+  bn: |
+    পুরনো বাসের ভাড়ার মেশিনটা শুধু একদম সঠিক টাকা নেয়, ভাংতি ফেরত দেয় না। আপনার কাছে 1, 3 আর 4 এর কয়েন অঢেল, ভাড়া 6। বড় কয়েনটা আগে দেওয়া চালাক মনে হয়: 4, তারপর 1, তারপর 1, মোট তিনটা কয়েন। অথচ দুটো 3 দিলেই দুই কয়েনে হয়ে যায়। লোভ এখানে হেরে যায়, আর সবচেয়ে কম কয়েন বের করে সেই DP যেটা 0 থেকে ভাড়া পর্যন্ত প্রতিটা অ্যামাউন্ট ধরে ধরে এগোয়।
+  hi: |
+    पुरानी बस की किराया मशीन सिर्फ एकदम सही रकम लेती है, छुट्टा वापस नहीं देती। आपके पास 1, 3 और 4 के सिक्के भरपूर हैं और किराया है 6। सबसे बड़ा सिक्का पहले डालना समझदारी लगती है: 4, फिर 1, फिर 1, कुल तीन सिक्के। जबकि दो 3 से दो ही सिक्कों में काम हो जाता है। लालच यहां हार जाता है, और सबसे कम सिक्के वही DP निकालता है जो 0 से किराए तक हर amount पर चलता है।
+  ar: |
+    آلة أجرة الحافلة القديمة لا تقبل إلا المبلغ المضبوط، ولا ترد الباقي. معك عملات من فئة 1 و 3 و 4 بلا حدود، والأجرة 6. البدء بأكبر عملة يبدو ذكياً: 4 ثم 1 ثم 1، ثلاث قطع. بينما قطعتان من فئة 3 تكفيان. الجشع يخسر هنا، وأقل عدد من العملات يجده DP يمشي على كل مبلغ من الصفر حتى الأجرة.
+---
+
+## Boss 8: The Exact Fare
+
+Boss 7 counted paths through a string, summing every legal way to walk it. This boss keeps the walk but changes two things at once: the positions are no longer indexes into an array, they're **amounts of money**, and *min* replaces *sum*. You're not counting ways anymore, you're picking the cheapest one. What it installs: DP over a **value range** instead of an index range, unbounded reuse of items, and a scar to remind you why greedy needs a guarantee it doesn't have here.
+
+---
+
+## The story
+
+An old bus, an older fare machine. It takes exact payment only, no change, no mercy, and the driver watches you fumble. Your pocket holds unlimited coins in three denominations: `1`, `3`, and `4`. The fare is `6`. You'd like to feed the machine as few coins as possible, because the line behind you is growing.
+
+Instinct says: biggest coin first.
+
+```
+greedy, biggest first:
+  drop 4   (2 remaining)
+  drop 1   (1 remaining)
+  drop 1   (0 remaining)      3 coins
+
+the passenger behind you:
+  drop 3   (3 remaining)
+  drop 3   (0 remaining)      2 coins
+```
+
+Greedy lost. The 4 looked like progress, but it stranded you on `2`, a territory only reachable by two clunky 1s. The 3 looked like less progress and set up a perfect second step. With denominations like these, no rule of thumb about "big first" or "big last" survives, the only way to know the best play for 6 is to know the best play for the amounts underneath it.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money. Return the **fewest number of coins** that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return `-1`. You may assume that you have an **infinite** number of each kind of coin.
+
+LeetCode 322.
+
+---
+
+## The naive attempt
+
+Code the instinct:
+
+```python
+def coin_change_greedy(coins, amount):
+    count = 0
+    for c in sorted(coins, reverse=True):   # biggest first
+        while amount >= c:
+            amount -= c
+            count += 1
+    return count if amount == 0 else -1
+```
+
+On `coins = [1, 3, 4]`, `amount = 6`: returns 3. The real answer is 2. Worse, on `coins = [3, 4]`, `amount = 6`: greedy takes the 4, strands on 2, and returns -1 for an amount that two 3s pay perfectly. Greedy isn't just suboptimal here, it's *wrong about reachability*.
+
+Greedy does work for canonical coin systems (US and EU coins are designed so it does). But nothing in this problem promises a canonical system, and interviewers pick denominations like `[1, 3, 4]` precisely to catch the assumption.
+
+---
+
+## The weapon: unbounded knapsack over amounts
+
+Build the answer for every amount from `0` up to the fare. Let `dp[a]` be the fewest coins that pay exactly `a`. Paying zero costs zero coins, so `dp[0] = 0`. For any other amount, the *last* coin dropped was some `c`, and before it the machine held `a - c`, paid optimally:
+
+- `dp[a]` = 1 + the minimum of `dp[a - c]` over every coin `c` that fits.
+- Amounts no combination can reach stay at infinity.
+- Answer: `dp[fare]`, or -1 if it's still infinity.
+
+"Unbounded" is the keyword: the same coin can appear in the answer as many times as it likes, which is exactly what iterating over all coins at *every* amount gives you.
+
+<MermaidBlock>
+graph TB
+    A["dp of 0 = 0\nbase camp: paying nothing\ncosts nothing"]
+    B["amount a, from 1 to fare\nlast coin dropped was some c"]
+    C["dp of a = 1 + min of\ndp of a minus c\nover every coin that fits"]
+    D["no coin reaches a?\ndp of a stays infinity"]
+    E["answer: dp of fare\nstill infinity means -1"]
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def coin_change(coins: list[int], amount: int) -> int:
+    INF = float('inf')
+    dp = [0] + [INF] * amount            # dp[a] = fewest coins paying exactly a
+    for a in range(1, amount + 1):
+        for c in coins:
+            if c <= a and dp[a - c] + 1 < dp[a]:
+                dp[a] = dp[a - c] + 1    # drop coin c last
+    return dp[amount] if dp[amount] != INF else -1
+```
+
+There's a second lens worth owning. Treat every amount as a **node**, and every coin as an **edge** from `a` to `a + c`. Then "fewest coins from 0 to fare" is literally "shortest path in an unweighted graph", and BFS from node 0 solves it level by level, Dungeon 11 style. The bottom-up table above computes the same distances in amount order instead of distance order. Two dialects, one truth: when every step costs 1, DP over values and BFS over a graph are the same walk.
+
+---
+
+## Watching it work
+
+`coins = [1, 3, 4]`, fare 6:
+
+```
+dp[0] = 0
+dp[1] = dp[0]+1 = 1                              (1)
+dp[2] = dp[1]+1 = 2                              (1+1)
+dp[3] = min(dp[2]+1, dp[0]+1) = 1                (3)
+dp[4] = min(dp[3]+1, dp[1]+1, dp[0]+1) = 1       (4)
+dp[5] = min(dp[4]+1, dp[2]+1, dp[1]+1) = 2       (4+1)
+dp[6] = min(dp[5]+1, dp[3]+1, dp[2]+1) = 2       (3+3)
+answer: 2 ✓
+```
+
+Look at `dp[6]`: the option through `dp[5]` (greedy's path, ending 4+1+1) costs 3, and the table calmly ignores it because the option through `dp[3]` costs 2. The table never *argues* with greedy. It just prices every route and takes the cheapest.
+
+<Callout type="tip" title="Recognizing value-range DP in the wild">
+The tell is a target number plus reusable pieces: "make amount X from these denominations", "reach sum X with these steps", "build capacity X from these parts". The DP index is the *value itself*, not a position in the input, and unlimited reuse of pieces means every value loops over all pieces. Boss 12 in this dungeon runs the same value-indexed walk with reuse switched off, which flips it from unbounded to 0/1 knapsack.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. `dp[0]` must be 0, not 1.**
+Paying nothing takes zero coins. Seed it with 1 and every answer inflates by one, quietly.
+
+**2. Returning the infinity sentinel raw.**
+Whether you use `float('inf')` or the `amount + 1` trick, an unreachable fare must come back as -1. Forgetting the final translation returns a nonsense number that *looks* like a coin count.
+
+**3. Skipping the `c <= a` bounds check.**
+A coin bigger than the current amount indexes `dp` at a negative position, and Python's negative indexing will hand you a wrong value instead of a crash. The silent kind of bug.
+
+**4. Assuming greedy after this boss anyway.**
+Greedy-by-biggest is only safe when the coin system is canonical, and no interview problem states that. If denominations are arbitrary, it's DP or BFS, no exceptions.
+
+**5. Fare 0.**
+The answer is 0 coins, and the code above gets it right only because `dp[0] = 0` and the loop never runs. Off-by-one the loop bounds and this edge breaks first.
+
+---
+
+## Complexity
+
+Every amount from 1 to the fare tries every coin once.
+
+**Time: O(amount × k) for k coin types. Space: O(amount).**
+
+---
+
+## Boss down. XP gained.
+
+Two soft clinks, the machine blinks green, and the driver pulls away while greedy is still digging for its third coin. The fare was never a haggling match. It was a ladder of amounts, each rung priced from the rungs below it.
+
+What you walked away with:
+
+- **Value-range DP**: the table is indexed by amount, not by position in the input
+- Unbounded reuse: looping all coins at every amount lets any coin appear any number of times
+- Infinity as "unreachable", with a mandatory translation to -1 at the border
+- The BFS lens: unit-cost choices over values are shortest paths in disguise
+- Greedy needs a canonical-system guarantee, and `[1, 3, 4]` is the counterexample to carry
+
+Next up: **Boss 9 — The Hot Streak.** Products instead of sums, where two negatives ambush you into a huge positive, and the only defense is tracking the worst case right alongside the best.

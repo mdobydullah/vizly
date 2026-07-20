@@ -1,0 +1,190 @@
+---
+title: "House Robber II — The Roundabout Heist"
+slug: house-robber-ii-roundabout-heist
+category: dsa
+series: dp-1d
+seriesOrder: 4
+description: "Dungeon 12, Boss 4. The street bends into a circle, so the first and last house are neighbors with linked alarms. You can never rob both ends, so run the linear heist twice, once without the last house, once without the first, and keep the better haul."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Intermediate
+icon: "🏘️"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The burglar from the cul-de-sac job has moved up to a roundabout. Houses sit in a circle now, so the first and last house are neighbors and their alarms are wired together. Touch both and the night ends in handcuffs. Here is the trick: you can never rob both ends anyway, so pretend the last house does not exist and run the old straight-street plan, then pretend the first one does not exist and run it again. The better of the two nights is the answer.
+  bn: |
+    কুল-ডি-স্যাকের সেই চোর এবার প্রমোশন পেয়ে গোলচত্বরে। বাড়িগুলো এখন বৃত্তাকারে, তাই প্রথম আর শেষ বাড়ি প্রতিবেশী, অ্যালার্মও একসাথে জোড়া। দুটোতেই হাত দিলে রাত শেষ হবে হাতকড়ায়। মজার ব্যাপার হলো, দুই প্রান্ত একসাথে নেওয়া এমনিতেই অসম্ভব, তাই শেষ বাড়িটা নেই ধরে নিয়ে পুরনো সোজা রাস্তার প্ল্যানটা চালান, তারপর প্রথমটা নেই ধরে আবার চালান। দুই রাতের মধ্যে যেটা বেশি দেয়, সেটাই উত্তর।
+  hi: |
+    कल-डी-सैक वाला चोर अब तरक्की करके गोल चौराहे पर पहुंच गया है। घर अब गोले में हैं, इसलिए पहला और आखिरी घर पड़ोसी हैं और उनके अलार्म आपस में जुड़े हैं। दोनों को छुआ तो रात हथकड़ी में खत्म होगी। मजे की बात यह है कि दोनों सिरे साथ लेना वैसे भी नामुमकिन है, तो मान लो आखिरी घर है ही नहीं और पुरानी सीधी गली वाला प्लान चला दो, फिर मान लो पहला नहीं है और दोबारा चला दो। दोनों रातों में जो ज्यादा दे, वही जवाब।
+  ar: |
+    لص الحي المسدود ترقّى وانتقل إلى دوّار. البيوت الآن في دائرة، فصار البيت الأول والأخير جارين وإنذاراهما موصولين معاً. المس الاثنين وستنتهي الليلة بالأصفاد. الطريف أن سرقة الطرفين معاً مستحيلة أصلاً، فتظاهر أن البيت الأخير غير موجود وشغّل خطة الشارع المستقيم القديمة، ثم تظاهر أن الأول غير موجود وشغّلها ثانية. الليلة الأكثر ربحاً من الاثنتين هي الجواب.
+---
+
+## Boss 4: The Roundabout Heist
+
+Boss 3 installed take-or-skip on a straight street: at each house, either rob it and add the best haul from two doors back, or skip it and carry the best from one door back, all in a rolling pair of numbers. This boss bends the street into a circle, and suddenly the first and last house are neighbors with linked alarms. It *looks* like it needs a brand-new circular DP. It doesn't. It installs a sharper reflex: **when a new constraint shows up, reduce the problem to the one you already killed.** A circle is just two lines wearing a trench coat.
+
+---
+
+## The story
+
+The burglar cases a roundabout with loot `[1, 2, 3, 1]`. Same rule as before, adjacent houses share an alarm wire, but the street loops: house 0 and house 3 are now next to each other too.
+
+Case it out:
+
+```
+circle [1,2,3,1]:  house 0 and house 3 are wired together now
+plan A: rob 0 and 2  →  1 + 3 = 4, no two neighbors, alarms quiet
+plan B: rob 1 and 3  →  2 + 1 = 3
+plan C: rob 0 and 3  →  neighbors on the circle, sirens, run
+best clean haul: 4
+```
+
+And the sneaky warm-up, `[2, 3, 2]`: on a straight street you'd grab both 2s for 4. On the circle they're neighbors, so the best move is robbing the middle house alone for 3.
+
+The old plan almost works. The only thing the circle changes is one new pair of neighbors: the two ends.
+
+---
+
+## The problem, dressed up properly
+
+> You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. All houses at this place are **arranged in a circle**, meaning the first house is the neighbor of the last one. Adjacent houses have a linked security system that alerts the police if **two adjacent houses** are broken into on the same night. Given an integer array `nums` representing the money in each house, return the maximum amount you can rob **without alerting the police**.
+
+LeetCode 213.
+
+---
+
+## The naive attempt
+
+The instinct is to re-derive a circular DP from scratch, threading a flag through every step that remembers whether house 0 was taken:
+
+```python
+from functools import lru_cache
+
+def rob(nums):
+    n = len(nums)
+    if n == 1:
+        return nums[0]
+
+    @lru_cache(maxsize=None)
+    def dp(i, first_taken):
+        if i >= n:
+            return 0
+        if i == n - 1 and first_taken:
+            return 0                      # last house locked by the flag
+        take = nums[i] + dp(i + 2, first_taken or i == 0)
+        skip = dp(i + 1, first_taken)
+        return max(take, skip)
+
+    return dp(0, False)
+```
+
+This can be beaten into working. But the state space doubles, the flag threading is exactly where the bugs breed (does taking house 1 set the flag? does skipping reset it?), and you spend the whole interview debugging boundary conditions instead of stating an insight. Awkward state is usually a sign you're solving the wrong problem.
+
+---
+
+## The weapon: two straight streets
+
+Here's the insight that dissolves the circle. The first and last house are neighbors, so **no valid plan ever robs both**. Every plan on the circle lives in one of two worlds: world A never touches the last house, world B never touches the first. And inside each world, the circle constraint is spent. What's left is a plain straight street, which is Boss 3, which you already killed.
+
+<MermaidBlock>
+graph TB
+    A["circle of n houses\nfirst and last are neighbors"]
+    B["world A\nthe last house does not exist\nline from 0 to n-2"]
+    C["world B\nthe first house does not exist\nline from 1 to n-1"]
+    D["Boss 3 linear robber\nsame engine, unchanged"]
+    E["answer = max of\nthe two hauls"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def rob(nums: list[int]) -> int:
+    n = len(nums)
+    if n == 1:
+        return nums[0]                    # a circle of one has no neighbors
+
+    def rob_line(lo: int, hi: int) -> int:
+        prev, curr = 0, 0                 # Boss 3, verbatim, on nums[lo..hi]
+        for i in range(lo, hi + 1):
+            prev, curr = curr, max(curr, prev + nums[i])
+        return curr
+
+    return max(rob_line(0, n - 2),        # world A: skip the last house
+               rob_line(1, n - 1))        # world B: skip the first house
+```
+
+Not one line of new DP logic. The entire boss is two calls to the previous boss plus a `max`.
+
+---
+
+## Watching it work
+
+`[1, 2, 3, 1]`:
+
+```
+world A, line [1,2,3]:
+  house 1 → best 1 | house 2 → max(1, 2) = 2 | house 3 → max(2, 1+3) = 4
+world B, line [2,3,1]:
+  house 2 → best 2 | house 3 → max(2, 3) = 3 | house 1 → max(3, 2+1) = 3
+answer: max(4, 3) = 4 ✓   (rob the houses worth 1 and 3)
+```
+
+And `[2, 3, 2]`: world A on `[2, 3]` gives 3, world B on `[3, 2]` gives 3, answer 3. The circle correctly forbids the two-2s plan that a straight street would allow.
+
+<Callout type="tip" title="Recognizing the reduction in the wild">
+Circular or wrap-around variants of a linear problem almost always fall to this move: find the one interaction the wrap adds (here, first-and-last adjacency), case-split on it, and watch each case collapse into the vanilla problem. The strongest thing you can say in an interview is "I refuse to solve a new problem", then show why the old one still applies. Case analysis isn't a hack, it's a first-class DP tool.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The lone house.**
+With one house, world A is the empty range `[0, -1]` and world B is `[1, 0]`, both hauls come back 0, and you report a heist that stole nothing from a street holding `nums[0]`. Guard `n == 1` first, return `nums[0]`.
+
+**2. Inventing a third case.**
+"Rob first", "rob last", "rob neither", surely three runs? No. Plans that skip both ends already live inside *both* worlds, so two runs cover everything. Adding a third just recomputes overlap.
+
+**3. Off-by-one on the world borders.**
+World A must end at index `n - 2` *inclusive*, world B must start at index 1. Trim one whole house, not just the alarm wire. An inclusive-vs-exclusive slip here silently allows the forbidden pair.
+
+**4. Slicing instead of indexing.**
+`rob_line(nums[:-1])` reads nicely but copies the array, costing O(n) extra space. Passing index bounds keeps the Boss 3 promise of O(1). Fine to slice in a hurry, but say the trade-off out loud.
+
+---
+
+## Complexity
+
+Two linear passes, each over about n houses, each carrying two rolling variables.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The burglar walks the roundabout twice in imagination, once with each end house erased, and drives home with 4. The circle never got its own algorithm. It didn't deserve one.
+
+What you walked away with:
+
+- **Reduce to the solved problem**: a new constraint is an invitation to reuse, not to rebuild
+- **Case analysis as a DP tool**: split on the one forbidden interaction, each branch goes vanilla
+- A circle is two lines, so run the line twice and take the max
+- The `n == 1` guard: both worlds go empty when there's only one house
+
+Next up: **Boss 5 — The Antique Engraving.** DP leaves money behind and walks into strings: an antique dealer under a lamp, hunting the longest phrase on an engraved plate that reads the same in both directions.

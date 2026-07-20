@@ -6,6 +6,19 @@
   "color": "orange",
   "tags": ["DSA", "Dynamic Programming"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-16T14:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "climbing-stairs-fire-escape", "title": "Climbing Stairs — The Fire Escape" },
+    { "order": 2, "slug": "min-cost-climbing-stairs-toll-stairs", "title": "Min Cost Climbing Stairs — The Toll Stairs" },
+    { "order": 3, "slug": "house-robber-cul-de-sac-heist", "title": "House Robber — The Cul-de-Sac Heist" },
+    { "order": 4, "slug": "house-robber-ii-roundabout-heist", "title": "House Robber II — The Roundabout Heist" },
+    { "order": 5, "slug": "longest-palindromic-substring-antique-engraving", "title": "Longest Palindromic Substring — The Antique Engraving" },
+    { "order": 6, "slug": "palindromic-substrings-mirror-tally", "title": "Palindromic Substrings — The Mirror Tally" },
+    { "order": 7, "slug": "decode-ways-numbers-station", "title": "Decode Ways — The Numbers Station" },
+    { "order": 8, "slug": "coin-change-exact-fare", "title": "Coin Change — The Exact Fare" },
+    { "order": 9, "slug": "maximum-product-subarray-hot-streak", "title": "Maximum Product Subarray — The Hot Streak" },
+    { "order": 10, "slug": "word-break-telegram-splice", "title": "Word Break — The Telegram Splice" },
+    { "order": 11, "slug": "longest-increasing-subsequence-marching-band", "title": "Longest Increasing Subsequence — The Marching Band Lineup" },
+    { "order": 12, "slug": "partition-equal-subset-fair-split", "title": "Partition Equal Subset Sum — The Fair Split" }
+  ]
 }

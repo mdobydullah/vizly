@@ -1,0 +1,218 @@
+---
+title: "Climbing Stairs — The Fire Escape"
+slug: climbing-stairs-fire-escape
+category: dsa
+series: dp-1d
+seriesOrder: 1
+description: "Dungeon 12, Boss 1. A courier climbs a fire escape hopping 1 or 2 steps at a time, and counting the routes reveals Fibonacci in work boots. Meet dynamic programming: recursion that remembers, and the three costumes it wears."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Beginner
+icon: "🪜"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're a delivery courier and the elevator is dead, so it's the fire escape, n steps, and you can hop one or two at a time. Waiting at the bottom, you start wondering how many different routes there are to the top. Try to walk every route and count, and you'll be there all week, the number explodes. But the last hop onto any step came from one step below or two below, so a step's count is just the two counts under it, added. That's Fibonacci in work boots, and it's your first taste of DP.
+  bn: |
+    ভাবুন, আপনি ডেলিভারি কুরিয়ার, লিফট নষ্ট, তাই ভরসা ফায়ার এস্কেপ। সিঁড়িতে n ধাপ, আর আপনি একবারে এক বা দুই ধাপ লাফাতে পারেন। নিচে দাঁড়িয়ে মাথায় প্রশ্ন এলো, উপরে ওঠার আলাদা রাস্তা মোট কয়টা। প্রতিটা রাস্তা হেঁটে গুনতে গেলে সপ্তাহ পার, সংখ্যাটা বিস্ফোরণের মতো বাড়ে। কিন্তু যেকোনো ধাপে শেষ লাফটা আসে হয় ঠিক নিচের ধাপ থেকে, না হয় তারও নিচেরটা থেকে, তাই নিচের দুটো সংখ্যা যোগ করলেই উত্তর। এটাই কাজের বুট পরা Fibonacci, আর এটাই আপনার প্রথম DP।
+  hi: |
+    मान लीजिए आप डिलीवरी कूरियर हैं, लिफ्ट खराब है, तो सहारा है फायर एस्केप। सीढ़ी में n स्टेप हैं और आप एक बार में एक या दो स्टेप कूद सकते हैं। नीचे खड़े-खड़े सवाल आता है, ऊपर पहुंचने के अलग-अलग रास्ते कितने हैं। हर रास्ता चलकर गिनने बैठे तो हफ्ता निकल जाएगा, गिनती धमाके की तरह बढ़ती है। पर किसी भी स्टेप पर आखिरी छलांग या तो ठीक नीचे वाले स्टेप से आती है या उससे भी नीचे वाले से, तो बस नीचे की दो गिनतियां जोड़ दो। यही है काम के जूते पहने Fibonacci, और यही आपका पहला DP।
+  ar: |
+    تخيل أنك ساعي توصيل والمصعد معطل، فليس أمامك إلا سلم الطوارئ. السلم فيه n درجة، وتستطيع القفز درجة أو درجتين في كل مرة. وأنت واقف تحت يخطر لك سؤال: كم طريقاً مختلفاً يوصلك إلى الأعلى؟ لو حاولت تمشي كل طريق وتعدّ لقضيت أسبوعاً، الرقم ينفجر بسرعة. لكن القفزة الأخيرة إلى أي درجة تأتي من الدرجة التي تحتها مباشرة أو التي تحتها بدرجتين، فيكفي أن تجمع العددين اللذين تحتها. هذا هو Fibonacci بحذاء العمل، وهذه أول جرعة DP لك.
+---
+
+## Welcome to Dungeon 12
+
+Dungeon 11 ended on a promise: climbing stairs, robbing houses, and the quiet realization that most brute-force recursion recomputes the same sub-answers thousands of times. The fix, it said, is almost insulting: *write the answer down the first time.* This dungeon is that fix, twelve bosses of it. Recursion grows a memory, and problems that looked exponential collapse into a single walk down an array.
+
+---
+
+## The machine: recursion that remembers
+
+**Dynamic programming is recursion that remembers.** That's the whole definition. Everything else is bookkeeping.
+
+It works when a problem has two properties, and both are plain-words simple:
+
+- **Overlapping subproblems.** Solving the big question keeps asking the *same* small questions over and over. If every subproblem is fresh, a cache buys nothing.
+- **Optimal substructure.** The answer to the big question is built from the answers to smaller ones. Best route to step 10 uses the best routes to steps 9 and 8, not some mediocre ones.
+
+And DP wears three costumes, all the same idea in different clothes:
+
+1. **Top-down memoization**: write the natural recursion, bolt a cache onto it. Ask, check the cache, compute once, store.
+2. **Bottom-up tabulation**: skip the recursion entirely. Fill an array from the base cases upward until the answer is sitting in the last slot.
+3. **Rolling variables**: notice the table only ever reads its last few entries, throw the rest away, and keep two or three variables. Same answers, O(1) space.
+
+Twelve bosses in this dungeon. The first three live on staircases and streets, and by Boss 3 you'll see every DP problem as the same fill-in-the-blank: *what does `dp[i]` mean, and how does it come from earlier entries?*
+
+---
+
+## The story
+
+A courier has a package for the roof and a dead elevator. The fire escape has `n = 5` steps, and years of this job have made her legs opinionated: one step or two steps per hop, nothing else. Waiting for a signature, she starts counting: how many distinct hop sequences reach the top?
+
+She counts small staircases first:
+
+```
+1 step:  [1]                                        → 1 way
+2 steps: [1,1] [2]                                  → 2 ways
+3 steps: [1,1,1] [1,2] [2,1]                        → 3 ways
+4 steps: [1,1,1,1] [1,1,2] [1,2,1] [2,1,1] [2,2]    → 5 ways
+5 steps: (all 4-step routes + hop 1) and
+         (all 3-step routes + hop 2)                → 5 + 3 = 8 ways
+```
+
+That last line is the whole dungeon. Every route to step 5 ends with a hop, and that hop came from step 4 or step 3. No third option. So the routes to 5 are exactly the routes to 4 plus the routes to 3, no overlap, nothing missed. 1, 2, 3, 5, 8. Fibonacci wearing work boots.
+
+---
+
+## The problem, dressed up properly
+
+> You are climbing a staircase. It takes `n` steps to reach the top. Each time you can either climb `1` or `2` steps. In how many **distinct ways** can you climb to the top?
+
+LeetCode 70.
+
+---
+
+## The naive attempt
+
+The recurrence begs to be typed directly:
+
+```python
+def climb_stairs(n):
+    if n <= 2:
+        return n
+    return climb_stairs(n - 1) + climb_stairs(n - 2)
+```
+
+Correct. And doomed. Draw the calls for `n = 5`:
+
+```
+f(5)
+├── f(4)
+│   ├── f(3)
+│   │   ├── f(2)
+│   │   └── f(1)
+│   └── f(2)
+└── f(3)
+    ├── f(2)
+    └── f(1)
+```
+
+`f(3)` is computed twice, `f(2)` three times, and the tree doubles roughly every level down. Nine calls for `n = 5` is cute; for `n = 45` it's about 3.6 billion calls to answer a question whose entire information content is 44 additions. The tree keeps re-asking questions it already answered. Overlapping subproblems, live on stage.
+
+---
+
+## The weapon: remembering
+
+First costume, the bridge from what you already know: keep the recursion, add a cache.
+
+```python
+from functools import lru_cache
+
+def climb_stairs(n: int) -> int:
+    @lru_cache(maxsize=None)
+    def ways(i: int) -> int:
+        if i <= 2:
+            return i
+        return ways(i - 1) + ways(i - 2)     # each i computed exactly once
+    return ways(n)
+```
+
+Same code, one decorator, and the billion-call tree deflates to 45 calls. That's memoization: the exponential blowup was never the recursion's fault, it was the amnesia.
+
+But look at what the recursion actually *needs*: to know `ways(i)`, only `ways(i - 1)` and `ways(i - 2)`. The whole history compresses into two numbers you carry up the stairs.
+
+<MermaidBlock>
+graph TB
+    A["how many ways\nto stand on step n?"]
+    B["last hop was 1 step\narrived from step n-1"]
+    C["last hop was 2 steps\narrived from step n-2"]
+    D["ways(n) = ways(n-1) + ways(n-2)\ncarry just two numbers up"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def climb_stairs(n: int) -> int:
+    if n <= 2:
+        return n
+    prev2, prev1 = 1, 2                      # ways to step 1, ways to step 2
+    for _ in range(3, n + 1):
+        prev2, prev1 = prev1, prev2 + prev1  # slide the window up one step
+    return prev1
+```
+
+Third costume: rolling variables. No cache, no array, two ints and a loop. O(n) time, O(1) space, and it reads like the courier thinks: "routes here = routes one below + routes two below, next step."
+
+---
+
+## Watching it work
+
+`n = 5`, rolling up:
+
+```
+start        prev2=1 (step 1)   prev1=2 (step 2)
+step 3:      prev2=2            prev1=1+2 = 3
+step 4:      prev2=3            prev1=2+3 = 5
+step 5:      prev2=5            prev1=3+5 = 8
+return 8 ✓
+```
+
+Eight routes, matching the hand count, and the loop never looked more than two steps back.
+
+<Callout type="tip" title="Recognizing counting DP in the wild">
+The shape is "count the ways to build something step by step, where the last move comes from a small fixed set of predecessors". Tiling a floor with 1x2 dominoes, decoding a digit string (Boss 7 of this dungeon), counting paths through a grid, phone-keypad hop counts. The tell: the question says "how many ways", and you can finish the sentence "the last move was either... or...". Each option contributes its own count, and you **add** them.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Base cases off by one.**
+`ways(1) = 1` and `ways(2) = 2`. Seed with `0, 1` out of Fibonacci habit and every answer shifts one slot down, wrong for all n. Anchor base cases to the story, not to the sequence's textbook indexing.
+
+**2. Thinking order doesn't matter.**
+`[1,2]` and `[2,1]` are different climbs, both counted. If the problem had asked for unordered *sets* of hops, the recurrence would be a different machine entirely. Read whether the problem counts sequences or sets.
+
+**3. Shipping the naive recursion because tests pass.**
+It's correct, so small inputs sail through. Around `n = 40` it quietly takes seconds, and at real sizes it never returns. Exponential bugs don't fail loudly, they fail slowly.
+
+**4. Scrambling the rolling update.**
+`prev2, prev1 = prev1, prev2 + prev1` works because Python evaluates the right side first. Split it into two ordinary assignments in the wrong order and `prev1` gets overwritten before it's read. In languages without tuple assignment, use a temp variable.
+
+**5. Memoizing but keying on the wrong thing.**
+Here the state is just `i`, easy. In later bosses the state grows (index plus a flag, index plus remaining budget), and caching on half the state returns confidently wrong answers. The cache key must be the *entire* question.
+
+---
+
+## Complexity
+
+One pass from step 3 to step n, constant work per step, two variables total.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The courier hits the roof, package intact, having counted eight routes without walking any of them twice, without walking any of them at all, really.
+
+What you walked away with:
+
+- **DP is recursion that remembers**, and it pays off exactly when subproblems overlap and optimal answers build from optimal sub-answers
+- The three costumes: **memoize** (recursion plus cache), **tabulate** (fill the array up from base cases), **roll** (keep only the entries the recurrence can still see)
+- Counting recurrences **add** the ways in from each predecessor state
+- The exploding call tree is the disease; every boss in this dungeon is a variation of the cure
+
+Next up: **Boss 2 — The Toll Stairs.** Same staircase, but now every step charges money, and counting becomes minimizing. One word changes in the recurrence, and suddenly DP is making decisions instead of tallying them.

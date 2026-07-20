@@ -1,0 +1,209 @@
+---
+title: "Maximum Product Subarray — The Hot Streak"
+slug: maximum-product-subarray-hot-streak
+category: dsa
+series: dp-1d
+seriesOrder: 9
+description: "Dungeon 12, Boss 9. A guitarist chains effects pedals, each multiplying the signal by its printed gain, some negative, some dead at zero. Find the loudest contiguous run. Products flip on negatives, so you track the running min alongside the max."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Intermediate
+icon: "⚡"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A guitarist lines up effects pedals, and each one multiplies the signal by the gain printed on it. Some gains are negative, some pedals are flat out dead at zero. Pick a contiguous run of pedals with the loudest final output. The trap is that two negatives make a positive, so the worst signal you're carrying can suddenly become the best. You have to track the min right alongside the max.
+  bn: |
+    একজন গিটারিস্ট একসারিতে ইফেক্ট প্যাডেল সাজায়, প্রতিটা প্যাডেল সিগনালকে তার গায়ে লেখা গেইন দিয়ে গুণ করে। কিছু গেইন নেগেটিভ, কোনোটা আবার শূন্যে একদম মরা। কাজ হলো পাশাপাশি প্যাডেলের এমন একটা টানা অংশ বাছা যাতে শেষ আওয়াজটা সবচেয়ে জোরে হয়। ফাঁদ হলো দুটো নেগেটিভ মিলে পজিটিভ হয়ে যায়, তাই সঙ্গে থাকা সবচেয়ে খারাপ সিগনালটাই হঠাৎ সেরা হয়ে উঠতে পারে। তাই max এর পাশে min টাও মনে রাখতে হয়।
+  hi: |
+    एक गिटारिस्ट लाइन से इफेक्ट पेडल लगाता है, हर पेडल सिग्नल को अपने ऊपर लिखे gain से गुणा करता है। कुछ gain नेगेटिव हैं, कोई पेडल तो ज़ीरो पर एकदम मरा हुआ है। काम है पेडलों की ऐसी लगातार कतार चुनना जिससे आखिरी आवाज़ सबसे तेज़ निकले। पेच यह है कि दो नेगेटिव मिलकर पॉज़िटिव बन जाते हैं, तो जो सिग्नल अभी सबसे बुरा है वही आगे सबसे अच्छा बन सकता है। इसलिए max के साथ min भी याद रखना पड़ता है।
+  ar: |
+    عازف غيتار يصفّ دواسات المؤثرات في خط واحد، وكل دواسة تضرب الإشارة في الرقم المكتوب عليها. بعض الأرقام سالبة، وبعض الدواسات ميتة على الصفر. المطلوب اختيار مقطع متصل من الدواسات يخرج أعلى صوت ممكن. الفخ أن سالبين يصنعان موجباً، فأسوأ إشارة تحملها قد تصبح فجأة الأفضل. لذلك تتبّع الحد الأدنى مع الحد الأقصى في كل خطوة.
+---
+
+## Boss 9: The Hot Streak
+
+Boss 8 minimized over choices, and every boss so far shared one quiet assumption: at each step, remembering the *best* answer so far is enough. This boss breaks that. Under multiplication, a single negative number flips the whole leaderboard, and the terrible running product you were about to discard is exactly the one that becomes champion two steps later. What it installs: **DP state that carries two values**, the running max *and* the running min, because with products the villain of today is the hero of tomorrow.
+
+---
+
+## The story
+
+A guitarist is building a pedalboard. The pedals sit in a row, and each one multiplies whatever signal enters it by the gain printed on its face. Positive gains boost. Negative gains are phase inverters, they flip the signal while scaling it. And one pedal is dead: gain zero, anything through it comes out silent.
+
+House rules: pick a **contiguous** run of pedals, plug in at the first, out at the last, no skipping over any in between. Loudest final output wins.
+
+Board one: gains `[2, 3, -2, 4]`.
+
+```
+whole chain: 2 · 3 · -2 · 4 = -48    inverted, useless
+[2, 3]     : 6                        the winner
+[4]        : 4
+[-2, 4]    : -8
+```
+
+Best run: `[2, 3]`, output 6. The `-2` is a wall, runs that cross it come out negative. Fine, intuition holds. Now board two: gains `[-2, 3, -4]`.
+
+```
+[3]         : 3
+[3, -4]     : -12
+[-2, 3]     : -6
+[-2, 3, -4] : 24     the whole chain!
+```
+
+The full chain passes through *two* inverters, and they cancel. The run `[-2, 3]` at value -6 looked like the worst thing on the board, then one more negative pedal turned it into 24. Any strategy that only remembers its best-sounding run walks right past the answer.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums`, find a **subarray** that has the largest product, and return the product. A subarray is a contiguous non-empty sequence of elements within an array.
+
+LeetCode 152.
+
+---
+
+## The naive attempt
+
+Take Kadane's algorithm, the classic for maximum *sum* subarray, and swap plus for times:
+
+```python
+def max_product_wrong(nums):
+    best = cur = nums[0]
+    for v in nums[1:]:
+        cur = max(v, cur * v)     # extend the streak, or start fresh
+        best = max(best, cur)
+    return best
+```
+
+Run it on `[-2, 3, -4]`:
+
+```
+start:  cur = -2, best = -2
+v = 3:  cur = max(3, -6)  = 3,  best = 3
+v = -4: cur = max(-4, -12) = -4, best = 3     wrong, answer is 24
+```
+
+At the second step it computed -6, sneered at it, and kept 3 instead. But -6 was the seed of 24. With sums, a bad running total can never outgrow a good one, so Kadane safely forgets it. With products, one negative multiplies "worst" into "best", and forgetting the min is a correctness bug, not a style choice.
+
+---
+
+## The weapon: carry the max and the min together
+
+At each pedal, track two running products for streaks **ending right here**: the largest and the smallest. When a new value `v` arrives, only three candidates exist:
+
+- `v` alone, plugging in fresh at this pedal
+- `v` times the previous max, extending the best streak
+- `v` times the previous min, extending the worst streak
+
+New max is the biggest of the three, new min is the smallest. A positive `v` keeps the ranking, a negative `v` swaps the roles, and a zero collapses both to 0, ready to restart on the next pedal via the "v alone" candidate. The answer is the best max seen anywhere along the board.
+
+<MermaidBlock>
+graph TB
+    A["at pedal v, three candidates:\nv alone\nv times prev max\nv times prev min"]
+    B["new max ending here\n= biggest of the three"]
+    C["new min ending here\n= smallest of the three"]
+    D["negative v swaps roles\nthe carried min\nbecomes max fuel"]
+    E["zero collapses both to 0\nnext pedal restarts\nvia v alone"]
+    F["answer = best max\nseen at any pedal"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    D --> E
+    B --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def max_product(nums: list[int]) -> int:
+    best = cur_max = cur_min = nums[0]
+    for v in nums[1:]:
+        candidates = (v, v * cur_max, v * cur_min)
+        cur_max = max(candidates)        # loudest streak ending at v
+        cur_min = min(candidates)        # quietest (most negative) ending at v
+        best = max(best, cur_max)
+    return best
+```
+
+Note the tuple: compute all three candidates *before* assigning, because `cur_max` must not be overwritten while `cur_min` still needs the old value. That, or swap `cur_max` and `cur_min` explicitly whenever `v` is negative. Same machine, two spellings.
+
+---
+
+## Watching it work
+
+Board two, `[-2, 3, -4]`:
+
+```
+start:  cur_max = -2, cur_min = -2, best = -2
+v = 3:  candidates (3, -6, -6)
+        cur_max = 3, cur_min = -6, best = 3
+v = -4: candidates (-4, -12, 24)
+        cur_max = 24, cur_min = -12, best = 24 ✓
+```
+
+There it is. The -6 that the naive version threw away rides along in `cur_min`, and the moment `-4` arrives, `-6 · -4 = 24` jumps out of the min lane straight into first place. And a dead pedal, say `[2, 0, 3]`:
+
+```
+v = 0: candidates (0, 0, 0)   both lanes reset to 0, best stays 2
+v = 3: candidates (3, 0, 0)   the "v alone" candidate restarts the streak
+best = 3 ✓
+```
+
+Zero severs the board in two, and the algorithm doesn't need a special case to know it.
+
+<Callout type="tip" title="Recognizing two-lane DP in the wild">
+The tell is an operation that can invert ranking: multiplication with negatives, XOR, anything where "small now" can transform into "large later". When the best future can grow out of the worst present, one lane of state is not enough, carry the extremes of both ends. You'll meet the same reflex in problems that track (max, min) ranges through transformations, and it's the standard fix whenever plain Kadane's silently returns the wrong answer on products.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Tracking only the max.**
+The whole boss. `[-2, 3, -4]` returns 3 instead of 24 and no error tells you why. Two negatives in the test case is the standard trap.
+
+**2. Dropping the "v alone" candidate.**
+Without it, a streak can never restart after a zero or a bad stretch. `[0, 5]` should return 5; extend-only logic returns 0.
+
+**3. Overwriting `cur_max` before `cur_min` reads it.**
+Compute the three candidates into a tuple first, or use simultaneous assignment. Sequential assignment feeds the *new* max into the min update and corrupts both lanes.
+
+**4. Initializing `best` to 0.**
+An all-negative board like `[-3, -1]` has answer -1 (the subarray must be non-empty). Seed `best` with `nums[0]`, not with 0, or every all-negative input reports a phantom silent run.
+
+**5. Assuming Python everywhere.**
+Products overflow fast in fixed-width languages, a dozen values of 100 blow past 64 bits. Python's big integers hide the issue; in Java or C++ this problem's constraints are kept small for exactly that reason.
+
+---
+
+## Complexity
+
+One pass, three multiplications and a couple of comparisons per pedal, two lanes of state.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The guitarist plugs in the full three-pedal chain, both inverters cancel, and the amp screams at 24. The run that sounded broken halfway through was the loudest one on the board, you just had to keep listening to it.
+
+What you walked away with:
+
+- **Two-lane DP state**: running max *and* running min ending at each position, because negatives swap them
+- Three candidates per step: the value alone, extend the max, extend the min
+- Zero as a free reset, handled by the "value alone" candidate with no special casing
+- Why Kadane's-for-sums doesn't transfer to products unchanged: sums never turn worst into best, products do
+
+Next up: **Boss 10 — The Telegram Splice.** A message arrives with every space stripped out, and a dictionary gets to decide whether the letters can be cut back into real words at all.

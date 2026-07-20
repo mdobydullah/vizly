@@ -1,0 +1,196 @@
+---
+title: "House Robber — The Cul-de-Sac Heist"
+slug: house-robber-cul-de-sac-heist
+category: dsa
+series: dp-1d
+seriesOrder: 3
+description: "Dungeon 12, Boss 3. A burglar cases a row of houses whose adjacent alarms are linked: rob two neighbors and the police come. Decision DP arrives, take it or skip it, and one max() per house beats every greedy instinct on the street."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Intermediate
+icon: "🏠"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A burglar spends a week casing a cul-de-sac. Every house has cash inside, but neighboring houses share a linked alarm, hit two next to each other and the police show up. So at every door the question is the same: take this one and give up the neighbor, or skip it and keep what you already have. Grabbing the richest house first sounds clever and loses money. One max() per house, carried down the street, finds the perfect haul.
+  bn: |
+    এক চোর পুরো এক সপ্তাহ ধরে একটা বন্ধ গলির বাড়িগুলো নজরে রাখলো। প্রতিটা বাড়িতে নগদ টাকা আছে, কিন্তু পাশাপাশি বাড়ির অ্যালার্ম একসাথে জোড়া, পরপর দুটোতে হাত দিলেই পুলিশ হাজির। তাই প্রতিটা দরজায় প্রশ্ন একটাই: এটা নেবো আর পাশেরটা ছাড়বো, নাকি এটা ছেড়ে যা জমেছে তাই রাখবো। সবচেয়ে ধনী বাড়িটা আগে ধরার বুদ্ধিটা শুনতে চালাক, আসলে লোকসান। বাড়িপ্রতি একটা করে max(), গলির শেষ মাথা পর্যন্ত টেনে নিলেই নিখুঁত হিসাব।
+  hi: |
+    एक चोर हफ्ते भर एक बंद गली के घरों की रेकी करता है। हर घर में नकदी है, पर पड़ोसी घरों के अलार्म आपस में जुड़े हैं, अगल-बगल के दो घर लूटे तो पुलिस आ जाएगी। तो हर दरवाजे पर सवाल एक ही है: इसे लूटूं और पड़ोसी छोड़ दूं, या इसे छोड़कर जो अब तक जमा है वही रखूं। सबसे अमीर घर पहले उठाने की चाल सुनने में चतुर लगती है और पैसा गंवाती है। हर घर पर बस एक max(), गली के आखिर तक ढोते जाओ, और हिसाब एकदम सही बैठता है।
+  ar: |
+    لص يقضي أسبوعاً يراقب بيوت طريق مسدود. في كل بيت نقود، لكن أجهزة إنذار البيوت المتجاورة موصولة ببعضها، اسرق بيتين متلاصقين وتحضر الشرطة. فعند كل باب السؤال نفسه: آخذ هذا وأتنازل عن جاره، أم أتركه وأحتفظ بما جمعته؟ فكرة البدء بأغنى بيت تبدو ذكية وتخسر المال. max() واحدة عند كل بيت، تحملها حتى آخر الشارع، وتخرج بالغنيمة المثالية.
+---
+
+## Boss 3: The Cul-de-Sac Heist
+
+Boss 2 turned counting into minimizing: same two-arrivals skeleton, `min()` where the plus sign was. But the choice was still geometric, *which step did I come from*. This boss changes the nature of the choice. Each element now gets a yes-or-no verdict, take it or skip it, and taking one forbids its neighbor. This is **decision DP**, and it installs the most reusable sentence in the whole dungeon: *either the answer includes this element, or it doesn't.*
+
+---
+
+## The story
+
+A burglar has spent a week casing a cul-de-sac of five houses, and his notebook has the cash estimates:
+
+```
+house:  0   1   2   3   4
+cash:   2   7   9   3   1
+```
+
+The catch, learned from a colleague now doing five years: adjacent houses share a linked alarm circuit. Rob two neighbors on the same night and the sirens do the rest.
+
+He prices the plans:
+
+```
+take 1 and 3:        7 + 3         = 10
+take 0, 2, 4:        2 + 9 + 1     = 12   ← best
+take 1 and 4:        7 + 1         = 8
+take 2 only:         9             = 9
+```
+
+12 is the ceiling, and notice what it took: house 2 *and* both its non-neighbors, even puny house 4. The instinct "start with the richest house" happens to survive here, but only by luck, and Boss 3 exists to break that luck in public. What actually decides the haul at each door is one comparison: everything up to the previous house, versus this house's cash plus everything up to two houses back.
+
+---
+
+## The problem, dressed up properly
+
+> You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, and the only constraint stopping you is that **adjacent houses have security systems connected**, it will automatically contact the police if two adjacent houses are broken into on the same night. Given an integer array `nums` representing the amount of money of each house, return the **maximum** amount you can rob tonight without alerting the police.
+
+LeetCode 198.
+
+---
+
+## The naive attempt
+
+Two instincts, both wrong in their own way. First, brute force every subset:
+
+```python
+def rob(nums):
+    def best(i):
+        if i >= len(nums):
+            return 0
+        return max(best(i + 1),              # skip house i
+                   nums[i] + best(i + 2))    # take house i, jump the neighbor
+    return best(0)
+```
+
+Correct, and it's the exploding tree for the third boss running: two branches per house, the same suffixes recomputed all over the tree, exponential.
+
+Second instinct, greedy: sort by cash, grab the richest available house, lock its neighbors, repeat. Watch it lose on `[8, 9, 8]`:
+
+```
+greedy: take 9 (richest) → both 8s locked → haul 9
+truth:  take both 8s, they aren't adjacent → haul 16
+```
+
+The 9 is a trap, a shiny house whose real price is *two* neighbors. Greedy can't see that price because it values houses one at a time. The comparison has to happen where the conflict lives, at each door, with the full weight of everything decided so far.
+
+---
+
+## The weapon: take it or skip it
+
+State first, sharp as a lockpick: **`dp[i]` = the biggest haul achievable considering houses 0 through i.** Not "the biggest haul that robs house i", just the best you can do in the prefix, robbed or not.
+
+At house `i`, exactly two futures:
+
+- **Skip it.** Your haul is whatever it already was: `dp[i-1]`.
+- **Take it.** House `i - 1` is now poison, so you keep house i's cash plus the best from two back: `dp[i-2] + nums[i]`.
+
+```
+dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+```
+
+<MermaidBlock>
+graph TB
+    A["house i\ncash inside: nums(i)"]
+    B["SKIP it\nkeep dp(i-1)\nneighbor stays available"]
+    C["TAKE it\nnums(i) + dp(i-2)\nneighbor is poison now"]
+    D["dp(i) = max(skip, take)\nbest haul through house i"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Two entries back is all the recurrence sees, so the rolling pair from Bosses 1 and 2 does the whole job:
+
+```python
+def rob(nums: list[int]) -> int:
+    prev2, prev1 = 0, 0                  # best through i-2, best through i-1
+    for cash in nums:
+        prev2, prev1 = prev1, max(prev1, prev2 + cash)
+    return prev1
+```
+
+Seeding both at 0 means "no houses considered yet, haul 0", and the first two iterations derive the real base cases by themselves: house 0 becomes `max(0, 0 + cash)`, house 1 becomes `max(house0, cash1)`. No special-casing short streets, no index juggling.
+
+---
+
+## Watching it work
+
+`nums = [2, 7, 9, 3, 1]`:
+
+```
+start           prev2=0   prev1=0
+house 0 (2):    max(0, 0+2)  = 2      prev2=0,  prev1=2
+house 1 (7):    max(2, 0+7)  = 7      prev2=2,  prev1=7
+house 2 (9):    max(7, 2+9)  = 11     prev2=7,  prev1=11
+house 3 (3):    max(11, 7+3) = 11     prev2=11, prev1=11
+house 4 (1):    max(11, 11+1)= 12     → 12 ✓
+```
+
+House 3 is the instructive row: taking it (7 + 3 = 10) *loses* to the standing plan of 11, so the max quietly skips it, and that skip is what leaves house 4 free to top the haul off at 12. No backtracking, no regret, because `dp[i]` was never "what I robbed", only "the best possible so far", and the best possible never needs revising.
+
+<Callout type="tip" title="Recognizing take-or-skip DP in the wild">
+The shape is "pick elements from a sequence to maximize a total, under a conflict rule with short reach". Delete-and-earn, the stock problems with cooldown, scheduling non-overlapping gigs, seating guests who feud with their neighbors. The tell: each element wants a yes or no, and saying yes disables a *bounded* neighborhood. The moment you can say "either the answer includes this element or it doesn't", you have your two branches, and the conflict's reach tells you how far back the take-branch must look.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Assuming the haul alternates houses.**
+Optimal plans skip two in a row sometimes: `[9, 1, 1, 9]` takes the two 9s and leaves both middle houses cold. The rule forbids adjacent *takes*, it never mandates a rhythm. Recurrences that only consider "every other house" die here.
+
+**2. Defining `dp[i]` as "best haul that robs house i".**
+That state works but its answer is `max` over the whole table and its recurrence must reach further back than two. Mixing that definition with this recurrence, `max(dp[i-1], ...)`, silently blends two different machines. One meaning, stated in a comment, enforced everywhere.
+
+**3. Greedy relapse.**
+"Richest first" fails (`[8, 9, 8]`), "compare pairs locally" fails, "take whenever current is bigger than previous" fails. Every greedy here loses to some three-house street. The take-branch's real cost is what it forbids, and only the DP carries that information.
+
+**4. Hand-rolled base cases for tiny streets.**
+Special-casing `len(nums) == 1` and `== 2` before the loop invites index errors. The `0, 0` seed handles empty, single, and double streets with the same loop. Fewer branches, fewer bugs.
+
+**5. Scrambling the rolling update.**
+Same trap as the whole dungeon: `prev1` must be read before it's overwritten. Tuple assignment in Python, a temp variable elsewhere, and never two bare assignments in the wrong order.
+
+---
+
+## Complexity
+
+One decision per house, constant work each, two rolling variables.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+Twelve units of cash, zero sirens, and the richest house on the street was worth taking only because the plan around it said so.
+
+What you walked away with:
+
+- **Decision DP**: not counting ways, choosing them, `max()` over take and skip
+- The sentence that unlocks half of DP: *either the answer includes this element, or it doesn't*
+- Taking an element costs whatever it forbids, and the recurrence reaches back exactly as far as the conflict does
+- `dp[i]` as "best considering the prefix" needs no backtracking, the max never regrets
+
+Next up: **Boss 4 — The Roundabout Heist.** The street bends into a circle, the first and last house become neighbors, and the whole solution seems to collapse, until one trick, run the straight-line heist twice, saves everything.

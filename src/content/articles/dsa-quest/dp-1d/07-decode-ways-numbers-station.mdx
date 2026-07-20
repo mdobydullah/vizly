@@ -1,0 +1,198 @@
+---
+title: "Decode Ways — The Numbers Station"
+slug: decode-ways-numbers-station
+category: dsa
+series: dp-1d
+seriesOrder: 7
+description: "Dungeon 12, Boss 7. A shortwave numbers station broadcasts digit strings, A is 1 and Z is 26, so an intercepted '226' could be BZ, VF, or BBF. Count the decodings with prefix DP, Climbing Stairs with a bouncer checking IDs at every hop."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Strings
+  - Intermediate
+icon: "📻"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A shortwave radio crackles at midnight and a voice reads out digits: 2 2 6. You know the cipher, A is 1 and Z is 26. But "226" could be BZ, or VF, or BBF, and headquarters wants to know how many readings are even possible. Turns out counting them is Climbing Stairs with a bouncer. Every hop has to pass an ID check before it counts.
+  bn: |
+    মাঝরাতে শর্টওয়েভ রেডিওতে একটা স্টেশন শুধু সংখ্যা পড়ে যায়: 2 2 6। সাইফারটা আপনার জানা, A মানে 1, Z মানে 26। কিন্তু "226" হতে পারে BZ, VF, কিংবা BBF, আর হেডকোয়ার্টার জানতে চায় মোট কত রকমভাবে পড়া সম্ভব। দেখা যায় এটা আসলে Climbing Stairs, শুধু প্রতিটা ধাপে একজন দারোয়ান আগে আইডি চেক করে।
+  hi: |
+    आधी रात को शॉर्टवेव रेडियो पर एक स्टेशन बस नंबर पढ़ता जाता है: 2 2 6। सिफर आपको पता है, A यानी 1, Z यानी 26। पर "226" BZ भी हो सकता है, VF भी, और BBF भी, और हेडक्वार्टर जानना चाहता है कि कुल कितनी तरह से पढ़ा जा सकता है। असल में यह Climbing Stairs ही है, बस हर कदम पर एक दरबान पहले ID चेक करता है।
+  ar: |
+    في منتصف الليل تبث محطة أرقام على الموجة القصيرة أصواتاً تقرأ: 2 2 6. أنت تعرف الشيفرة، A تعني 1 و Z تعني 26. لكن "226" قد تكون BZ أو VF أو BBF، والمقر يريد عدد القراءات الممكنة. اتضح أنها مسألة Climbing Stairs نفسها، لكن على كل خطوة يقف حارس يفحص الهوية أولاً.
+---
+
+## Boss 7: The Numbers Station
+
+Boss 6 counted mirrors, tallying every palindrome by expanding out from its centers. The counting continues here, but the walk gets stricter. This boss is Climbing Stairs in a trench coat: you still consume the input one or two characters at a time, and you still *sum* the ways, but now every hop has to pass a validity check before it counts. What it installs: **prefix-counting DP with guards**, where `dp[i]` means "ways to handle the first i characters" and only legal transitions get to contribute.
+
+---
+
+## The story
+
+Midnight, somewhere on the shortwave band. A numbers station, one of those ghost broadcasts that just read digits into the static. Your unit intercepts a string: `"226"`. The cipher is the oldest one in the book, A is 1, B is 2, up to Z is 26. No separators, no spaces. Headquarters asks a strange question: not *what* does it say, but *how many things could it say?*
+
+Group the digits every way the cipher allows:
+
+```
+"226"
+2 | 2 | 6    →  B B F
+22 | 6       →  V F
+2 | 26       →  B Z
+```
+
+Three readings. And notice what didn't happen: nobody tried `"26" | "6"` twice, or a group like `"62"` (too big), and if the intercept had been `"026"` the answer would be zero, because F is transmitted as `"6"`, never `"06"`. A zero can only exist as the tail of 10 or 20.
+
+Count the groupings. That's the mission.
+
+---
+
+## The problem, dressed up properly
+
+> A message containing letters from `A-Z` can be encoded into numbers where `'A'` maps to `"1"`, `'B'` to `"2"`, ... `'Z'` to `"26"`. To decode a message, group the digits and map each group back. Note that `"06"` cannot be mapped to `'F'`, since `"6"` is different from `"06"`. Given a string `s` containing only digits, return the **number of ways** to decode it.
+
+LeetCode 91.
+
+---
+
+## The naive attempt
+
+Branch at every position: take one digit, or take two, and recurse.
+
+```python
+def num_decodings(s):
+    def ways(i):
+        if i == len(s):
+            return 1                     # consumed everything: one valid reading
+        if s[i] == '0':
+            return 0                     # a group can't start with 0
+        total = ways(i + 1)              # take one digit
+        if i + 1 < len(s) and 10 <= int(s[i:i+2]) <= 26:
+            total += ways(i + 2)         # take two digits
+        return total
+    return ways(0)
+```
+
+Correct, and doomed. A string like `"1111111111..."` branches at every step, and `ways(i)` gets recomputed from every path that lands on position `i`. The call tree grows like Fibonacci, which is exponential. But look at what the recursion actually depends on: `ways(i)` needs only `ways(i + 1)` and `ways(i + 2)`. Two neighbors. You've seen that dependency shape six bosses in a row.
+
+---
+
+## The weapon: step counting with a bouncer
+
+Flip it iterative. Let `dp[i]` be the number of ways to decode the **first i characters**. The empty prefix has exactly one decoding, the empty one, so `dp[0] = 1`. Then at every position, two possible last moves, each guarded:
+
+- The last group is **one digit**: legal only if that digit isn't `'0'`. If it passes, it contributes `dp[i-1]` ways.
+- The last group is **two digits**: legal only if the pair reads as 10 through 26. If it passes, it contributes `dp[i-2]` ways.
+
+Climbing Stairs summed both steps unconditionally. Here each step must show ID first.
+
+<MermaidBlock>
+graph TB
+    A["dp of i = ways to decode\nthe first i characters\ndp of 0 = 1, the empty reading"]
+    B["last group is one digit\nbouncer: digit is not 0\npass: add dp of i-1"]
+    C["last group is two digits\nbouncer: pair reads 10 to 26\npass: add dp of i-2"]
+    D["dp of i = whatever\nsurvived the checks\nzero survivors = dead prefix"]
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Only two previous values ever matter, so the whole table collapses into two rolling variables:
+
+```python
+def num_decodings(s: str) -> int:
+    if not s or s[0] == '0':
+        return 0                          # leading zero: nothing decodes
+    prev2, prev1 = 1, 1                   # dp[0] and dp[1]
+    for i in range(2, len(s) + 1):
+        cur = 0
+        if s[i - 1] != '0':               # single-digit group passes
+            cur += prev1
+        if 10 <= int(s[i - 2:i]) <= 26:   # two-digit group passes
+            cur += prev2
+        prev2, prev1 = prev1, cur         # slide the window
+    return prev1
+```
+
+---
+
+## Watching it work
+
+`"226"`:
+
+```
+dp[0] = 1                      empty prefix
+dp[1] = 1                      "2" → B
+i=2: '2' passes  → +dp[1] = 1
+     "22" passes → +dp[0] = 1     dp[2] = 2   (B B, V)
+i=3: '6' passes  → +dp[2] = 2
+     "26" passes → +dp[1] = 1     dp[3] = 3   (B B F, V F, B Z)
+answer: 3 ✓
+```
+
+And the poison case, `"100"`:
+
+```
+dp[1] = 1                      "1"
+i=2: '0' fails, "10" passes  → dp[2] = 1   (J)
+i=3: '0' fails, "00" fails   → dp[3] = 0
+answer: 0, the string is garbage ✓
+```
+
+Once a prefix hits zero ways, everything downstream inherits the zero. The bouncers don't just prune, they detect corrupt transmissions for free.
+
+<Callout type="tip" title="Recognizing guarded step-counting in the wild">
+Any time a problem says "count the ways to consume a sequence, taking 1 or 2 (or k) units per move, where each move must be locally valid", you're looking at this exact skeleton: Climbing Stairs plus a guard on every transition. Boss 10 in this dungeon is the same skeleton again, with a dictionary playing bouncer instead of the 10-to-26 rule. Spot the skeleton and the only real work left is writing the guard correctly.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Leading zero kills everything.**
+`"0..."` has no valid first group, ever. The early return handles it; forget it and `dp[1]` starts life wrong.
+
+**2. `"06"` is not 6.**
+The two-digit guard is 10 through 26, not 1 through 26. Writing the check as `int(pair) <= 26` alone lets `"06"` sneak in as 6 and inflates counts.
+
+**3. The lone unrescuable zero.**
+`"30"`: the `'0'` fails the single check and `"30"` fails the pair check, so `dp` hits 0 and stays there. Correct behavior, but only if *both* guards can fail. Hardcode either one as always-true and this case lies.
+
+**4. `"10"` and `"20"` decode only as pairs.**
+At the `'0'`, the single-digit path contributes nothing and the two-digit path carries the entire count. Tests love these two strings for exactly that reason.
+
+**5. Forgetting `dp[0] = 1`.**
+It feels wrong, one way to decode nothing? But it's the seed: when the first two characters form a valid pair, that pair's contribution *is* `dp[0]`. Set it to 0 and every two-digit opening vanishes.
+
+---
+
+## Complexity
+
+One pass, constant work per character, two variables of state.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The station repeats its digits into the dark, and your report goes up the chain: three possible plaintexts, and the analysts take it from there. The count was never about the alphabet. It was a walk through positions, with a doorman at every step.
+
+What you walked away with:
+
+- **Prefix-counting DP**: `dp[i]` = ways to handle the first i characters, built from the last move backward
+- Guarded transitions: sum only the steps that pass validation, and let zero-way prefixes poison everything downstream
+- The `dp[0] = 1` seed, one way to decode nothing, and why the two-digit opener depends on it
+- Rolling two variables when only two neighbors matter, same trick, sixth boss running
+
+Next up: **Boss 8 — The Exact Fare.** Counting flips to optimizing: an old fare machine wants exact payment in the fewest coins, and the greedy instinct that grabs the biggest coin first walks straight into an ambush.

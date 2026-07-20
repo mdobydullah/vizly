@@ -1,0 +1,211 @@
+---
+title: "Word Break — The Telegram Splice"
+slug: word-break-telegram-splice
+category: dsa
+series: dp-1d
+seriesOrder: 10
+description: "Dungeon 12, Boss 10. A telegram arrives with every space stripped and only the office dictionary to cut it back into words. Prefix booleans tile the string one dictionary word at a time, and memoized recursion turns out to be the same table in disguise."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Strings
+  - Intermediate
+icon: "📨"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Telegrams charge by the character, so the office strips every space before sending. Now a message lands on your desk reading "leetcode" and all you have is the office dictionary. Can you cut it back into real words with nothing left over? Guessing cuts blows up fast, one wrong early cut and the whole tail is ruined. But one row of true or false marks, one per prefix, settles it in a single pass.
+  bn: |
+    টেলিগ্রামে প্রতিটা অক্ষরের দাম, তাই অফিস পাঠানোর আগে সব স্পেস কেটে ফেলে। আপনার ডেস্কে একটা বার্তা এলো, লেখা "leetcode", হাতে শুধু অফিসের ডিকশনারি। এটাকে কি আসল শব্দে কেটে ফেরানো যায়, একটা অক্ষরও বাড়তি না রেখে? আন্দাজে কাটতে গেলে চেষ্টার সংখ্যা হু হু করে বাড়ে, শুরুতে একটা ভুল কাট মানেই বাকিটা নষ্ট। কিন্তু প্রতিটা প্রিফিক্সের জন্য একটা করে সত্যি বা মিথ্যা চিহ্ন রাখলে এক পাসেই ফয়সালা হয়ে যায়।
+  hi: |
+    टेलीग्राम में हर अक्षर के पैसे लगते हैं, इसलिए दफ्तर भेजने से पहले सारे स्पेस हटा देता है। आपकी मेज पर एक संदेश आता है, लिखा है "leetcode", और हाथ में सिर्फ दफ्तर की डिक्शनरी। क्या इसे असली शब्दों में वापस काटा जा सकता है, कुछ भी बचाए बिना? अंदाजे से काटने पर कोशिशें धमाके की तरह बढ़ती हैं, शुरू में एक गलत कट और पूरी पूंछ बेकार। पर हर prefix के लिए एक true या false का निशान रखो, और जवाब एक ही पास में मिल जाता है।
+  ar: |
+    البرقيات تحاسب على كل حرف، لذلك يحذف المكتب كل المسافات قبل الإرسال. تصلك رسالة مكتوب فيها "leetcode" وليس معك سوى قاموس المكتب. هل يمكن تقطيعها إلى كلمات حقيقية دون أن يتبقى حرف واحد؟ التخمين ينفجر بسرعة، قطعة خاطئة في البداية تفسد الذيل كله. لكن صفاً واحداً من علامات صح أو خطأ، علامة لكل بادئة، يحسم الأمر في مرور واحد.
+---
+
+## Boss 10: The Telegram Splice
+
+Boss 9 juggled two running values at once, the best and the worst product, because a single negative could flip the crown. This boss drops the arithmetic entirely. Back to booleans: the question is not *how good*, just *possible at all*. What it installs is **prefix-boolean DP**, the art of tiling a string with allowed pieces, and the quiet fact that memoized recursion and the table are the same weapon held two different ways.
+
+---
+
+## The story
+
+A telegraph office charges by the character, spaces included. So senders strip every space to save money, and the receiving operator has to put them back. This morning's message:
+
+```
+leetcode
+```
+
+The office dictionary contains exactly two words: `leet` and `code`. Question: can the message be cut back into dictionary words with **nothing left over**?
+
+Here it's easy, cut after position 4 and you get `leet code`. But the operator's first instinct, grab the longest word you recognize and move on, is a trap. Watch it fail on the message `cars` with dictionary `car`, `ca`, `rs`:
+
+```
+greedy: take "car"  → leftover "s"      not a word, stuck, declare impossible?
+truth:  take "ca"   → leftover "rs"     a word! "ca rs" works fine
+```
+
+A cut that looks great now can strand the tail. Whether a cut at position i is *actually* good depends on whether the rest can be finished, which depends on later cuts, which depend on... you see where this goes. Every splice decision leans on the answer to a smaller version of the same question. That smell is the dungeon's whole theme.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s` and a dictionary of strings `wordDict`, return `true` if `s` can be segmented into a space-separated sequence of one or more dictionary words. **Note** that the same word in the dictionary may be reused multiple times in the segmentation.
+
+LeetCode 139.
+
+---
+
+## The naive attempt
+
+Try every word at the front, recurse on what remains:
+
+```python
+def word_break(s, word_dict):
+    if not s:
+        return True                       # nothing left over: success
+    for w in word_dict:
+        if s.startswith(w) and word_break(s[len(w):], word_dict):
+            return True
+    return False
+```
+
+Correct, and doomed. Feed it `"aaaaaaaaab"` with dictionary `a`, `aa`, `aaa` and it explores every way to chop the a-run, thousands of paths, all marching toward the same `b` that matches nothing. The suffix `"aaab"` gets re-solved from scratch every time a different chopping of the front arrives at it. Same subproblem, recomputed exponentially many times. By now you know the cure by name.
+
+---
+
+## The weapon: prefix booleans
+
+Flip the question from suffixes to prefixes. Define:
+
+**`dp[i]` = True if the first `i` characters can be tiled with dictionary words.**
+
+`dp[0]` is True, the empty prefix needs zero words, that's the free square. Now the key move: if the first `i` characters *can* be tiled, the tiling ends with **some** dictionary word `w`. Peel it off, and what's left is a tiled prefix of length `i - len(w)`. So:
+
+`dp[i]` is True when *any* word `w` matches the slice ending at `i` **and** `dp[i - len(w)]` is already True.
+
+<MermaidBlock>
+graph TB
+    A["dp[0] = True\nempty prefix tiles for free"]
+    B["at each length i\ntry every dictionary word w"]
+    C["does w match the slice\nending at position i?"]
+    D["is dp[i - len(w)] True?\ndoes the part before w tile?"]
+    E["both yes: dp[i] = True\nfirst i characters tile cleanly"]
+    F["read dp[n]\nwhole telegram splices, or not"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> B
+    E --> F
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def word_break(s: str, word_dict: list[str]) -> bool:
+    n = len(s)
+    dp = [False] * (n + 1)
+    dp[0] = True                          # zero characters: tiled by zero words
+    for i in range(1, n + 1):             # dp[i] = "first i chars can be tiled"
+        for w in word_dict:
+            if i >= len(w) and dp[i - len(w)] and s[i - len(w):i] == w:
+                dp[i] = True
+                break                     # one working tiling is enough
+    return dp[n]
+```
+
+There's a second costume for the same weapon. Instead of looping over words, loop over **cut points**: the last word is `s[j:i]` for some `j`, so ask whether `dp[j]` holds and the slice is in the dictionary. Throw the words into a set first so membership is O(1):
+
+```python
+def word_break(s: str, word_dict: list[str]) -> bool:
+    words = set(word_dict)                # O(1) lookups
+    n = len(s)
+    dp = [False] * (n + 1)
+    dp[0] = True
+    for i in range(1, n + 1):
+        for j in range(i):                # candidate last word: s[j:i]
+            if dp[j] and s[j:i] in words:
+                dp[i] = True
+                break
+    return dp[n]
+```
+
+And that memoized recursion you were about to write on the naive version? Add `@functools.cache` to it and you've built this exact table, just filled lazily from the suffix side. Top-down with memo and bottom-up with a table are the same set of subproblems. The table just admits it up front.
+
+---
+
+## Watching it work
+
+`s = "leetcode"`, dictionary `leet`, `code`. Nine slots, `dp[0]` through `dp[8]`:
+
+```
+dp[0] = T                          the free square
+i=1,2,3: no word ends here         dp[1..3] = F
+i=4: "leet" matches s[0:4],
+     dp[0] = T                     dp[4] = T
+i=5,6,7: "code" doesn't fit yet,
+     "leet" mismatches             dp[5..7] = F
+i=8: "code" matches s[4:8],
+     dp[4] = T                     dp[8] = T
+
+dp[8] = True → splice it: "leet code" ✓
+```
+
+Note how `dp[4]` did all the heavy lifting: one True in the middle of a sea of False, and the final answer stood on its shoulders. The False slots aren't failures, they're the table honestly recording "no clean cut lands here."
+
+<Callout type="tip" title="Recognizing prefix tiling in the wild">
+The tell is "can this sequence be decomposed into allowed pieces": sentence segmentation, restoring IP addresses, concatenated-words checks, token splitting in compilers. Boss 7's Numbers Station was the counting cousin, same last-piece peel, but summing ways instead of OR-ing booleans. Whenever the last piece of a valid prefix must itself be a valid piece, dp over prefix lengths is the move.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the free square.**
+`dp[0] = True` isn't a technicality, it's the base every first word stands on. Leave it False and the whole row stays False forever, the code compiles, and everything returns "impossible".
+
+**2. Off-by-one between lengths and indices.**
+`dp` has `n + 1` slots and `dp[i]` speaks about the first `i` *characters*, not the character at index `i`. The slice ending at length `i` is `s[i - len(w):i]`. Mix lengths with indices and you'll be one character off in the most confident way possible.
+
+**3. Words can be reused.**
+The dictionary is not one-use. `"aaa"` with dictionary `a` is a yes. If you memoize the recursive version, the key is the position alone, never position plus remaining words.
+
+**4. List membership in the cut-point version.**
+`s[j:i] in words` against a *list* is a linear scan per check, and it quietly multiplies your runtime by the dictionary size. The set conversion is one line and it's the whole point of that formulation.
+
+**5. Trusting greedy longest-match.**
+The `cars` example above kills it. A valid cut now can orphan the tail, only the table (or full memoized search) sees around that corner.
+
+---
+
+## Complexity
+
+With `n` cut points, `m` dictionary words, and `L` the longest word, each slot tries every word with an O(L) comparison. The cut-point version does O(n) slices per slot instead.
+
+**Time: O(n · m · L). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+The operator pencils the space back in, `leet code`, and the telegram reads clean. Nobody had to guess: nine little marks knew the answer before any human did.
+
+What you walked away with:
+
+- **Prefix-boolean DP**: `dp[i]` answers "can the first `i` characters be built", seeded by the free `dp[0] = True`
+- The last-piece peel: every valid prefix ends in a valid word, so ask only about the final tile
+- Memoized recursion on suffixes and the bottom-up prefix table are one weapon, two grips
+- A set for the dictionary when checking slices, O(1) membership or pay a hidden multiplier
+
+Next up: **Boss 11 — The Marching Band Lineup.** A director scans a row of musicians for the longest strictly-climbing chain hiding in plain sight, and you'll meet the DP that a binary search later turbocharges.

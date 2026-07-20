@@ -1,0 +1,230 @@
+---
+title: "Partition Equal Subset Sum — The Fair Split"
+slug: partition-equal-subset-fair-split
+category: dsa
+series: dp-1d
+seriesOrder: 12
+description: "Dungeon 12, Boss 12. Two siblings must split an inherited coin collection into two piles of equal value, every coin used. The finale: subset sum as a 0-1 knapsack, boolean DP over reachable sums, and the backwards sweep that keeps every coin honest."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "⚖️"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Two siblings inherit a coin collection, and the will has one demand, split it into two piles worth exactly the same, every coin used. With coins worth 1, 5, 11 and 5 it works, one takes the 11, the other takes the rest. But add the values up first. If the total is odd, no split can ever work, and you know it before touching a coin. If it's even, the whole puzzle shrinks to one question, can some subset of coins hit exactly half, and DP answers it one coin at a time.
+  bn: |
+    দুই ভাইবোন উত্তরাধিকারে পেল একটা কয়েনের সংগ্রহ, আর উইলের শর্ত একটাই, দুই ভাগের মূল্য হতে হবে একদম সমান, একটা কয়েনও বাদ যাবে না। 1, 5, 11 আর 5 মানের কয়েনে কাজটা হয়ে যায়, একজন নেয় 11, বাকিটা আরেকজনের। কিন্তু আগে মোট যোগফলটা দেখুন। বিজোড় হলে কোনো ভাগই সম্ভব না, কয়েন ছোঁয়ার আগেই উত্তর জানা। জোড় হলে পুরো ধাঁধা নেমে আসে একটা প্রশ্নে, কোনো subset কি ঠিক অর্ধেকে পৌঁছায়, আর DP সেটার উত্তর দেয় এক কয়েন করে।
+  hi: |
+    दो भाई-बहन को विरासत में सिक्कों का एक संग्रह मिलता है, और वसीयत की शर्त एक ही है, दो ढेर बिल्कुल बराबर कीमत के, हर सिक्का इस्तेमाल हो। 1, 5, 11 और 5 वाले सिक्कों में यह हो जाता है, एक 11 लेता है, बाकी दूसरे का। पर पहले कुल जोड़ देख लो। जोड़ विषम है तो कोई बंटवारा हो ही नहीं सकता, सिक्का छुए बिना जवाब पता है। सम है तो पूरी पहेली एक सवाल बन जाती है, क्या सिक्कों का कोई subset ठीक आधे तक पहुंचता है, और DP इसका जवाब एक-एक सिक्का करके देता है।
+  ar: |
+    يرث شقيقان مجموعة عملات، وللوصية شرط واحد، قسمتها إلى كومتين متساويتين في القيمة تماماً وكل عملة تُستخدم. مع عملات قيمتها 1 و5 و11 و5 الأمر ممكن، أحدهما يأخذ 11 والآخر يأخذ الباقي. لكن اجمع القيم أولاً. إن كان المجموع فردياً فلا قسمة عادلة أبداً، وتعرف الجواب قبل لمس أي عملة. وإن كان زوجياً ينكمش اللغز كله إلى سؤال واحد، هل تصل مجموعة جزئية من العملات إلى النصف بالضبط، وDP يجيب عملةً بعد عملة.
+---
+
+## Boss 12: The Fair Split
+
+Boss 11 anchored a sub-answer at every element, the longest increasing chain *ending here*, then threw the O(n²) engine overboard for the binary-search pile trick. That was DP indexed by position. The finale flips the axis one last time: DP indexed by **value**. Not "what's the best answer at index i" but "which sums are even reachable". This boss installs the 0-1 knapsack, the backwards sweep that separates it from Boss 8's unlimited-coins world, and the cheapest pre-check in the whole dungeon: parity.
+
+---
+
+## The story
+
+Two siblings inherit their grandfather's coin collection, values `[1, 5, 11, 5]`. The will is one sentence long: *split it into two piles of exactly equal value, every coin used, or neither of you gets anything.*
+
+Play it out:
+
+```
+coins [1, 5, 11, 5]      total 22, so each pile must be worth 11
+try the big coin alone   → 11 ✓
+the rest: 1 + 5 + 5      → 11 ✓
+piles: [11] and [1, 5, 5]    fair split, the will is satisfied
+
+now imagine coins [1, 2, 3, 5]
+total 11, which is odd   → half would be 5.5
+no pile of whole coins hits 5.5
+impossible before you touch a single coin
+```
+
+Notice what happened in the second case. You didn't try a single split. The *total* killed it. And in the first case, you never built two piles either. The moment one pile hit 11, the rest of the coins summed to 22 minus 11, which is 11, automatically. One pile is the whole problem.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums`, return `true` if you can partition the array into **two subsets** such that the sum of the elements in both subsets is equal, or `false` otherwise.
+
+LeetCode 416.
+
+---
+
+## The naive attempt
+
+Every coin goes left or right. Two choices per coin, try them all:
+
+```python
+def can_partition(nums):
+    total = sum(nums)
+    if total % 2:
+        return False
+    target = total // 2
+
+    def dfs(i, remaining):
+        if remaining == 0:
+            return True
+        if i == len(nums) or remaining < 0:
+            return False
+        return dfs(i + 1, remaining - nums[i]) or dfs(i + 1, remaining)  # take or skip
+
+    return dfs(0, target)
+```
+
+That's 2^n subsets. Two hundred coins means more branches than atoms in your kitchen. And it's this dungeon's oldest crime, committed one last time: the recursion asks "can I make 6 from coins 2 onward" down thousands of separate branches, and answers it from scratch every single time. Boss 1 taught you what happens next. The sub-answers get written down.
+
+---
+
+## The weapon: the 0-1 knapsack
+
+Reframe. The two piles are a decoy. The real question is: **can some subset of coins sum to exactly `target`, where target is half the total?** If yes, the leftovers are the other pile, guaranteed equal.
+
+So track something brutally simple: a boolean for every sum from 0 to target. `dp[s]` means "some subset of the coins seen so far sums to exactly s". Before any coin, only `dp[0]` is True, the empty pile. Then feed in coins one at a time: if sum `s - coin` was reachable, sum `s` is now reachable too.
+
+One trap. Sweep the sums **backwards**, from target down to the coin. Sweep forwards and `dp[s - coin]` might already include *this very coin*, so one coin pays twice in a single pass. That's Boss 8's world, unlimited coins in the drawer, and Boss 8 iterated forwards *on purpose*. Here every coin exists exactly once. Backwards means every update reads only last round's truth, coin spent at most once. That single loop direction is the entire difference between 0-1 knapsack and unbounded knapsack.
+
+<MermaidBlock>
+graph TB
+    A["sum all coins\ntotal odd?\nreturn False, free win"]
+    B["total even\ntarget = total // 2"]
+    C["dp over sums 0..target\ndp[0] = True\nnothing else reachable yet"]
+    D["for each coin\nsweep s from target DOWN to coin\ndp[s] = dp[s] or dp[s - coin]"]
+    E["dp[target] True?\nsome subset hits half\nfair split exists"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def can_partition(nums: list[int]) -> bool:
+    total = sum(nums)
+    if total % 2:                      # odd total: no fair split, done
+        return False
+    target = total // 2
+
+    dp = [False] * (target + 1)
+    dp[0] = True                       # the empty pile sums to 0
+
+    for coin in nums:
+        for s in range(target, coin - 1, -1):   # BACKWARDS: each coin once
+            dp[s] = dp[s] or dp[s - coin]
+        if dp[target]:
+            return True                # early exit: half is already reachable
+    return dp[target]
+```
+
+There's a twin version that says the same thing without indices, and honestly it's the one that makes the idea click. Keep a *set* of reachable sums and let each coin grow it:
+
+```python
+def can_partition(nums: list[int]) -> bool:
+    total = sum(nums)
+    if total % 2:
+        return False
+    target = total // 2
+
+    sums = {0}                         # reachable sums so far
+    for coin in nums:
+        sums |= {s + coin for s in sums if s + coin <= target}
+        if target in sums:
+            return True
+    return target in sums
+```
+
+Same algorithm, same guarantees. The set builds `new_sums` from the *old* set before merging, so no coin doubles up, which is exactly what the backwards sweep buys in the array version. The array is faster in practice, the set is the picture to hold in your head.
+
+---
+
+## Watching it work
+
+Coins `[1, 5, 11, 5]`, total 22, target 11. Watch the reachable sums grow:
+
+```
+start        reachable {0}
+coin 1       reachable {0, 1}
+coin 5       reachable {0, 1, 5, 6}
+coin 11      reachable {0, 1, 5, 6, 11}   → 11 hit, early exit
+answer: True    pile [11] = 11, pile [1, 5, 5] = 22 - 11 = 11 ✓
+```
+
+The fourth coin never even gets read. And in the boolean-array version this is the same picture, the True cells of `dp` are precisely that set, with the backwards sweep making sure coin 5 can't stack on its own shoulders to fake a 10 in one pass.
+
+<Callout type="tip" title="Recognizing 0-1 knapsack in the wild">
+The tell is items you may use **at most once** plus a question about an exact or optimal total. Assign plus and minus signs to hit a target (LeetCode 494)? Same DP, after algebra turns it into subset sum. Splitting jobs across two servers so finishing times balance? Fair split wearing a lanyard. Even Last Stone Weight II from the heap dungeon is this boss in disguise, smashing stones optimally means partitioning them into two near-equal piles. Items once, exact sums: boolean DP over values, sweep backwards.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Sweeping forwards.**
+The classic. Forward iteration lets `dp[s - coin]` already contain this pass's coin, so one 5 quietly becomes two 5s and impossible splits report True. Backwards is not a style choice, it *is* the 0-1 constraint. Forwards is only correct in Boss 8's unbounded world.
+
+**2. Skipping the parity check.**
+`[1, 2, 3, 5]` totals 11, and `11 // 2` floors to 5. The subset `[2, 3]` happily hits 5, the function returns True, and the siblings sue. An odd total must return False before any DP runs. It's also the free win: half your random inputs die in one line.
+
+**3. Leaving `dp[0]` as False.**
+Every reachable sum traces back to the empty pile. Kill the seed and nothing ever becomes True, the function returns False forever and passes an alarming number of tests before it doesn't.
+
+**4. Fumbling the loop bound.**
+`range(target, coin - 1, -1)` must reach `coin` itself. Write `range(target, coin, -1)` and `dp[coin]` never gets set from `dp[0]`, so single-coin piles silently vanish. Off-by-one, but it deletes exactly the easiest splits.
+
+**5. Building both piles.**
+Tracking pile A and pile B doubles the state for nothing. One subset hitting target forces the complement to match, the will's demand comes for free. Solve for one pile, always.
+
+---
+
+## Complexity
+
+For each of the n coins you sweep at most target sums, and target is half the total value.
+
+**Time: O(n · target). Space: O(target).**
+
+---
+
+## Boss down. DUNGEON DOWN. XP gained.
+
+One sibling pockets the 11, the other takes the 1 and both 5s, and the will is satisfied by a boolean array that never once tried to build two piles. It just asked which sums exist.
+
+What you walked away with:
+
+- **0-1 knapsack**: each item usable once, enforced by nothing more than a backwards sweep
+- **DP over reachable values**: index by sum instead of position, True means "some subset lands here"
+- The parity pre-check, a one-line free win before any real work
+- Backwards vs forwards is the entire distance between "each coin once" and Boss 8's unlimited stacks
+
+The full haul from Dungeon 12:
+
+- **Rolling Fibonacci variables**, recursion that remembers (Boss 1)
+- **min() over choices**, cost to stand here (Boss 2)
+- **Take or skip with an adjacency ban** (Boss 3)
+- **A circle is two lines**, reduce to the solved problem (Boss 4)
+- **Expand around 2n-1 centers** for the longest mirror (Boss 5)
+- **Same engine, count instead of crown** (Boss 6)
+- **Prefix counting with validity checks** at each hop (Boss 7)
+- **Unbounded knapsack over amounts**, greedy exposed (Boss 8)
+- **Carry the max AND the min** when signs flip (Boss 9)
+- **Boolean tiling of prefixes** against a dictionary (Boss 10)
+- **LIS ending at each element**, then the binary-search turbo (Boss 11)
+- **0-1 knapsack over reachable sums**, backwards loop (Boss 12)
+
+**Next dungeon: Intervals.** Calendars, meeting rooms, bookings that collide at 2 p.m. and pretend they don't. Nearly every boss in there falls to one opening move, sort by start time and sweep, and the rest is deciding what to do when two intervals overlap.
+
+See you in Dungeon 13.

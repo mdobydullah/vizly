@@ -1,0 +1,187 @@
+---
+title: "Longest Palindromic Substring — The Antique Engraving"
+slug: longest-palindromic-substring-antique-engraving
+category: dsa
+series: dp-1d
+seriesOrder: 5
+description: "Dungeon 12, Boss 5. An antique dealer hunts the longest phrase on an engraved plate that reads the same both ways. Every palindrome has a center, there are 2n-1 of them, and expanding outward from each finds the longest mirror in O(n²) time and O(1) space."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Strings
+  - Intermediate
+icon: "📜"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An antique dealer slides a bronze plate under the lamp. Genuine pieces hide a phrase that reads the same forwards and backwards, and the longest one sets the price. This plate says "babad", so where is the longest mirror? Checking every possible snippet takes forever. The trick is that every mirror has a center, so stand at each spot and grow outward while the two sides keep matching.
+  bn: |
+    এক পুরনো জিনিসের ব্যবসায়ী ল্যাম্পের নিচে একটা ব্রোঞ্জের প্লেট রাখলেন। আসল জিনিসে এমন একটা লেখা লুকানো থাকে যেটা সোজা আর উল্টো দুই দিক থেকেই একই পড়া যায়, আর সবচেয়ে লম্বাটাই দাম ঠিক করে। এই প্লেটে লেখা "babad", তাহলে সবচেয়ে লম্বা আয়নাটা কোথায়? সম্ভাব্য প্রতিটা টুকরো ধরে ধরে মেলাতে গেলে জীবন শেষ। কৌশল হলো, প্রতিটা আয়নার একটা কেন্দ্র আছে, তাই প্রতিটা জায়গায় দাঁড়িয়ে দুই পাশ মিলতে থাকা পর্যন্ত বাইরের দিকে বাড়তে থাকুন।
+  hi: |
+    एक पुरानी चीजों का सौदागर लैंप के नीचे कांसे की प्लेट रखता है। असली चीजों में ऐसा वाक्य छिपा होता है जो सीधा और उल्टा एक जैसा पढ़ा जाए, और सबसे लंबा वाला ही कीमत तय करता है। इस प्लेट पर लिखा है "babad", तो सबसे लंबा आईना कहां है? हर मुमकिन टुकड़ा जांचने बैठो तो उम्र निकल जाए। तरकीब यह है कि हर आईने का एक केंद्र होता है, तो हर जगह खड़े होकर दोनों तरफ तब तक बढ़ते जाओ जब तक अक्षर मिलते रहें।
+  ar: |
+    تاجر تحف يضع لوحاً برونزياً تحت المصباح. القطع الأصلية تخفي عبارة تُقرأ من الجهتين بالشكل نفسه، والأطول هي التي تحدد السعر. هذا اللوح مكتوب عليه "babad"، فأين أطول مرآة؟ فحص كل مقطع ممكن يستغرق دهراً. الحيلة أن لكل مرآة مركزاً، فقف عند كل نقطة وتوسّع نحو الخارج ما دام الطرفان متطابقين.
+---
+
+## Boss 5: The Antique Engraving
+
+Bosses 1 through 4 walked arrays of numbers, and the thing being remembered was always a running best: cheapest step, fattest haul. This boss swaps coins for characters. Strings enter the dungeon, and the sub-answer changes shape: not "best value up to here" but "how far does the mirror around *this* point reach". The weapon it installs, expand around center, is the workhorse for a whole family of palindrome problems, including the very next boss.
+
+---
+
+## The story
+
+An antique dealer authenticates an engraved plate under the lamp. Genuine pieces hide a phrase that reads the same forwards and backwards, and by trade custom, **the longest such mirror sets the value**. Today's plate reads `babad`.
+
+The dealer doesn't read snippets at random. She picks a spot, then reads outward in both directions at once:
+
+```
+plate: b a b a d
+
+stand at 'a' (index 1), read outward: b-a-b   both sides match, length 3
+stand at 'b' (index 2), read outward: a-b-a   also length 3
+stand between letters (even mirrors): "ba", "ab", "ba", "ad"  all dead ends
+longest mirror: "bab"   value stamped: length 3
+```
+
+Two habits hide in there. She stands *at letters* for odd-length mirrors, and *between letters* for even ones like `abba`. And she never verifies a snippet from scratch: she grows a known mirror one step at a time, stopping at the first mismatch.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s`, return the **longest palindromic substring** in `s`. A palindrome reads the same forwards and backwards. If several longest palindromes exist, returning any one of them is accepted.
+
+LeetCode 5.
+
+---
+
+## The naive attempt
+
+Generate every substring, check each for palindrome-ness, keep the longest:
+
+```python
+def longest_palindrome(s):
+    best = ""
+    for i in range(len(s)):
+        for j in range(i, len(s)):
+            sub = s[i:j + 1]
+            if sub == sub[::-1] and len(sub) > len(best):
+                best = sub
+    return best
+```
+
+O(n²) substrings, O(n) to check each: **O(n³)**. On a 1000-character string that's a billion character comparisons, and almost all of them are wasted, because checking `"babad"` re-checks everything you learned while checking `"aba"`. The overlap is screaming to be exploited. That scream is the DP signal.
+
+---
+
+## The weapon: expand around center
+
+Flip the question. Instead of "is this substring a palindrome?", ask "**how far does the palindrome centered here reach?**" Every palindrome has a center. In a string of length n there are exactly **2n-1 centers**: each of the n characters (odd-length mirrors) and each of the n-1 gaps between characters (even-length mirrors). Visit each center once, expand outward while the two ends match, and track the longest reach seen.
+
+<MermaidBlock>
+graph TB
+    A["pick a center\n2n-1 in total\nn letters plus n-1 gaps"]
+    B["expand left and right\nwhile the ends match"]
+    C["mismatch or plate edge\nstop, step back one"]
+    D["longer than the\ncurrent crown?\ntake the crown"]
+    E["all centers tried\ncrown is the answer"]
+    A --> B
+    B --> C
+    C --> D
+    D --> A
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def longest_palindrome(s: str) -> str:
+    start, end = 0, 0                     # bounds of the current crown
+
+    def expand(left: int, right: int) -> tuple[int, int]:
+        while left >= 0 and right < len(s) and s[left] == s[right]:
+            left -= 1                     # grow while the ends match
+            right += 1
+        return left + 1, right - 1        # step back to the last match
+
+    for center in range(len(s)):
+        for lo, hi in (expand(center, center),        # odd: letter center
+                       expand(center, center + 1)):   # even: gap center
+            if hi - lo > end - start:
+                start, end = lo, hi       # new crown, keep indices only
+
+    return s[start:end + 1]
+```
+
+The textbook alternative is a 2-D table, `dp[i][j]` marking whether `s[i..j]` mirrors, filled from short spans to long. Same O(n²) time but O(n²) memory, and it earns its keep only when you'll *reuse* those answers later (palindrome partitioning does). And as trivia: Manacher's algorithm does this in O(n). Nobody expects it in an interview. Name it, don't write it.
+
+---
+
+## Watching it work
+
+`babad`:
+
+```
+center 0 'b':  "b"                          crown "b", length 1
+gap 0-1:       b vs a, dead
+center 1 'a':  "aba"? grow: b == b → "bab"  crown "bab", length 3
+gap 1-2:       a vs b, dead
+center 2 'b':  grow: a == a → "aba"         length 3, crown stays
+gap 2-3:       b vs a, dead
+center 3 'a':  "a"; gap 3-4: a vs d, dead
+center 4 'd':  "d"
+crown: "bab" ✓   ("aba" would be equally correct)
+```
+
+Nine centers, each expansion stopped at its first mismatch, and no snippet was ever verified from scratch.
+
+<Callout type="tip" title="Recognizing the pattern in the wild">
+The words "palindrome" and "substring" in the same sentence should make your hand move toward centers before anything else. Expansion beats the 2-D table whenever you only need an aggregate (longest, count, exists), because it pays O(1) space for the same O(n²) time. Reach for the table only when later steps need to ask "is s[i..j] a palindrome?" many times over.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the even centers.**
+Only expanding from letters means `abba` comes back as `b`. Half of all mirrors have no middle letter, they wrap a gap. Two expansion calls per position, always.
+
+**2. Off-by-one when slicing the winner.**
+The expansion loop exits having overshot by one on *each* side. Return `left + 1, right - 1`, then slice with `end + 1` because Python slices exclude the right bound. This line is where most wrong answers on this problem are born.
+
+**3. Building substrings inside the loop.**
+Comparing `s[lo:hi + 1]` lengths, or storing the best as a string on every improvement, drags O(n) copies into the hot loop. Track two indices, slice exactly once at the end.
+
+**4. Defaulting to the 2-D table.**
+It works, but it's O(n²) memory for the same running time, and interviewers will ask why. Have a reason ready (reuse), or use centers.
+
+---
+
+## Complexity
+
+2n-1 centers, and each expansion walks at most n/2 steps outward.
+
+**Time: O(n²). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The dealer stamps the plate: longest mirror `bab`, length 3, genuine. She read outward from nine centers and never checked a snippet twice.
+
+What you walked away with:
+
+- **Every palindrome has a center**, and a string of length n has exactly 2n-1 of them
+- Odd mirrors sit on letters, even mirrors wrap gaps, expand from both
+- Overshoot then step back one: `left + 1, right - 1` is the ritual
+- The 2-D table is the heavier cousin, Manacher's O(n) is the trivia answer
+
+Next up: **Boss 6 — The Mirror Tally.** Same expansion engine, new question: the dealer's apprentice must count *every* mirror on the plate, not just crown the longest.

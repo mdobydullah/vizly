@@ -1,0 +1,222 @@
+---
+title: "Longest Increasing Subsequence — The Marching Band Lineup"
+slug: longest-increasing-subsequence-marching-band
+category: dsa
+series: dp-1d
+seriesOrder: 11
+description: "Dungeon 12, Boss 11. A band director wants the longest strictly-taller-each-time lineup from a row of musicians, order preserved. The classic ending-at-i DP, then the tails array and binary search that cut it to O(n log n)."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Intermediate
+icon: "🎺"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A band director walks down a row of musicians with a camera. She wants the biggest possible group for the photo, but there are rules. Everyone stays in their original order, and each pick must be strictly taller than the one before. With heights like 10, 9, 2, 5, 3, 7, 101, 18 the best she can manage is four. The trick is asking every musician one question: how long is the best lineup that ends with you?
+  bn: |
+    একজন ব্যান্ড ডিরেক্টর ক্যামেরা হাতে মিউজিশিয়ানদের সারি ধরে হাঁটছেন। ছবির জন্য চাই যত বড় সম্ভব দল, কিন্তু নিয়ম আছে। সবাই আসল সারির ক্রমেই থাকবে, আর প্রতিটা বাছাই আগেরজনের চেয়ে লম্বা হতেই হবে। 10, 9, 2, 5, 3, 7, 101, 18 এমন উচ্চতা থেকে বড়জোর চারজন মেলে। কৌশলটা হলো প্রত্যেককে একটাই প্রশ্ন করা: তোমাকে দিয়ে শেষ হওয়া সেরা লাইনআপটা কত লম্বা?
+  hi: |
+    एक बैंड डायरेक्टर कैमरा लेकर संगीतकारों की कतार के साथ चलती है। फोटो के लिए उसे सबसे बड़ा ग्रुप चाहिए, पर शर्तें हैं। सबका असली क्रम वही रहेगा, और हर अगला चुना हुआ पिछले से सख्ती से लंबा होना चाहिए। 10, 9, 2, 5, 3, 7, 101, 18 जैसी लंबाइयों में ज्यादा से ज्यादा चार ही बनते हैं। तरकीब है हर संगीतकार से एक सवाल पूछना: तुम पर खत्म होने वाली सबसे लंबी लाइनअप कितनी है?
+  ar: |
+    تمشي قائدة فرقة موسيقية بكاميرتها على طول صف العازفين. تريد أكبر مجموعة ممكنة للصورة، لكن هناك قواعد. يبقى الجميع بترتيبهم الأصلي، وكل مختار يجب أن يكون أطول ممن قبله تماماً. من أطوال مثل 10 و9 و2 و5 و3 و7 و101 و18 أفضل ما يمكن هو أربعة. الحيلة سؤال واحد لكل عازف: ما أطول تشكيلة تنتهي بك أنت؟
+---
+
+## Boss 11: The Marching Band Lineup
+
+Boss 10 asked whether a *prefix* could be tiled, the sub-answer lived at each prefix length. This boss moves the anchor: the sub-answer lives at each **element**. "Best chain ending exactly here" is the last new DP shape this dungeon installs, and it comes with a bonus weapon, a tails array plus binary search that most people meet for the first time right here and never forget.
+
+---
+
+## The story
+
+A marching band stands in a row for the group photo. The director walks the line, camera in hand, reading heights:
+
+```
+[10, 9, 2, 5, 3, 7, 101, 18]
+```
+
+She wants the biggest lineup possible, but two rules: picks keep their **original order**, and each pick must be **strictly taller** than the previous one. She tries a few by hand:
+
+```
+start at 10:  10 → 101                       length 2
+start at 9:   9 → 101                        length 2
+start at 2:   2 → 5 → 7 → 101                length 4
+also:         2 → 3 → 7 → 18                 length 4
+five climbers? every attempt stalls          best: 4
+```
+
+Four is the ceiling. Notice what made `2 → 5 → 7 → 101` work: each musician only needed to know that *someone shorter stood earlier with a good chain already going*. Whether 7 extends a chain has nothing to do with what comes after 7. The past is settled, the future doesn't matter yet. That's the anchor: judge every musician by the best lineup that **ends** with them.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums`, return the length of the **longest strictly increasing subsequence**. A subsequence is a sequence that can be derived from the array by deleting some or no elements without changing the order of the remaining elements.
+
+LeetCode 300.
+
+---
+
+## The naive attempt
+
+Every musician is either in the photo or not. Try both, keep the taller-than-last rule:
+
+```python
+def length_of_lis(nums):
+    def climb(i, prev):
+        if i == len(nums):
+            return 0
+        best = climb(i + 1, prev)                        # skip musician i
+        if prev is None or nums[i] > prev:
+            best = max(best, 1 + climb(i + 1, nums[i]))  # pick musician i
+        return best
+    return climb(0, None)
+```
+
+Two choices per musician, 2^n subsets, and the same "from position i with last height h" state recomputed endlessly. Eight musicians, fine. Two thousand five hundred, the LeetCode max, and the sun burns out first.
+
+---
+
+## The weapon: anchor the answer at each ending position
+
+Define:
+
+**`dp[i]` = length of the longest increasing lineup that ends exactly at musician `i`.**
+
+Musician `i` can stand behind any earlier musician `j` who is strictly shorter. Take the best chain among those and add yourself:
+
+`dp[i] = 1 + max(dp[j])` over every `j` before `i` where `nums[j] < nums[i]`, or just 1 if no such `j` exists.
+
+The final answer is the max over the whole `dp` row, because the best lineup can end **anywhere**, not necessarily at the last musician.
+
+<MermaidBlock>
+graph TB
+    A["dp[i] = longest lineup\nENDING exactly at musician i"]
+    B["look back at every j before i\nis nums[j] < nums[i]?"]
+    C["yes: i stands behind j\ndp[i] = max(dp[i], dp[j] + 1)"]
+    D["answer = max of the whole dp row\nthe lineup may end anywhere"]
+    E["upgrade: tails[k] = smallest tail\nof any climb of length k+1\nbinary search each height into it"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def length_of_lis(nums: list[int]) -> int:
+    n = len(nums)
+    dp = [1] * n                        # a lone musician is a lineup of one
+    for i in range(n):
+        for j in range(i):              # every earlier musician
+            if nums[j] < nums[i]:       # strictly shorter: i can follow j
+                dp[i] = max(dp[i], dp[j] + 1)
+    return max(dp)                      # best chain can end at any position
+```
+
+O(n²), clean, and the shape transfers to a dozen cousin problems. But this particular boss has a famous second phase.
+
+Think of it as **patience sorting**, the card game. Deal the heights one at a time onto piles: each card goes on the **leftmost pile whose top card is not smaller**, and if every pile top is smaller, it starts a new pile. When the deal ends, the number of piles *is* the LIS length. Keep only the pile tops in an array called `tails`:
+
+**`tails[k]` = the smallest possible tail of any increasing chain of length `k + 1`.**
+
+Smaller tails are strictly better, they leave more room to grow. Each new height either extends the longest chain (append) or improves some chain's tail (replace), and since `tails` stays sorted, *binary search* finds the spot:
+
+```python
+from bisect import bisect_left
+
+def length_of_lis(nums: list[int]) -> int:
+    tails = []                          # tails[k] = smallest tail of a length k+1 chain
+    for x in nums:
+        pos = bisect_left(tails, x)     # leftmost pile whose top is not smaller
+        if pos == len(tails):
+            tails.append(x)             # taller than every tail: chain grows
+        else:
+            tails[pos] = x              # same length, friendlier tail
+    return len(tails)
+```
+
+---
+
+## Watching it work
+
+The classic table on `[10, 9, 2, 5, 3, 7, 101, 18]`:
+
+```
+height:  10   9   2   5   3   7  101  18
+dp:       1   1   1   2   2   3    4   4
+              (5 after 2)  (7 after 2,5 or 2,3)
+                              (101 and 18 both cap a 3-chain)
+max(dp) = 4 ✓
+```
+
+And the tails array eating the same row:
+
+```
+10  → new pile            tails [10]
+9   → replaces 10         tails [9]
+2   → replaces 9          tails [2]
+5   → new pile            tails [2, 5]
+3   → replaces 5          tails [2, 3]
+7   → new pile            tails [2, 3, 7]
+101 → new pile            tails [2, 3, 7, 101]
+18  → replaces 101        tails [2, 3, 7, 18]
+len(tails) = 4 ✓
+```
+
+Watch 9 replace 10 and 3 replace 5. Neither changed the pile count, they just made future growth easier. That's the whole philosophy: hoard the smallest tails, let length take care of itself.
+
+<Callout type="tip" title="Recognizing ending-anchored DP in the wild">
+The tell is "longest chain, order preserved, with a pairwise rule between consecutive picks": longest arithmetic subsequence, Russian doll envelopes (sort, then it IS this boss), longest divisible subset, box stacking. When the rule only compares each pick to the one before it, anchor a sub-answer at every possible ending element and look back.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Strictly taller means `bisect_left`, not `bisect_right`.**
+With `bisect_left`, an equal height lands *on top of* its twin's pile and replaces it, so equal values never chain. `bisect_right` would slide past the twin and count `[3, 3]` as a climb of two. One suffix, silently wrong answers on any input with duplicates.
+
+**2. `tails` is not a real lineup.**
+After the trace above, `tails` is `[2, 3, 7, 18]`, and by luck that is a valid pick here. It often is not: the values come from different incompatible chains. `tails` promises only lengths and best-possible tails. If the interviewer asks you to *print* the subsequence, you need the O(n²) version with parent pointers.
+
+**3. Subsequence, not substring.**
+Gaps are allowed, order is not negotiable. `2 → 5 → 7` skips right over the 3 and that's fine. If you catch yourself windowing contiguous runs, you're solving a different, much easier problem.
+
+**4. Returning `dp[n-1]` instead of `max(dp)`.**
+`dp[i]` is anchored at *its own* ending. The row ends at 18 with `dp = 4`, but shuffle the input so it ends on a tiny value and `dp[n-1]` is 1 while the true answer hides mid-row. The max over the row is part of the pattern, not a garnish.
+
+**5. Forgetting the base case is 1, not 0.**
+Every musician alone is a lineup of one. Initialize `dp` to zeros and chains can never start.
+
+---
+
+## Complexity
+
+The classic table compares every pair once, the tails version does one binary search per musician.
+
+**Time: O(n²) classic, O(n log n) with tails. Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+The photo gets taken: 2, 5, 7, and 101, shortest to tallest, left to right. The director never planned the lineup. She just asked each musician how good a chain could end on them, and the answer assembled itself.
+
+What you walked away with:
+
+- **Ending-anchored DP**: `dp[i]` = best chain finishing exactly at `i`, answer = max over the row
+- The look-back sweep: each element consults every valid predecessor, O(n²) but endlessly reusable
+- **Tails + binary search**: hoard the smallest tail per chain length, patience-sorting piles, O(n log n)
+- `bisect_left` enforces *strictly* increasing; `tails` gives the length, never the lineup itself
+
+Next up: **Boss 12 — The Fair Split.** The dungeon finale: an inheritance must be split into two piles of exactly equal value, and a DP over reachable sums closes out the whole dungeon.

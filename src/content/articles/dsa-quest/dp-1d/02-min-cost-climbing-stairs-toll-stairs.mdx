@@ -1,0 +1,190 @@
+---
+title: "Min Cost Climbing Stairs — The Toll Stairs"
+slug: min-cost-climbing-stairs-toll-stairs
+category: dsa
+series: dp-1d
+seriesOrder: 2
+description: "Dungeon 12, Boss 2. Every step on the staircase now posts a fee, paid the moment you land on it, and the top sits one past the last step. Counting becomes minimizing: the same skeleton as Boss 1 with min() where the plus sign was."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Beginner
+icon: "💸"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The fire escape got monetized. Every step now has a posted toll, and you pay the moment your boot lands on it. You can start on step 0 or step 1 for free, hop one or two steps at a time, and the exit is one past the last step. Yesterday you counted routes, today you want the cheapest one. Same staircase, same hops, but the recurrence swaps plus for min, and that tiny swap is half of what DP is.
+  bn: |
+    ফায়ার এস্কেপে এবার টাকা বসেছে। প্রতিটা ধাপে ভাড়ার নোটিশ ঝোলানো, আর পা রাখার সাথে সাথেই টাকা দিতে হয়। শুরু করতে পারেন ধাপ ০ বা ধাপ ১ থেকে, বিনা পয়সায়, তারপর এক বা দুই ধাপ করে লাফ, আর বেরোনোর দরজা শেষ ধাপের ঠিক এক ধাপ পরে। গতকাল গুনছিলেন রাস্তা কয়টা, আজ চাই সবচেয়ে সস্তা রাস্তাটা। একই সিঁড়ি, একই লাফ, শুধু যোগের জায়গায় বসলো min, আর এই ছোট্ট বদলটাই DP-র অর্ধেক গল্প।
+  hi: |
+    फायर एस्केप पर अब पैसा लग गया है। हर स्टेप पर किराये की पर्ची चिपकी है, और जूता पड़ते ही पैसे देने पड़ते हैं। स्टेप 0 या स्टेप 1 से मुफ्त में शुरू कर सकते हैं, फिर एक या दो स्टेप की छलांग, और बाहर निकलने का दरवाजा आखिरी स्टेप से एक कदम आगे है। कल आप रास्ते गिन रहे थे, आज सबसे सस्ता रास्ता चाहिए। वही सीढ़ी, वही छलांगें, बस जोड़ की जगह min बैठ गया, और यही छोटा सा बदलाव DP की आधी कहानी है।
+  ar: |
+    سلم الطوارئ صار بفلوس. كل درجة عليها تعرفة معلنة، وتدفع لحظة ما تهبط قدمك عليها. تقدر تبدأ من الدرجة 0 أو الدرجة 1 مجاناً، وتقفز درجة أو درجتين كل مرة، وباب الخروج بعد آخر درجة بخطوة واحدة. بالأمس كنت تعدّ الطرق، واليوم تريد أرخصها. نفس السلم ونفس القفزات، لكن المعادلة بدّلت الجمع بـ min، وهذا التبديل الصغير هو نصف حكاية DP.
+---
+
+## Boss 2: The Toll Stairs
+
+Boss 1 taught the recurrence: the last hop onto any step came from one below or two below, so a step's answer is built from the two answers under it. There, the answers were *counts* and you added them. This boss keeps the skeleton bolt for bolt and changes the question: each step now costs money, and you want the cheapest way up. Counting becomes minimizing, `+` becomes `min()`, and you meet DP's favorite off-by-one, the top that lives one past the last step.
+
+---
+
+## The story
+
+The building manager discovered monetization. Every step of the fire escape now has a toll sticker, payable on landing:
+
+```
+step:  0   1   2
+toll: 10  15  20      the roof door is past step 2
+```
+
+House rules: start on step 0 or step 1 for free (the sticker charges when you *land* hopping, and you begin standing there, close enough, the problem says you choose your starting step and pay it). More precisely: you pay a step's toll when you step on it, you may begin at step 0 or step 1, and from any step you hop 1 or 2. The top is **beyond** step 2, and reaching it costs nothing.
+
+The courier prices her options:
+
+```
+start at 0: pay 10, hop 2 to step 2, pay 20, hop 1 to top   → 30
+start at 0: pay 10, hop 1 to step 1, pay 15, hop 2 to top   → 25
+start at 1: pay 15, hop 2 straight to the top               → 15  ← cheapest
+```
+
+15\. Skipping step 0 entirely was legal, and the expensive step 2 never got touched. The greedy instinct "always hop 2, touch fewer steps" already fails on longer staircases: sometimes a cheap step is worth landing on to line up a jump over an expensive one. What holds instead is Boss 1's logic upside down: the cheapest way to *stand* on a step is its own toll plus the cheaper of the two ways to arrive.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `cost` where `cost[i]` is the cost of the `i`-th step on a staircase. Once you pay the cost, you can either climb one or two steps. You can either start from the step with index `0`, or the step with index `1`. Return the **minimum cost** to reach the top of the floor.
+
+LeetCode 746.
+
+---
+
+## The naive attempt
+
+Recurse on "cheapest way to stand on step i", no memory:
+
+```python
+def min_cost_climbing_stairs(cost):
+    def cheapest(i):                 # cheapest total to be standing on step i
+        if i < 2:
+            return cost[i]           # starting steps: just their own toll
+        return cost[i] + min(cheapest(i - 1), cheapest(i - 2))
+
+    n = len(cost)
+    return min(cheapest(n - 1), cheapest(n - 2))   # top is reachable from both
+```
+
+Correct, and it's Boss 1's exploding tree wearing a price tag. `cheapest(i)` branches into `i - 1` and `i - 2`, those branches re-ask the same questions, and the call count doubles down the levels. Ten steps, fine. A thousand steps, heat death. Same disease, same diagnosis: overlapping subproblems with amnesia.
+
+---
+
+## The weapon: min() in the old skeleton
+
+Define the state exactly, because fuzzy states sink DP solutions: **`dp[i]` = the cheapest total cost at which you can be standing on step i.** Standing there means you've paid `cost[i]`. You arrived from `i - 1` or `i - 2`, and you obviously took the cheaper arrival.
+
+```
+dp[i] = cost[i] + min(dp[i-1], dp[i-2])
+dp[0] = cost[0],  dp[1] = cost[1]        free choice of start
+answer = min(dp[n-1], dp[n-2])           the top is one hop past both
+```
+
+<MermaidBlock>
+graph TB
+    A["dp(i) = cheapest total\nto STAND on step i\ntoll already paid"]
+    B["arrive from i-1\ncosts dp(i-1)"]
+    C["arrive from i-2\ncosts dp(i-2)"]
+    D["dp(i) = cost(i) +\nmin of both arrivals"]
+    E["top sits past step n-1\nfinal hop is free\nanswer = min(dp(n-1), dp(n-2))"]
+    B --> A
+    C --> A
+    A --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+And since the recurrence only ever looks two entries back, the table collapses into Boss 1's rolling pair:
+
+```python
+def min_cost_climbing_stairs(cost: list[int]) -> int:
+    prev2, prev1 = cost[0], cost[1]      # cheapest to stand on steps 0 and 1
+    for i in range(2, len(cost)):
+        prev2, prev1 = prev1, cost[i] + min(prev1, prev2)
+    return min(prev1, prev2)             # top: one past the last step, toll-free
+```
+
+Every line maps to a sentence in the story. Free start: the seeds are the raw tolls, no arrival cost. Pay on landing: `cost[i] +`. Choose your arrival: `min(prev1, prev2)`. Top past the end: the return takes a `min` instead of blindly trusting the last step.
+
+---
+
+## Watching it work
+
+The long staircase, `cost = [1, 100, 1, 1, 1, 100, 1, 1, 100, 1]`:
+
+```
+seeds        dp0=1    dp1=100
+step 2: 1   + min(100, 1)  = 2
+step 3: 1   + min(2, 100)  = 3
+step 4: 1   + min(3, 2)    = 3
+step 5: 100 + min(3, 3)    = 103
+step 6: 1   + min(103, 3)  = 4
+step 7: 1   + min(4, 103)  = 5
+step 8: 100 + min(5, 4)    = 104
+step 9: 1   + min(104, 5)  = 6
+top: min(6, 104) = 6 ✓
+```
+
+Route recovered by reading the mins backward: 0, 2, 4, 6, 7, 9, top. Every toll of 1 collected, every 100 vaulted over. The greedy "hop 2 always" route lands on step 5's toll of 100 and pays 104; the DP never even flinched at it.
+
+<Callout type="tip" title="Recognizing min-cost DP in the wild">
+The shape is "reach the end, each move has a price, minimize the total". Cheapest edit sequence between strings, minimum coins for exact fare (Boss 8), cheapest path down a triangle of numbers. The tell: the ways in are a small fixed set, and the question says cheapest, fewest, or minimum. Everything from Boss 1 survives except one operator, you **min()** over the arrivals instead of adding them, and the base cases carry costs instead of counts.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Returning `dp[n-1]` instead of `min(dp[n-1], dp[n-2])`.**
+The top is not the last step, it's past it, and a 2-hop from `n - 2` clears the last step entirely. Forcing the route through step `n - 1` overcharges whenever the last step is expensive. This off-by-one is the problem's whole personality.
+
+**2. Charging for the top.**
+There is no `cost[n]`. The tolls live on the steps, and the landing beyond the last step is free. Appending a phantom 0 to the array is a legitimate trick, but adding any real cost there breaks the answer.
+
+**3. Breaking the free start.**
+Seeding `dp[1] = cost[0] + cost[1]` forces every route to begin at step 0. The problem grants a free choice of step 0 *or* step 1, so each seed is that step's own toll alone.
+
+**4. A fuzzy `dp[i]` meaning.**
+"Cheapest to stand on i" (toll paid) and "cheapest to leave i" and "cheapest to arrive next to i" are three different recurrences with three different base cases. Any of them can work. Mixing two of them cannot. Write the meaning down in a comment before the loop.
+
+**5. Trusting greedy on staircases.**
+"Hop 2 to touch fewer steps" and "always land on the cheaper next step" both fail, the trace above kills the first and `[1, 2, 100, 2]` style setups kill the second. Local cheapness says nothing about the total, which is precisely why the recurrence exists.
+
+---
+
+## Complexity
+
+One pass over the tolls, constant work per step, two rolling variables.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+Six coins to the roof, and the two steps with the 100 stickers never felt a boot.
+
+What you walked away with:
+
+- Same skeleton, new operator: counting adds arrivals, optimizing takes **min()** over them
+- **State discipline**: say precisely what `dp[i]` means ("cheapest to stand here, toll paid") and the recurrence and base cases write themselves
+- Endpoints are part of the state design: the top living one past the array is why the answer takes a final min
+- Free choices in the story become base cases in the code
+
+Next up: **Boss 3 — The Cul-de-Sac Heist.** The choice stops being *which step* and becomes *take or skip* with a constraint attached: rob a house and its neighbor is off limits. The recurrence learns the most useful sentence in DP: either the answer includes this element, or it doesn't.

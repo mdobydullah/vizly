@@ -1,0 +1,183 @@
+---
+title: "Palindromic Substrings — The Mirror Tally"
+slug: palindromic-substrings-mirror-tally
+category: dsa
+series: dp-1d
+seriesOrder: 6
+description: "Dungeon 12, Boss 6. The apprentice must log every mirrored phrase on the plate, single letters included. Same 2n-1 center expansion as Boss 5, but the odometer changes: tick a counter on every successful expansion step instead of crowning the longest."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Strings
+  - Intermediate
+icon: "🪞"
+color: orange
+createdAt: "2026-07-16T14:00:00Z"
+updatedAt: "2026-07-16T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The dealer's apprentice gets stuck with the boring job. Log every mirrored phrase on the plate, however short, even single letters count. The plate reads "aaa" and somehow that is already 6 entries in the ledger. Good news: the counting machine is the exact one from the last job. Stand at each center and grow outward, but instead of hunting the longest, tick the ledger on every match.
+  bn: |
+    ব্যবসায়ীর শিষ্যের ভাগ্যে পড়লো একঘেয়ে কাজটা। প্লেটের প্রতিটা আয়না-লেখা খাতায় তুলতে হবে, যত ছোটই হোক, একটা অক্ষরও গোনা হবে। প্লেটে লেখা "aaa", আর তাতেই খাতায় ৬টা এন্ট্রি হয়ে যায়। সুখবর হলো, গোনার যন্ত্রটা আগের কাজেরটাই। প্রতিটা কেন্দ্রে দাঁড়িয়ে বাইরের দিকে বাড়ুন, তবে সবচেয়ে লম্বাটা খোঁজার বদলে প্রতিটা মিলে খাতায় একটা দাগ দিন।
+  hi: |
+    सौदागर के शागिर्द के हिस्से उबाऊ काम आया। प्लेट का हर आईना-वाक्य बही में दर्ज करना है, चाहे कितना भी छोटा हो, अकेला अक्षर भी गिना जाएगा। प्लेट पर लिखा है "aaa" और उसी से बही में 6 एंट्री बन जाती हैं। अच्छी खबर यह है कि गिनने की मशीन पिछले काम वाली ही है। हर केंद्र पर खड़े होकर बाहर की ओर बढ़ो, बस सबसे लंबा ढूंढने की बजाय हर मेल पर बही में एक निशान लगा दो।
+  ar: |
+    وقع العمل الممل على صبي التاجر. عليه أن يسجل في الدفتر كل عبارة مرآتية على اللوح مهما قصرت، حتى الحرف الواحد يُحسب. اللوح مكتوب عليه "aaa" وهذا وحده ست قيود في الدفتر. الخبر الجيد أن آلة العد هي نفسها من المهمة السابقة. قف عند كل مركز وتوسّع نحو الخارج، لكن بدل البحث عن الأطول ضع علامة في الدفتر عند كل تطابق.
+---
+
+## Boss 6: The Mirror Tally
+
+Boss 5 built the expansion engine: 2n-1 centers, grow outward while the ends match. This boss doesn't touch the engine. It swaps the odometer. The question changes from "which mirror is longest?" to "**how many mirrors are there?**", and the only code change is what you do on each successful match: instead of comparing against a champion, you count. The real lesson is noticing when a solved problem's machinery transfers wholesale.
+
+---
+
+## The story
+
+The dealer stamped the plate's value and moved on. Her apprentice inherits the tedious part: the shop ledger must list **every** mirrored phrase on the plate, however short. Single letters count, they read the same both ways, trivially.
+
+Today's plate reads `aaa`. Small plate, right?
+
+```
+plate: a a a
+
+single letters:  "a", "a", "a"            → 3 entries
+pairs:           "aa" (0-1), "aa" (1-2)   → 2 more
+the whole plate: "aaa"                    → 1 more
+ledger total: 6
+```
+
+Six entries from three letters. Note the two `"aa"` entries: same text, different positions on the plate, and the ledger logs *positions*, not spellings. The apprentice sighs, then remembers watching the dealer work: stand at a center, grow outward, stop at a mismatch. Every phrase the dealer's method ever touched was a mirror. So instead of remembering the longest one... just count every touch.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s`, return the **number of palindromic substrings** in it. A string is a palindrome when it reads the same backward as forward. A substring is a contiguous sequence of characters within the string, and substrings with the same characters but different start positions are **counted separately**.
+
+LeetCode 647.
+
+---
+
+## The naive attempt
+
+Generate every substring, check each one:
+
+```python
+def count_substrings(s):
+    count = 0
+    for i in range(len(s)):
+        for j in range(i, len(s)):
+            sub = s[i:j + 1]
+            if sub == sub[::-1]:
+                count += 1
+    return count
+```
+
+O(n²) substrings times O(n) per check: **O(n³)**, the same wall Boss 5's naive attempt hit. And the same waste: verifying `"aaa"` re-verifies the inner `"a"` you already trusted. When a check keeps re-earning knowledge it already had, the structure of the problem is telling you to grow answers from smaller ones instead.
+
+---
+
+## The weapon: same engine, new odometer
+
+Here's the observation that makes this boss a five-minute fight. During a Boss 5 expansion, **every successful step is itself a complete palindrome**. Expanding around center 1 of `aaa` first confirms `a`, then grows to confirm `aaa`. That's not one palindrome discovered, it's two. And since every palindrome has exactly one center, counting one tick per successful step at each of the 2n-1 centers counts every palindrome exactly once. No misses, no doubles.
+
+<MermaidBlock>
+graph TB
+    A["same engine as Boss 5\n2n-1 centers\nletters and gaps"]
+    B["expand while\nthe ends match"]
+    C["every matching step\nis one whole mirror\nadd 1 to the tally"]
+    D["mismatch or edge\nmove to the next center"]
+    E["all centers done\ntally is the answer"]
+    A --> B
+    B --> C
+    C --> B
+    B --> D
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def count_substrings(s: str) -> int:
+    count = 0
+
+    def expand(left: int, right: int) -> None:
+        nonlocal count
+        while left >= 0 and right < len(s) and s[left] == s[right]:
+            count += 1                    # each match is one whole mirror
+            left -= 1
+            right += 1
+
+    for center in range(len(s)):
+        expand(center, center)            # odd-length mirrors
+        expand(center, center + 1)        # even-length mirrors
+    return count
+```
+
+Compare it line by line with Boss 5. The loop shape, the two calls per position, the boundary checks: identical. The champion-tracking is gone, a counter sits in its place. That's the whole diff.
+
+---
+
+## Watching it work
+
+`aaa`:
+
+```
+center 0 odd:   "a"                    +1   (tally 1)
+gap 0-1 even:   "aa"                   +1   (tally 2)
+center 1 odd:   "a", grow → "aaa"      +2   (tally 4)
+gap 1-2 even:   "aa"                   +1   (tally 5)
+center 2 odd:   "a"                    +1   (tally 6)
+gap 2-3 even:   right edge, no room     0
+total: 6 ✓
+```
+
+Each of the six palindromes got exactly one tick, at its own center, during its own expansion step. The two `"aa"` entries came from different gaps, positions counted separately, just as the ledger demands.
+
+<Callout type="tip" title="Recognizing the pattern in the wild">
+This boss pairs with Boss 5 the way Boss 4 paired with Boss 3: the engine transfers wholesale, only the aggregate changes, max becomes count. That swap is everywhere. "Longest subarray with property X" and "count of subarrays with property X" usually share one traversal with different bookkeeping. When a new problem smells like an old one, ask what's actually different: the mechanism, or just the number being collected at the end?
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Counting per center instead of per step.**
+Adding 1 after each expansion finishes counts 2n-1 at most, missing every nested mirror. The tick belongs *inside* the while loop, one per successful match.
+
+**2. Deduplicating by spelling.**
+Storing found palindromes in a set collapses the two `"aa"` entries into one and returns 5 for `aaa`. Positions count, content doesn't. Plain integer counter, no set.
+
+**3. Forgetting the even centers, again.**
+The Boss 5 classic returns for an encore. Odd-only expansion on `aaa` gives 4 instead of 6, quietly dropping every even-length mirror. Two calls per position, always.
+
+**4. Worrying about double counting.**
+The step that stops people trusting this solution: could one palindrome be ticked at two different centers? No. A palindrome determines its center uniquely (midpoint of its span), so each is counted at exactly one center, exactly once. Say this in the interview, it's the correctness proof in one sentence.
+
+---
+
+## Complexity
+
+2n-1 centers, each expanding at most n/2 steps, with O(1) work per step.
+
+**Time: O(n²). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The apprentice closes the ledger: six mirrors on a three-letter plate, logged in one pass of the dealer's own technique, and the dealer never had to explain anything twice.
+
+What you walked away with:
+
+- **Same engine, different odometer**: max-tracking became counting, nothing else moved
+- Every successful expansion step is a complete palindrome in its own right
+- Each palindrome has exactly one center, so the count is exact, no dedup needed
+- The reuse instinct sharpened: Boss 4 reused a whole algorithm, this boss reused a whole traversal
+
+Next up: **Boss 7 — The Numbers Station.** A spy radio reads out a string of digits, and the question stops being about mirrors: how many different ways can the message decode? DP as a counter of possibilities returns.
