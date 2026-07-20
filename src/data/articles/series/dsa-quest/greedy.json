@@ -6,6 +6,15 @@
   "color": "orange",
   "tags": ["DSA", "Greedy"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-20T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "maximum-subarray-buskers-ledger", "title": "Maximum Subarray — The Busker's Ledger" },
+    { "order": 2, "slug": "jump-game-creek-crossing", "title": "Jump Game — The Creek Crossing" },
+    { "order": 3, "slug": "jump-game-ii-creek-sprint", "title": "Jump Game II — The Creek Crossing Sprint" },
+    { "order": 4, "slug": "gas-station-milk-run", "title": "Gas Station — The Milk Run" },
+    { "order": 5, "slug": "hand-of-straights-card-night", "title": "Hand of Straights — The Card Night Deal" },
+    { "order": 6, "slug": "merge-triplets-paint-mixer", "title": "Merge Triplets to Form Target — The Paint Mixer" },
+    { "order": 7, "slug": "partition-labels-shooting-schedule", "title": "Partition Labels — The Shooting Schedule" },
+    { "order": 8, "slug": "valid-parenthesis-string-smudged-receipt", "title": "Valid Parenthesis String — The Smudged Receipt" }
+  ]
 }

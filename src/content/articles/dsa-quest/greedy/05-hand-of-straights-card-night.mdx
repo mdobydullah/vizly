@@ -1,0 +1,195 @@
+---
+title: "Hand of Straights — The Card Night Deal"
+slug: hand-of-straights-card-night
+category: dsa
+series: greedy
+seriesOrder: 5
+description: "Dungeon 14, Boss 5. A shuffled pile of number cards must split into runs of consecutive values, all the same size. The greedy anchor: the smallest card left has exactly one possible role, so build its run right now. Count map plus a min-heap from Dungeon 10."
+tags:
+  - DSA
+  - Greedy
+  - Intermediate
+icon: "🃏"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Card night at your place, and the house game needs the deck dealt into little runs: every group exactly three cards, values consecutive, like 6-7-8. You're staring at a shuffled pile of nine cards wondering if the deal is even possible. The key card is the smallest one left. It can't sit in the middle of any run, so it must start one, and the two cards after it are forced. Keep doing that until the pile is empty or a needed card is missing.
+  bn: |
+    আপনার বাসায় তাসের আড্ডা, আর খেলার নিয়মে পুরো ডেক ভাগ হবে ছোট ছোট রানে: প্রতি গ্রুপে ঠিক তিনটা কার্ড, মান পরপর, যেমন 6-7-8। শাফল করা নয়টা কার্ডের স্তূপ দেখে ভাবছেন, এই ডিল আদৌ সম্ভব কি না। চাবিকাঠি হলো বাকি থাকা সবচেয়ে ছোট কার্ডটা। সেটা কোনো রানের মাঝখানে বসতে পারে না, তাই তাকে দিয়েই একটা রান শুরু করতে হবে, আর তার পরের দুটো কার্ড আপনাআপনি নির্ধারিত। স্তূপ খালি না হওয়া বা দরকারি কার্ড না মেলা পর্যন্ত এটাই চালিয়ে যান।
+  hi: |
+    आपके घर ताश की महफिल है, और खेल के नियम से पूरी गड्डी छोटे रन में बंटनी है: हर ग्रुप में ठीक तीन पत्ते, वैल्यू लगातार, जैसे 6-7-8। नौ फेंटे हुए पत्तों के ढेर को देखकर आप सोच रहे हैं कि यह बंटवारा मुमकिन भी है या नहीं। कुंजी है बचा हुआ सबसे छोटा पत्ता। वह किसी रन के बीच में नहीं बैठ सकता, इसलिए उसे ही एक रन शुरू करना होगा, और उसके बाद के दो पत्ते अपने आप तय हैं। ढेर खाली होने या कोई जरूरी पत्ता गायब मिलने तक यही दोहराते रहिए।
+  ar: |
+    ليلة ورق في بيتك، ولعبة المنزل تتطلب توزيع الكومة إلى مجموعات صغيرة متتالية: كل مجموعة ثلاث ورقات بقيم متتابعة مثل 6-7-8. تحدق في كومة من تسع ورقات مخلوطة وتتساءل إن كان التوزيع ممكناً أصلاً. الورقة المفتاح هي الأصغر المتبقية. لا يمكنها الجلوس في منتصف أي مجموعة، فلا بد أن تبدأ واحدة، والورقتان اللتان تليانها محسومتان بالإجبار. كرر ذلك حتى تفرغ الكومة أو تغيب ورقة مطلوبة.
+---
+
+## Boss 5: The Card Night Deal
+
+The first four bosses walked arrays left to right. This boss changes the move: greed anchored on the **extreme element**. When you must partition things into structured groups, ask which element has the *fewest options*. The smallest card left can only ever be the *start* of a run, never the middle. Zero freedom means zero risk in committing. That's the safest greed there is.
+
+---
+
+## The story
+
+Friday card night. The house game deals the deck into "straights": groups of exactly 3 cards with consecutive values. Tonight's shuffled pile:
+
+```
+cards: 1  2  3  6  2  3  4  7  8
+```
+
+Nine cards, so three groups of three, *if* it works. Start with the smallest card in the pile: the 1. No run of three consecutive values contains a 1 anywhere but the front (there are no 0s or -1s here). So the 1 *must* open a run, and that run *must* be 1-2-3. Pull them.
+
+```
+left: 2  3  4  6  7  8
+```
+
+Smallest is now a 2. Same logic: 2-3-4, pull them. Left: `6 7 8`, which is itself a run. **Deal complete**: (1,2,3), (2,3,4), (6,7,8).
+
+The whole game was forced. Every "choice" had exactly one legal move. That's the pattern signature.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `hand` and an integer `groupSize`. Rearrange the cards into groups so that each group is exactly `groupSize` consecutive cards. Return `true` if possible.
+
+LeetCode 846, "Hand of Straights". Its twin, LeetCode 1296 "Divide Array in Sets of K Consecutive Numbers", is the same problem wearing a fake mustache.
+
+---
+
+## The naive attempt
+
+Sort the pile, then repeatedly scan from the left grabbing each needed card:
+
+```python
+def is_straight_hand(hand, group_size):
+    if len(hand) % group_size:
+        return False
+    cards = sorted(hand)
+    while cards:
+        first = cards[0]
+        for need in range(first, first + group_size):
+            if need in cards:          # O(n) search
+                cards.remove(need)     # O(n) removal
+            else:
+                return False
+    return True
+```
+
+Correct, but `remove` on a list is O(n) and we call it once per card: O(n²) overall. The *logic* is already right, the smallest card anchors each run. The data structure is what's slow. This boss is a fight about bookkeeping.
+
+---
+
+## The weapon: count map + min-heap
+
+Two structures from earlier dungeons, working a shift together:
+
+- A **count map** (Dungeon 1 energy): how many of each value remain
+- A **min-heap** (Dungeon 10 energy): serves up the smallest remaining value in O(log n)
+
+Loop: peek the heap for the smallest value `s`. A run `s, s+1, ..., s+groupSize-1` must exist, so decrement each count. Two ways to fail, both caught mid-decrement. If a needed value has count zero, the run can't be built, done. And if a value hits zero while it is *not* the current heap top, some smaller value below it still has copies, and every future run starting at that smaller value must pass through the value we just exhausted. That's a contradiction with a delay on it, so fail now instead of later.
+
+<MermaidBlock>
+graph TB
+    A["count each card value\npush unique values on min-heap"] --> B["peek smallest value s\nrun s..s+k-1 is forced"]
+    B --> C["decrement count of each\nvalue in the run"]
+    C --> D["needed value has count 0\ndeal impossible: return false"]
+    C --> E["value hits 0 but is not heap top\nsmaller value orphaned: return false"]
+    C --> F["heap top hits 0\npop it, continue"]
+    F --> B
+    B --> G["heap empty\nreturn true"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+from collections import Counter
+
+def is_straight_hand(hand: list[int], group_size: int) -> bool:
+    if len(hand) % group_size:
+        return False
+
+    count = Counter(hand)
+    heap = list(count.keys())
+    heapq.heapify(heap)
+
+    while heap:
+        start = heap[0]                     # smallest value standing
+        for v in range(start, start + group_size):
+            if count[v] == 0:
+                return False                # run needs a card we don't have
+            count[v] -= 1
+            if count[v] == 0:
+                if v != heap[0]:
+                    return False            # zeroed a value above the top:
+                heapq.heappop(heap)         # top would be orphaned later
+    return True
+```
+
+The subtle guard: if `v` zeroes out while some *smaller* value still sits on top of the heap, that smaller value will eventually demand a run passing through `v`, and `v` is gone. Fail fast.
+
+---
+
+## Watching it work
+
+`hand = [1,2,3,6,2,3,4,7,8]`, `group_size = 3`. Counts: 1→1, 2→2, 3→2, 4→1, 6→1, 7→1, 8→1.
+
+```
+top=1: run 1,2,3 → counts 1→0 (pop 1), 2→1, 3→1
+top=2: run 2,3,4 → counts 2→0 (pop 2), 3→0 (pop 3), 4→0 (pop 4)
+top=6: run 6,7,8 → all zero, popped
+heap empty → True ✓
+```
+
+Now sabotage it: `hand = [1,2,3,4,5,6]`, `group_size = 4`. Six cards, 6 % 4 = 2, rejected before any card is touched. And `[1,2,4,5]` with size 2: run 1-2 works, then top=4, run 4-5 works, true. But `[1,3,4,5]` with size 2: top=1 demands a 2, `count[2] == 0`, false on the spot.
+
+<Callout type="tip" title="Extreme-element greed">
+When a partition problem stumps you, find the element with the least freedom: smallest, largest, earliest deadline, leftmost point. Whatever must be done with it, do immediately, then repeat on what's left. Boss 6 of Intervals used the same anchor (sort queries, sweep from smallest), and the next two bosses here will use it again. Constraint first, choice never.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the divisibility check.**
+`len(hand) % group_size != 0` kills the deal before any cleverness. Forgetting it sends the loop hunting for runs that can't all complete, and depending on the cards, it may even return a wrong `true` in hand-rolled variants. One line, first line.
+
+**2. Decrementing without the orphan guard.**
+Drop the `v != heap[0]` check and `[1,1,2,2,3,3]` with size 3 still passes (fine), but `[3,2,1,2,3,4,3,4,5,9,10,11]` style hands can zero out a middle value while a smaller one still needs it, and the failure surfaces later as a confusing miss instead of immediately. Fail at the moment of contradiction, not three iterations after.
+
+**3. Popping the heap on every run.**
+The top only pops when its count hits zero. A value with count 2 starts two runs. Pop eagerly and duplicated smallest cards vanish, rejecting valid deals like `[1,1,2,2,3,3]` size 3, which is two clean 1-2-3 runs.
+
+**4. Sorting when groupSize is 1.**
+Any pile deals into groups of 1. The loop handles it, every card is its own run, but if you special-cased or micro-optimized, don't break this trivial gate. Interviewers poke it.
+
+---
+
+## Complexity
+
+Heapify O(n), each unique value pushed and popped once, each card decremented once with an O(log n) peek/pop neighborhood.
+
+**Time: O(n log n). Space: O(n).**
+
+---
+
+## Boss down. XP gained.
+
+The deck splits into three tidy straights, the game begins, and you spend the evening quietly smug about data structures.
+
+What you walked away with:
+
+- **Extreme-element greed**: the smallest remaining card has one legal role, so commit instantly
+- Forced moves are the safest greedy moves, no proof of optimality needed when there's no alternative
+- Count map + min-heap turns O(n²) bookkeeping into O(n log n)
+- The orphan guard catches contradictions the moment they form, not when they explode later
+
+Next up: **Boss 6 — The Paint Mixer.** Three color channels, a shelf of premixed paints, and a target shade to match by mixing. Mixing takes the *maximum* of each channel, and the greedy move is deciding which paints are safe to pour in at all.

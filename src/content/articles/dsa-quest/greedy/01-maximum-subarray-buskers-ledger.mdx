@@ -1,0 +1,175 @@
+---
+title: "Maximum Subarray — The Busker's Ledger"
+slug: maximum-subarray-buskers-ledger
+category: dsa
+series: greedy
+seriesOrder: 1
+description: "Dungeon 14, Boss 1. A street musician's daily ledger swings between great days and disasters. Find the best consecutive run without checking every window. Kadane's algorithm in one pass, and your first taste of the greedy mindset: drop dead weight the moment it stops helping."
+tags:
+  - DSA
+  - Greedy
+  - Beginner
+icon: "🎸"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You busk on the same corner every evening and keep an honest ledger. Some nights pay well, some nights you lose money on the pitch fee. Now you want to brag properly: which consecutive stretch of nights earned the most in total? Checking every possible stretch is painfully slow. The trick is one running total and one rule: the moment your running total drops below zero, throw it away and start fresh.
+  bn: |
+    আপনি প্রতি সন্ধ্যায় একই মোড়ে গান করেন আর হিসাবের খাতা রাখেন। কোনো রাতে ভালো আয় হয়, কোনো রাতে জায়গার ভাড়া দিয়ে লসও হয়। এখন জানতে চান, টানা কোন কয়েকটা রাতের মোট আয় সবচেয়ে বেশি ছিল? সব সম্ভাব্য রেঞ্জ ধরে ধরে দেখা ভীষণ ধীর। কৌশল একটাই: একটা চলমান যোগফল রাখুন, আর যেই মুহূর্তে সেটা শূন্যের নিচে নামবে, ফেলে দিয়ে নতুন করে শুরু করুন।
+  hi: |
+    आप हर शाम एक ही नुक्कड़ पर गाते हैं और ईमानदारी से हिसाब लिखते हैं। कुछ रातें अच्छी कमाई देती हैं, कुछ रातों में जगह के किराए से घाटा हो जाता है। अब सवाल यह है कि लगातार कौन सी रातों के दौर में कुल कमाई सबसे ज्यादा थी? हर मुमकिन दौर को जांचना बहुत धीमा है। तरकीब बस इतनी है: एक चलता हुआ जोड़ रखो, और जिस पल वह शून्य से नीचे गिरे, उसे छोड़कर नए सिरे से शुरू करो।
+  ar: |
+    تعزف كل مساء على نفس الناصية وتحتفظ بدفتر حسابات صادق. بعض الليالي مربحة، وبعضها تخسر فيها بسبب رسوم المكان. الآن تريد أن تعرف: أي فترة متواصلة من الليالي حققت أعلى مجموع؟ فحص كل فترة ممكنة بطيء جداً. الحيلة كلها في مجموع جارٍ واحد وقاعدة واحدة: لحظة ينزل المجموع تحت الصفر، ارمِه وابدأ من جديد.
+---
+
+## Boss 1: The Busker's Ledger
+
+Welcome to Dungeon 14. Thirteen dungeons in, you've built machines: heaps, DP tables, graph traversals. Greedy is the anti-machine. A greedy algorithm makes the locally best choice at every step and never looks back, no memo table, no backtracking. When that works, and proving *when* is the whole art, the code shrinks to a loop.
+
+This first boss is the friendliest possible introduction, because you've already brushed against it. Dungeon 12's Hot Streak (Maximum Product Subarray) name-dropped Kadane's algorithm. Today you fight the original.
+
+---
+
+## The story
+
+Every evening you play guitar on the same corner. The city charges a pitch fee, tips vary wildly, and your ledger for the last nine nights reads:
+
+```
+night:    1    2    3    4    5    6    7    8    9
+profit:  -2    1   -3    4   -1    2    1   -5    4
+```
+
+A festival organizer asks: "What's your best run?" Not your best single night. Your best *consecutive stretch*, total profit, because that's what a residency would look like.
+
+Eyeball it: nights 4 through 7 give 4 - 1 + 2 + 1 = **6**. Nothing beats that. But eyeballing doesn't scale to a year of ledgers, so you need the rule behind the answer.
+
+---
+
+## The problem, dressed up properly
+
+> Given an integer array `nums`, find the subarray with the largest sum, and return its sum.
+
+LeetCode 53. The most classic "greedy or DP?" problem in existence, and the answer is: it's both, wearing different hats.
+
+---
+
+## The naive attempt
+
+Try every stretch. Fix a start night, extend the end night, track the best total:
+
+```python
+def max_subarray(nums):
+    best = nums[0]
+    for i in range(len(nums)):
+        total = 0
+        for j in range(i, len(nums)):
+            total += nums[j]
+            best = max(best, total)
+    return best
+```
+
+O(n²). For nine nights, fine. For a decade of busking, you'll finish computing around the time you retire. The waste is obvious once you see it: the run starting at night 1 and the run starting at night 2 share almost all their work, and we redo it anyway.
+
+---
+
+## The weapon: drop the ledger when it goes negative
+
+Walk the nights once, carrying a single running total: *the best sum of any run ending right here*.
+
+At each night you face one choice. Either extend the run you're carrying, or abandon it and start fresh from today. When is abandoning correct? Exactly when the carried total is **negative**. A negative prefix can only drag down whatever comes next. Nobody straps a losing streak to their back on purpose.
+
+That's the greedy insight in one line: **a negative running total is dead weight, and dead weight gets dropped immediately.**
+
+<MermaidBlock>
+graph TB
+    A["walk nights left to right\ncarry cur = best run ending here"] --> B["cur + tonight vs tonight alone\nwhich is bigger?"]
+    B --> C["carried total helps\nextend: cur = cur + tonight"]
+    B --> D["carried total is dead weight\nrestart: cur = tonight"]
+    C --> E["best = max of best, cur"]
+    D --> E
+    E --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def max_subarray(nums: list[int]) -> int:
+    best = cur = nums[0]
+    for n in nums[1:]:
+        cur = max(n, cur + n)   # extend the run, or start fresh here
+        best = max(best, cur)   # remember the best run seen anywhere
+    return best
+```
+
+Four lines of logic. This is Kadane's algorithm, and `max(n, cur + n)` is the entire decision: if `cur` is negative, `n` alone wins and the run restarts.
+
+---
+
+## Watching it work
+
+The ledger again: `[-2, 1, -3, 4, -1, 2, 1, -5, 4]`.
+
+```
+night  profit   cur (run ending here)        best
+1        -2     -2                            -2
+2         1     max(1, -2+1)  = 1  restart     1
+3        -3     max(-3, 1-3)  = -2 extend      1
+4         4     max(4, -2+4)  = 4  restart     4
+5        -1     max(-1, 4-1)  = 3  extend      4
+6         2     max(2, 3+2)   = 5  extend      5
+7         1     max(1, 5+1)   = 6  extend      6
+8        -5     max(-5, 6-5)  = 1  extend      6
+9         4     max(4, 1+4)   = 5  extend      6
+```
+
+Answer: **6**, nights 4 through 7, found in one pass. Notice night 8: the run takes a -5 hit but stays positive at 1, so we keep carrying it. It never recovers past 6, but the algorithm didn't know that yet, and keeping a positive total is always safe.
+
+<Callout type="tip" title="Greedy and DP, same coin">
+The DP reading: define dp[i] as the best sum ending at i, so dp[i] = max(nums[i], dp[i-1] + nums[i]). The greedy reading: drop negative prefixes. They're the same recurrence, and cur is just dp[i] with the table compressed to one variable. When someone asks "is Kadane greedy or DP?", the honest answer is yes.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Initializing best to 0.**
+On an all-negative ledger like `[-3, -1, -2]` the answer is -1, the least-bad night. Start `best` at 0 and you'll return 0, claiming an empty run, which the problem forbids. Initialize both `best` and `cur` to `nums[0]`.
+
+**2. Restarting on any loss instead of a negative total.**
+Night 5 loses money, but the carried total 3 is still positive, still worth strapping on. You restart when the *total* goes negative, not when a single night does. Tempting shortcut, wrong answer.
+
+**3. Forgetting the answer can end anywhere.**
+`cur` tracks the best run ending *now*. The overall best might have ended three nights ago, which is why `best` is a separate variable updated every step, not read once at the end.
+
+**4. Trying to return the subarray itself with no extra bookkeeping.**
+The sum needs two variables. The actual start and end nights need you to record the index whenever a restart happens and whenever `best` improves. Interviewers love this follow-up, so wire it up once at home.
+
+---
+
+## Complexity
+
+One pass, two variables.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The organizer gets a clean answer: nights 4 to 7, profit 6, residency earned. The ledger goes back in the guitar case.
+
+What you walked away with:
+
+- The greedy reflex: **make the local choice that can never hurt you**, here dropping negative prefixes
+- `max(n, cur + n)` is "extend or restart" compressed into one expression
+- Kadane is greedy and DP simultaneously, a nice thing to say out loud in interviews
+- All-negative arrays are the classic edge case: initialize from `nums[0]`, never 0
+
+Next up: **Boss 2 — The Creek Crossing.** Stepping stones across a creek, each stone tells you how far it can launch you, and one question: can you reach the far bank at all? First appearance of the *reach* trick, greedy's favorite tool.

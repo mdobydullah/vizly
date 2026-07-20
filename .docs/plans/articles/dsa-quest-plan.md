@@ -32,8 +32,8 @@ Full dungeon list (ship in order):
 11. **Graphs** — Dungeon 11 (COMPLETE)
 12. **1-D DP** — Dungeon 12 (COMPLETE)
 13. **Intervals** — Dungeon 13 (COMPLETE)
-14. **Greedy** — Dungeon 14 (next to build)
-15. **Advanced Graphs** — Dungeon 15
+14. **Greedy** — Dungeon 14 (COMPLETE)
+15. **Advanced Graphs** — Dungeon 15 (next to build)
 16. **2-D DP** — Dungeon 16
 17. **Bit Manipulation** — Dungeon 17
 18. **Math & Geometry** — Dungeon 18
@@ -244,8 +244,19 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 5: Meeting Rooms II (Conference Crunch)
 - [x] Boss 6: Minimum Interval to Include Each Query (Tightest Contract)
 
-### Dungeons 14-18
-- [ ] Greedy, Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 14 — Greedy (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Maximum Subarray (Busker's Ledger)
+- [x] Boss 2: Jump Game (Creek Crossing)
+- [x] Boss 3: Jump Game II (Creek Crossing Sprint)
+- [x] Boss 4: Gas Station (Milk Run)
+- [x] Boss 5: Hand of Straights (Card Night Deal)
+- [x] Boss 6: Merge Triplets to Form Target (Paint Mixer)
+- [x] Boss 7: Partition Labels (Shooting Schedule)
+- [x] Boss 8: Valid Parenthesis String (Smudged Receipt)
+
+### Dungeons 15-18
+- [ ] Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

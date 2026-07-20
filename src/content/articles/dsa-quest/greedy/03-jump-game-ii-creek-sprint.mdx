@@ -1,0 +1,181 @@
+---
+title: "Jump Game II — The Creek Crossing Sprint"
+slug: jump-game-ii-creek-sprint
+category: dsa
+series: greedy
+seriesOrder: 3
+description: "Dungeon 14, Boss 3. Same creek, new stakes: cross in the fewest jumps. Think in waves, not steps. Each jump opens a window of reachable stones, and you only pay for a new jump when you walk off the edge of the current window. BFS on a line, O(1) space."
+tags:
+  - DSA
+  - Greedy
+  - Intermediate
+icon: "🏃"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Same creek, same painted stones, but now your hiking buddy pulls out a stopwatch. Anyone can cross, the bet is who crosses in the fewest jumps. Picking the springiest stone every time feels right and fails on simple layouts. The real trick is to think in waves: one jump opens a whole window of stones you can land on, and you only count a new jump when you step past the edge of that window.
+  bn: |
+    সেই একই ঝর্না, একই পাথর, কিন্তু এবার বন্ধু স্টপওয়াচ বের করেছে। পার তো সবাই হতে পারে, বাজি হলো কে সবচেয়ে কম লাফে পার হয়। প্রতিবার সবচেয়ে স্প্রিংওয়ালা পাথর বেছে নেওয়া ঠিক মনে হয়, কিন্তু সহজ সাজানোতেই সেটা ফেল করে। আসল কৌশল ঢেউয়ের মতো ভাবা: এক লাফে একগুচ্ছ পাথরের জানালা খুলে যায় যেখানে নামা সম্ভব, আর নতুন লাফ গোনা হয় কেবল তখনই যখন সেই জানালার শেষ সীমা পেরোতে হয়।
+  hi: |
+    वही नाला, वही पत्थर, लेकिन अब दोस्त ने स्टॉपवॉच निकाल ली है। पार तो कोई भी कर लेगा, शर्त यह है कि सबसे कम छलांगों में कौन करता है। हर बार सबसे उछालदार पत्थर चुनना सही लगता है, पर आसान से लेआउट पर भी फेल हो जाता है। असली तरकीब लहरों में सोचना है: एक छलांग पत्थरों की एक पूरी खिड़की खोल देती है जहां आप उतर सकते हैं, और नई छलांग सिर्फ तब गिनी जाती है जब आप उस खिड़की के किनारे से आगे कदम रखते हैं।
+  ar: |
+    نفس الجدول ونفس الحجارة، لكن رفيقك أخرج ساعة إيقاف هذه المرة. الكل يستطيع العبور، الرهان على من يعبر بأقل عدد من القفزات. اختيار الحجر الأكثر ارتداداً في كل مرة يبدو صائباً لكنه يفشل حتى في التوزيعات البسيطة. الحيلة الحقيقية أن تفكر بالموجات: قفزة واحدة تفتح نافذة كاملة من الحجارة التي يمكنك الهبوط عليها، ولا تحسب قفزة جديدة إلا حين تتجاوز حافة تلك النافذة.
+---
+
+## Boss 3: The Creek Crossing Sprint
+
+Boss 2 asked *whether* you can cross. This boss asks for the **minimum number of jumps**, and it's where naive greed publicly embarrasses itself. Grabbing the highest-power stone at every step, the "obvious" greedy, gives wrong answers. The correct greedy is choosing something subtler: not the springiest stone, but the stone that extends your *future* reach the most. And the cleanest way to see it is as BFS in disguise.
+
+---
+
+## The story
+
+Your hiking buddy looks at the creek you just crossed and says: "Bet you can't do it in two."
+
+```
+stone:    0    1    2    3    4
+power:    2    3    1    1    4
+```
+
+Greedy-by-power says: stone 0 has power 2, and stone 2 has... wait. From stone 0 you can land on stone 1 (power 3) or stone 2 (power 1). The *springier landing* is stone 1. From stone 1, power 3 reaches the far bank. Two jumps: 0 → 1 → 4.
+
+But notice what made stone 1 right. Not its spring for its own sake, but that landing there opens the *farthest next window*. Choosing landings by raw power alone can strand you; choosing by "how far does this landing let me see" is the correct greed. Now let's make that mechanical, without evaluating candidate landings one by one.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array `nums` where `nums[i]` is the maximum jump length from index `i`, return the minimum number of jumps to reach the last index. Test cases guarantee you *can* reach it.
+
+LeetCode 45. The guarantee matters: no stranded check needed today, Boss 2 already taught you how anyway.
+
+---
+
+## The naive attempt
+
+BFS, honestly and literally. Each stone is a node, each allowed jump an edge, minimum jumps = shortest path. Dungeon 11's bread and butter:
+
+```python
+from collections import deque
+
+def min_jumps(nums):
+    n = len(nums)
+    dist = {0: 0}
+    q = deque([0])
+    while q:
+        i = q.popleft()
+        if i == n - 1:
+            return dist[i]
+        for step in range(1, nums[i] + 1):
+            j = i + step
+            if j < n and j not in dist:
+                dist[j] = dist[i] + 1
+                q.append(j)
+```
+
+Correct, and O(n²) edges in the worst case. But here's the thing worth noticing: BFS explores in **layers**. Layer 0 is stone 0. Layer 1 is everything one jump away. Layer 2 is everything two jumps away. On a line, each layer is just a *contiguous window of indices*. And a window needs two integers, not a queue.
+
+---
+
+## The weapon: ride the wave
+
+Keep two markers while walking the stones:
+
+- `cur_end` — the right edge of the window reachable with the current number of jumps
+- `farthest` — the right edge of the *next* window, fed by every stone walked so far
+
+Walk stone by stone, growing `farthest` exactly like Boss 2. When your walk hits `cur_end`, you've exhausted the current wave: everything past this point costs one more jump. So increment the jump counter and let the next wave begin: `cur_end = farthest`.
+
+You never decide *which* stone to jump from. The wave holds every option at once, and the best option is whichever stone pushed `farthest` the most. The choice makes itself.
+
+<MermaidBlock>
+graph TB
+    A["walk stones, grow farthest\nnext wave's right edge"] --> B["reached cur_end?\ncurrent wave exhausted"]
+    B --> C["jumps + 1\ncur_end = farthest"]
+    C --> D["cur_end covers last stone?\ndone: return jumps"]
+    C --> A
+    A --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def min_jumps(nums: list[int]) -> int:
+    jumps = 0
+    cur_end = 0        # edge of the current jump's window
+    farthest = 0       # edge of the next jump's window
+    for i in range(len(nums) - 1):   # note: last stone excluded
+        farthest = max(farthest, i + nums[i])
+        if i == cur_end:             # walked off the wave's edge
+            jumps += 1
+            cur_end = farthest
+    return jumps
+```
+
+BFS with the queue compressed into two integers. Same layers, same answer, O(1) space.
+
+---
+
+## Watching it work
+
+`[2, 3, 1, 1, 4]`:
+
+```
+i  power  farthest            wave edge check
+0  2      max(0, 0+2) = 2     i == cur_end(0) → jumps=1, cur_end=2
+1  3      max(2, 1+3) = 4     no
+2  1      max(4, 2+1) = 4     i == cur_end(2) → jumps=2, cur_end=4
+3  1      max(4, 3+1) = 4     no
+loop ends (last stone excluded)
+```
+
+Answer: **2**. The waves were `[0]`, then stones 1 to 2, then stones 3 to 4. The far bank sits in wave 2, so two jumps, and nobody ever compared candidate landings head-to-head.
+
+<Callout type="tip" title="Why the loop skips the last stone">
+The counter increments when you *stand on* a wave's edge and need to go farther. Standing on the last stone, there is no farther. Include it in the loop and a jump gets counted for leaving a bank you already reached. Off-by-one with consequences: memorize the range as "all stones except the last."
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Greedy by jump length.**
+"Always jump as far as you can" fails on the very first example: from stone 0 in `[2, 3, 1, 1, 4]`, the full-distance jump lands on stone 2 (power 1), forcing 0 → 2 → 3 → 4, three jumps instead of two. The distance of the jump is irrelevant. The *reach of the landing* is everything, and the wave trick maximizes it without comparing candidates one by one.
+
+**2. Incrementing jumps per stone instead of per wave.**
+The whole point is that walking within a window is free, you're considering landing spots, not jumping to each. Jumps increment only at `i == cur_end`.
+
+**3. Forgetting the single-stone creek.**
+`nums = [0]`: already on the far bank, zero jumps. The loop range `range(len(nums) - 1)` is empty and returns 0 gracefully. A version that loops all stones returns 1. Test it.
+
+**4. Missing the BFS connection.**
+Not a correctness bug, an understanding bug. If you memorize this as "two mysterious pointers," it evaporates in interviews. Remember it as *BFS layers on a line*, and you can re-derive it from scratch in a minute.
+
+---
+
+## Complexity
+
+One pass, three integers.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+Two jumps, stopwatch clicked, buddy pays for lunch. The creek has nothing left to teach.
+
+What you walked away with:
+
+- Min-steps on a line is **BFS in layers**, and contiguous layers compress to two integers
+- The right greedy criterion is *future reach*, not local appeal, and the wave computes it implicitly
+- `i == cur_end` marks the exact moment another jump becomes unavoidable
+- Loop over every stone except the last, or pay an off-by-one on arrival
+
+Next up: **Boss 4 — The Milk Run.** A circular delivery route, fuel cans at every stop, and a truck that might not make the loop. One elegant theorem about failure, and the start point reveals itself.

@@ -1,0 +1,198 @@
+---
+title: "Jump Game — The Creek Crossing"
+slug: jump-game-creek-crossing
+category: dsa
+series: greedy
+seriesOrder: 2
+description: "Dungeon 14, Boss 2. Stepping stones across a creek, each one rated for how far it can launch you. Can you reach the far bank? Track one number, the farthest stone you can currently reach, and the whole crossing becomes a single left-to-right walk."
+tags:
+  - DSA
+  - Greedy
+  - Beginner
+icon: "🪨"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A creek, a line of stepping stones, and a painted number on each stone telling you the longest jump it allows. You start on the first stone and want the far bank. Some stones are springy, some are duds that launch you nowhere. Trying every jump combination is a maze. Instead you walk the stones in order carrying one number, the farthest stone you could possibly reach so far, and if that number ever falls behind your feet, the crossing is impossible.
+  bn: |
+    একটা ঝর্না, সারি সারি পাথর, আর প্রতিটা পাথরে রঙ দিয়ে লেখা সেখান থেকে সর্বোচ্চ কত দূর লাফানো যায়। প্রথম পাথর থেকে শুরু করে ওপারে যেতে চান। কোনো পাথর স্প্রিংয়ের মতো, কোনোটা অকেজো, এক পা-ও এগোয় না। সব লাফের কম্বিনেশন ধরে দেখা গোলকধাঁধা। বরং পাথরগুলো ক্রমে হাঁটুন আর একটাই সংখ্যা বয়ে নিন: এখন পর্যন্ত সর্বোচ্চ কোন পাথরে পৌঁছানো সম্ভব। সেই সংখ্যা যদি কখনো আপনার পায়ের পেছনে পড়ে যায়, পার হওয়া অসম্ভব।
+  hi: |
+    एक नाला, कतार में बिछे पत्थर, और हर पत्थर पर लिखा एक नंबर जो बताता है वहां से ज्यादा से ज्यादा कितनी दूर छलांग लग सकती है। पहले पत्थर से शुरू करके आपको उस पार पहुंचना है। कुछ पत्थर उछाल देते हैं, कुछ बिल्कुल बेकार हैं। हर छलांग का कॉम्बिनेशन आजमाना भूलभुलैया है। इसके बजाय पत्थरों पर क्रम से चलिए और एक ही नंबर साथ रखिए, अब तक आप ज्यादा से ज्यादा किस पत्थर तक पहुंच सकते हैं। अगर वह नंबर कभी आपके कदमों से पीछे रह जाए, तो पार करना नामुमकिन है।
+  ar: |
+    جدول ماء، وصف من الحجارة، وعلى كل حجر رقم مكتوب يحدد أطول قفزة يسمح بها. تبدأ من الحجر الأول وتريد الضفة البعيدة. بعض الحجارة نابضة وبعضها عديم الفائدة لا يطلقك إلى أي مكان. تجربة كل تركيبات القفز متاهة. بدلاً من ذلك امشِ على الحجارة بالترتيب حاملاً رقماً واحداً: أبعد حجر يمكنك الوصول إليه حتى الآن. إذا تخلف هذا الرقم يوماً عن موضع قدميك، فالعبور مستحيل.
+---
+
+## Boss 2: The Creek Crossing
+
+Boss 1 taught the greedy reflex on money. This boss teaches it on *movement*, and introduces the single most reusable idea in this dungeon: **reach**. Half the greedy problems you'll ever meet are secretly "track the farthest point you can get to."
+
+---
+
+## The story
+
+The hiking trail dead-ends at a creek. Someone helpful has laid stepping stones and painted a number on each: the maximum distance you can jump *from* that stone. Jump shorter if you like, never longer.
+
+Today's stones:
+
+```
+stone:    0    1    2    3    4
+power:    2    3    1    1    4
+```
+
+You stand on stone 0. The far bank is stone 4. Stone 0 lets you hop to stone 1 or 2. From stone 1, its power of 3 reaches stones 2, 3, or 4. So: 0 → 1 → 4. Crossable.
+
+Now the cursed layout:
+
+```
+stone:    0    1    2    3    4
+power:    3    2    1    0    4
+```
+
+Every path funnels you onto stone 3, a dud with power 0. You stand there, the far bank four feet away, going nowhere. Not crossable.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `nums`. You start at the first index, and each element is your maximum jump length from that position. Return `true` if you can reach the last index, `false` otherwise.
+
+LeetCode 55. Officially "Jump Game", spiritually "can you cross the creek."
+
+---
+
+## The naive attempt
+
+Treat it as a graph: each stone connects to every stone within its power, then DFS from stone 0. Dungeon 11 muscle memory.
+
+```python
+def can_cross(nums):
+    n = len(nums)
+    seen = set()
+
+    def dfs(i):
+        if i >= n - 1:
+            return True
+        if i in seen:
+            return False
+        seen.add(i)
+        for step in range(nums[i], 0, -1):
+            if dfs(i + step):
+                return True
+        return False
+
+    return dfs(0)
+```
+
+Works, and with memoization it lands around O(n²) in the worst case: each of n stones may fan out to n neighbors. Also it's a lot of machinery for a yes/no question about walking forward. The creek does not require a graph theory degree.
+
+---
+
+## The weapon: carry your reach
+
+Walk the stones left to right with one variable: `farthest`, the highest-numbered stone reachable using everything seen so far.
+
+At stone `i`, two things happen:
+
+1. **Am I even allowed to be here?** If `i > farthest`, no combination of earlier jumps lands on or beyond this stone. There's a gap behind you. Return false.
+2. **Update the reach.** Standing on `i` with power `nums[i]` means stone `i + nums[i]` is now reachable. Take the max.
+
+Why is this greedy sound? Because jump lengths are *anything up to* the power. If `farthest` covers stone `i`, you genuinely can stand there, some earlier stone launches far enough and you jump shorter on purpose. Reach never lies, so one number summarizes every possible path.
+
+<MermaidBlock>
+graph TB
+    A["farthest = 0\nwalk stones left to right"] --> B["stone i ahead of farthest?\ngap behind you: return false"]
+    A --> C["stone i within reach\nfarthest = max of farthest, i + power"]
+    C --> D["farthest reaches last stone?\nreturn true early"]
+    C --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def can_cross(nums: list[int]) -> bool:
+    farthest = 0
+    for i, power in enumerate(nums):
+        if i > farthest:          # stranded: a gap nobody can jump
+            return False
+        farthest = max(farthest, i + power)
+        if farthest >= len(nums) - 1:
+            return True           # far bank already in range
+    return True
+```
+
+One pass, one integer, no graph.
+
+---
+
+## Watching it work
+
+Crossable creek `[2, 3, 1, 1, 4]`:
+
+```
+stone  power   check           farthest
+0      2       0 ≥ 0 ok        max(0, 0+2) = 2
+1      3       1 ≥ 1 ok        max(2, 1+3) = 4 → reaches last stone, True ✓
+```
+
+Two steps and done. The cursed creek `[3, 2, 1, 0, 4]`:
+
+```
+stone  power   check           farthest
+0      3       ok              3
+1      2       ok              3
+2      1       ok              3
+3      0       ok              3   (the dud: adds nothing)
+4      4       4 > 3 → False ✗
+```
+
+`farthest` freezes at 3 because stones 1, 2, 3 all reach at most stone 3. When the walk arrives at stone 4, the gap check fires. Stranded.
+
+<Callout type="tip" title="Reach is a frontier, not a path">
+farthest doesn't remember which jumps got you there, and doesn't need to. It's the frontier of the possible, exactly like the visited set in Dungeon 11's BFS but compressed to one integer, because on a line, "everything reachable" is just "everything up to here."
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Checking the gap after updating reach.**
+Order matters. Ask "can I stand here?" *before* letting stone `i` contribute its power. A stone you can't reach donates nothing, and `max(farthest, i + power)` from an unreachable stone is fiction.
+
+**2. Thinking jumps are exact.**
+Power 3 means *up to* 3. If jumps were exact, greedy reach breaks completely and the problem becomes a real graph search. Read the rules before picking the weapon.
+
+**3. Overcomplicating the single-stone creek.**
+`nums = [0]`: you start on the last stone. Already there, answer true. The loop handles it because `farthest = 0` covers index 0, but only if your early-return condition uses `>=` against `len(nums) - 1`.
+
+**4. Simulating actual jumps.**
+You never jump in this algorithm. You *walk* every stone and merge its range into the frontier. Students who try to simulate "the best jump" from each stone end up in Boss 3's problem by accident, and get it wrong, because picking the single best jump is subtler than it looks.
+
+---
+
+## Complexity
+
+One walk down the stones.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+You step onto the far bank and glance back at the creek. From here, the painted numbers look less like a puzzle and more like a wavefront you surfed.
+
+What you walked away with:
+
+- **Reach**: one integer summarizing every possible sequence of moves on a line
+- The stranded check `i > farthest` catches impossibility the moment it becomes true
+- "Up to k" movement is what makes greedy reach valid, exact-k would break it
+- BFS intuition from Dungeon 11 compresses to O(1) space when the graph is a line
+
+Next up: **Boss 3 — The Creek Crossing Sprint.** Same creek, same painted stones, but now there's a race on: cross in the *fewest jumps*. Reach comes back with a second frontier line, and the answer falls out of watching where each "jump wave" ends.
+

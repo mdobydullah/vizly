@@ -1,0 +1,183 @@
+---
+title: "Gas Station — The Milk Run"
+slug: gas-station-milk-run
+category: dsa
+series: greedy
+seriesOrder: 4
+description: "Dungeon 14, Boss 4. A circular delivery loop, a fuel can waiting at every stop, and a truck that starts empty. Which stop can you start from and make the full loop? One pass, one running tank, and a beautiful theorem: every failure disqualifies the whole stretch behind it."
+tags:
+  - DSA
+  - Greedy
+  - Intermediate
+icon: "⛽"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You drive a delivery loop with five stops, and at each stop a fuel can is waiting for you. Driving each leg burns a known amount of gas, and the truck starts with an empty tank. Start at the wrong stop and you sputter out halfway around. The slow way tries every starting stop. The fast way uses one cruel fact: if you run dry somewhere, then every stop you passed on the way was doomed too, so the next candidate is simply the stop right after the failure.
+  bn: |
+    আপনি পাঁচ স্টপের একটা গোলাকার ডেলিভারি রুটে ট্রাক চালান, প্রতি স্টপে একটা তেলের ক্যান রাখা আছে। প্রতিটা লেগ পাড়ি দিতে নির্দিষ্ট তেল পোড়ে, আর ট্রাক শুরু করে খালি ট্যাংকে। ভুল স্টপ থেকে শুরু করলে মাঝপথে ইঞ্জিন থেমে যাবে। ধীর উপায় হলো প্রতিটা স্টপ ধরে ধরে চেষ্টা করা। দ্রুত উপায়ে একটা নির্মম সত্য কাজে লাগে: কোথাও তেল ফুরালে পথে পেরোনো প্রতিটা স্টপও নিশ্চিত ব্যর্থ, তাই পরের প্রার্থী সোজা ব্যর্থতার ঠিক পরের স্টপ।
+  hi: |
+    आप पांच स्टॉप वाले गोल डिलीवरी रूट पर ट्रक चलाते हैं, और हर स्टॉप पर एक तेल का कनस्तर रखा है। हर हिस्सा तय करने में एक तय मात्रा में तेल जलता है, और ट्रक खाली टंकी से शुरू होता है। गलत स्टॉप से शुरू किया तो आधे रास्ते में इंजन बंद। धीमा तरीका हर शुरुआती स्टॉप आजमाना है। तेज तरीका एक बेरहम सच पर टिका है: अगर कहीं तेल खत्म हुआ, तो रास्ते में पार किए सारे स्टॉप भी नाकाम ही थे, इसलिए अगला उम्मीदवार सीधा नाकामी के ठीक बाद वाला स्टॉप है।
+  ar: |
+    تقود شاحنة توزيع في مسار دائري من خمس محطات، وفي كل محطة عبوة وقود بانتظارك. كل مقطع من الطريق يحرق كمية معروفة من الوقود، والشاحنة تبدأ بخزان فارغ. إن بدأت من المحطة الخطأ توقف المحرك في منتصف الدورة. الطريقة البطيئة تجرب كل محطة بداية. الطريقة السريعة تستغل حقيقة قاسية: إذا نفد وقودك في مكان ما، فكل محطة مررت بها في الطريق محكوم عليها بالفشل أيضاً، فالمرشح التالي هو ببساطة المحطة التي تلي نقطة الفشل مباشرة.
+---
+
+## Boss 4: The Milk Run
+
+Bosses 2 and 3 tracked reach on a straight line. This boss bends the line into a **circle** and hides a gorgeous piece of reasoning inside a mundane setup. The greedy insight isn't about what to *do*, it's about what failure *proves*. One failed attempt eliminates not one candidate but an entire stretch of them.
+
+---
+
+## The story
+
+The dairy's delivery loop has five stops. Company policy, for reasons nobody remembers, says the truck starts each morning with a bone-dry tank, and fuel cans are pre-placed at every stop.
+
+```
+stop:       0    1    2    3    4
+can (gal):  1    2    3    4    5
+leg cost:   3    4    5    1    2
+```
+
+Pick up the can, drive the leg, arrive at the next stop, repeat. Start at stop 0: pick up 1 gallon, the leg to stop 1 costs 3. Dead before the first bend.
+
+Start at stop 3: pick up 4, drive for 1, arrive at stop 4 with 3 in the tank. Pick up 5 (tank: 8), drive for 2, reach stop 0 with 6. Pick up 1 (tank: 7), drive for 3, reach stop 1 with 4. Pick up 2 (tank: 6), drive for 4, reach stop 2 with 2. Pick up 3 (tank: 5), drive for 5, roll back into stop 3 on fumes. **Loop complete.**
+
+Question: how do you find stop 3 without acting out five separate mornings?
+
+---
+
+## The problem, dressed up properly
+
+> There are `n` gas stations along a circular route, where the amount of gas at station `i` is `gas[i]`, and it costs `cost[i]` to travel to the next station. Starting with an empty tank, return the index of the station from which you can travel around the circuit once clockwise. If no such station exists, return -1. If a solution exists, it is **guaranteed unique**.
+
+LeetCode 134. That uniqueness guarantee is doing quiet work, and the algorithm leans on it.
+
+---
+
+## The naive attempt
+
+Five mornings, acted out:
+
+```python
+def can_complete(gas, cost):
+    n = len(gas)
+    for start in range(n):
+        tank = 0
+        for k in range(n):
+            i = (start + k) % n
+            tank += gas[i] - cost[i]
+            if tank < 0:
+                break
+        else:
+            return start
+    return -1
+```
+
+O(n²). Every failed morning throws away everything it learned. And it learned a lot, that's the waste we're about to reclaim.
+
+---
+
+## The weapon: failure condemns the whole stretch
+
+Two observations, each one line of reasoning away from the whole solution.
+
+**Observation 1: the global budget.** Each stop's *net* is `gas[i] - cost[i]`. If all the nets sum to something negative, the loop burns more than it provides. No start point can work, return -1. If the sum is zero or better, a valid start exists (this is where the guarantee earns its keep).
+
+**Observation 2: the condemnation rule.** Suppose you start at stop `s` and first run dry driving toward stop `f`. Could any stop *between* `s` and `f` be a valid start? No. Here's why: you arrived at each of those stops with a **non-negative tank** (you were still driving). A start from that middle stop would arrive at the same legs with an empty tank, which is *strictly worse or equal*, and still hit the same wall at `f`. Every stop in the stretch falls with `s`.
+
+So a failure at `f` doesn't advance the candidate by one. It advances it past the entire failed stretch: next candidate is `f + 1`. Each stop gets driven at most once across all attempts. One pass.
+
+<MermaidBlock>
+graph TB
+    A["sum all nets negative?\nno start works: return -1"] --> B["walk stops with running tank\ntank += gas - cost"]
+    B --> C["tank drops below zero at f\nstops start..f all condemned"]
+    C --> D["candidate = f + 1\ntank resets to zero"]
+    D --> B
+    B --> E["walk ends\ncandidate is the unique answer"]
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def can_complete(gas: list[int], cost: list[int]) -> int:
+    if sum(gas) < sum(cost):
+        return -1                 # loop burns more than it provides
+
+    start = 0
+    tank = 0
+    for i in range(len(gas)):
+        tank += gas[i] - cost[i]
+        if tank < 0:              # ran dry: condemn the whole stretch
+            start = i + 1
+            tank = 0
+    return start
+```
+
+Notice what's *missing*: no wrap-around drive to verify the candidate. Observation 1 already proved a winner exists, and every stop before `start` sits in a condemned stretch. The last candidate standing wins by elimination.
+
+---
+
+## Watching it work
+
+`gas = [1,2,3,4,5]`, `cost = [3,4,5,1,2]`. Nets: `[-2, -2, -2, 3, 3]`, total 0, so a start exists.
+
+```
+i  net   tank            start
+0  -2    -2 → dry!       1, tank=0
+1  -2    -2 → dry!       2, tank=0
+2  -2    -2 → dry!       3, tank=0
+3   3     3              3
+4   3     6              3
+```
+
+Answer: **3**, matching the acted-out morning. Three condemnations, each instant, and the survivor never runs dry again.
+
+<Callout type="tip" title="The shape to remember">
+This is the same skeleton as Kadane from Boss 1: a running total that resets when it goes negative, plus a claim that the reset can't skip the answer. Greedy problems recycle few skeletons with different upholstery. Spotting "running total + reset" should now trigger both memories.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Verifying the candidate with a second loop.**
+Harmless but revealing: an interviewer will ask why you did it, and "just in case" means the elimination argument isn't solid in your head yet. Sum check + condemnation covers everything. Know *why* there's nothing left to verify.
+
+**2. Resetting the tank but not moving the start.**
+The two go together. `tank = 0` with `start` unmoved silently pretends the failed stretch never happened while still claiming its start point. Wrong answers on every failing prefix.
+
+**3. Forgetting the tank can be exactly zero.**
+Rolling into a stop with 0 gallons is legal, the can at that stop refuels you. The dry check is strictly `tank < 0`. Make it `tank <= 0` and you'll condemn valid starts that cut it close, like our stop 3 arriving home on fumes.
+
+**4. Assuming multiple answers need handling.**
+The problem guarantees uniqueness when the total is non-negative. Without that guarantee you'd return the first valid start, and the elimination argument still finds it, but say the assumption out loud in interviews. Free rigor points.
+
+---
+
+## Complexity
+
+One sum, one walk.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The dispatcher pins a note on the board: "Route starts at stop 3 now. No, I will not be explaining the math."
+
+What you walked away with:
+
+- **Failure as information**: one dry tank condemns every start in the stretch behind it
+- The global sum check splits "impossible" from "guaranteed", letting elimination finish the job alone
+- Arriving with a non-negative tank is what makes middle starts strictly no better, the heart of the proof
+- Kadane's reset skeleton, second appearance, new costume
+
+Next up: **Boss 5 — The Card Night Deal.** A shuffled pile of number cards, and one question before the game starts: can the whole pile split into neat runs of consecutive cards? Sorting meets counting, and greed starts from the smallest card standing.

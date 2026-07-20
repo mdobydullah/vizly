@@ -1,0 +1,208 @@
+---
+title: "Valid Parenthesis String — The Smudged Receipt"
+slug: valid-parenthesis-string-smudged-receipt
+category: dsa
+series: greedy
+seriesOrder: 8
+description: "Dungeon 14, Boss 8, the finale. An old receipt full of brackets, some smudged beyond reading. Each smudge could be an open, a close, or nothing. Could the receipt ever have been balanced? Track the range of possible open counts with two counters, and greedy graduates from one truth to many."
+tags:
+  - DSA
+  - Greedy
+  - Intermediate
+icon: "🧾"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An auditor hands you a faded receipt from the archive. The bracket marks on it must balance for the record to count, but some symbols are smudged blobs. The archive rules say a smudge could have been an open bracket, a close bracket, or nothing at all. So the question isn't whether the receipt is balanced, it's whether it could be. Walk it once keeping two counts, the fewest opens you might have and the most you could have, and see if zero stays inside that range at the end.
+  bn: |
+    আর্কাইভ থেকে অডিটর আপনাকে একটা বিবর্ণ রসিদ ধরিয়ে দিলেন। রেকর্ড বৈধ হতে হলে তার ব্র্যাকেট চিহ্নগুলো ব্যালান্স হতে হবে, কিন্তু কিছু চিহ্ন ঘষা লেগে অস্পষ্ট। আর্কাইভের নিয়ম বলে, একটা ঘষা দাগ হতে পারত খোলা ব্র্যাকেট, বন্ধ ব্র্যাকেট, কিংবা কিছুই না। তাই প্রশ্ন রসিদটা ব্যালান্সড কি না তা নয়, ব্যালান্সড হতে পারত কি না। একবার হেঁটে দুটো গণনা রাখুন: সম্ভাব্য সবচেয়ে কম খোলা আর সবচেয়ে বেশি খোলা। শেষে দেখুন শূন্য ওই রেঞ্জের ভেতরে থাকে কি না।
+  hi: |
+    ऑडिटर आपको आर्काइव से एक फीकी रसीद थमाता है। रिकॉर्ड मान्य होने के लिए उस पर बने ब्रैकेट संतुलित होने चाहिए, लेकिन कुछ निशान धुंधले धब्बे बन चुके हैं। आर्काइव के नियम कहते हैं कि धब्बा खुलने वाला ब्रैकेट, बंद होने वाला ब्रैकेट, या कुछ भी नहीं हो सकता था। तो सवाल यह नहीं कि रसीद संतुलित है या नहीं, सवाल यह है कि क्या वह हो सकती थी। एक बार चलते हुए दो गिनतियां रखिए, कम से कम कितने खुले हो सकते हैं और ज्यादा से ज्यादा कितने। आखिर में देखिए कि शून्य उस दायरे में बचता है या नहीं।
+  ar: |
+    يسلمك المدقق إيصالاً باهتاً من الأرشيف. يجب أن تتوازن أقواسه ليُعتد بالسجل، لكن بعض الرموز صارت لطخات ممسوحة. قواعد الأرشيف تقول إن اللطخة ربما كانت قوس فتح أو قوس إغلاق أو لا شيء إطلاقاً. فالسؤال ليس هل الإيصال متوازن، بل هل كان يمكن أن يكون. امشِ عليه مرة واحدة حاملاً عدّين: أقل عدد ممكن من الأقواس المفتوحة وأكثر عدد ممكن. وفي النهاية انظر هل يبقى الصفر داخل هذا المدى.
+---
+
+## Boss 8: The Smudged Receipt
+
+The dungeon finale, and it earns the slot. Every boss so far tracked *one* number greedily: a running sum, a reach, a tank, a window edge. This boss faces genuine uncertainty, wildcards that could be three different things, and the greedy answer is beautiful: track the **range** of every possible truth, one integer for each end. Uncertainty doesn't force backtracking. It forces two counters.
+
+And there's poetry in the matchup: Dungeon 3 opened with Valid Parentheses and a stack. The greedy dungeon closes by solving its evil twin *without* one.
+
+---
+
+## The story
+
+The archive audit is nearly done. One last receipt: the ink has held up except where a careless thumb smudged it, and the record only counts if its brackets balance.
+
+```
+( * ) ( * *
+```
+
+House rules for a smudge: it could have been `(`, could have been `)`, could have been a stray mark meaning nothing. The question is not "is it balanced" but "**could** it be balanced under some reading?"
+
+Read it by hand. The last two smudges could be a `)` and nothing: `( * ) ( )` with a leftover star as blank, so `(*)()`, and if the first star is blank too: `()()`... balanced. The record stands.
+
+But hand-reading branches three ways per smudge, 3^k readings. The receipt above has 3 smudges, 27 readings. A receipt with 30 smudges has more readings than seconds in a millennium. The auditor is not paid by the hour. You need one pass.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s` containing only `(`, `)` and `*`, return `true` if `s` can be valid. `*` can be treated as `(`, as `)`, or as an empty string.
+
+LeetCode 678, "Valid Parenthesis String". Innocent-looking, medium-rated, and the best pure-greedy finale in the catalog.
+
+---
+
+## The naive attempt
+
+Branch on every star:
+
+```python
+def check_valid(s):
+    def walk(i, opens):
+        if opens < 0:
+            return False
+        if i == len(s):
+            return opens == 0
+        ch = s[i]
+        if ch == '(':
+            return walk(i + 1, opens + 1)
+        if ch == ')':
+            return walk(i + 1, opens - 1)
+        return (walk(i + 1, opens + 1)      # * as (
+                or walk(i + 1, opens - 1)   # * as )
+                or walk(i + 1, opens))      # * as blank
+    return walk(0, 0)
+```
+
+Exponential, 3^k for k stars. Memoize on `(i, opens)` and it's an O(n²) DP, respectable. But watch what the branching actually *does* to the open count: one step turns `opens` into `opens+1`, `opens-1`, or `opens`. Three neighbors. The set of reachable open counts after each step is always a **contiguous range**. And a range needs two numbers, not a memo table.
+
+---
+
+## The weapon: carry the whole range
+
+Two counters:
+
+- `lo` — the *lowest* possible open count, treating every star as `)` or blank, whichever keeps things legal
+- `hi` — the *highest* possible open count, treating every star as `(`
+
+Per character:
+
+- `(` : both go up. No choice existed.
+- `)` : both go down. No choice existed.
+- `*` : `lo` goes down (star spent as close), `hi` goes up (star spent as open). The range widens by 2, covering blank in the middle.
+
+Two guards. If `hi` ever drops below zero, even all-stars-as-opens couldn't survive this many closers: impossible, stop. And `lo` clamps at zero, because a reading that drives the count negative is illegal, not useful, we just refuse to count it. At the end, the receipt can balance exactly when **zero is still in the range**: `lo == 0`.
+
+<MermaidBlock>
+graph TB
+    A["walk the receipt\ncarry range lo..hi of open counts"] --> B["open bracket\nlo+1, hi+1"]
+    A --> C["close bracket\nlo-1, hi-1"]
+    A --> D["smudge\nlo-1, hi+1: range widens"]
+    B --> E["hi below zero?\ntoo many closers: false"]
+    C --> E
+    D --> E
+    E --> F["clamp lo at zero\nillegal readings discarded"]
+    F --> A
+    F --> G["end: lo == 0?\nsome reading balances"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def check_valid(s: str) -> bool:
+    lo = hi = 0
+    for ch in s:
+        if ch == '(':
+            lo, hi = lo + 1, hi + 1
+        elif ch == ')':
+            lo, hi = lo - 1, hi - 1
+        else:                      # the smudge
+            lo, hi = lo - 1, hi + 1
+        if hi < 0:
+            return False           # closers outnumber every possible open
+        lo = max(lo, 0)            # discard readings that went negative
+    return lo == 0
+```
+
+The exponential tree of readings, compressed into an interval that slides and stretches down the string.
+
+---
+
+## Watching it work
+
+The story's receipt, spaces removed: `(*)(**`.
+
+```
+ch   lo  hi   note
+(     1   1
+*     0   2   range widens
+)     0   1   lo clamped at 0
+(     1   2
+*     0   3
+*     0   4   lo clamped again
+end: lo == 0 → True ✓
+```
+
+Some reading balances (for instance `()()` with two blank stars, or `(())` shaped readings, the algorithm doesn't care which). Now the audit-fail case, `)*(`:
+
+```
+ch   lo  hi
+)    -1  -1   hi < 0 → False ✗
+```
+
+Dead on character one: a closer before any possible opener, and no smudge generosity can rewrite the past. Last, `(((*`: ends with lo = 2, hi = 4. Zero is not in the range, at least two opens can never close, false.
+
+<Callout type="tip" title="When choices collapse into a range">
+This trick generalizes: when each step nudges a single integer state by a small set of deltas, the reachable states stay contiguous, and min/max counters simulate every branch at once. It's the same compression Boss 3 pulled on BFS layers. Seeing "exponential branches" and asking "is the reachable set actually an interval?" is a genuinely powerful reflex to leave this dungeon with.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting to clamp lo.**
+`lo` dipping below zero means "some readings died", not "the receipt died". Let it go negative and it can later climb back to zero on the backs of readings that were already illegal. Concrete kill: `(*)(` ends with an unclamped `lo` of 0, blessing a receipt whose final `(` can never close. Clamped, `lo` ends at 1 and the audit correctly fails. Clamp every step.
+
+**2. Checking `hi < 0` after the loop instead of inside.**
+The bankruptcy is positional: at the moment `hi` goes negative, closers have outrun every possible open. Waiting until the end lets later opens paper over an already-invalid prefix. `)(` must fail even though its counts "balance".
+
+**3. Returning `hi == 0` at the end.**
+`hi` is the greediest all-opens reading, almost never zero at the end and not the question. The question is whether *some* reading lands on zero, and since the range is contiguous with `lo` clamped non-negative, that's exactly `lo == 0`.
+
+**4. Reaching for the stack out of Dungeon 3 loyalty.**
+A stack version exists, two stacks of indices, matching closers against opens then stars against leftovers. It works and it's a fine interview alternative. But it's more code, more state, and the two-counter version generalizes better. Loyalty to old weapons is how bosses win.
+
+---
+
+## Complexity
+
+One pass, two integers.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. Dungeon cleared.
+
+The auditor stamps the receipt, closes the ledger, and the archive goes quiet. Dungeon 14 is done, and the greedy toolkit is complete:
+
+- **Kadane's reset** (Boss 1) and its milk-run twin (Boss 4): running totals that drop dead weight
+- **Reach and waves** (Bosses 2, 3): one frontier integer summarizing every path on a line
+- **Extreme-element commitment** (Boss 5): the least-free element moves first
+- **Elimination** (Boss 6): refuse the provably harmful, pour the rest
+- **Earliest legal cut** (Boss 7): maximizing pieces means never delaying
+- **Range tracking** (Boss 8): uncertainty compressed into two counters
+
+The through-line: greedy never explores. It finds a fact strong enough to make exploring unnecessary, and every boss here was really a proof technique with a story wrapped around it.
+
+Next dungeon: **Advanced Graphs.** Dungeon 11's traversals grow up fast: Dijkstra's shortest paths, Prim and Kruskal spanning trees, topological orderings under pressure, and a certain traveling salesman's cheaper cousins. The heap from Dungeon 10 and the greedy proofs from this one both come along, because Dijkstra is just greedy with a priority queue. See you at the gate.

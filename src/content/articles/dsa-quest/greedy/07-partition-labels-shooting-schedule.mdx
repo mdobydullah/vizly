@@ -1,0 +1,195 @@
+---
+title: "Partition Labels — The Shooting Schedule"
+slug: partition-labels-shooting-schedule
+category: dsa
+series: greedy
+seriesOrder: 7
+description: "Dungeon 14, Boss 7. A film shoot, one scene per day, and a union rule: each actor's scenes must fit inside one contiguous block of days. Cut the schedule into as many blocks as possible. Record each actor's last scene, grow a window to the farthest last-day seen, and cut the moment the window closes."
+tags:
+  - DSA
+  - Greedy
+  - Intermediate
+icon: "🎬"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run scheduling for a film shoot, one scene a day, scene order fixed. The actors' union has one rule: each actor gets hired for a single contiguous block of days, from their first scene to their last. Producers want the schedule cut into as many separate blocks as possible so actors can be paid and released. The trick is knowing each actor's last scene in advance. Walk the days, keep stretching your current block to the farthest last-day you've seen, and the moment the current day reaches that edge, cut.
+  bn: |
+    আপনি একটা সিনেমার শুটিং শিডিউল সামলান, দিনে একটা দৃশ্য, দৃশ্যের ক্রম বদলানো যাবে না। অভিনেতাদের ইউনিয়নের নিয়ম একটাই: প্রতি অভিনেতাকে টানা কিছু দিনের একটা ব্লকে চুক্তি দিতে হবে, তার প্রথম দৃশ্য থেকে শেষ দৃশ্য পর্যন্ত। প্রযোজকরা চান শিডিউল যত বেশি সম্ভব আলাদা ব্লকে কাটা হোক, যাতে অভিনেতাদের বিদায় দেওয়া যায়। কৌশল হলো আগেভাগে প্রতিটা অভিনেতার শেষ দৃশ্যের দিন জেনে রাখা। দিন ধরে হাঁটুন, দেখা সবচেয়ে দূরের শেষ-দিন পর্যন্ত চলতি ব্লক টেনে বাড়ান, আর যেই মুহূর্তে চলতি দিন সেই কিনারায় পৌঁছায়, কাটুন।
+  hi: |
+    आप एक फिल्म शूट की शेड्यूलिंग संभालते हैं, रोज एक सीन, सीन का क्रम तय है। एक्टर्स यूनियन का नियम एक ही है: हर एक्टर को लगातार दिनों के एक ही ब्लॉक में रखना होगा, उसके पहले सीन से आखिरी सीन तक। प्रोड्यूसर चाहते हैं कि शेड्यूल ज्यादा से ज्यादा अलग ब्लॉकों में कटे, ताकि एक्टर्स को जल्दी छुट्टी दी जा सके। तरकीब है हर एक्टर का आखिरी सीन पहले से जान लेना। दिनों पर चलते जाइए, अब तक दिखे सबसे दूर वाले आखिरी-दिन तक अपना मौजूदा ब्लॉक खींचते रहिए, और जिस पल मौजूदा दिन उस किनारे पर पहुंचे, वहीं काट दीजिए।
+  ar: |
+    تدير جدول تصوير فيلم، مشهد واحد في اليوم وترتيب المشاهد ثابت. لنقابة الممثلين قاعدة واحدة: كل ممثل يُستأجر لكتلة متصلة واحدة من الأيام، من أول مشاهده إلى آخرها. المنتجون يريدون تقطيع الجدول إلى أكبر عدد ممكن من الكتل المنفصلة حتى يُصرف الممثلون مبكراً. الحيلة أن تعرف مسبقاً آخر مشهد لكل ممثل. امشِ على الأيام، ومدّد كتلتك الحالية حتى أبعد يوم أخير رأيته، ولحظة يبلغ اليوم الحالي تلك الحافة، اقطع.
+---
+
+## Boss 7: The Shooting Schedule
+
+Boss 6 eliminated, this boss **commits at the earliest legal moment**. The greedy claim of the day: when you want the *most* pieces, cut the instant a cut becomes valid. Any delay only glues future days onto the current block. It's the same "earliest deadline" instinct from Intervals Boss 3, wearing a lanyard and a headset.
+
+---
+
+## The story
+
+One scene per day, order locked by the script. Each day needs exactly one actor on set, and the schedule is a string, one letter per day, letter = actor:
+
+```
+day:    0 1 2 3 4 5 6 7 8
+actor:  a b a b c b a c a
+```
+
+Union rule: an actor is hired for **one contiguous block** and must be present for all their scenes inside it. Producers want maximum blocks, every block finished means actors paid out and released.
+
+Try to cut after day 0. Block one would be just `a`, but actor `a` shoots again on day 8. Their whole span, day 0 through day 8, has to sit in one block. And inside that span, `b` runs to day 5 and `c` to day 7, both swallowed anyway. The entire schedule is one block: `ababcbaca`... which is all nine days.
+
+Cheerier example:
+
+```
+day:    0 1 2 3 4 5 6 7
+actor:  a b a b c d c d
+```
+
+Actor `a` spans days 0-2, `b` spans 1-3, together forcing days 0-3 into one block. `c` spans 4-6, `d` spans 5-7, forcing 4-7 together. Two blocks: `abab` and `cdcd`. Two wrap parties.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a string `s`. Partition it into as many parts as possible so that each letter appears in at most one part, and return a list of the part sizes. The concatenation of parts must reconstruct `s`.
+
+LeetCode 763, "Partition Labels". Letters are actors, parts are hiring blocks.
+
+---
+
+## The naive attempt
+
+For every candidate cut, check whether any letter crosses it:
+
+```python
+def partition_labels(s):
+    sizes = []
+    start = 0
+    while start < len(s):
+        end = start
+        cut = start
+        while cut < len(s):
+            crossing = any(
+                ch in s[start:cut + 1] and ch in s[cut + 1:]
+                for ch in set(s)
+            )
+            if not crossing:
+                break
+            cut += 1
+        sizes.append(cut - start + 1)
+        start = cut + 1
+    return sizes
+```
+
+The membership checks re-scan the string constantly: O(n²) and worse depending on how you count. All that scanning to answer one question, "does anyone shoot again later?", which a single preprocessing pass answers permanently.
+
+---
+
+## The weapon: last-day map + a window that snaps shut
+
+**Pass 1:** record each actor's *last* shooting day. One dictionary, overwritten as you walk, final value wins.
+
+**Pass 2:** walk the days with a window `[start, end]`. At day `i`, actor `s[i]`'s block must reach at least their last day, so stretch: `end = max(end, last[s[i]])`. When `i == end`, every actor seen since `start` has wrapped, nobody inside crosses the boundary, and a cut is legal. Take it immediately, record the size, open the next block at `i + 1`.
+
+Why cut *immediately*? Because every legal cut you skip merges two blocks into one, strictly fewer pieces. Earliest-legal-cut is not just safe, it's the only maximal strategy.
+
+<MermaidBlock>
+graph TB
+    A["pass 1: last scene day\nper actor, one dict"] --> B["walk days with window\nstart and end"]
+    B --> C["stretch: end = max of end,\nlast day of today's actor"]
+    C --> D["i == end?\nevery actor inside has wrapped"]
+    D --> E["cut here: record size\nstart next block at i + 1"]
+    E --> B
+    C --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def partition_labels(s: str) -> list[int]:
+    last = {ch: i for i, ch in enumerate(s)}   # actor → last shooting day
+
+    sizes = []
+    start = end = 0
+    for i, ch in enumerate(s):
+        end = max(end, last[ch])               # block must reach ch's last day
+        if i == end:                           # everyone inside has wrapped
+            sizes.append(end - start + 1)
+            start = i + 1
+    return sizes
+```
+
+Two passes, both linear. The dict comprehension quietly does pass 1 in one line.
+
+---
+
+## Watching it work
+
+`s = "ababcdcd"`, last days: a→2, b→3, c→6, d→7.
+
+```
+i  ch  end after stretch    cut?
+0  a   max(0, 2) = 2        no
+1  b   max(2, 3) = 3        no
+2  a   max(3, 2) = 3        no
+3  b   max(3, 3) = 3        i == end → cut, size 4, start=4
+4  c   max(4, 6) = 6        no
+5  d   max(6, 7) = 7        no
+6  c   max(7, 6) = 7        no
+7  d   max(7, 7) = 7        i == end → cut, size 4
+```
+
+Answer: `[4, 4]`. And on `"ababcbaca"`, actor `a`'s last day of 8 stretches the window immediately, nothing closes early, one cut at the very end: `[9]`. Both match the story.
+
+<Callout type="tip" title="This is interval merging in a trench coat">
+Each actor is secretly an interval, first day to last day. Overlapping actor-intervals must share a block, so blocks are exactly the merged intervals of Dungeon 13 Boss 2. The window trick merges them without ever building the interval list, because walking the string visits intervals in first-day order automatically. One dungeon's boss becomes the next dungeon's warm-up.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Cutting on first occurrences.**
+The window stretches with *last* days. Track first days, or stretch with the current day, and blocks close while actors still owe scenes. If your partition splits a letter across parts, this is where it broke.
+
+**2. Delaying the cut "to be safe".**
+Safe for correctness of each block, fatal for maximality. Skip one legal cut and the parts count drops. When the goal says *as many as possible*, earliest-legal wins, the same logic as keeping the earliest end in Intervals Boss 3.
+
+**3. Returning the substrings when sizes are asked.**
+Read the return type. LeetCode 763 wants sizes. Building substrings also costs extra copies, sizes are free integers.
+
+**4. Assuming 26 letters matters.**
+The alphabet size makes `last` O(1)-ish space, nice, but the algorithm never depends on it. The same code partitions a schedule with a thousand distinct actors. Don't let a small alphabet lure you into 26-slot bitmask cleverness the problem doesn't need.
+
+---
+
+## Complexity
+
+One pass to map last days, one pass to cut.
+
+**Time: O(n). Space: O(1)** for the fixed alphabet, O(k) for k distinct letters in general.
+
+---
+
+## Boss down. XP gained.
+
+Two blocks, two wrap parties, and the union rep shakes your hand on the way out. Nobody was on payroll a day longer than their span demanded.
+
+What you walked away with:
+
+- **Earliest-legal-cut greed**: when maximizing pieces, commit the instant committing is valid
+- Preprocess "will this ever matter again?" into a last-occurrence map, then never re-scan
+- `i == end` is the exact moment every open obligation inside the window has closed
+- Partition Labels is interval merging without the intervals, Dungeon 13 says hello
+
+Next up: **Boss 8 — The Smudged Receipt**, the dungeon finale. A bracket-matching audit where some symbols are smudged wildcards that could be anything. One walk, two counters, and greedy learns to track a *range* of possible truths at once.

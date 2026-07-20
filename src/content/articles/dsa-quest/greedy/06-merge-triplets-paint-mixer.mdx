@@ -1,0 +1,176 @@
+---
+title: "Merge Triplets to Form Target — The Paint Mixer"
+slug: merge-triplets-paint-mixer
+category: dsa
+series: greedy
+seriesOrder: 6
+description: "Dungeon 14, Boss 6. A shelf of premixed paints, three channels each, and a target shade to reproduce. Mixing takes the maximum of each channel, and channels never come back down. Filter out every paint that overshoots, then check the survivors can cover all three channels. Greedy by elimination."
+tags:
+  - DSA
+  - Greedy
+  - Beginner
+icon: "🎨"
+color: orange
+createdAt: "2026-07-20T10:00:00Z"
+updatedAt: "2026-07-20T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're matching a paint shade for a client, and the mixer works in a weird way: pour two paints together and each of the three color channels becomes the higher of the two. Channels only ever go up. The shelf is full of premixed cans and you can pour in as many as you like. So the question is which cans are even safe. Any can that beats the target on some channel would push you past the shade forever. Toss those, and check whether the safe cans can hit all three target numbers.
+  bn: |
+    ক্লায়েন্টের জন্য একটা রঙের শেড মেলাচ্ছেন, আর মিক্সারটা কাজ করে অদ্ভুতভাবে: দুটো রঙ একসাথে ঢাললে তিনটা কালার চ্যানেলের প্রতিটা হয়ে যায় দুটোর মধ্যে বড়টা। চ্যানেল কেবল বাড়ে, কমে না কখনো। তাকে ভর্তি প্রিমিক্সড ক্যান, যত খুশি ঢালতে পারেন। তাহলে প্রশ্ন হলো কোন ক্যানগুলো আদৌ নিরাপদ। কোনো ক্যান যদি কোনো চ্যানেলে টার্গেট ছাড়িয়ে যায়, সেটা ঢাললে শেড চিরতরে নষ্ট। ওগুলো বাদ দিন, তারপর দেখুন নিরাপদ ক্যানগুলো দিয়ে তিনটা টার্গেট সংখ্যাই ছোঁয়া যায় কি না।
+  hi: |
+    क्लाइंट के लिए एक पेंट शेड मिलाना है, और मिक्सर अजीब तरीके से काम करता है: दो पेंट साथ डालो तो तीनों कलर चैनलों में हर एक दोनों में से बड़ा वाला बन जाता है। चैनल सिर्फ ऊपर जाते हैं, नीचे कभी नहीं। शेल्फ पर ढेरों प्रीमिक्स डिब्बे हैं और आप जितने चाहें डाल सकते हैं। तो सवाल यह है कि कौन से डिब्बे सुरक्षित भी हैं। जो डिब्बा किसी चैनल पर टारगेट से आगे निकल जाए, वह शेड को हमेशा के लिए बिगाड़ देगा। उन्हें हटाइए, फिर देखिए कि बचे हुए डिब्बों से तीनों टारगेट नंबर छू सकते हैं या नहीं।
+  ar: |
+    تطابق درجة لون لعميل، والخلاط يعمل بطريقة غريبة: اسكب علبتين معاً فتصبح كل قناة من قنوات اللون الثلاث هي الأعلى بين الاثنتين. القنوات ترتفع فقط ولا تنخفض أبداً. الرف مليء بعلب مخلوطة مسبقاً ويمكنك سكب ما تشاء منها. السؤال إذن: أي العلب آمنة أصلاً؟ أي علبة تتجاوز الهدف في قناة ما ستدفعك خلف الدرجة المطلوبة إلى الأبد. استبعدها، ثم تحقق هل تستطيع العلب الآمنة بلوغ الأرقام الثلاثة المستهدفة.
+---
+
+## Boss 6: The Paint Mixer
+
+The easiest boss in the dungeon's back half, and a new flavor of greed: **greedy by elimination**. Bosses 1 through 5 chose what to *take*. This boss chooses what to *refuse*, and once the refusals are done, the remaining decision makes itself. If you've ever solved a logic puzzle by crossing out impossibilities instead of hunting the answer, you already know today's move.
+
+---
+
+## The story
+
+A client hands you a paint chip: channel values `(2, 5, 3)`. Call them red, green, blue. Your mixer has one rule, printed on the lid in factory English: *pour two paints, each channel keep bigger number*.
+
+No single can on the shelf matches, of course. That would be a short workday. The shelf:
+
+```
+can A: (1, 8, 4)
+can B: (2, 3, 2)
+can C: (2, 5, 1)
+can D: (1, 2, 3)
+```
+
+Can A is poison: its green is 8, and the target green is 5. Pour it and your green sits at 8 forever, channels never come down. Cross it off, no matter how tempting its other numbers look.
+
+The survivors: B(2,3,2), C(2,5,1), D(1,2,3). Pour all three: red = max(2,2,1) = 2 ✓, green = max(3,5,2) = 5 ✓, blue = max(2,1,3) = 3 ✓. Shade matched.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a 2D array `triplets`, where `triplets[i] = [a_i, b_i, c_i]`, and a `target = [x, y, z]`. In one operation you may pick two triplets and update one of them to the element-wise maximum. Return `true` if you can make `target` an element of `triplets`.
+
+LeetCode 1899. The paint-mixer rule, stated with subscripts.
+
+---
+
+## The naive attempt
+
+Search over which triplets to merge, in which order:
+
+```python
+from itertools import combinations
+
+def merge_triplets(triplets, target):
+    for r in range(1, len(triplets) + 1):
+        for combo in combinations(triplets, r):
+            merged = [max(t[i] for t in combo) for i in range(3)]
+            if merged == target:
+                return True
+    return False
+```
+
+Exponential, 2^n subsets. And it's chasing a phantom: the *order* of merges never matters, max is associative, and merging *more* safe cans never hurts. Both facts scream that the search space is an illusion.
+
+---
+
+## The weapon: refuse the poison, pour everything else
+
+Two moves, both O(n):
+
+**Move 1: eliminate.** Any triplet with `a > x` or `b > y` or `c > z` can never participate. Max only goes up, so one overshooting channel poisons every mix it touches. Discard.
+
+**Move 2: check coverage.** Every survivor is *harmless*: all its channels are at or below target, so pouring it can never break anything. Pour them all, mentally. The mix hits the target exactly when, among survivors, some can hits `a == x`, some can hits `b == y`, and some can hits `c == z`. Three flags. Same can may raise two or all three.
+
+No choices remain. Elimination did all the thinking.
+
+<MermaidBlock>
+graph TB
+    A["for each can on the shelf"] --> B["any channel above target?\npoison: skip the can"]
+    A --> C["harmless can\ncheck each channel against target"]
+    C --> D["channel exactly equals target\nraise that channel's flag"]
+    D --> E["all three flags up?\nreturn true"]
+    B --> A
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+```python
+def merge_triplets(triplets: list[list[int]], target: list[int]) -> bool:
+    found = set()
+    for a, b, c in triplets:
+        if a > target[0] or b > target[1] or c > target[2]:
+            continue                        # poison can: one channel overshoots
+        for i, v in enumerate((a, b, c)):
+            if v == target[i]:
+                found.add(i)                # this channel is coverable
+    return len(found) == 3
+```
+
+Eight lines. The `continue` line is the entire algorithm; the rest is bookkeeping around it.
+
+---
+
+## Watching it work
+
+Shelf `[(1,8,4), (2,3,2), (2,5,1), (1,2,3)]`, target `(2,5,3)`:
+
+```
+(1,8,4):  8 > 5 → poison, skipped
+(2,3,2):  harmless. a=2 hits target[0] → flags: {0}
+(2,5,1):  harmless. a=2, b=5 hits target[1] → flags: {0, 1}
+(1,2,3):  harmless. c=3 hits target[2] → flags: {0, 1, 2} → True ✓
+```
+
+And a failing shelf: target `(2,5,3)` with cans `[(2,5,8), (5,5,3)]`. First can overshoots blue, second overshoots red. Both poison, zero survivors, zero flags, false. The right answer with almost no work, which is the elimination style's signature.
+
+<Callout type="tip" title="Monotone operations invite elimination greed">
+The load-bearing fact is that max never decreases. Whenever the operation is monotone, going only up or only down, split candidates into "can never help" and "can never hurt". If everything lands in one of those two buckets, the problem is solved by a filter and a scan. Watch for it with OR-ing bitmasks, unioning sets, and taking minimums of upper bounds.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Requiring one can to hit two targets at once.**
+The three flags may come from three different cans. Checking cans one at a time against the *whole* target ("does any can equal the target?") only handles the lucky case. Coverage is per-channel.
+
+**2. Filtering with `>=` instead of `>`.**
+A can whose channel exactly *equals* the target channel is not poison, it's the hero that raises the flag. Overshooting means strictly greater. One character, opposite meaning: the strict/non-strict trap from Intervals Boss 4 again.
+
+**3. Worrying about merge order.**
+Max is associative and commutative, so "pick two, update one" repeated is just "take the max over a chosen subset". If your solution tracks sequences of operations, you've imported difficulty the problem never had.
+
+**4. Missing the target-already-on-shelf case.**
+A can exactly equal to the target raises all three flags by itself. No merging needed, and the code above handles it without a special case. If yours needs one, simplify.
+
+---
+
+## Complexity
+
+One scan, three flags.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down. XP gained.
+
+The client holds the chip against the wet sample and nods. You do not explain that the hard part was deciding what *not* to pour. Some crafts keep their secrets.
+
+What you walked away with:
+
+- **Greedy by elimination**: refuse everything provably harmful, then the rest is safe to use freely
+- Monotone operations (max only goes up) are what make "harmless" a permanent label
+- Coverage per channel, not per can: three flags from anywhere
+- Strict vs non-strict on the filter line decides hero or poison
+
+Next up: **Boss 7 — The Shooting Schedule.** A film shoot where every actor's scenes must fall inside one contiguous block of days. Slice the schedule into the most blocks possible. Last-occurrence maps meet an expanding window that snaps shut the instant it's allowed to.
