@@ -152,6 +152,7 @@
 - [OOP](/guides/oop): Encapsulation, inheritance, polymorphism, abstraction.
 - [Big O Notation](/guides/big-onotation): Time and space complexity analysis.
 - [Bloom Filters](/guides/bloom-filters): Probabilistic data structures, false positives, use cases.
+- [Elo Rating System](/guides/elo-rating): Expected scores, K-factor, zero-sum rating updates, upsets.
 
 ## About
 

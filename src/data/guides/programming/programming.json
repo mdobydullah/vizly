@@ -67,5 +67,28 @@
         "createdAt": "2026-02-26T09:17:00Z",
         "updatedAt": "2026-02-26T09:17:00Z",
         "contributors": "obydul"
+    },
+    {
+        "id": "elo-rating",
+        "title": "Elo Rating System",
+        "category": "Programming",
+        "tags": [
+            "Programming",
+            "Algorithms",
+            "Ranking"
+        ],
+        "description": "Learn how the Elo rating system turns wins and losses into skill ratings — expected scores, K-factors, zero-sum updates, and why beating a stronger player pays more.",
+        "icon": "♟️",
+        "link": "/guides/elo-rating",
+        "color": "amber",
+        "colorConfig": {
+            "primary": "#ffab00",
+            "background": "rgba(255, 171, 0, .08)",
+            "border": "rgba(255, 171, 0, .15)",
+            "hoverShadow": "0 0 32px rgba(255, 171, 0, .4), 0 0 16px rgba(255, 171, 0, .2)"
+        },
+        "createdAt": "2026-07-22T18:23:58Z",
+        "updatedAt": "2026-07-22T18:23:58Z",
+        "contributors": "obydul"
     }
 ]

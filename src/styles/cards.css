@@ -405,6 +405,38 @@
     opacity: 0.03;
 }
 
+.card-amber {
+    --card-color: #ffab00;
+    --card-glow: rgba(255, 171, 0, 0.04);
+    --card-shadow: rgba(255, 171, 0, 0.15);
+    --card-shadow-hover: rgba(255, 171, 0, 0.4);
+    --card-shadow-soft: rgba(255, 171, 0, 0.2);
+    --card-icon-bg: rgba(255, 171, 0, 0.08);
+    --card-icon-border: rgba(255, 171, 0, 0.2);
+    --card-bg-hover: linear-gradient(135deg, rgba(255, 171, 0, 0.08) 0%, rgba(255, 171, 0, 0.03) 50%, transparent 100%);
+    --tag-color: #ffab00;
+    --tag-bg: rgba(255, 171, 0, 0.05);
+
+    border-color: #ffab00 !important;
+    color: #ffab00 !important;
+}
+
+.card-amber .viz-label {
+    background: var(--dim) !important;
+    color: #ffab00 !important;
+    border: 1px solid #ffab00 !important;
+}
+
+.card-amber:hover {
+    border-color: var(--card-color) !important;
+    box-shadow: 0 0 32px var(--card-shadow-hover), 0 0 16px var(--card-shadow-soft) !important;
+    background: var(--card-bg-hover) !important;
+}
+
+.card-amber:hover::before {
+    opacity: 0.03;
+}
+
 /* ════════════════════════════════════════
    LIGHT MODE CARD OVERRIDES
 ════════════════════════════════════════ */
@@ -431,7 +463,8 @@
 [data-theme="light"] .card-deep-purple,
 [data-theme="light"] .card-cyan-accent,
 [data-theme="light"] .card-light-blue,
-[data-theme="light"] .card-lime {
+[data-theme="light"] .card-lime,
+[data-theme="light"] .card-amber {
     border-color: #e0ddd5 !important;
     color: inherit !important;
 }
@@ -448,7 +481,8 @@
 [data-theme="light"] .card-deep-purple:hover,
 [data-theme="light"] .card-cyan-accent:hover,
 [data-theme="light"] .card-light-blue:hover,
-[data-theme="light"] .card-lime:hover {
+[data-theme="light"] .card-lime:hover,
+[data-theme="light"] .card-amber:hover {
     border-color: color-mix(in srgb, var(--card-color) 40%, #e0ddd5) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
     background: #fff !important;
@@ -466,7 +500,8 @@
 [data-theme="light"] .card-deep-purple .viz-label,
 [data-theme="light"] .card-cyan-accent .viz-label,
 [data-theme="light"] .card-light-blue .viz-label,
-[data-theme="light"] .card-lime .viz-label {
+[data-theme="light"] .card-lime .viz-label,
+[data-theme="light"] .card-amber .viz-label {
     background: #fff !important;
     border-color: #d0cdc4 !important;
 }
