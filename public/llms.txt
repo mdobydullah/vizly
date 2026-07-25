@@ -6,7 +6,7 @@
 
 - [Become an AI Engineer](/learning-paths/ai-engineer): A complete learning path from zero to shipping AI in production. 9 series, ~12 weeks.
 - [Become an ML Engineer](/learning-paths/ml-engineer): Math foundations to production ML systems — statistics, classical ML, fraud detection, credit scoring, and ML system design. 8 series, ~14 weeks.
-- [DSA Quest](/learning-paths/dsa-quest): Learn DSA the fun way. Story-framed problems, boss fights, one pattern per dungeon. Two Pointers available now, more coming.
+- [DSA Quest](/learning-paths/dsa-quest): Learn DSA the fun way. Story-framed problems, boss fights, one pattern per dungeon. All 18 dungeons complete, NeetCode 150 coverage.
 
 ## Series
 
