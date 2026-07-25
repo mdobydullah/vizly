@@ -120,6 +120,17 @@
 - [Swim in Rising Water — The Flooded Quarry](/articles/swim-rising-water-flooded-quarry): Minimax Dijkstra, minimize the max cell on a path, grid as graph.
 - [Alien Dictionary — The Lost Alphabet](/articles/alien-dictionary-lost-alphabet): Build a precedence graph from sorted words, Kahn's topological sort.
 - [Cheapest Flights Within K Stops — The Budget Layover](/articles/cheapest-flights-k-stops-budget-layover): Bellman-Ford bounded to k+1 relaxation rounds, snapshot copy.
+- [Unique Paths — The One-Way City](/articles/unique-paths-one-way-city): Grid DP, cell = top + left, rolling 1-D row.
+- [Longest Common Subsequence — The Two Diaries](/articles/longest-common-subsequence-two-diaries): Prefix-axes table, diagonal on match, max of up/left otherwise.
+- [Best Time to Buy and Sell Stock with Cooldown — The Collector's Cooldown](/articles/stock-cooldown-collectors-market): State-machine DP, hold/sold/free, O(1) space.
+- [Coin Change II — The Token Booth](/articles/coin-change-ii-token-booth): Unbounded knapsack counting, loop order separates combinations from permutations.
+- [Target Sum — The Tug of War](/articles/target-sum-tug-of-war): Algebra transform to subset-sum counting, 0/1 downward sweep.
+- [Interleaving String — The Braided Rope](/articles/interleaving-string-braided-rope): Two-source boolean table, position in s3 pinned to i+j.
+- [Longest Increasing Path in a Matrix — The Terrace Climb](/articles/longest-increasing-path-terrace-climb): Memoized DFS on an implicit DAG, strict increase kills cycles.
+- [Distinct Subsequences — The Scrapbook Cutouts](/articles/distinct-subsequences-scrapbook-cutouts): Counting table, use-it-or-lose-it summed instead of maxed.
+- [Edit Distance — The Proofreader's Bill](/articles/edit-distance-proofreaders-bill): Levenshtein, three moves per cell, base row and column as all-inserts.
+- [Burst Balloons — The Carnival Pop](/articles/burst-balloons-carnival-pop): Interval DP, fix the last balloon popped, O(n³).
+- [Regular Expression Matching — The Wildcard Stamp](/articles/regex-matching-wildcard-stamp): Prefix table with dot and star, star reads two columns back.
 
 ## Guides — System Design
 

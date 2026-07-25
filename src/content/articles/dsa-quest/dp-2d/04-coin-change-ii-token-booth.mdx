@@ -1,0 +1,208 @@
+---
+title: "Coin Change II — The Token Booth"
+slug: coin-change-ii-token-booth
+category: dsa
+series: dp-2d
+seriesOrder: 4
+description: "Dungeon 16, Boss 4. Back at the arcade token booth, a kid slides over some cash and asks how many different mixes of tokens hit the amount exactly. A mix is a bag, not a sequence, and one swapped loop silently counts every bag several times. This boss is a single lesson: loop order is a table axis in disguise."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🪙"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You are back at the arcade token booth. A kid slides some cash across the counter and asks a new question: how many different mixes of tokens add up to this exactly? Not the fewest tokens, all the possible mixes. And a mix is a bag, so one 1 and one 2 is the same bag as one 2 and one 1. Count it twice and the kid catches you. The whole trick turns out to live in which loop goes on the outside.
+  bn: |
+    আপনি আবার সেই আর্কেডের টোকেন বুথে। একটা বাচ্চা কাউন্টারে কিছু টাকা ঠেলে দিয়ে নতুন প্রশ্ন করল, ঠিক এই টাকায় টোকেনের কয় রকম মিশ্রণ হয়? সবচেয়ে কম টোকেন না, সম্ভাব্য সব মিশ্রণ। আর মিশ্রণ মানে একটা ব্যাগ, তাই একটা 1 আর একটা 2 যে ব্যাগ, একটা 2 আর একটা 1 সেই একই ব্যাগ। দুইবার গুনলেই বাচ্চাটা ধরে ফেলবে। মজার ব্যাপার, পুরো কৌশলটা লুকিয়ে আছে কোন loop বাইরে থাকবে তার মধ্যে।
+  hi: |
+    आप फिर उसी आर्केड के token booth पर हैं। एक बच्चा काउंटर पर कुछ पैसे खिसकाता है और नया सवाल पूछता है, ठीक इतने पैसे में tokens के कितने अलग mix बन सकते हैं? सबसे कम tokens नहीं, सारे मुमकिन mix। और mix एक थैला है, तो एक 1 और एक 2 वाला थैला वही है जो एक 2 और एक 1 वाला। दो बार गिना तो बच्चा पकड़ लेगा। मजेदार बात यह है कि पूरी चाल इसी में छिपी है कि कौन सा loop बाहर रहेगा।
+  ar: |
+    أنت من جديد عند كشك التوكنز في صالة الألعاب. طفل يدفع بعض النقود على الطاولة ويسأل سؤالاً جديداً: كم خلطة مختلفة من التوكنز تساوي هذا المبلغ بالضبط؟ ليس أقل عدد من التوكنز، بل كل الخلطات الممكنة. والخلطة هنا كيس، فكيس فيه 1 و 2 هو نفسه كيس فيه 2 و 1. إن عددتها مرتين سيكشفك الطفل فوراً. والطريف أن الحيلة كلها تختبئ في أي loop يكون في الخارج.
+---
+
+## Boss 4: The Token Booth
+
+This dungeon is about 2-D tables, and this boss hands you the sneakiest one yet: a table where an entire axis is invisible. The code you'll write looks like a 1-D array, but a second dimension is hiding in plain sight, compressed into the *order of two for-loops*. Swap them and the code still runs, still returns a number, and the number is wrong.
+
+That's the whole boss. One line of code, two possible loop orders, two different questions answered.
+
+---
+
+## The story
+
+You've been here before. Dungeon 12, Boss 8, the Exact Fare: this same arcade token booth, and back then the question was "what's the *fewest* tokens that make this amount?" You beat it with a 1-D table of minimums.
+
+Today a kid slides cash across the counter and asks something new:
+
+"How many **different mixes** of tokens make this exactly?"
+
+The booth stocks tokens in a few denominations, unlimited stock of each. Say tokens of 1, 2, and 5, and the kid slides over 5 in cash. The mixes:
+
+- one 5-token
+- one 2, one 2, one 1
+- one 2, three 1s
+- five 1s
+
+Four mixes. And here's the rule the kid will absolutely enforce: a mix is a **bag**, not a sequence. A bag holding a 1 and a 2 is the same bag whether you dropped the 1 in first or the 2. Count "1 then 2" and "2 then 1" as different and you've invented mixes that don't exist.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `coins` representing coins of different denominations and an integer `amount`. Return the number of **combinations** that make up that amount. If no combination works, return 0. You may assume an infinite supply of each coin.
+
+LeetCode 518, "Coin Change II". Same booth as Coin Change I, new question: not *how few*, but *in how many ways*.
+
+---
+
+## The naive attempt
+
+Recurse on the remaining amount, trying every coin at every step:
+
+```python
+def count_ways(coins, amount):
+    def walk(remaining):
+        if remaining == 0:
+            return 1          # made it exactly: one way found
+        if remaining < 0:
+            return 0
+        total = 0
+        for c in coins:       # any coin, any time
+            total += walk(remaining - c)
+        return total
+    return walk(amount)
+```
+
+Two bugs in one function. First, it's exponential: the tree branches by every coin at every level. Second, and worse, it answers the wrong question. Run it on coins `[1, 2]` and amount 3:
+
+```
+1 → 1 → 1     counted
+1 → 2         counted
+2 → 1         counted... but that's the SAME BAG as 1 → 2
+```
+
+It returns 3. The real answer is 2 (`1+1+1` and `1+2`). Because the recursion is free to pick coins in any order, every bag gets counted once per *arrangement* of its contents. That's permutations. The kid wanted bags.
+
+The fix for both bugs is the same idea: take away the freedom to revisit coin types.
+
+---
+
+## The weapon: one coin type at a time
+
+Give every bag a canonical form: decide how many 1-tokens it holds, *then* how many 2s, *then* how many 5s. Never go back. Under that discipline, `1+2` and `2+1` are literally the same decision sequence ("one 1, one 2"), so each bag is built exactly once.
+
+That discipline is a 2-D table: `dp[i][a]` = number of ways to make amount `a` using only the first `i` coin types. Each row either skips the current coin or spends one more of it (unlimited supply, so "spend" stays in the same row). And since each row only reads itself and the row above, the table rolls down to one array, where "one coin type at a time" survives as the **outer loop**:
+
+```
+for each coin:                 ← finish one denomination entirely
+    for a from coin to amount: ← then sweep amounts upward
+        dp[a] += dp[a - coin]
+```
+
+Flip the loops and the discipline evaporates. With `amount` outside, every amount re-asks every coin, which is exactly the naive recursion's freedom, and you're counting permutations again. Same line of code inside. Different universe.
+
+<MermaidBlock>
+graph TB
+    A["one line of code\ndp at a gains dp at a minus coin"] --> B["coins OUTSIDE\nfinish each denomination\nbefore the next"]
+    A --> C["amount OUTSIDE\nevery amount re-asks\nevery coin"]
+    B --> D["each bag built once\nin canonical order"]
+    C --> E["1 then 2 and 2 then 1\ncounted separately"]
+    D --> F["counts COMBINATIONS\nanswer for amount 3 is 2"]
+    E --> G["counts PERMUTATIONS\nanswer for amount 3 is 3"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Watch both orders on coins `[1, 2]`, amount 3. Coins outside:
+
+```
+start          dp = [1, 0, 0, 0]     dp[0] = 1: the empty bag
+after coin 1   dp = [1, 1, 1, 1]
+after coin 2   dp = [1, 1, 2, 2]     → 2 bags. Correct.
+```
+
+Amount outside:
+
+```
+a=1: dp[1] = dp[0]           = 1
+a=2: dp[2] = dp[1] + dp[0]   = 2     (1+1, and 2)
+a=3: dp[3] = dp[2] + dp[1]   = 3     → 3 "bags". 1+2 and 2+1 both slipped in.
+```
+
+The double-count, live. Nothing crashed, nothing warned. The final weapon:
+
+```python
+def change(amount: int, coins: list[int]) -> int:
+    dp = [0] * (amount + 1)
+    dp[0] = 1                      # one way to make zero: the empty bag
+    for coin in coins:             # combinations: coin loop OUTSIDE
+        for a in range(coin, amount + 1):
+            dp[a] += dp[a - coin]  # bags of a = bags of a-coin, plus this coin
+    return dp[amount]
+```
+
+---
+
+## Watching it work
+
+The kid's 5 in cash, tokens `[1, 2, 5]`:
+
+```
+start          dp = [1, 0, 0, 0, 0, 0]
+after coin 1   dp = [1, 1, 1, 1, 1, 1]     only all-1s bags exist yet
+after coin 2   dp = [1, 1, 2, 2, 3, 3]     2s join, e.g. amount 4: 1111, 112, 22
+after coin 5   dp = [1, 1, 2, 2, 3, 4]     the single 5-token bag lands
+
+dp[5] = 4 ✓
+```
+
+Exactly the four bags from the story: `5`, `2+2+1`, `2+1+1+1`, `1+1+1+1+1`. Each coin's sweep asks one clean question, "what new bags exist now that this denomination is allowed?", and moves on. No denomination is ever revisited, so no bag is ever rebuilt in a different order.
+
+<Callout type="tip" title="A table axis can hide inside a loop order">
+The 2-D table `dp[i][a]` had a real, meaningful axis: "coins considered so far". Rolling to 1-D didn't delete that axis, it encoded it in iteration order. Coins outside means "one coin type at a time", which is precisely the canonical-bag discipline. This is the dungeon's quietest lesson: when a 1-D DP's loop order suddenly *matters*, you're looking at a squashed 2-D table, and the order is the missing dimension.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Swapping the loops.**
+The classic, and the compiler won't save you: both orders are valid programs. Amount outside counts permutations, silently treating `1+2` and `2+1` as different bags. If you ever *want* permutations (LeetCode calls that one Combination Sum IV), that's the order you'd choose on purpose. Here it's the boss's favorite kill.
+
+**2. Starting with `dp[0] = 0`.**
+Every bag is eventually assembled on top of the empty bag, so `dp[0] = 1` is the seed the whole table grows from. Zero it out and every `dp[a]` stays zero forever. The empty bag is a real way to make amount 0, not a technicality.
+
+**3. Sweeping the amount downward.**
+In 0/1 knapsack you iterate amounts *downward* so each item is used at most once. Muscle memory drags that habit here, and downward sweeping caps every token at one copy. The booth has unlimited stock: sweep upward, so a coin's own contributions at smaller amounts feed its larger ones.
+
+**4. Overflow reflexes from other languages.**
+Counts grow much faster than minimums. Python shrugs, but in C++ or Java this same table overflows `int` easily, and LeetCode's constraints promise the answer fits a 64-bit integer, not a 32-bit one. If you're translating, reach for `long` before the boss reaches for you.
+
+---
+
+## Complexity
+
+One sweep of the amount array per coin.
+
+**Time: O(coins · amount). Space: O(amount).**
+
+The full 2-D table would be O(coins · amount) space, and the rolled version keeps one row because each row only ever reads itself and the previous one.
+
+---
+
+## Boss down
+
+The kid gets the answer, 4 mixes, and doesn't catch a single double-count. Same booth as the Exact Fare, and now you've beaten it twice: once asking *how few* (a min over choices) and once asking *how many* (a sum over choices). Same skeleton, different fold.
+
+And you've met the dungeon's stealthiest 2-D table, the one wearing a 1-D disguise, its coin axis folded into loop order.
+
+Next up, Boss 5: **Target Sum — The Tug of War.** Every number in the array gets a plus sign or a minus sign, two teams pulling in opposite directions, and you count the sign assignments that land exactly on target. It smells like a brand-new problem, until a short algebraic shove transforms it into this exact counting table. Bring today's weapon. You'll be reusing it line for line.

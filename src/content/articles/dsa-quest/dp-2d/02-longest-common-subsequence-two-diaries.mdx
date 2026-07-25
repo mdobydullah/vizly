@@ -1,0 +1,200 @@
+---
+title: "Longest Common Subsequence — The Two Diaries"
+slug: longest-common-subsequence-two-diaries
+category: dsa
+series: dp-2d
+seriesOrder: 2
+description: "Dungeon 16, Boss 2. Two siblings kept diaries of the same childhood summer, and decades later you're asked how much of the story they still agree on. Entries must match in order, but skipping is allowed, and the answer is the longest shared thread. One table over two prefixes, and the defining move of this dungeon clicks into place."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "📔"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Two siblings kept diaries of the same childhood summer. Decades later someone finds both and asks a simple question, how much of the story do they actually agree on? An entry only counts if both wrote it and in the same order, but it's fine if one sibling skipped days the other didn't. You're looking for the longest shared thread running through both books. The trick is a table where one axis is "how much of her diary I've read" and the other is "how much of his".
+  bn: |
+    দুই ভাইবোন একই শৈশবের গ্রীষ্মের ডায়েরি লিখেছিল। কয়েক দশক পরে দুটো ডায়েরি হাতে পেয়ে প্রশ্ন উঠল, গল্পের কতটুকুতে দুজন আসলে একমত? একটা এন্ট্রি তখনই গোনা হবে যখন দুজনেই সেটা লিখেছে আর একই ক্রমে, তবে কেউ মাঝে কিছু দিন বাদ দিলে সমস্যা নেই। আপনি খুঁজছেন দুই খাতার ভেতর দিয়ে চলা সবচেয়ে লম্বা মিল, মানে longest shared thread। সমাধানের চাবি একটা টেবিল, যার এক অ্যাক্সিস "বোনের ডায়েরির কতটা পড়েছি" আর অন্যটা "ভাইয়ের কতটা"।
+  hi: |
+    दो भाई बहनों ने बचपन की एक ही गर्मी की डायरी लिखी थी। दशकों बाद दोनों डायरियां मिलती हैं और सवाल उठता है, कहानी के कितने हिस्से पर दोनों सच में सहमत हैं? कोई एंट्री तभी गिनी जाएगी जब दोनों ने उसे लिखा हो और उसी क्रम में, हां अगर किसी ने बीच के कुछ दिन छोड़ दिए तो कोई बात नहीं। आपको दोनों किताबों में से गुजरने वाला सबसे लंबा साझा धागा चाहिए। इसका राज एक टेबल है, जिसकी एक धुरी है "बहन की डायरी कितनी पढ़ी" और दूसरी "भाई की कितनी"।
+  ar: |
+    أخ وأخت كتبا مذكرات عن صيف طفولة واحد. بعد عقود يجد أحدهم الدفترين ويسأل سؤالاً بسيطاً، على كم من القصة يتفق الاثنان فعلاً؟ لا يُحسب اليوم إلا إذا كتبه الاثنان وبنفس الترتيب، ولا مشكلة إن تخطى أحدهما أياماً لم يتخطها الآخر. أنت تبحث عن أطول خيط مشترك يمر عبر الدفترين معاً. والسر جدول محوره الأول "كم قرأت من دفترها" ومحوره الثاني "كم قرأت من دفتره".
+---
+
+## Boss 2: The Two Diaries
+
+Boss 1 handed you a real grid: streets, intersections, a robot walking a city. You filled cells from neighbors and paths added up. This boss plays the same engine, but pulls a trick that defines the whole dungeon: the grid is **invisible**. There are no streets. The two axes are *strings*, or more precisely, how much of each string you've allowed yourself to read so far.
+
+Once you see that a 2-D table's axes can be *prefixes of two different things*, half of Dungeon 16 unlocks at once.
+
+---
+
+## The story
+
+Two siblings kept diaries of the same childhood summer. Hers is thorough. His is patchy, written when he felt like it. Decades later, both books surface in a box, and someone asks the question that matters: how much of that summer do the two accounts actually *agree* on?
+
+The house rule for agreement: an entry counts only if it appears in **both** diaries, in the **same order**. She wrote "lake, storm, carnival, goodbye". He wrote "storm, carnival, broken arm, goodbye". Nobody expects the diaries to match day for day, skipping entries is fine. You just can't reorder the summer.
+
+The longest thread running through both books here is "storm, carnival, goodbye". Three shared memories, in order. That thread has a formal name: the **longest common subsequence**.
+
+---
+
+## The problem, dressed up properly
+
+> Given two strings `text1` and `text2`, return the length of their longest common subsequence. A subsequence keeps relative order but may skip characters. If there is no common subsequence, return 0.
+
+LeetCode 1143, "Longest Common Subsequence". The most classical 2-D DP in existence, and the one interviewers reach for when they want to know if you actually understand tables or just memorized the grid one.
+
+---
+
+## The naive attempt
+
+Brute force: list every subsequence of one diary, check each against the other, keep the longest that fits.
+
+```python
+def longest_common_subsequence(a, b):
+    def is_subsequence(t, s):
+        it = iter(s)
+        return all(ch in it for ch in t)
+
+    best = 0
+    n = len(a)
+    for mask in range(1 << n):
+        candidate = ''.join(a[i] for i in range(n) if mask >> i & 1)
+        if is_subsequence(candidate, b):
+            best = max(best, len(candidate))
+    return best
+```
+
+A string of length n has 2^n subsequences, every character is an in-or-out coin flip. Two diaries of 40 entries each means a trillion candidates before you've checked a single one against the second book. The box of diaries outlives you.
+
+The waste is familiar from Boss 1: thousands of those candidates share the same opening entries, and we re-verify that shared opening every single time. Overlapping subproblems. Time for a table.
+
+---
+
+## The weapon: a table over two prefixes
+
+Here's the move. Define:
+
+**`dp[i][j]` = length of the LCS of the first `i` characters of `a` and the first `j` characters of `b`.**
+
+Read the axes carefully, because this is the whole dungeon in one sentence. Each axis is not a position in a grid. It's a *budget*: **how much of that string I'm allowed to use**. Cell `(i, j)` answers a smaller, fully self-contained version of the problem, "if her diary stopped after entry i and his after entry j, how long is the shared thread?" Grow both budgets to full length and the last cell is the answer.
+
+Filling a cell means staring at the last character of each prefix:
+
+- **They match** (`a[i-1] == b[j-1]`): that character extends the best thread of the two shorter prefixes. `dp[i][j] = dp[i-1][j-1] + 1`. One step diagonal, plus one.
+- **They differ**: both can't end the thread, so at least one is dead weight. Drop the last character of `a` or the last of `b`, take the better world: `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`.
+
+<MermaidBlock>
+graph TB
+    A["cell i, j\nlast chars of both prefixes"] --> B["a at i-1 equals\nb at j-1 ?"]
+    B -->|match| C["diagonal + 1\nextend the shared thread"]
+    B -->|differ| D["max of up and left\ndrop one last char"]
+    C --> E["dp at m, n\nlongest shared thread"]
+    D --> E
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+Row 0 and column 0 are free: an empty prefix shares nothing with anything, so they're all zero.
+
+```python
+def longest_common_subsequence(a: str, b: str) -> int:
+    m, n = len(a), len(b)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if a[i - 1] == b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp[m][n]
+```
+
+And just like Boss 1, each row only reads the row above it, so the table can roll into one array. The wrinkle is the diagonal: overwriting `row[j]` destroys the value the *next* cell needs as its `dp[i-1][j-1]`. Save it in a variable before you clobber it.
+
+```python
+def longest_common_subsequence(a: str, b: str) -> int:
+    if len(b) > len(a):
+        a, b = b, a               # roll over the shorter string
+    n = len(b)
+    row = [0] * (n + 1)
+    for i in range(1, len(a) + 1):
+        diag = 0                  # dp[i-1][j-1], rescued each step
+        for j in range(1, n + 1):
+            up = row[j]           # dp[i-1][j], about to be overwritten
+            if a[i - 1] == b[j - 1]:
+                row[j] = diag + 1
+            else:
+                row[j] = max(up, row[j - 1])
+            diag = up
+    return row[n]
+```
+
+---
+
+## Watching it work
+
+The classic pair: `a = "abcde"`, `b = "ace"`. Rows are prefixes of `a`, columns prefixes of `b`.
+
+```
+        ""   a    c    e
+  ""     0   0    0    0
+  a      0   1    1    1
+  b      0   1    1    1
+  c      0   1    2    2
+  d      0   1    2    2
+  e      0   1    2    3
+```
+
+Follow three cells and the whole table makes sense:
+
+- Cell `(a, a)`: match, diagonal is 0, so 1. The thread "a" exists.
+- Cell `(c, c)`: match, diagonal holds `LCS("ab", "a") = 1`, so 2. Thread "ac".
+- Cell `(e, e)`: match, diagonal holds `LCS("abcd", "ac") = 2`, so 3. Thread "ace".
+
+The `b` and `d` rows just copy from above, those entries appear in one diary only, so they never grow the thread. Bottom-right corner says **3**, and it is exactly the length of "ace".
+
+<Callout type="tip" title="The axes are permissions, not places">
+Boss 1's axes were physical, row 3 and column 4 was a street corner. Here, row 3 and column 4 means "I may use 3 characters of one string and 4 of the other". Same fill order, same cell-from-neighbors engine, totally different meaning. This exact table shape, two prefixes and a match-or-drop decision, is the skeleton of Bosses 6, 8, 9, and 11 in this dungeon. Learn to read `dp[i][j]` out loud as a sentence about prefixes and those four bosses become variations, not new fights.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The off-by-one between table and strings.**
+The table is 1-indexed by prefix length, the strings are 0-indexed. Cell `dp[i][j]` looks at characters `a[i-1]` and `b[j-1]`. Write `a[i]` and you compare the wrong pair everywhere, usually crashing on the last row if you're lucky, silently wrong if you're not.
+
+**2. Taking the diagonal on a mismatch.**
+On a mismatch the recurrence is `max(up, left)`, not the diagonal. `dp[i-1][j-1]` drops a character from *both* strings when only one needed to go, so it undercounts. Try `"ab"` vs `"ba"`: the true LCS is 1, but a diagonal-on-mismatch fill gets stuck at 0. Diagonal is for matches only.
+
+**3. Clobbering the diagonal in the rolled version.**
+With one array, by the time you compute cell `j`, cell `j-1` already holds the *new* row's value, and the old `row[j-1]` your diagonal needed is gone. That's what the `diag`/`up` shuffle rescues. Forget it and every match reads a same-row value, quietly inflating answers.
+
+**4. Solving substring instead of subsequence.**
+A common substring must be contiguous, a subsequence may skip. If your mismatch case writes 0 into the cell instead of `max(up, left)`, you've accidentally solved Longest Common Substring, a different (also real) problem. The diaries don't require consecutive days, don't make them.
+
+---
+
+## Complexity
+
+The table has `(m+1) * (n+1)` cells and each fills in constant time.
+
+**Time: O(m·n). Space: O(m·n) for the full table, O(min(m, n)) rolled.**
+
+---
+
+## Boss down
+
+The siblings get their answer: a thread of shared memories, provably the longest one, found without enumerating a single subsequence. The invisible grid did all the work.
+
+Carry this out of the fight: **a 2-D table's second axis doesn't have to be space.** Boss 1's axes were streets. This boss's axes were prefixes, how much of each string you may touch. Next boss bends the idea again: **Best Time to Buy and Sell Stock with Cooldown — The Collector's Cooldown**. One axis is time, sure. But the other axis isn't a string at all. It's a *state machine*, holding, free, or frozen in a cooldown, and the table tracks the best money in each state per day. The second dimension can be anything you can enumerate. See you at the gate.

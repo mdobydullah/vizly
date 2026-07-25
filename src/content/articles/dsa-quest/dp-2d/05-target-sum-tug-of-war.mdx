@@ -1,0 +1,194 @@
+---
+title: "Target Sum — The Tug of War"
+slug: target-sum-tug-of-war
+category: dsa
+series: dp-2d
+seriesOrder: 5
+description: "Dungeon 16, Boss 5. Field day, a line of kids, and a rope. Every kid must pull on one side or the other, and the coach wants the final pull to land exactly on a target. One line of algebra collapses the whole sign-flipping mess into subset-sum counting, and Boss 4's table finishes the job with the sweep flipped around."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🎯"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    It's field day and the coach lines up the kids for tug of war. Every kid has a known strength and nobody gets to sit out, each one grabs the rope on the left side or the right. The coach wants the final pull, left minus right, to land exactly on a target number. Your job is to count how many team splits do it. A bit of algebra turns the whole thing into counting subsets, and one table sweep finishes it.
+  bn: |
+    স্কুলের স্পোর্টস ডে, কোচ বাচ্চাদের লাইনে দাঁড় করিয়েছেন টাগ অফ ওয়ারের জন্য। প্রত্যেক বাচ্চার শক্তি জানা আছে, আর কেউ বসে থাকতে পারবে না, প্রত্যেককে দড়ির বাঁ দিক বা ডান দিক ধরতেই হবে। কোচ চান শেষ টান, মানে বাঁয়ের শক্তি থেকে ডানের শক্তি বাদ দিলে, ঠিক একটা টার্গেট সংখ্যায় গিয়ে পড়ুক। আপনার কাজ হলো গুনে বলা, কতভাবে দল ভাগ করলে সেটা হয়। একটু অ্যালজেব্রা পুরো ব্যাপারটাকে subset গোনার সমস্যায় বদলে দেয়, তারপর একটা টেবিলেই কাজ শেষ।
+  hi: |
+    स्कूल का स्पोर्ट्स डे है और कोच बच्चों को रस्साकशी के लिए लाइन में खड़ा करता है। हर बच्चे की ताकत पता है और कोई बैठ नहीं सकता, हर एक को रस्सी बाईं तरफ या दाईं तरफ पकड़नी ही है। कोच चाहता है कि आखिरी खिंचाव, यानी बाएं की ताकत में से दाएं की ताकत घटाने पर, ठीक एक टारगेट नंबर पर आए। आपका काम है गिनना कि कितने तरीकों से टीमें बांटी जा सकती हैं। थोड़ी सी algebra पूरे सवाल को subset गिनने में बदल देती है, और फिर एक table sweep से काम खत्म।
+  ar: |
+    إنه يوم الرياضة في المدرسة، والمدرب يصفّ الأطفال للعبة شد الحبل. قوة كل طفل معروفة ولا يُسمح لأحد بالجلوس، فكل واحد يمسك الحبل من الجهة اليسرى أو اليمنى. يريد المدرب أن تكون المحصلة النهائية، أي قوة اليسار ناقص قوة اليمين، مساوية تماماً لرقم مستهدف. مهمتك أن تعدّ كم طريقة لتقسيم الفريقين تحقق ذلك. قليل من الجبر يحوّل المسألة كلها إلى عدّ subsets، وجدول واحد ينهي الحكاية.
+---
+
+## Boss 5: The Tug of War
+
+Boss 4's fair booth taught you to *count* ways instead of just finding one. This boss looks nothing like a booth: it hands every number a sign, plus or minus, and asks how many sign assignments hit a target. Pure branching, surely, two choices per number, exponential tree.
+
+Then one line of algebra folds the whole tree flat, and you're standing back in front of Boss 4's counting table with exactly one rule changed. The transform is the fight. The table is cleanup.
+
+---
+
+## The story
+
+Field day. The coach has a line of kids, each with a strength score pinned to their shirt:
+
+```
+[1, 1, 1, 1, 1]
+```
+
+The rope goes down. House rules: **everybody pulls.** No substitutes, no water breaks, every kid grabs the rope on the left side or the right side. The final pull is left strength minus right strength.
+
+The coach, who is exactly the kind of person who runs a field day with a clipboard, wants the final pull to land on **exactly 3**. Not roughly 3. Exactly.
+
+"How many ways can I split them?" the coach asks. Not *can* it be done. *How many* team splits do it. And with twenty kids on a real roster, trying every split means over a million rope configurations. The whistle is already in the coach's mouth.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an integer array `nums` and an integer `target`. Build an expression by putting `+` or `-` in front of **every** number, then concatenating them. Return the number of different expressions that evaluate to `target`.
+
+LeetCode 494, "Target Sum". Small constraints, n up to 20, which is the problem's way of whispering "brute force will pass". Ignore the whisper. The elegant kill is worth ten brute forces.
+
+---
+
+## The naive attempt
+
+Every kid picks a side, so branch on both signs:
+
+```python
+def find_target_sum_ways(nums, target):
+    def walk(i, running):
+        if i == len(nums):
+            return 1 if running == target else 0
+        return (walk(i + 1, running + nums[i])     # left side
+                + walk(i + 1, running - nums[i]))  # right side
+    return walk(0, 0)
+```
+
+That's 2^n branches. For n = 20 it's about a million, and with a memo on `(i, running)` it becomes a respectable DP over every reachable running sum. It passes.
+
+But look at what the state is: a running sum that swings negative, positive, anywhere in between. You're memoizing a cloud. There's a sharper question hiding in here, and finding it is the whole boss.
+
+---
+
+## The weapon: two piles and one line of algebra
+
+Forget the order of the kids. When the whistle blows, the roster is just split into two piles: the plus pile **P** (left side, sum of their strengths) and the minus pile **N** (right side). Two facts, both free:
+
+- The final pull is the target: `P - N = target`
+- Everybody pulls, so the piles cover the whole roster: `P + N = total`
+
+Add the two equations. The N cancels:
+
+```
+2P = total + target
+P  = (total + target) / 2
+```
+
+That's the kill. The sign-assignment problem is *gone*. Choosing signs for every number is the same act as choosing which kids join the plus pile, and the plus pile's sum is forced to be one exact value. The question collapses into:
+
+**How many subsets of `nums` sum to P?**
+
+Subset-sum *counting*. Boss 4's table, with one twist: Boss 4's booth had unlimited coins, but each kid grabs the rope once. Single-use items means the amount sweep flips **downward**, so each kid is counted at most once per split, the same trick the Fair Split used back in Dungeon 12.
+
+Two guards before any table gets built. If `total + target` is odd, P isn't a whole number, and no pile of integer strengths sums to four-and-a-half: zero ways. If the absolute target is bigger than `total`, even the whole roster pulling one way can't reach it: zero ways.
+
+<MermaidBlock>
+graph TB
+    A["signs on every kid\n2 to the n assignments"] --> B["two piles instead\nP - N = target\nP + N = total"]
+    B --> C["add the equations\n2P = total + target\nso P is fixed"]
+    C --> D["guards first\nodd sum or target beyond total\nmeans zero ways"]
+    C --> E["count subsets summing to P\nBoss 4 table, single-use items"]
+    E --> F["sweep amounts downward\neach kid pulls once"]
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+```python
+def find_target_sum_ways(nums: list[int], target: int) -> int:
+    total = sum(nums)
+    if abs(target) > total or (total + target) % 2:
+        return 0                       # unreachable, or P not a whole number
+
+    p = (total + target) // 2
+    dp = [0] * (p + 1)
+    dp[0] = 1                          # one way to build sum 0: nobody yet
+
+    for strength in nums:
+        for amount in range(p, strength - 1, -1):   # downward: single-use
+            dp[amount] += dp[amount - strength]
+
+    return dp[p]
+```
+
+Compare it to Boss 4's booth line by line. Same table, same "add the ways" update. The only change is `range(..., -1)`, the downward sweep, and that one flipped arrow is the entire difference between "unlimited coins" and "each kid once".
+
+---
+
+## Watching it work
+
+The story's roster: `nums = [1, 1, 1, 1, 1]`, target 3.
+
+Guards first: total is 5, `total + target = 8`, even, and 3 is within reach of 5. So `P = 4`: count the subsets summing to 4, i.e. pick which 4 kids take the left rope.
+
+`dp` indexed 0 through 4, one row per kid:
+
+```
+start        [1, 0, 0, 0, 0]
+kid 1        [1, 1, 0, 0, 0]
+kid 2        [1, 2, 1, 0, 0]
+kid 3        [1, 3, 3, 1, 0]
+kid 4        [1, 4, 6, 4, 1]
+kid 5        [1, 5, 10, 10, 5]
+                          ↑
+answer: dp[4] = 5 ✓
+```
+
+Pascal's triangle, growing row by row, because with all-equal strengths "subsets summing to 4" is just "choose 4 of the 5 kids", and there are 5 ways. Five team splits, each putting four kids on the left and one on the right: pull is 4 minus 1, exactly 3. The coach makes a note on the clipboard.
+
+<Callout type="tip" title="Reshape the question before reaching for a table">
+The table here is Boss 4's, nearly untouched. What won the fight was refusing to build a table over the state the problem handed you (a swinging signed sum) and deriving a better axis first. Half of hard DP is exactly this: not filling the table, but finding the axes that make the table small and clean. When a state space feels baggy, look for an equation that pins part of it down.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the guards.**
+If `total + target` is odd, integer division quietly rounds P down and you count subsets for the *wrong* pile size, returning a confident nonzero garbage answer. And a target beyond `total` can make `p` negative, which crashes the array build. Both cases are legitimate inputs and both answers are simply 0. Guard first, always.
+
+**2. Sweeping the amounts upward.**
+Upward is Boss 4's move, and it silently lets one kid pull on the rope twice: `dp[2]` gets built from a `dp[1]` that *already used this kid*. On the trace above, an upward sweep after kid 1 alone would claim sums 1 through 4 are all reachable. One kid, cloned four times. Single-use items sweep downward, no exceptions.
+
+**3. Zeros on the roster.**
+A kid with strength 0 can grab either rope without moving the pull, so every valid split doubles. The table handles this *correctly* on its own: the strength-0 sweep adds each `dp` entry to itself, doubling everything. It works, but the answer coming back twice or eight times larger than your hand count surprises people every time. It's not a bug. It's the zeros.
+
+**4. The memo version faceplanting on negative sums.**
+If you skip the transform and memoize the naive walk, the running sum goes negative, and an array indexed by it throws or, worse in some languages, wraps around silently. A dict on `(i, running)` works, or an offset-by-total index. Or you do the algebra, keep every index non-negative by construction, and never meet the problem at all.
+
+---
+
+## Complexity
+
+The transform costs one addition and one division. The table does the rest.
+
+**Time: O(n · P). Space: O(P)**, where `P = (total + target) / 2`.
+
+---
+
+## Boss down
+
+The whistle blows, the rope lands on exactly 3, and the coach's clipboard gets its number: how many splits, not just whether one exists. Remember the lineage here. Dungeon 12's Fair Split asked *if* some subset hits half the total. Boss 4's booth counted ways with unlimited coins. This boss chained them: an algebra transform to find the real question, then subset-sum counting with the sweep flipped for single-use kids. Three old weapons, one clean kill.
+
+Next up, Boss 6: **Interleaving String — The Braided Rope.** Back to two-string tables, this time asking whether a third string could have been braided from the other two without reordering either strand. There's a greedy approach that looks absolutely bulletproof, right up until both strands offer the same letter and it has to guess. Bring the table. See you at the gate.

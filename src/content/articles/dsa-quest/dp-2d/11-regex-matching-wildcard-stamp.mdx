@@ -1,0 +1,207 @@
+---
+title: "Regular Expression Matching — The Wildcard Stamp"
+slug: regex-matching-wildcard-stamp
+category: dsa
+series: dp-2d
+seriesOrder: 11
+description: "Dungeon 16, Boss 11, the finale. A border checkpoint where entry permits are matched against a rulebook pattern, letter by letter. A dot stamp accepts any single character, and a star stamp lets the letter before it repeat as many times as you like, including zero. One prefix table, two axes, and the problem interviewers save for last falls like the other ten."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🛂"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You are working the border checkpoint, and every traveler hands you an entry permit. You check it against a rule from the official book, letter by letter. Some rules carry a dot stamp, which means any single letter is fine in that spot. Some carry a star stamp, and that one changes the stamp before it: that letter can repeat as many times as the traveler likes, even zero times. Does the permit match the rule completely, nothing skipped and nothing left over? One table of prefixes settles it.
+  bn: |
+    আপনি বর্ডার চেকপোস্টে ডিউটি করছেন, প্রতিটা যাত্রী আপনার হাতে একটা এন্ট্রি পারমিট ধরিয়ে দেয়। অফিসিয়াল বইয়ের নিয়মের সাথে সেটা অক্ষর ধরে ধরে মেলাতে হয়। কিছু নিয়মে ডট স্ট্যাম্প থাকে, মানে ওই জায়গায় যেকোনো একটা অক্ষর চলবে। আর কিছুতে থাকে স্টার স্ট্যাম্প, সেটা তার আগের স্ট্যাম্পটাকে বদলে দেয়: ওই অক্ষরটা যতবার খুশি আসতে পারে, এমনকি শূন্যবারও। পারমিটটা কি নিয়মের সাথে পুরোপুরি মেলে, কিছু বাদ না দিয়ে, কিছু বাকি না রেখে? একটা prefix table দিয়েই ফয়সালা হয়ে যায়।
+  hi: |
+    आप बॉर्डर चेकपोस्ट पर ड्यूटी कर रहे हैं, हर यात्री आपके हाथ में एक एंट्री परमिट थमाता है। आपको उसे सरकारी किताब के नियम से अक्षर दर अक्षर मिलाना है। कुछ नियमों पर डॉट स्टैम्प लगा होता है, यानी उस जगह कोई भी एक अक्षर चलेगा। कुछ पर स्टार स्टैम्प होता है, और वह अपने से पहले वाले स्टैम्प को बदल देता है: वह अक्षर जितनी बार चाहे आ सकता है, शून्य बार भी। तो सवाल यह है कि परमिट नियम से पूरी तरह मेल खाता है या नहीं, न कुछ छूटे, न कुछ बचे। एक prefix table से फैसला हो जाता है।
+  ar: |
+    أنت تعمل في نقطة تفتيش حدودية، وكل مسافر يسلمك تصريح دخول. عليك مطابقته حرفاً حرفاً مع قاعدة من الدفتر الرسمي. بعض القواعد تحمل ختم نقطة، ومعناه أن أي حرف واحد مقبول في ذلك الموضع. وبعضها يحمل ختم نجمة، وهذا يغير الختم الذي قبله: ذلك الحرف يمكن أن يتكرر كما يشاء المسافر، حتى صفر مرة. فهل يطابق التصريح القاعدة كاملة، لا شيء متجاوز ولا شيء متبقٍ؟ جدول واحد من الـ prefixes يحسم الأمر.
+---
+
+## Boss 11: The Wildcard Stamp
+
+The dungeon finale, and it's the one with a reputation. LeetCode 10, the regex boss, the problem interviewers save for the end of a loop to see who flinches. Here's the secret after ten bosses in this dungeon: it's just another table. Two strings, two axes of prefixes, one transition with a twist. The twist has a name — the star — and the only genuinely new idea in the whole fight is that the star reads *backward*.
+
+Everything else you already own.
+
+---
+
+## The story
+
+The border checkpoint at the edge of the dungeon. Travelers queue up, each clutching an entry permit — a plain string of letters. You hold the rulebook, and today's rule is a pattern of stamps.
+
+Most stamps are plain letters: the permit must show exactly that letter at that spot. A **dot stamp** `.` is the relaxed officer's stamp: any single letter is fine here, just show me *something*. And then there's the **star stamp** `*`, the strange one. It means nothing by itself. It modifies the stamp *before* it: "that letter, repeated as many times as you like — including zero times."
+
+So the rule `c*a*b` reads: any number of c's (maybe none), then any number of a's (maybe none), then exactly one b. The permit `aab`? Zero c's, two a's, one b. Stamp it. Approved.
+
+The catch: the match must cover the *entire* permit against the *entire* rule. No skipping the permit's tail, no ignoring leftover stamps. All or nothing.
+
+---
+
+## The problem, dressed up properly
+
+> Given a string `s` and a pattern `p`, implement regular expression matching where `.` matches any single character and `*` matches zero or more of the preceding element. The match must cover the **entire** input string, not a substring.
+
+LeetCode 10, "Regular Expression Matching". Hard-rated, famously so, and about to be a Tuesday.
+
+---
+
+## The naive attempt
+
+Match recursively, branching whenever a star shows up:
+
+```python
+def is_match(s, p):
+    def walk(i, j):
+        if j == len(p):
+            return i == len(s)
+        first = i < len(s) and p[j] in (s[i], '.')
+        if j + 1 < len(p) and p[j + 1] == '*':
+            return (walk(i, j + 2)              # star spends zero copies
+                    or (first and walk(i + 1, j)))  # star eats one more char
+        return first and walk(i + 1, j + 1)
+    return walk(0, 0)
+```
+
+Correct, and it works fine until a traveler hands you `aaaaaaaab` against the rule `a*a*a*a*b`. Every `a*` can claim zero, one, two... of the a's, and the branches multiply into an exponential tree, most of it re-checking the same leftover suffixes over and over.
+
+But look at the state: just `(i, j)`. Two indices, at most m by n distinct pairs. Memoize on that pair and the tree collapses. And once the state is two indices into two strings, you know this dungeon's opening move by heart: make them axes and build the table.
+
+---
+
+## The weapon: the prefix table, one last time
+
+Define `dp[i][j]` = **True if the first `i` characters of the permit `s` match the first `j` stamps of the rule `p`.** Same axes-as-prefixes shape as the Two Diaries, same one-cell-answers-one-honest-question discipline as everything since.
+
+Base cases first, and this boss actually punishes sloppiness here. `dp[0][0]` is True: empty permit, empty rule, trivially matched. Column 0 below that is all False — a non-empty permit can't match an empty rule. But **row 0 is not all False**. An empty permit can still match `a*`, or `a*b*c*`, because every starred group can choose zero copies. So walk row 0 and let each `*` reach two columns back: `dp[0][j] = dp[0][j-2]` when `p[j-1]` is a star.
+
+Now the transitions, for the general cell. Remember `dp` index `j` means "first j stamps", so the current stamp is `p[j-1]` and the one before it is `p[j-2]`.
+
+**Plain letter or dot.** The current stamp must consume the permit's current character. If `p[j-1]` equals `s[i-1]`, or `p[j-1]` is `.`, then both sides shrink by one and the answer comes from the diagonal: `dp[i][j] = dp[i-1][j-1]`. Otherwise False.
+
+**Star.** Here's the backward read. A `*` at stamp position `j` has no meaning alone — it's welded to `p[j-2]`, and together they form one unit: "`p[j-2]`, zero or more times." Two options, OR-ed:
+
+- **Zero copies.** The whole `x*` unit vanishes. Skip both stamps: `dp[i][j] = dp[i][j-2]`. That's why the transition looks *two columns left* — you're jumping over the star and its letter in one hop.
+- **One more copy.** If the permit's current character `s[i-1]` matches the starred letter (equal to `p[j-2]`, or `p[j-2]` is `.`), the star eats it and *stays armed*: `dp[i][j] = dp[i-1][j]`. Permit shrinks, rule doesn't, because the star can keep eating.
+
+<MermaidBlock>
+graph TB
+    A["cell dp i j\ndoes permit prefix i match rule prefix j"] --> B["current stamp\np at j-1"]
+    B --> C["plain letter or dot\nmust consume one char"]
+    C --> D["chars agree?\ntake diagonal dp i-1 j-1"]
+    B --> E["star\nreads backward to p at j-2"]
+    E --> F["zero copies\njump two left: dp i j-2"]
+    E --> G["one more copy\nchar matches starred letter:\ndp i-1 j, star stays armed"]
+    F --> H["OR the two branches"]
+    G --> H
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def is_match(s: str, p: str) -> bool:
+    m, n = len(s), len(p)
+    dp = [[False] * (n + 1) for _ in range(m + 1)]
+    dp[0][0] = True
+
+    for j in range(1, n + 1):            # empty permit vs rule prefixes
+        if p[j - 1] == '*':
+            dp[0][j] = dp[0][j - 2]      # x* can mean zero copies
+
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if p[j - 1] == '*':
+                dp[i][j] = dp[i][j - 2]                       # zero copies
+                if p[j - 2] == '.' or p[j - 2] == s[i - 1]:
+                    dp[i][j] = dp[i][j] or dp[i - 1][j]       # one more
+            elif p[j - 1] == '.' or p[j - 1] == s[i - 1]:
+                dp[i][j] = dp[i - 1][j - 1]                   # plain stamp
+    return dp[m][n]
+```
+
+The exponential branching tree, flattened into m·n cells that each get computed once.
+
+---
+
+## Watching it work
+
+The classic: permit `s = "aab"`, rule `p = "c*a*b"`. Rows are permit prefixes, columns are rule prefixes.
+
+```
+            ""    c    c*   c*a  c*a*  c*a*b
+     ""      T    F    T    F    T     F
+     a       F    F    F    T    T     F
+     aa      F    F    F    F    T     F
+     aab     F    F    F    F    F     T
+```
+
+The rows that matter:
+
+- **Row "" :** `c*` is True (zero c's), and `c*a*` is True (zero of each) — each star reaching two columns back to a True. The rulebook can dissolve to nothing.
+- **Row "a", column `c*a`:** diagonal from the True at `("", c*)`, chars `a` and `a` agree. The first a is consumed by the plain-ish path.
+- **Row "aa", column `c*a*`:** the star's one-more branch. `s` char is `a`, starred letter is `a`, and the cell above at `("a", c*a*)` is True. The star eats a second a and stays armed.
+- **Row "aab", column `c*a*b`:** plain `b` stamp, diagonal from the True at `("aa", c*a*)`. Full permit, full rule, both exhausted together.
+
+`dp[3][5]` is True. Stamp the permit. Boss staggers.
+
+<Callout type="tip" title="Every star is the same two branches">
+Strip the story away and a star always offers exactly two moves: **spend nothing and advance on the pattern** (the jump two columns left), or **spend one character and stay on the pattern** (the drop one row up). Wildcard Matching (LeetCode 44), where `*` matches any sequence on its own, is the same pair with simpler indexing. Nearly every wildcard-matching problem you'll ever meet reduces to choosing between those two moves in a prefix table.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. A lazy row 0.**
+Initializing row 0 as `[True, False, False, ...]` fails the very first hidden test: `s = ""`, `p = "a*"` must be True. Every starred pair in the rule can evaporate, so row 0 has scattered Trues wherever chains like `a*b*c*` reach back to `dp[0][0]`. Skip the row-0 loop and the whole table inherits the mistake.
+
+**2. Off-by-one soup around `p[j-2]`.**
+`dp` indices count *prefix lengths*, string indices count *positions*. The current stamp is `p[j-1]`, the starred letter is `p[j-2]`, and the zero-copy jump is `dp[i][j-2]`. Mix "table j" with "string j" once and you'll compare the star against itself or walk off the front of the pattern. Write the two mappings as comments before writing the transition.
+
+**3. Treating `*` as its own token.**
+The star is not a stamp, it's a *modifier* — it has no meaning without the letter before it. If your code ever asks "does `s[i-1]` match `*`?", the model is already broken. Valid patterns never start with `*`, and every star's letter lives at `p[j-2]`. This is exactly why the transition reads backward.
+
+**4. Matching a substring instead of the whole permit.**
+The answer lives at `dp[m][n]`, both strings fully consumed — not "did any cell in the last row light up". `s = "aab"` against `p = "aa"` matches a prefix beautifully and must still return False. Full permit, full rule, no leftovers. The checkpoint does not do partial credit.
+
+---
+
+## Complexity
+
+An m+1 by n+1 table, each cell filled by at most two O(1) lookups.
+
+**Time: O(m·n). Space: O(m·n).** Two rows suffice if you want O(n) space, since every transition reads the current row and the one above.
+
+---
+
+## Boss down. Dungeon cleared.
+
+The star stamp hits the last permit, the gate swings open, and Dungeon 16 goes quiet behind you. Eleven bosses, one weapon the whole way through — the table — and eleven different reasons to build one:
+
+- **Grid paths** (Boss 1, One-Way City): cells as literal places, answers flowing from two neighbors
+- **Prefix axes and max** (Boss 2, Two Diaries): two strings become two axes, the diagonal carries agreement
+- **State machines as a dimension** (Boss 3, Collector's Cooldown): holding, cooling, free — states multiply the table instead of the work
+- **Loop order as a hidden axis** (Boss 4, Token Booth): combinations vs permutations decided by which loop wraps which
+- **Reshaping the question** (Boss 5, Tug of War): signs and targets rewritten into a subset-sum the table already knows
+- **OR-tables and degrees of freedom** (Boss 6, Braided Rope): True/False cells, two strands feeding one weave
+- **DP on a DAG** (Boss 7, Terrace Climb): memoized DFS when the grid's arrows, not its walls, define the order
+- **Counting tables** (Boss 8, Scrapbook Cutouts): cells that tally *how many ways* instead of whether
+- **The three-move classic** (Boss 9, Proofreader's Bill): insert, delete, replace — edit distance and its diagonal heart
+- **Interval DP** (Boss 10, Carnival Pop): axes as ranges, and the trick of deciding what happens *last*, first
+- **Backward-reading wildcards** (Boss 11, Wildcard Stamp): a star welded to its letter, zero-or-more as two OR-ed branches
+
+The through-line: 2-D DP was never about grids. It was about choosing **two axes that make subproblems overlap** — prefixes, states, intervals, capacities — so that an exponential tree of choices folds into a rectangle of cells you fill exactly once. Pick the right axes and the transition almost writes itself. Every boss here was really an axes-choosing puzzle with a story wrapped around it.
+
+Next dungeon: **Bit Manipulation.** Dungeon 17 speaks the machine's own language: XOR tricks that find the lonely element in one pass, shifts that multiply and divide for free, bit-counting identities, and problems where an entire visited-set collapses from O(n) space into a single integer. After sixteen dungeons of building structures, the last stretch is about needing almost none. See you at the gate.

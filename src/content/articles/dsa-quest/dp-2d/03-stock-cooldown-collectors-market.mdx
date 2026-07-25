@@ -1,0 +1,180 @@
+---
+title: "Best Time to Buy and Sell Stock with Cooldown — The Collector's Cooldown"
+slug: stock-cooldown-collectors-market
+category: dsa
+series: dp-2d
+seriesOrder: 3
+description: "Dungeon 16, Boss 3. A trading-card flipper works a collectors' market with one house rule: sell a card, sit out the next market day. Greedy solved the flea market back in Dungeon 5, but the cooldown poisons it. The fix is a tiny state machine: three modes, three variables, one pass."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🃏"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You flip trading cards at a collectors' market. Buy cheap, sell high, do it all season. But the house has one rule: after every sale you sit out the next market day. That rule quietly kills your old trick, because selling today changes what tomorrow lets you do. So instead of tracking one number, you track three: holding a card, cooling down, and free to buy. Each morning the three numbers update off each other, and by the last day one of them is your best season.
+  bn: |
+    আপনি কালেক্টরদের মার্কেটে ট্রেডিং কার্ড ফ্লিপ করেন। সস্তায় কিনুন, দামে বেচুন, সারা সিজন ধরে। কিন্তু মার্কেটের একটা নিয়ম আছে: প্রতিবার বেচার পর পরের মার্কেট ডে বসে থাকতে হবে। এই নিয়মটাই পুরনো কৌশল নষ্ট করে দেয়, কারণ আজ বেচলে কাল কী করতে পারবেন সেটা বদলে যায়। তাই একটা সংখ্যার বদলে তিনটা রাখুন: কার্ড হাতে আছে, cooldown চলছে, আর কেনার জন্য ফ্রি। রোজ সকালে তিনটা সংখ্যা একে অপরের থেকে আপডেট হয়, আর শেষ দিনে এর একটাই আপনার সেরা সিজন।
+  hi: |
+    आप कलेक्टर्स मार्केट में ट्रेडिंग कार्ड फ्लिप करते हैं। सस्ता खरीदो, महंगा बेचो, पूरे सीजन यही चलता है। लेकिन मार्केट का एक नियम है: हर बिक्री के बाद अगले मार्केट डे आपको बैठना पड़ेगा। यही नियम पुरानी चाल को बेकार कर देता है, क्योंकि आज बेचने से कल की छूट बदल जाती है। तो एक संख्या की जगह तीन रखिए: कार्ड हाथ में है, cooldown चल रहा है, और खरीदने के लिए फ्री। हर सुबह तीनों एक दूसरे से अपडेट होती हैं, और आखिरी दिन इनमें से एक ही आपका बेस्ट सीजन है।
+  ar: |
+    أنت تقلب بطاقات التداول في سوق هواة الجمع. اشترِ رخيصاً وبِع غالياً وكرر ذلك طوال الموسم. لكن للسوق قاعدة واحدة: بعد كل بيع تجلس خارج اللعبة في يوم السوق التالي. هذه القاعدة تفسد حيلتك القديمة، لأن بيع اليوم يغير ما يسمح به الغد. فبدل رقم واحد صرت تتابع ثلاثة أرقام: تحمل بطاقة، أو في فترة cooldown، أو حر لتشتري. كل صباح تتحدث الأرقام الثلاثة من بعضها، وفي آخر يوم يكون أحدها أفضل موسم لك.
+---
+
+## Boss 3: The Collector's Cooldown
+
+Two bosses into the 2-D dungeon and a confession is due: "2-D" doesn't always mean two strings or a grid. Sometimes the second dimension is a *state machine*. Days along one axis, "what mode am I in" along the other. This boss is the cleanest example in the catalog, and it beats up an old friend to prove the point.
+
+Back in Dungeon 5, the Flea Market Flip fell to a single greedy pass. This is the same market with one extra house rule, and that one rule kills greedy dead.
+
+---
+
+## The story
+
+You've graduated from flea markets to the collectors' circuit: a seasonal trading-card market, one price per market day, and you're the flipper working it. Buy a card low, sell it high, buy again, all season long. You can only hold one card at a time.
+
+But this market has a house rule, posted right at the door:
+
+```
+After every sale, you sit out the next market day.
+```
+
+Sell on Tuesday, and Wednesday you drink coffee and watch. No buying, no exceptions. The regulars call it the cooldown, and they claim it keeps the market civil.
+
+The season's prices are posted in advance: `1, 2, 3, 0, 2`. Maximize your profit. Your Dungeon 5 instinct says "collect every rise", but grab the 1-to-3 climb and the cooldown eats the day the price hits 0, the best buy of the season. Selling today changes what tomorrow is *allowed* to do, and greedy has no way to see that.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array `prices` where `prices[i]` is the price of a stock on day `i`. Find the maximum profit with as many transactions as you like, holding at most one share at a time, with one restriction: after you sell, you cannot buy on the next day.
+
+LeetCode 309, "Best Time to Buy and Sell Stock with Cooldown". Medium-rated, and the canonical door into state-machine DP.
+
+---
+
+## The naive attempt
+
+Every day offers a decision, so branch on all of them:
+
+```python
+def max_profit(prices):
+    def walk(i, holding, cooldown):
+        if i == len(prices):
+            return 0
+        best = walk(i + 1, holding, False)          # do nothing today
+        if cooldown:
+            return best                              # forced to sit out
+        if holding:
+            best = max(best, prices[i] + walk(i + 1, False, True))   # sell
+        else:
+            best = max(best, -prices[i] + walk(i + 1, True, False))  # buy
+        return best
+    return walk(0, False, False)
+```
+
+Correct, and exponential: two live choices most days, so the tree blows up toward 2^n. A 50-day season already has more branches than you want to think about.
+
+Memoize on `(i, holding, cooldown)` and it collapses to O(n) states, perfectly acceptable. But look at what the memo key is really saying: on any given day, only *three* situations exist. Holding a card. Just sold, serving the cooldown. Free to buy. That's not a cache, that's a state machine, and writing it as one is cleaner than any recursion.
+
+---
+
+## The weapon: three modes, one machine
+
+Give each mode its own running best-profit:
+
+| State | You are... | Recurrence |
+|-------|-----------|------------|
+| `hold` | holding a card | `max(hold, free - price)` |
+| `sold` | sold today, cooldown pending | `hold + price` |
+| `free` | empty-handed, allowed to buy | `max(free, sold_yesterday)` |
+
+Read the rows as morning decisions. To be holding tonight, either you were already holding, or you were free and bought at today's price. To have sold today, you must have been holding yesterday, and you pocket today's price. To be free tonight, either you were already free, or yesterday's sale just finished its cooldown, which is exactly how the house rule enters the math: `sold` can't flow into `free` on the same day.
+
+<MermaidBlock>
+graph LR
+    F["FREE\nempty-handed\nallowed to buy"] -->|"buy: pay price"| H["HOLD\ncarrying a card"]
+    H -->|"sell: gain price"| S["SOLD\ncooldown day pending"]
+    S -->|"next day passes"| F
+    F -->|"wait"| F
+    H -->|"wait"| H
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style S fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Conceptually this is a table with three rows and one column per day, days times states, the 2-D grid. But each column only reads the column before it, so Dungeon 12's rolling-variable trick applies and the whole table folds into three variables:
+
+```python
+def max_profit(prices: list[int]) -> int:
+    hold = sold = float('-inf')     # states you can't be in before day one
+    free = 0                        # you start empty-handed and allowed
+    for price in prices:
+        hold, sold, free = (
+            max(hold, free - price),   # keep holding, or buy today
+            hold + price,              # sell today, cooldown starts
+            max(free, sold),           # rest, or come off cooldown
+        )
+    return max(sold, free)             # never end the season holding
+```
+
+The tuple assignment matters: all three right-hand sides read the *old* values, which is precisely "yesterday's column". Python hands you simultaneous update for free.
+
+---
+
+## Watching it work
+
+Season prices `1, 2, 3, 0, 2`. Start: `hold = -inf`, `sold = -inf`, `free = 0`.
+
+| Day | Price | hold | sold | free | What happened |
+|-----|-------|------|------|------|---------------|
+| 1 | 1 | -1 | -inf | 0 | Bought the 1-coin card |
+| 2 | 2 | -1 | 1 | 0 | Selling now would net 1 |
+| 3 | 3 | -1 | 2 | 1 | Day 2's sale matures into free |
+| 4 | 0 | 1 | -1 | 2 | Free at 1 buys the 0-coin card |
+| 5 | 2 | 1 | 3 | 2 | Sell it: 1 + 2 = 3 |
+
+Answer: `max(sold, free) = max(3, 2) = 3`.
+
+Notice what the machine quietly refused to do. Selling at 3 on day 3 looks juicier than selling at 2, but that sale would spend day 4 in cooldown and miss the 0-coin card. The `hold = 1` on day 4 traces back through `free = 1`, which came from the *day 2* sale at price 2. The machine took the smaller sale to keep day 4 open, exactly the trade-off greedy couldn't express. Best play: buy at 1, sell at 2, cool down, buy at 0, sell at 2.
+
+<Callout type="tip" title="States are a dimension">
+Whenever "what am I allowed to do today" depends on what you did before, stop cramming history into one number. Give each mode its own row and let the rows feed each other. Cooldowns, holding limits, "used my one deletion", "previous character was a vowel", all the same weapon: days across, modes down, transitions between. The second dimension of a DP doesn't have to be a string. Sometimes it's a mood.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Letting `free` read today's `sold` instead of yesterday's.**
+Write the updates as three separate statements in the wrong order and `free = max(free, sold)` sees the sale that happened *this morning*, letting you sell and rebuy with no cooldown at all. The bug silently solves the Dungeon 5 problem instead of this one, and plenty of test cases won't notice. The tuple assignment (or explicit `prev_sold`) is load-bearing, not style.
+
+**2. Initializing `hold` to 0.**
+`hold = 0` before day one means "I'm holding a card I got for free", and the machine will happily sell that phantom card for pure profit. `hold` must start at negative infinity, or at `-prices[0]` if your loop starts from day two. Pick one convention, don't mix them.
+
+**3. Returning `free` instead of `max(sold, free)`.**
+If the best season ends with a sale on the very last day, that profit is sitting in `sold` and never matures into `free`, because there's no next day. Return `free` alone and you clip exactly the endings where the finale is a sale, which is most of them. Ending the season holding a card is the only state you can safely ignore.
+
+**4. Confusing cooldown with the transaction-fee variant.**
+LeetCode 714 charges a fee per sale but never blocks a day, so it needs only two states. Cooldown costs nothing but blocks a day, which is why the third state exists at all. If your "cooldown" solution has no third row, you've solved the wrong market.
+
+---
+
+## Complexity
+
+One pass over the season, three variables, no table.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down
+
+The flipper pockets 3 coins, nods to the house, and takes the mandated coffee day with grace. The scoreboard: greedy tracked one truth and died to a house rule; the state machine tracked three and made the rule just another arrow in the graph. That's the boss's real loot. When history constrains choices, don't fight it with cleverness, *name the modes* and let them trade.
+
+Next up, Boss 4: **Coin Change II — The Token Booth.** The arcade's token booth asks a different kind of question: not "what's the best value" but "how many ways can you make it". Counting instead of optimizing, and there's a loop-order trap that silently double-counts and hands you an answer that's confidently, quietly wrong. Bring exact change.

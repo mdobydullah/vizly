@@ -1,0 +1,183 @@
+---
+title: "Distinct Subsequences — The Scrapbook Cutouts"
+slug: distinct-subsequences-scrapbook-cutouts
+category: dsa
+series: dp-2d
+seriesOrder: 8
+description: "Dungeon 16, Boss 8. A scrapbooker wants to spell a word by cutting letters out of a newspaper headline, left to right, and two plans count as different if they cut different positions. The headline is full of repeated letters, so the count explodes fast. Same prefix table as LCS, but this time the cell fork is summed instead of maxed."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "✂️"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're making a scrapbook page and you want to spell a word with letters cut from a newspaper headline. House rule, you cut left to right, no jumping back. But the headline repeats letters, so the same word can come from different spots. Two plans count as different if they cut different positions, even when the letters look identical. So the real question is, how many distinct cutting plans spell your word?
+  bn: |
+    ভাবুন, আপনি একটা স্ক্র্যাপবুক পেজ বানাচ্ছেন আর একটা খবরের কাগজের হেডলাইন থেকে অক্ষর কেটে একটা শব্দ বানাতে চান। নিয়ম একটাই, বাম থেকে ডানে কাটতে হবে, পেছনে ফেরা যাবে না। কিন্তু হেডলাইনে একই অক্ষর বারবার আছে, তাই একই শব্দ আলাদা আলাদা জায়গা থেকে আসতে পারে। দুটো প্ল্যান আলাদা গোনা হবে যদি তারা আলাদা পজিশন কাটে, অক্ষর দেখতে এক হলেও। তাহলে প্রশ্ন হলো, ঠিক কতগুলো আলাদা কাটার প্ল্যানে শব্দটা বানানো যায়?
+  hi: |
+    मान लीजिए आप एक स्क्रैपबुक पेज बना रहे हैं और अखबार की हेडलाइन से अक्षर काटकर एक शब्द लिखना चाहते हैं। नियम यह है कि बाएं से दाएं ही काटना है, पीछे नहीं लौट सकते। लेकिन हेडलाइन में अक्षर बार बार आते हैं, इसलिए वही शब्द अलग अलग जगहों से बन सकता है। दो प्लान अलग गिने जाएंगे अगर वे अलग पोजीशन काटते हैं, भले अक्षर एक जैसे दिखें। तो असली सवाल है, कुल कितने अलग कटिंग प्लान से आपका शब्द बनता है?
+  ar: |
+    تخيل أنك تجهز صفحة سكرابوك وتريد كتابة كلمة بحروف مقصوصة من عنوان جريدة. القاعدة أن تقص من اليسار إلى اليمين ولا رجوع للخلف. لكن العنوان يكرر الحروف، فالكلمة نفسها قد تأتي من مواضع مختلفة. خطتان تُحسبان مختلفتين إذا قصتا مواضع مختلفة حتى لو تطابقت الحروف شكلاً. فالسؤال الحقيقي هو، كم خطة قص مختلفة تكتب كلمتك؟
+---
+
+## Boss 8: The Scrapbook Cutouts
+
+Boss 2 built a table over two string prefixes and took a **max** in every cell. Later bosses took the same table and asked yes-or-no questions with an **OR**. This boss completes the set: same axes, same fork, but the cell now **sums**. Not "what's the best thing I can do here" but "how many ways can I get here at all".
+
+Once you've seen all three combiners on one table shape, most string DP stops being invention and becomes selection.
+
+---
+
+## The story
+
+You're assembling a scrapbook page for a friend's birthday. The centerpiece: their nickname, spelled in letters cut from a newspaper headline. Scrapbooker's honor code says you cut **left to right** across the headline — the strip goes under the scissors once, no doubling back.
+
+The headline you've got has a glorious typo:
+
+```
+R A B B B I T
+```
+
+The nickname is `RABBIT`. Three B's in the headline, and you only need two. So which two do you cut? Skip the first B, skip the second, or skip the third — three genuinely different plans, and your friend (a scrapbook purist) insists they count as different. The positions matter, not just the letters.
+
+Three ways for a seven-letter headline. Now imagine the headline is a full front page and the nickname is longer. Counting plans by hand stops being cute very fast.
+
+---
+
+## The problem, dressed up properly
+
+> Given two strings `s` and `t`, return the number of distinct subsequences of `s` which equal `t`. A subsequence keeps relative order but may skip characters.
+
+LeetCode 115, "Distinct Subsequences". Hard-rated, but if you cleared Boss 2 it's the same machine with one operator swapped.
+
+---
+
+## The naive attempt
+
+Recursion, trying every match position:
+
+```python
+def num_distinct(s, t):
+    def count(i, j):
+        if j == len(t):
+            return 1              # nickname finished: one complete plan
+        if i == len(s):
+            return 0              # headline used up, nickname isn't done
+        ways = count(i + 1, j)                # skip this headline letter
+        if s[i] == t[j]:
+            ways += count(i + 1, j + 1)       # cut this headline letter
+        return ways
+    return count(0, 0)
+```
+
+Correct, and doomed. Feed it a headline of `aaaaaa` seeking `aaa` and every single letter forks the recursion: cut it or skip it, both branches legal. The tree grows exponentially, and almost every branch lands on states it has visited before — "third letter of the nickname done, fourth headline letter next" gets recomputed from dozens of different histories.
+
+Look at *why* it blows up, though. It blows up because the letters **repeat**. And repetition of letters means repetition of subproblems. The very thing that makes the count interesting is the thing screaming for a table.
+
+---
+
+## The weapon: use it or lose it, counted
+
+Same axes as the diaries: `dp[i][j]` = number of ways the first `i` headline letters can produce the first `j` nickname letters.
+
+Stand in a cell and look at headline letter number `i`. Two cases:
+
+- **It doesn't match** nickname letter `j`. Then it's useless for finishing the nickname here — every valid plan simply ignores it. `dp[i][j] = dp[i-1][j]`.
+- **It matches.** Now the plans split into two disjoint families: plans that **cut** this letter (they needed the first `j-1` nickname letters done before it: `dp[i-1][j-1]` of those) and plans that **skip** it anyway (they spell all `j` letters from earlier headline: `dp[i-1][j]` of those). No plan is in both families, no plan is in neither. So `dp[i][j] = dp[i-1][j-1] + dp[i-1][j]`.
+
+That's the whole trick, and notice what changed since Boss 2. LCS stood at the same fork — use this pair or don't — and *chose* the better branch with a max. Here there is nothing to choose. Both branches are real, countable plans, so we **add** them. Same fork, different verb. Counting, not choosing.
+
+Base cases carry real meaning. An empty nickname is spelled in exactly **one** way from any headline: cut nothing. So `dp[i][0] = 1` for every `i`. An empty headline spells a non-empty nickname in zero ways: `dp[0][j] = 0` for `j` above 0.
+
+<MermaidBlock>
+graph TB
+    A["cell i, j\nways first i headline letters\nspell first j nickname letters"] --> B["headline letter i\nmatches nickname letter j?"]
+    B --> C["no\nletter is useless here\ncarry dp of i-1, j"]
+    B --> D["yes\nplans that cut it: dp of i-1, j-1\nplans that skip it: dp of i-1, j"]
+    D --> E["SUM the two families\nboth are real plans\ncounting, not choosing"]
+    C --> F["Boss 2 maxed this fork\nBoss 8 adds it"]
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+Row `i` only ever reads row `i-1`, so one rolling row suffices — with a catch. Sweep `j` **right to left**. Updating `dp[j]` needs `dp[j-1]` from the *previous* row, and a left-to-right sweep would have already overwritten it, quietly letting one headline letter get cut twice. Walking right to left, everything to your left is still yesterday's row. (Too paranoid to trust the sweep? Copy the row with `prev = dp[:]` each iteration and read from `prev`. Same complexity class, one extra array, zero subtlety.)
+
+```python
+def num_distinct(s: str, t: str) -> int:
+    n = len(t)
+    dp = [1] + [0] * n            # dp[j]: ways to spell t's first j letters
+    for ch in s:
+        for j in range(n, 0, -1):     # right to left, or the letter double-cuts
+            if ch == t[j - 1]:
+                dp[j] += dp[j - 1]
+    return dp[n]
+```
+
+Six lines. The exponential forest of cutting plans, folded into one row of running counts.
+
+---
+
+## Watching it work
+
+The story's headline: `s = "rabbbit"`, nickname `t = "rabbit"`. One row, seven letters, watch the counts flow:
+
+```
+after ch   dp[0] r  a  b  b  i  t
+start        1   0  0  0  0  0  0
+r            1   1  0  0  0  0  0
+a            1   1  1  0  0  0  0
+b            1   1  1  1  0  0  0   first b feeds slot 3
+b            1   1  1  2  1  0  0   second b: slot 3 doubles, slot 4 opens
+b            1   1  1  3  3  0  0   third b: the branching compounds
+i            1   1  1  3  3  3  0
+t            1   1  1  3  3  3  3
+```
+
+Final answer: `dp[6] = 3`. Exactly the three plans from the story — skip B number one, two, or three. The interesting rows are the B's: each new B adds "plans that cut me" on top of "plans that already managed without me", and the count in slot 4 climbs 0, 1, 3 as the choices multiply. That climb *is* the exponential tree, tamed into addition.
+
+<Callout type="tip" title="One table, three verbs">
+The prefix-by-prefix table is a question machine, and the cell combiner is the dial. MAX answers "what's the best" — that was LCS. OR answers "is it possible at all" — that was interleaving. SUM answers "how many ways" — that's this boss, and it was Boss 4's counting move replayed on string axes. When a new two-sequence problem appears, don't design a table from scratch. Ask which of the three questions it's really asking, and turn the dial.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Swapping the base row and base column.**
+`dp[i][0] = 1` because an empty nickname has exactly one plan: cut nothing. `dp[0][j] = 0` because an empty headline spells nothing. Flip them and the table fills confidently with garbage. If your `("abc", "")` test doesn't return 1, this is why.
+
+**2. Adding `dp[i][j-1]` out of LCS habit.**
+LCS's mismatch case peeks left *and* up, so muscle memory wants both here. Resist. The left neighbor means "same headline read, more nickname spelled" — that's not an ancestor of any plan, because plans only advance by consuming headline letters. Every legal transition comes from row `i-1`. Add the left cell and you'll count phantom plans that cut letters the scissors never reached.
+
+**3. Rolling the row but sweeping left to right.**
+The classic 1-D betrayal. Left to right, `dp[j-1]` has already absorbed the current letter by the time `dp[j]` reads it, so one physical letter gets cut twice in a single plan. `"aa"` seeking `"aa"` should be 1; the wrong sweep says 2. Right to left, always, when the recurrence reads down-left.
+
+**4. The counts get astronomically large.**
+This is a counting problem over combinatorial structure, so answers grow like binomial coefficients — `"aaaaaaaaaa"` seeking `"aaaaa"` is already 252, and it only gets worse. Python shrugs, its integers grow forever. In C++ or Java an `int` silently overflows into nonsense, so reach for 64-bit (or the modulo the problem specifies) before the tests do it for you. LeetCode 115 promises the answer fits in 32 bits. Real inputs promise nothing.
+
+---
+
+## Complexity
+
+Every cell computed once, constant work per cell.
+
+**Time: O(m·n). Space: O(n)** with the rolled row, where `m` is the headline and `n` the nickname.
+
+---
+
+## Boss down
+
+The scrapbook page gets its nickname, the purist friend gets an exact count of how special their copy is, and the table earns its third verb. Max, OR, and now SUM — the same two-prefix grid answering a genuinely different question each time, with six lines of code between them.
+
+Next up, Boss 9: **Edit Distance — The Proofreader's Bill.** A proofreader charges per correction — insert a letter, delete one, or swap one — and you want the cheapest bill that turns your draft into the final text. Same table, three operations feeding each cell, and quite possibly the most famous DP problem in the world. Bring coins.

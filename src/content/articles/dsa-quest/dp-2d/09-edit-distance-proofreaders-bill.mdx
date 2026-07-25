@@ -1,0 +1,194 @@
+---
+title: "Edit Distance — The Proofreader's Bill"
+slug: edit-distance-proofreaders-bill
+category: dsa
+series: dp-2d
+seriesOrder: 9
+description: "Dungeon 16, Boss 9. A telegram arrived garbled, and the old proofreader charges one flat rate per correction: strike a letter, pencil one in, or overwrite one. What's the cheapest bill to fix it into the intended word? This is Edit Distance, the most famous DP table in computer science, and it runs everything from spellcheck to DNA alignment."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🖋️"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A garbled telegram lands on your desk. The word that arrived is wrong, and you know the word that was meant. The old proofreader in the corner charges one flat rate per correction, whether he strikes a letter out, pencils a missing one in, or writes over a wrong one. You want the cheapest possible bill. Build a table where each cell holds the cost of fixing a shorter piece of the word, and the full answer falls out of the last corner. This is Edit Distance, the same math behind spellcheck and DNA matching.
+  bn: |
+    আপনার ডেস্কে একটা বিকৃত টেলিগ্রাম এসে পড়ল। যে শব্দটা এসেছে সেটা ভুল, আর আসল শব্দটা কী হওয়ার কথা তা আপনি জানেন। কোণার পুরনো প্রুফরিডার প্রতিটা সংশোধনের জন্য এক দর নেন, অক্ষর কেটে দিন, নতুন একটা বসান, কিংবা ভুলটার ওপর সঠিকটা লিখুন, দাম একই। আপনি চান সবচেয়ে কম বিল। একটা টেবিল বানান যেখানে প্রতিটা ঘর বলে শব্দের ছোট একটা অংশ ঠিক করতে কত লাগে, আর শেষ কোণায় পুরো উত্তরটা বেরিয়ে আসে। এটাই Edit Distance, spellcheck আর DNA মেলানোর পেছনের সেই একই অংক।
+  hi: |
+    आपकी मेज पर एक बिगड़ा हुआ telegram आ गिरता है। जो शब्द पहुंचा है वह गलत है, और असली शब्द क्या होना था वह आपको पता है। कोने में बैठा पुराना proofreader हर सुधार का एक ही दाम लेता है, चाहे वह अक्षर काटे, नया जोड़े, या गलत के ऊपर सही लिख दे। आपको सबसे सस्ता बिल चाहिए। एक table बनाइए जहां हर खाना बताता है कि शब्द के छोटे हिस्से को ठीक करने में कितना लगा, और पूरा जवाब आखिरी कोने से निकल आता है। यही Edit Distance है, वही गणित जो spellcheck और DNA matching के पीछे चलता है।
+  ar: |
+    برقية مشوهة تسقط على مكتبك. الكلمة التي وصلت خاطئة، وأنت تعرف الكلمة المقصودة. المدقق العجوز في الزاوية يتقاضى سعراً واحداً ثابتاً عن كل تصحيح، سواء شطب حرفاً أو أضاف حرفاً ناقصاً أو كتب فوق حرف خاطئ. أنت تريد أرخص فاتورة ممكنة. ابنِ جدولاً تحمل كل خلية فيه كلفة إصلاح جزء أقصر من الكلمة، والجواب الكامل يخرج من الزاوية الأخيرة. هذا هو Edit Distance، نفس الحساب الذي يشغل spellcheck ومطابقة DNA.
+---
+
+## Boss 9: The Proofreader's Bill
+
+Boss 2 of this dungeon handed you a table with two arrows: LCS, where every cell asked "match the diagonal, or drop a letter from one side?" This boss hands you the same table with a **third arrow**, and that third arrow makes it the most famous DP table in computer science. Levenshtein distance. It powers your phone's spellcheck, the fuzzy search in your editor, `git diff`, and the software that lines up DNA strands. One grid, three moves, everywhere.
+
+The prefix-table arc of Dungeon 16 peaks right here.
+
+---
+
+## The story
+
+The telegraph office, 1911. A message crackled down the wire and came out wrong: the operator meant to send `ros` but the machine spat out `horse`. Company policy says the printed telegram must be corrected by hand before delivery, and the only man with a correction license is the old proofreader by the window.
+
+His price list is one line long. **One coin per correction**, whatever the correction is:
+
+- strike a letter out
+- pencil a missing letter in
+- overwrite a wrong letter with the right one
+
+He doesn't care which. Ink is ink. Your job is to figure out the cheapest bill before he starts charging by instinct.
+
+You could eyeball it: overwrite the `h` with an `r`, strike the second `r`, strike the `e`. Three coins, `horse` becomes `ros`. But is three the floor? And what about the telegrams with forty letters, where "eyeball it" stops being a plan?
+
+---
+
+## The problem, dressed up properly
+
+> Given two strings `word1` and `word2`, return the minimum number of operations required to convert `word1` to `word2`. You may insert a character, delete a character, or replace a character.
+
+LeetCode 72, "Edit Distance". Hard-rated, interview royalty, and the textbook name is *Levenshtein distance*.
+
+---
+
+## The naive attempt
+
+Stand at the front of both words and try all three corrections at every disagreement:
+
+```python
+def min_distance(word1, word2):
+    def solve(i, j):
+        if i == len(word1):
+            return len(word2) - j        # pencil in everything left
+        if j == len(word2):
+            return len(word1) - i        # strike out everything left
+        if word1[i] == word2[j]:
+            return solve(i + 1, j + 1)   # letters agree, walk past free
+        return 1 + min(solve(i + 1, j),          # strike word1[i]
+                       solve(i, j + 1),          # pencil in word2[j]
+                       solve(i + 1, j + 1))      # overwrite
+    return solve(0, 0)
+```
+
+Correct, and three-way branching at every mismatch: **3^n** in the worst case. A forty-letter telegram would outlive the telegraph company. Memoize on `(i, j)` and it collapses to O(m·n), because there are only m·n distinct suffix pairs. Same rescue as every boss in this dungeon. But the table version is cleaner, and the table is the thing worth understanding.
+
+---
+
+## The weapon: three arrows into every cell
+
+Define `dp[i][j]` = the cheapest bill for turning the **first `i` letters** of `word1` into the **first `j` letters** of `word2`. Prefix against prefix, exactly like Boss 2.
+
+The base row and column are the proofreader working alone. Turning an empty string into `j` letters costs `j` coins, all pencil-ins: `dp[0][j] = j`. Turning `i` letters into nothing costs `i` coins, all strike-outs: `dp[i][0] = i`.
+
+Now the fill rule, and here is the whole trick. Each neighbor of a cell **is** one physical proofreader action:
+
+- **Up**, `dp[i-1][j]` + 1 — he **strikes out** letter `i` of `word1`. That letter is gone, and the smaller job "first `i-1` letters into first `j`" was already priced one row up.
+- **Left**, `dp[i][j-1]` + 1 — he **pencils in** letter `j` of `word2` at the end. The new letter matches for free forever, leaving the job priced one column left.
+- **Diagonal**, `dp[i-1][j-1]` + 1 — he **overwrites** letter `i` with letter `j`. Both letters are settled in one stroke.
+
+And if the two letters already agree, no coin changes hands: `dp[i][j] = dp[i-1][j-1]`, the diagonal for free. LCS had two arrows and a free diagonal. This has three arrows and a free diagonal. That's the entire diff.
+
+<MermaidBlock>
+graph TB
+    A["cell i,j\ncheapest bill: first i letters of word1\ninto first j letters of word2"] --> B["up: cell i-1,j plus 1\nstrike letter i out\nthe delete arrow"]
+    A --> C["left: cell i,j-1 plus 1\npencil letter j in\nthe insert arrow"]
+    A --> D["diagonal: cell i-1,j-1 plus 1\noverwrite letter i with letter j\nthe replace arrow"]
+    A --> E["diagonal, letters agree\ncell i-1,j-1 with no charge\nink stays in the pot"]
+    B --> F["take the minimum\nthe proofreader picks\nthe cheapest action"]
+    C --> F
+    D --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+Full table works, but the fill only ever touches the previous row, so roll it into one array. The only casualty is the diagonal, which the rolling overwrites, so save it in a variable before each cell:
+
+```python
+def min_distance(word1: str, word2: str) -> int:
+    m, n = len(word1), len(word2)
+    dp = list(range(n + 1))          # base row: j pencil-ins
+    for i in range(1, m + 1):
+        diag = dp[0]                 # old dp[i-1][0], next cell's diagonal
+        dp[0] = i                    # base column: i strike-outs
+        for j in range(1, n + 1):
+            up = dp[j]               # old dp[i-1][j], save before overwrite
+            if word1[i - 1] == word2[j - 1]:
+                dp[j] = diag                     # letters agree, free
+            else:
+                dp[j] = 1 + min(up,              # strike out
+                                dp[j - 1],       # pencil in
+                                diag)            # overwrite
+            diag = up                # the saved cell becomes the next diagonal
+    return dp[n]
+```
+
+---
+
+## Watching it work
+
+The story's telegram: `word1 = "horse"`, `word2 = "ros"`.
+
+```
+         ""   r   o   s
+    ""    0   1   2   3
+    h     1   1   2   3
+    o     2   2   1   2
+    r     3   2   2   2
+    s     4   3   3   2
+    e     5   4   4   3
+
+answer: dp[5][3] = 3 ✓
+```
+
+Read a few cells like the proofreader would. `dp[1][1]` = 1: `h` against `r`, one overwrite. `dp[2][2]` = 1: the `o`s agree, so the diagonal's 1 carries over free. `dp[4][3]` = 2: the `s`s agree, free diagonal from `dp[3][2]`. The last cell: `e` against `s`, no agreement, so 1 + min(up = 2, left = 4, diagonal = 3) = **3**.
+
+Trace the arrows back and the bill itemizes itself: overwrite `h` with `r` (`rorse`), strike the second `r` (`rose`), strike the `e` (`ros`). Three coins, and the table *proves* nothing cheaper exists, because every cell was the minimum over every legal action.
+
+<Callout type="tip" title="The base row and column are half the answer">
+Every DP table has a forgotten half: the base cases. Here they aren't decoration, they're the proofreader's two pure strategies, all strike-outs down the first column, all pencil-ins across the first row. Get `dp[i][0] = i` and `dp[0][j] = j` right and the rest of the table is arithmetic. Get them wrong, or zero them out on autopilot, and every cell downstream inherits the lie. When a DP answer is off by a small constant, audit the borders before the recurrence.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Zeroing the base row and column.**
+LCS starts its borders at 0, and fingers on autopilot type the same here. But turning `"abc"` into `""` is not free, it's three strike-outs. Border zeros make every deletion look free and the answers come out absurdly small. `dp[i][0] = i`, `dp[0][j] = j`, always.
+
+**2. Charging for a match, or comping a mismatch.**
+The two diagonal moves look identical in code and cost differently. Letters agree: `dp[i-1][j-1]`, zero coins. Letters differ: `dp[i-1][j-1] + 1`, the overwrite. Fuse the branches, or take the free diagonal inside the `min`, and you either overcharge matches or hand out free replaces. On `"horse"` vs `"ros"` both bugs corrupt the table quietly and only the final number betrays them.
+
+**3. Min over the wrong neighbors.**
+The three arrows have fixed meanings: up is delete, left is insert, diagonal is replace. Swap an index, say `dp[i-1][j]` for insert, and you've priced an action that doesn't exist. The classic version is off-by-one in the string indexing: `dp[i][j]` compares `word1[i - 1]` with `word2[j - 1]`, because row `i` means *first `i` letters*. Write `word1[i]` and the whole table shifts one letter sideways.
+
+**4. Assuming three operations need three tables.**
+It feels like delete, insert, and replace should each track their own state. They don't. One table holds them all, because all three actions land in the same place, a cell whose subproblem is already priced. That's the deep lesson of this dungeon: operations don't get tables, *subproblems* do, and all three operations here share the same subproblem shape.
+
+---
+
+## Complexity
+
+Every cell filled once, three lookups each.
+
+**Time: O(m·n). Space: O(n)** with the rolled row and the saved diagonal, O(m·n) if you keep the full table to reconstruct the actual corrections.
+
+---
+
+## Boss down
+
+The proofreader takes three coins, delivers `ros`, and taps the table you drew. He's seen it before. This grid is how your spellchecker guesses "did you mean", how fuzzy search forgives typos, how `diff` decides what changed, and how biologists align DNA strands where insert and delete are mutations, not pen strokes. One boss, half the software you touched today.
+
+And the dungeon's arc is complete: Boss 2 gave you the prefix-vs-prefix table with two arrows. Boss 9 added the third and produced the most famous DP table in computer science. Prefixes along both axes, cells looking up-left-diagonal, borders doing half the work. You now own that shape.
+
+Which is exactly why the next boss takes it away. **Boss 10: Burst Balloons — The Carnival Pop.** The axes stop being prefixes entirely: they become the two ends of an *interval*, and the recurrence stops asking what happens first and instead asks what happens **last**. Interval DP is the strangest weapon in the 2-D arsenal, and the carnival is a fitting place to learn it. Bring coins.

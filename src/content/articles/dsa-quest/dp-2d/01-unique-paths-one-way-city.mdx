@@ -1,0 +1,174 @@
+---
+title: "Unique Paths — The One-Way City"
+slug: unique-paths-one-way-city
+category: dsa
+series: dp-2d
+seriesOrder: 1
+description: "Dungeon 16, Boss 1. A courier in a city where every street runs one-way, east or south, needs to count the distinct routes from the northwest depot to the southeast drop-off. Recursion drowns in repeated subproblems, so you fill a grid instead: every intersection is just above plus left. The table that opens this dungeon is the table every later boss lives on."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🗺️"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You deliver packages in a strange city. Every street runs one way, either east or south, no exceptions. The depot sits at the northwest corner and today's drop-off is at the far southeast. Your dispatcher asks, half joking, how many different legal routes you could take. You start sketching them by hand and realize each intersection has a simple truth: the routes that reach it come from above or from the left, nowhere else. Fill the map corner to corner and the last cell holds the answer.
+  bn: |
+    আপনি এক অদ্ভুত শহরের কুরিয়ার। প্রতিটা রাস্তা একমুখী, হয় পূর্বে না হয় দক্ষিণে, কোনো ব্যতিক্রম নেই। ডিপো শহরের উত্তর-পশ্চিম কোণে, আর আজকের ডেলিভারি একদম দক্ষিণ-পূর্ব কোণে। ডিসপ্যাচার মজা করে জিজ্ঞেস করলেন, কয়টা আলাদা বৈধ রুট আছে বলুন তো? হাতে আঁকতে গিয়ে টের পেলেন প্রতিটা মোড়ের একটা সহজ সত্য আছে: সেখানে পৌঁছানোর রুট আসে হয় উপর থেকে না হয় বাম থেকে, আর কোথাও থেকে না। ম্যাপটা কোণ থেকে কোণ পর্যন্ত পূরণ করুন, শেষ ঘরেই উত্তর।
+  hi: |
+    आप एक अजीब शहर में डिलीवरी करते हैं। हर सड़क one-way है, या पूरब की तरफ या दक्षिण की तरफ, कोई अपवाद नहीं। डिपो शहर के उत्तर-पश्चिम कोने में है और आज की डिलीवरी बिल्कुल दक्षिण-पूर्व कोने में। डिस्पैचर मजाक में पूछता है कि कितने अलग-अलग सही रास्ते हो सकते हैं। हाथ से बनाते-बनाते आपको हर चौराहे की एक सीधी बात समझ आती है: वहां पहुंचने वाले रास्ते या ऊपर से आते हैं या बाएं से, और कहीं से नहीं। नक्शे को कोने से कोने तक भरिए, आखिरी खाने में जवाब मिलेगा।
+  ar: |
+    أنت ساعي توصيل في مدينة غريبة. كل شارع فيها باتجاه واحد، إما شرقاً أو جنوباً، بلا استثناء. المستودع في الزاوية الشمالية الغربية وتسليم اليوم في أقصى الجنوب الشرقي. يسألك المرسل مازحاً: كم مساراً قانونياً مختلفاً يمكنك أن تسلكه؟ تبدأ برسمها يدوياً فتكتشف أن لكل تقاطع حقيقة بسيطة: المسارات التي تصل إليه تأتي من الأعلى أو من اليسار، ولا مكان غيرهما. املأ الخريطة من زاوية إلى زاوية، وستجد الجواب في الخلية الأخيرة.
+---
+
+## Boss 1: The One-Way City
+
+New dungeon, and the biggest one yet. Dungeon 12 taught 1-D dynamic programming: a line of subproblems, each answer built from one or two earlier answers on the same line. Dungeon 16 asks one question, eleven times: *what happens when the line becomes a table?*
+
+This boss is the gate. It's the gentlest problem in the dungeon on purpose, because it teaches the single move every later boss reuses: **a cell is a combination of neighbors you've already solved.** Learn to read a 2-D table as "smaller solved problems feeding a bigger one" and the next ten bosses are variations on today.
+
+---
+
+## The story
+
+You're a courier in the One-Way City. Urban planning here was done by someone with strong opinions: every street runs one-way, either **east** or **south**. No turning back north, no sneaking west.
+
+The depot sits at the northwest corner. Today's drop-off is at the southeast corner. Your dispatcher, watching you trace routes on the wall map, asks the annoying question:
+
+"How many *different* legal routes are there, anyway?"
+
+For a tiny 2-block by 2-block map you can count on fingers. For the real city, a 3-avenue by 4-street grid, it's already slippery. For the metro area? You need something better than fingers.
+
+---
+
+## The problem, dressed up properly
+
+> There is a robot on an `m x n` grid, starting at the top-left corner. The robot can only move **right** or **down**. Return the number of possible unique paths to reach the bottom-right corner.
+
+LeetCode 62, "Unique Paths". The classic opener for grid DP, and the cleanest possible statement of "count the ways" on two axes.
+
+---
+
+## The naive attempt
+
+Stand at an intersection and branch:
+
+```python
+def unique_paths(m, n):
+    def paths(r, c):
+        if r == m - 1 or c == n - 1:
+            return 1                      # last row or column: one straight shot left
+        return paths(r + 1, c) + paths(r, c + 1)
+    return paths(0, 0)
+```
+
+Correct, and doomed. Every call spawns two more, so the tree has roughly 2^(m+n) nodes. But the real crime is *repetition*. From the depot, "east then south" and "south then east" both land on intersection `(1, 1)`, and the recursion happily recomputes everything below `(1, 1)` from scratch, twice. Deeper cells get recomputed hundreds of times.
+
+Dungeon 12 flashback: Climbing Stairs had exactly this disease, `climb(n) = climb(n-1) + climb(n-2)` recomputing the same floor over and over. The cure there was a table with one row. The cure here is a table with *rows and columns*, because the state has two coordinates now, not one.
+
+---
+
+## The weapon: the delivery ledger
+
+Flip the question. Instead of "how many routes leave the depot?", ask each intersection: "how many routes **arrive here**?"
+
+Every route into intersection `(r, c)` took its final step either from the intersection **above** or the one to the **left**. Those are the only streets pointing in. So:
+
+- `dp[r][c] = dp[r-1][c] + dp[r][c-1]`
+- Top row and left column are all `1`: with one-way streets, there's exactly one way to hug an edge.
+
+Fill row by row, left to right, and every cell you compute uses two cells that are already final. No recursion, no recomputation, each intersection solved exactly once.
+
+<MermaidBlock>
+graph TB
+    A["depot at 0,0\ntop row and left column: all 1s\nonly one way to hug an edge"] --> B["inner intersection r,c\nroutes = from above + from left\ndp = dp above + dp left"]
+    B --> C["fill row by row, left to right\nevery cell reads two finished cells"]
+    C --> D["bottom-right cell\ntotal distinct routes"]
+    C --> E["space trick: keep one row\ndp j += dp j-1\nold value = above, new value = left"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+And here's the space upgrade. While filling row `r`, you only ever look at row `r-1` and the cell just written. So keep **one** row. Before updating, `dp[j]` still holds the value from the row above; `dp[j-1]` already holds the fresh value to the left. One line does both jobs:
+
+```python
+def unique_paths(m: int, n: int) -> int:
+    dp = [1] * n                      # first row: all ones
+    for _ in range(1, m):             # each remaining row
+        for j in range(1, n):         # left to right
+            dp[j] += dp[j - 1]        # above (old dp[j]) + left (new dp[j-1])
+    return dp[-1]
+```
+
+One honest aside: mathematicians teleport past this boss. Every route is m+n-2 moves, and choosing which m-1 of them go south fixes the route, so the answer is C(m+n-2, m-1), one binomial and done. Take the teleport in an interview if it's offered. But the table is the lesson: the closed form dies the moment Boss 3 drops an obstacle on the grid, and the DP table shrugs and keeps filling.
+
+---
+
+## Watching it work
+
+The dispatcher's map: 3 avenues by 4 streets, so a 3x4 grid. First row and column are 1s, then each cell is above plus left:
+
+```
+row 0:   1   1   1   1     (hug the north edge)
+row 1:   1   2   3   4     (1+1=2, 2+1=3, 3+1=4)
+row 2:   1   3   6  10     (2+1=3, 3+3=6, 4+6=10)
+
+answer: 10 distinct routes
+```
+
+Read cell `(2, 2) = 6` out loud: six routes reach it, three arriving from above and three from the left. The table isn't storing paths, it's storing *counts of solved subproblems*, and the bottom-right sums the whole city's structure into one number.
+
+Now the same map with the rolling row, `dp` starting as `[1, 1, 1, 1]`:
+
+```
+after row 1:   [1, 2, 3, 4]
+after row 2:   [1, 3, 6, 10]
+
+dp[-1] = 10 ✓
+```
+
+Same numbers, one row of memory. Each `dp[j] += dp[j-1]` overwrites "the cell above me" with "me".
+
+<Callout type="tip" title="2-D DP is a spreadsheet">
+Every boss in this dungeon is the same picture: a spreadsheet where each cell holds the answer to a smaller version of the problem, computed from cells above and to the left that are already final. The problem changes what a cell *means*, route counts today, matched prefix lengths tomorrow, edit costs later. The fill never changes. When a new 2-D problem appears, don't ask "how do I solve it", ask "what does one cell mean, and which neighbors feed it?"
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Initializing the first row and column to 0.**
+The edges are the base case and they are all `1`, not `0`. There is exactly one way to travel a one-way edge street: straight. Zero the edges and the entire table collapses to zeros, since every cell is a sum of its ancestors.
+
+**2. Rolling to 1-D with the wrong sweep direction.**
+`dp[j] += dp[j-1]` only works left to right, because it needs `dp[j-1]` to be *this* row's fresh value while `dp[j]` is still *last* row's. Sweep right to left and you add stale left-values, quietly producing wrong counts with no crash to warn you. When in doubt, ask of each read: "should this be old or new?"
+
+**3. Mixing up m and n.**
+`m` is rows, `n` is columns, and this problem is symmetric so `unique_paths(3, 7)` equals `unique_paths(7, 3)`, which *hides* the bug. Swap them in a problem that isn't symmetric (most of this dungeon) and you'll index out of bounds or get garbage. Pick a convention, `r` for rows against `m`, `j` for columns against `n`, and never bend it.
+
+**4. Off-by-one on what the grid counts.**
+An `m x n` grid has `m * n` intersections and the trip takes `m + n - 2` moves, not `m + n`. In the recursion, the base case is `r == m - 1 or c == n - 1`, the last row or column, where only one straight route remains. Writing `r == m` walks off the map.
+
+---
+
+## Complexity
+
+Every intersection computed once, from two lookups.
+
+**Time: O(m·n). Space: O(n)** with the rolling row, O(m·n) if you keep the full table (and for debugging, honestly, keep it, seeing the table is the point).
+
+---
+
+## Boss down
+
+The dispatcher gets the answer, 10 routes for the wall map, and you get something better: the shape of the whole dungeon. Climbing Stairs was a hallway where each step summed the two behind it. Give the hallway a second axis and each cell sums the two *neighbors* behind it, above and left. Same idea, one dimension richer.
+
+The gate is open. Next up, Boss 2: **Longest Common Subsequence — The Two Diaries.** Two old diaries describe the same trip, and you want the longest sequence of moments they agree on, in order. Two *strings* enter the table this time, one along each axis, and each cell compares a prefix of both. The grid stops being a map and becomes a comparison, and that's the version of 2-D DP interviews love most. Bring the ledger.

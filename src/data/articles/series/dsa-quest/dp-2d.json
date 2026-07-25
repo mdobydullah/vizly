@@ -1,11 +1,23 @@
 {
   "slug": "dp-2d",
   "title": "2-D Dynamic Programming",
-  "description": "Dungeon 16. DP on grids and two-dimensional state. Edit distance, knapsack, longest common subsequence. Where DP grows up.",
+  "description": "Dungeon 16. DP on grids and two-dimensional state. Edit distance, knapsack counting, longest common subsequence, interval DP, regex. Where DP grows up.",
   "icon": "🧊",
   "color": "orange",
   "tags": ["DSA", "Dynamic Programming"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-26T12:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "unique-paths-one-way-city", "title": "Unique Paths — The One-Way City" },
+    { "order": 2, "slug": "longest-common-subsequence-two-diaries", "title": "Longest Common Subsequence — The Two Diaries" },
+    { "order": 3, "slug": "stock-cooldown-collectors-market", "title": "Best Time to Buy and Sell Stock with Cooldown — The Collector's Cooldown" },
+    { "order": 4, "slug": "coin-change-ii-token-booth", "title": "Coin Change II — The Token Booth" },
+    { "order": 5, "slug": "target-sum-tug-of-war", "title": "Target Sum — The Tug of War" },
+    { "order": 6, "slug": "interleaving-string-braided-rope", "title": "Interleaving String — The Braided Rope" },
+    { "order": 7, "slug": "longest-increasing-path-terrace-climb", "title": "Longest Increasing Path in a Matrix — The Terrace Climb" },
+    { "order": 8, "slug": "distinct-subsequences-scrapbook-cutouts", "title": "Distinct Subsequences — The Scrapbook Cutouts" },
+    { "order": 9, "slug": "edit-distance-proofreaders-bill", "title": "Edit Distance — The Proofreader's Bill" },
+    { "order": 10, "slug": "burst-balloons-carnival-pop", "title": "Burst Balloons — The Carnival Pop" },
+    { "order": 11, "slug": "regex-matching-wildcard-stamp", "title": "Regular Expression Matching — The Wildcard Stamp" }
+  ]
 }

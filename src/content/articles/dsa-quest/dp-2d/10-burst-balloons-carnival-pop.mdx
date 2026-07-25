@@ -1,0 +1,212 @@
+---
+title: "Burst Balloons — The Carnival Pop"
+slug: burst-balloons-carnival-pop
+category: dsa
+series: dp-2d
+seriesOrder: 10
+description: "Dungeon 16, Boss 10. A carnival booth, a row of numbered balloons. Pop one and win the product of it and its two current neighbors, then the row closes up and every neighbor changes. Planning the first pop mutates the whole board. Plan the last pop instead, and interval DP freezes the walls."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🎈"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The carnival booth has a row of numbered balloons. Pop one and you win its number times the numbers on its two current neighbors. Then the row closes up and the neighbors change. The barker says pop them all, biggest payout wins. Planning the first pop is a trap, because it rewrites every pop after it. The real trick is deciding which balloon in each stretch pops last.
+  bn: |
+    মেলার স্টলে একসারি নম্বর লেখা বেলুন। একটা ফাটালে জিতবেন সেটার নম্বর গুণ তার দুই পাশের বেলুনের নম্বর। তারপর সারিটা চেপে আসে, প্রতিবেশী বদলে যায়। দোকানি বলে সবগুলো ফাটাও, সবচেয়ে বড় পুরস্কার নাও। প্রথমে কোনটা ফাটাবেন তা ভাবতে গেলেই ফাঁদে পড়বেন, কারণ প্রতিটা ফাটানো পরের সব হিসাব বদলে দেয়। আসল কৌশল হলো প্রতিটা অংশে কোন বেলুনটা সবার শেষে ফাটবে সেটা ঠিক করা।
+  hi: |
+    मेले के स्टॉल पर नंबर लिखे गुब्बारों की एक कतार है। एक फोड़िए और उसका नंबर उसके दोनों मौजूदा पड़ोसियों के नंबर से गुणा करके उतने सिक्के जीतिए। फिर कतार सिमट जाती है और पड़ोसी बदल जाते हैं। ठेलेवाला कहता है सारे फोड़ो, सबसे बड़ा इनाम ले जाओ। पहले कौन सा फोड़ें यह सोचना ही जाल है, क्योंकि हर पॉप आगे का पूरा हिसाब बदल देता है। असली चाल यह तय करना है कि हर हिस्से में आखिर में कौन सा गुब्बारा फूटेगा।
+  ar: |
+    في كشك المهرجان صف من البالونات المرقمة. افقع واحداً تربح رقمه مضروباً في رقمي جاريه الحاليين. بعدها يلتئم الصف وتتغير الجيرة. صاحب الكشك يقول افقعها كلها وخذ أكبر جائزة. التفكير في أول بالون تفقعه فخ، لأن كل فقعة تعيد كتابة الحسابات التالية. الحيلة الحقيقية أن تقرر أي بالون في كل مقطع يُفقع أخيراً.
+---
+
+## Boss 10: The Carnival Pop
+
+Second to last boss, and the hardest mental flip in the dungeon. Every table you've built here so far grew forward: prefixes of two strings, cells of a grid, days marching left to right. This boss punishes forward thinking outright. Ask "what do I pop first?" and the board mutates under your feet. Ask "what pops **last**?" and everything freezes solid.
+
+If that reversal sounds familiar, it should. Boss 1 of Dungeon 15 built an Eulerian itinerary by committing to airports in *post-order*, deciding the end before the middle. Same judo throw, different arena.
+
+---
+
+## The story
+
+The carnival barker waves you over. Behind him, a row of balloons on a wire, each painted with a number:
+
+```
+3   1   5   8
+```
+
+The rules: pick any balloon and pop it. You win coins equal to its number times the numbers on its two *current* neighbors. The wire cinches tight, the gap closes, and the two balloons that flanked it are now adjacent. A balloon on the end? Pretend there's an invisible balloon painted `1` beyond the edge.
+
+Pop all of them. Keep everything you win. The order is entirely up to you, and the barker grins like a man who knows most people order it wrong.
+
+Pop the `5` first and you bank `1 * 5 * 8 = 5` coins... wait, no, `1` and `8` are its neighbors, so `1 * 5 * 8 = 40`. Nice. But now `1` and `8` are touching, and every future pop pays differently than it would have. One greedy grab, and the whole board is a different board.
+
+---
+
+## The problem, dressed up properly
+
+> You are given `n` balloons, indexed `0` to `n - 1`, each painted with a number in `nums`. Bursting balloon `i` earns `nums[i - 1] * nums[i] * nums[i + 1]` coins, where out-of-bounds neighbors count as `1`. After bursting, the neighbors become adjacent. Return the maximum coins you can collect by bursting all the balloons.
+
+LeetCode 312, "Burst Balloons". Hard-rated, and it's the canonical gateway into interval DP.
+
+---
+
+## The naive attempt
+
+Try every possible first pop, recursively, on the shrinking list:
+
+```python
+def max_coins(nums):
+    def pop_all(balloons):
+        if not balloons:
+            return 0
+        best = 0
+        for i in range(len(balloons)):
+            left = balloons[i - 1] if i > 0 else 1
+            right = balloons[i + 1] if i + 1 < len(balloons) else 1
+            coins = left * balloons[i] * right
+            best = max(best, coins + pop_all(balloons[:i] + balloons[i + 1:]))
+        return best
+    return pop_all(nums)
+```
+
+Correct, and roughly n! flavored: n choices, then n minus 1, then n minus 2. For 10 balloons that's millions of orderings. For 30, forget it.
+
+But here's the deeper failure, and it's worth staring at. Every DP you've beaten so far worked because subproblems repeated and could be *named* by a couple of indices. Here, after popping the `1` from `[3, 1, 5, 8]` you hold `[3, 5, 8]`, a list that never existed in the original array as a contiguous run of anything. The state isn't a pair of indices. **The state is the mutating list itself**, and arbitrary subsequences of n balloons number 2^n. Memoization has nothing cheap to key on. Thinking about the *first* pop doesn't just cost time, it destroys the very structure DP feeds on.
+
+---
+
+## The weapon: think about the last balloon instead
+
+Flip the question. Don't ask which balloon pops first. Ask which balloon in a stretch pops **last**.
+
+Pad the row with the invisible `1`s so they're real: `[1, 3, 1, 5, 8, 1]`. Now define the subproblem on an *open* interval: `dp[l][r]` is the most coins you can earn popping every balloon strictly between index `l` and index `r`, while `l` and `r` themselves stay standing as walls.
+
+Why does "last" fix what "first" broke? Suppose balloon `k` (with l < k < r) is the final pop inside `(l, r)`. By the time `k` goes, every other balloon between the walls is already gone. So `k`'s neighbors at that moment are not some unpredictable survivors, they are exactly `nums[l]` and `nums[r]`, the walls, which never pop. The payout for `k` is `nums[l] * nums[k] * nums[r]`, fully known from indices alone.
+
+And better: before `k` pops, the balloons in `(l, k)` and the balloons in `(k, r)` can never touch each other, because `k` stands between them the whole time. The two sides are **independent** subproblems with fixed walls of their own:
+
+`dp[l][r] = max over k in (l, r) of dp[l][k] + dp[k][r] + nums[l] * nums[k] * nums[r]`
+
+The first-pop view leaks chaos forward. The last-pop view builds a wall and lets each side play out privately. That's the whole boss.
+
+<MermaidBlock>
+graph TB
+    A["full range (0 5)\nwalls 1 and 1"] --> B["pick k = 4 to pop LAST\nballoon 8 earns 1 x 8 x 1"]
+    B --> C["left side (0 4)\nballoons 3 1 5 between walls 1 and 8"]
+    B --> D["right side (4 5)\nempty earns 0"]
+    C --> E["pick k = 3 to pop last here\nballoon 5 earns 1 x 5 x 8"]
+    E --> F["left (0 3)\nballoons 3 1 between walls 1 and 5"]
+    E --> G["right (3 4)\nempty"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+Small intervals feed big ones, so fill by increasing gap between the walls:
+
+```python
+def max_coins(nums: list[int]) -> int:
+    balloons = [1] + nums + [1]          # the invisible edge balloons, made real
+    n = len(balloons)
+    dp = [[0] * n for _ in range(n)]
+
+    for length in range(2, n):           # gap from wall l to wall r
+        for l in range(n - length):
+            r = l + length
+            for k in range(l + 1, r):    # k pops LAST inside (l, r)
+                coins = balloons[l] * balloons[k] * balloons[r]
+                dp[l][r] = max(dp[l][r], dp[l][k] + dp[k][r] + coins)
+
+    return dp[0][n - 1]
+```
+
+Notice what the two axes mean now. Every earlier table in this dungeon indexed prefixes ("first i characters", "first j items") or literal grid cells. Here both axes are **cut points around an interval**, and length is the direction of progress. Same 2-D table, completely different geometry.
+
+---
+
+## Watching it work
+
+The barker's row `[3, 1, 5, 8]`, padded to `[1, 3, 1, 5, 8, 1]`, indices 0 through 5.
+
+Gap 2, one balloon between the walls, no choice of k:
+
+```
+dp[0][2] = 1*3*1 = 3      dp[1][3] = 3*1*5 = 15
+dp[2][4] = 1*5*8 = 40     dp[3][5] = 5*8*1 = 40
+```
+
+Gap 3, two balloons inside, first real decisions:
+
+```
+dp[1][4]: k=2 → 0 + 40 + 3*1*8  = 64
+          k=3 → 15 + 0 + 3*5*8  = 135   ← pop the 1 first, save the 5
+dp[0][3] = 30    dp[2][5] = 48
+```
+
+Already the story: inside walls `3` and `8`, sacrificing the puny `1` early so that `5` pops between big neighbors beats the reverse by 71 coins.
+
+Gap 4:
+
+```
+dp[0][4]: k=1 → 0 + 135 + 1*3*8 = 159   ← balloon 3 pops last here
+dp[1][5]: k=4 → 135 + 0 + 3*8*1 = 159
+```
+
+Gap 5, the full row:
+
+```
+dp[0][5]: k=1 → 0   + 159 + 1*3*1 = 162
+          k=2 → 3   + 48  + 1*1*1 = 52
+          k=3 → 30  + 40  + 1*5*1 = 75
+          k=4 → 159 + 0   + 1*8*1 = 167   ← the 8 pops dead last
+```
+
+**167 coins.** Unwound into an actual order: pop `1` (earns 15), pop `5` (earns 120), pop `3` (earns 24), pop `8` (earns 8). The biggest balloon pops last and earns the *least*, because its job was never to score, it was to stand next to the `5` when it mattered. The barker stops grinning.
+
+<Callout type="tip" title="When every action rewrites the board, ask what happens last">
+First-move thinking fails whenever each move mutates the arena for all the moves after it. But the final move in any region has nowhere left to leak: fix it, and the boundary around it freezes into known walls, splitting the region into independent halves. That's interval DP's whole bargain, and it's the same reversal Hierholzer's post-order pulled in Dungeon 15. If your subproblem keeps dissolving under mutation, stop asking what happened first.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the 1-padding.**
+Without the phantom balloons, edge pops need `if` branches for missing neighbors, and worse, `dp[l][r]` loses its clean meaning because the outermost intervals have no walls to stand on. Two array slots buy you a uniform formula. Take the deal.
+
+**2. Treating `dp[l][r]` as closed instead of open.**
+`dp[l][r]` covers balloons *strictly between* `l` and `r`. The walls never pop inside this subproblem, that's precisely what makes them dependable multipliers. If you define the range as inclusive, `nums[l]` and `nums[r]` are things you still have to pop, their final neighbors are unknown, and you're right back in the mutating-list swamp. Answer lives at `dp[0][n - 1]` of the padded array, not `dp[0][len(nums) - 1]`.
+
+**3. Looping l and r directly instead of by length.**
+`dp[l][r]` needs `dp[l][k]` and `dp[k][r]`, both *shorter* intervals. A plain double loop over l and r in index order reads cells that are still zero and silently lowballs the answer. The outer loop must be interval length, small to large. If your trace shows a correct gap-2 row and garbage above it, this is why.
+
+**4. Zeros in the input, and why the padding is still 1.**
+`nums` can contain zeros, and that's fine: a zero balloon just earns nothing whenever it pops, and the recurrence handles it untouched. But the *padding* must be `1`, never `0`. Pad with zeros and every pop that touches a wall multiplies into nothing, wiping out real coins at both edges. The phantom balloons exist to be harmless, and the multiplicative identity is the only harmless number in a product.
+
+---
+
+## Complexity
+
+Three nested loops over the padded array: every pair of walls, every last-pop choice between them.
+
+**Time: O(n³). Space: O(n²).**
+
+Cubic sounds heavy after this dungeon's O(m·n) tables, but n is at most 300 here, and no subcubic solution is known. Interval DP earns its keep on problems where the alternative is factorial.
+
+---
+
+## Boss down
+
+The wire hangs empty, 167 coins heavier in your pocket, and you've taken the dungeon's biggest idea: when moves rewrite the board, index the table by *interval walls* and decide each region's **final** move. Matrix chain multiplication, polygon triangulation, stone merging games, they're all this boss wearing different face paint.
+
+One boss left, and it's the one interviewers save for the kill: **Regular Expression Matching — The Wildcard Stamp.** A pattern full of dots and stars, a string that may or may not fit it, and the 2-D table that tames both. The dungeon closes on the interview final boss. Bring everything.

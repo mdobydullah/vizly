@@ -34,8 +34,8 @@ Full dungeon list (ship in order):
 13. **Intervals** — Dungeon 13 (COMPLETE)
 14. **Greedy** — Dungeon 14 (COMPLETE)
 15. **Advanced Graphs** — Dungeon 15 (COMPLETE)
-16. **2-D DP** — Dungeon 16 (next to build)
-17. **Bit Manipulation** — Dungeon 17
+16. **2-D DP** — Dungeon 16 (COMPLETE)
+17. **Bit Manipulation** — Dungeon 17 (next to build)
 18. **Math & Geometry** — Dungeon 18
 
 Note: Two Pointers was built out of order as MVP validation. That's fine — it's self-contained. Going forward, build remaining dungeons in strict NeetCode order starting from Sliding Window.
@@ -264,8 +264,22 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 5: Alien Dictionary (Lost Alphabet)
 - [x] Boss 6: Cheapest Flights Within K Stops (Budget Layover)
 
-### Dungeons 16-18
-- [ ] 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 16 — 2-D DP (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Unique Paths (One-Way City)
+- [x] Boss 2: Longest Common Subsequence (Two Diaries)
+- [x] Boss 3: Stock with Cooldown (Collector's Cooldown)
+- [x] Boss 4: Coin Change II (Token Booth)
+- [x] Boss 5: Target Sum (Tug of War)
+- [x] Boss 6: Interleaving String (Braided Rope)
+- [x] Boss 7: Longest Increasing Path (Terrace Climb)
+- [x] Boss 8: Distinct Subsequences (Scrapbook Cutouts)
+- [x] Boss 9: Edit Distance (Proofreader's Bill)
+- [x] Boss 10: Burst Balloons (Carnival Pop)
+- [x] Boss 11: Regular Expression Matching (Wildcard Stamp)
+
+### Dungeons 17-18
+- [ ] Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

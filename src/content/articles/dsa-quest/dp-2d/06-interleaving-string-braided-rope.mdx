@@ -1,0 +1,206 @@
+---
+title: "Interleaving String — The Braided Rope"
+slug: interleaving-string-braided-rope
+category: dsa
+series: dp-2d
+seriesOrder: 6
+description: "Dungeon 16, Boss 6. A rope maker braids one blue strand and one red strand into a finished rope, but the dye has faded and only the knot pattern remains. Could this braid really have come from these two strands, each kept in its own order? Three strings walk in, but a 2-D table walks out, because position in the braid is always i plus j."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "🪢"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A rope maker braids two strands into one rope, a blue one and a red one, always pulling knots off the front of each strand. Someone hands you a finished braid and the two original strands, but the dye has faded and every knot looks the same gray. The question is simple to ask and sneaky to answer. Could this exact braid have come from these two strands, each one used front to back in its own order? Grabbing from whichever strand matches next sounds smart until both strands offer the same knot and you pick wrong.
+  bn: |
+    একজন দড়ি কারিগর দুটো সুতো পাকিয়ে একটা দড়ি বানায়, একটা নীল আর একটা লাল, প্রতিবার প্রতিটা সুতোর সামনে থেকে গিঁট তুলে নেয়। কেউ আপনার হাতে তৈরি দড়িটা আর আসল দুটো সুতো ধরিয়ে দিল, কিন্তু রং জ্বলে গিয়ে সব গিঁট এখন একই রকম ধূসর। প্রশ্নটা শুনতে সোজা, উত্তরটা ততটা নয়। এই দড়িটা কি সত্যিই ওই দুটো সুতো থেকে আসতে পারত, প্রতিটা সুতো নিজের ক্রমে সামনে থেকে পেছনে? যে সুতোর গিঁট মিলে যায় সেটা থেকেই তুলে নেওয়া বুদ্ধিমানের কাজ মনে হয়, যতক্ষণ না দুটো সুতোই একই গিঁট দেখায় আর আপনি ভুলটা বেছে ফেলেন।
+  hi: |
+    एक रस्सी बनाने वाला दो धागों को गूंथकर एक रस्सी बनाता है, एक नीला और एक लाल, हर बार हर धागे के आगे से गांठ उठाता है। कोई आपको बनी हुई रस्सी और दोनों असली धागे थमा देता है, पर रंग उड़ चुका है और हर गांठ एक जैसी सलेटी दिखती है। सवाल पूछना आसान है, जवाब देना नहीं। क्या यह रस्सी सचमुच इन्हीं दो धागों से बन सकती थी, हर धागा अपने क्रम में आगे से पीछे? जिस धागे की गांठ मिल जाए उसी से उठा लेना समझदारी लगती है, जब तक दोनों धागे एक ही गांठ न दिखा दें और आप गलत वाला चुन लें।
+  ar: |
+    يجدل صانع الحبال خيطين في حبل واحد، خيط أزرق وخيط أحمر، ويسحب العقد دائماً من مقدمة كل خيط. يسلمك أحدهم الجديلة الجاهزة والخيطين الأصليين، لكن الصبغة بهتت وصارت كل العقد رمادية متشابهة. السؤال سهل النطق وصعب الجواب. هل يمكن أن تكون هذه الجديلة بالذات قد جاءت من هذين الخيطين، وكل خيط مستخدم بترتيبه من أوله إلى آخره؟ يبدو ذكياً أن تأخذ من الخيط الذي تطابق عقدته العقدة التالية، إلى أن يعرض الخيطان العقدة نفسها فتختار الخطأ.
+---
+
+## Boss 6: The Braided Rope
+
+Every boss in this dungeon so far took two sequences and asked how they relate. This boss hands you *three* strings and asks whether one of them is the other two, shuffled together. Your first instinct might be a 3-D table, one axis per string.
+
+Hold that instinct. The third string is an illusion. It rides along for free, and seeing why is the whole fight.
+
+---
+
+## The story
+
+The rope maker's workshop smells of tar and hemp. She braids the old way: one blue strand, one red strand, and at every step she pulls the next knot off the front of *one* of them. Never out of order within a strand. Blue's third knot cannot appear in the rope before blue's second.
+
+Years later, someone brings you a finished rope and two loose strands from the same workshop. The dye has long since faded to gray, but the knot pattern on every strand is still crisp. The question:
+
+> Could this braid really have come from these two strands?
+
+Say the blue strand reads `aab`, the red strand reads `axy`, and the rope reads `aaxaby`. Is there a way to pull knots off the two fronts, in order, and get exactly that rope? (There is: red `a`, blue `a`, red `x`, blue `a`, blue `b`, red `y`. Check it.)
+
+The braid is exactly as long as the two strands combined, every knot came from somewhere, and order inside each strand is sacred. Prove it possible or prove it a forgery.
+
+---
+
+## The problem, dressed up properly
+
+> Given strings `s1`, `s2`, and `s3`, return `true` if `s3` is formed by an interleaving of `s1` and `s2`, meaning `s3` uses every character of both, and the characters of `s1` appear in their original relative order, same for `s2`.
+
+LeetCode 97, "Interleaving String". Medium-rated, famous for luring people into a greedy trap first and a 3-D table second.
+
+---
+
+## The naive attempt
+
+The obvious move: walk the braid with one pointer on each strand, and take from whichever strand's front matches the next knot.
+
+```python
+def is_interleave(s1, s2, s3):
+    i = j = 0
+    for ch in s3:
+        if i < len(s1) and s1[i] == ch:
+            i += 1                      # prefer the blue strand
+        elif j < len(s2) and s2[j] == ch:
+            j += 1
+        else:
+            return False
+    return i == len(s1) and j == len(s2)
+```
+
+Run it on the story's rope. Blue is `aab`, red is `axy`, braid is `aaxaby`. First knot `a`: both strands offer `a`. Greedy prefers blue, takes it. Second knot `a`: both offer `a` again, greedy takes blue again. Third knot is `x`: blue's front is now `b`, red's front is still `a`. Neither matches. Greedy declares forgery.
+
+But we *built* that braid from those strands two sections ago. The second `a` had to come from blue's second knot only if the first came from red. Greedy picked wrong at a tie and can't take it back.
+
+Fine, then branch on every tie:
+
+```python
+def is_interleave(s1, s2, s3):
+    if len(s1) + len(s2) != len(s3):
+        return False
+    def weave(i, j):
+        k = i + j
+        if k == len(s3):
+            return True
+        take_blue = i < len(s1) and s1[i] == s3[k] and weave(i + 1, j)
+        take_red  = j < len(s2) and s2[j] == s3[k] and weave(i, j + 1)
+        return take_blue or take_red
+    return weave(0, 0)
+```
+
+Correct now, but every ambiguous knot doubles the tree. A braid full of repeated letters, the exact case that broke greedy, is also the case that makes this exponential. 2^n on adversarial input. The rope maker's apprentice could braid faster than you can verify.
+
+Look at that helper's signature, though. `weave(i, j)`. Two numbers. And `k` wasn't even a parameter, it was *computed*: `k = i + j`.
+
+---
+
+## The weapon: the table where the third string rides free
+
+Here's the observation that collapses everything. If you've consumed `i` knots of blue and `j` knots of red, you have placed exactly `i + j` knots of braid. Always. There's no third degree of freedom. The position in `s3` isn't a coordinate, it's a consequence.
+
+So the state is just `(i, j)`, and Boss 2's prefix axes come straight back. Same table shape as the Two Diaries: rows are prefixes of `s1`, columns are prefixes of `s2`. But the cells hold booleans now, not lengths:
+
+**`dp[i][j]` is true if the first `i` blue knots and the first `j` red knots can weave the first `i + j` knots of braid.**
+
+A cell can only be true two ways, matching the two hands the rope maker could have used:
+
+- the knot at braid position `i + j` came off **blue**: then `s1[i-1]` must equal `s3[i+j-1]`, and `dp[i-1][j]` must already be true
+- or it came off **red**: then `s2[j-1]` must equal `s3[i+j-1]`, and `dp[i][j-1]` must already be true
+
+<MermaidBlock>
+graph TB
+    A["cell above is true\nfirst i-1 blue and j red knots weave the braid so far"] --> C["cell i, j"]
+    B["cell to the left is true\nfirst i blue and j-1 red knots weave the braid so far"] --> C
+    A -.-> D["and blue knot i matches\nbraid knot at position i plus j"]
+    B -.-> E["and red knot j matches\nbraid knot at position i plus j"]
+    C --> F["true if either route works\nfalse if both fail"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+Before any of that, one cheap guard: if the strand lengths don't sum to the braid length, some knot has no home. False, no table needed.
+
+And since each cell only looks up and left, one rolling row suffices, exactly like Boss 2's space trick:
+
+```python
+def is_interleave(s1: str, s2: str, s3: str) -> bool:
+    m, n = len(s1), len(s2)
+    if m + n != len(s3):
+        return False                      # a knot with no home
+
+    dp = [False] * (n + 1)
+    dp[0] = True
+    for j in range(1, n + 1):             # row 0: red strand alone
+        dp[j] = dp[j - 1] and s2[j - 1] == s3[j - 1]
+
+    for i in range(1, m + 1):
+        dp[0] = dp[0] and s1[i - 1] == s3[i - 1]   # column 0: blue alone
+        for j in range(1, n + 1):
+            k = i + j - 1
+            dp[j] = (dp[j] and s1[i - 1] == s3[k]) or \
+                    (dp[j - 1] and s2[j - 1] == s3[k])
+
+    return dp[n]
+```
+
+Before the inner update, `dp[j]` still holds the cell above and `dp[j - 1]` already holds the cell to the left. Two reads, one write, no second row.
+
+---
+
+## Watching it work
+
+Blue `aab`, red `axy`, braid `aaxaby`. Rows are blue prefixes, columns are red prefixes, `T` means "this many knots of each can weave the braid so far":
+
+|          | red: 0 | `a` | `ax` | `axy` |
+| -------- | ------ | --- | ---- | ----- |
+| blue: 0  | T      | T   | .    | .     |
+| `a`      | T      | T   | T    | .     |
+| `aa`     | T      | .   | T    | .     |
+| `aab`    | .      | .   | T    | **T** |
+
+Read the corner's ancestry backwards and you get the actual braid order: `dp[3][3]` came from the left (red `y`), that from above (blue `b`), then above again (blue `a`), then left (red `x`), then left's ancestor above (blue `a`), then left (red `a`). Red, blue, red, blue, blue, red: `a a x a b y`. The table didn't just answer yes, it kept the receipt.
+
+Notice the dead cells too. `dp[2][1]` is false because two blue knots and one red knot would have to weave `aax`, and no assignment works. Greedy died exactly there, and the table just shrugged and routed around it.
+
+<Callout type="tip" title="Count degrees of freedom, not strings">
+Three strings walked into this problem and a 2-D table walked out. The rule: when one sequence's position is fully determined by the others (here, position in s3 is always i plus j), it contributes no dimension. Before building a table, don't count the strings in the problem statement. Count the choices that can actually vary independently. That number is your table's dimension, and it's often smaller than the cast list.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the length guard.**
+If `len(s1) + len(s2) != len(s3)`, the answer is false before any weaving. Worse, without the guard your loops index `s3[i + j - 1]` past its end and crash, or silently compare against nothing. One `if`, first line, always.
+
+**2. The i + j - 1 off-by-one.**
+`dp[i][j]` means `i` and `j` characters *consumed*, so the newest braid position is `i + j - 1`, and the candidate strand characters are `s1[i - 1]` and `s2[j - 1]`. Mix "count consumed" with "index of current" and every comparison shifts by one. Pick the convention, write `k = i + j - 1` once, and use `k` everywhere.
+
+**3. Botching row 0 and column 0.**
+Row 0 asks "can red alone weave this prefix", and each cell must chain off the previous: `dp[0][j]` is true only if `dp[0][j-1]` was true *and* the characters match. Initialize the whole edge to true, or compare without chaining, and one lucky character deep in the strand revives a dead prefix.
+
+**4. Rolling-array update order.**
+The 1-D version works because, at the moment you write `dp[j]`, the old value is the cell above and `dp[j - 1]` is the freshly written cell to the left. That only holds sweeping `j` left to right. Reverse the inner loop, a habit some knapsack problems teach, and you'd read a stale left neighbor. This table wants the opposite instinct.
+
+---
+
+## Complexity
+
+The table has `(m + 1) * (n + 1)` cells and each costs O(1).
+
+**Time: O(m·n). Space: O(n)** with the rolling row, O(m·n) if you keep the full table for path recovery.
+
+---
+
+## Boss down
+
+The rope maker inspects your table, follows the trail of T's from corner to corner, and nods: the braid is genuine. Six bosses in, the pattern of the dungeon is showing its face. Prefix axes from Boss 2 keep coming back wearing different masks, and today's mask was the best one yet: a third string that looked like a third dimension and turned out to be a shadow of the other two.
+
+Next boss: **Longest Increasing Path in a Matrix — The Terrace Climb.** The table finally escapes the table. The grid you'll fill isn't an abstraction over two strings, it's a real mountain of terraced fields, and there's no row-by-row order you can fill it in, because the dependencies point wherever the terrain slopes. DP still wins, but it has to arrive by DFS with a memo in its pack. See you on the slope.

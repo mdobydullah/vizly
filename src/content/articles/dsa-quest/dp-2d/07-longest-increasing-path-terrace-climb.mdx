@@ -1,0 +1,204 @@
+---
+title: "Longest Increasing Path in a Matrix — The Terrace Climb"
+slug: longest-increasing-path-terrace-climb
+category: dsa
+series: dp-2d
+seriesOrder: 7
+description: "Dungeon 16, Boss 7. A mountainside of rice terraces, and a hiker who only ever steps to a strictly higher one. Longest possible climb, starting anywhere. No sweep order fills this table, so the recursion fills it on demand, and 'strictly higher' quietly turns the whole grid into a DAG."
+tags:
+  - DSA
+  - Dynamic Programming
+  - Advanced
+icon: "⛰️"
+color: orange
+createdAt: "2026-07-26T12:00:00Z"
+updatedAt: "2026-07-26T12:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A mountainside is carved into rice terraces, and every terrace has a known height. You're hiking it with one stubborn rule, you only ever step onto a neighboring terrace that sits strictly higher than the one under your feet. You can start anywhere on the slope. The question is simple to ask and brutal to brute-force, what's the longest climb possible? The trick is to ask each terrace "how far can you go from here", write the answer down, and never ask the same terrace twice.
+  bn: |
+    পাহাড়ের ঢাল কেটে ধাপে ধাপে ধানের জমি বানানো, আর প্রতিটা ধাপের উচ্চতা জানা। আপনি হাঁটছেন একটাই জেদি নিয়ম নিয়ে, পা রাখবেন শুধু পাশের সেই ধাপে যেটা আপনার ধাপের চেয়ে স্পষ্টভাবে উঁচু। শুরু করতে পারেন ঢালের যেকোনো জায়গা থেকে। প্রশ্নটা শুনতে সহজ, সবচেয়ে লম্বা চড়াইটা কত ধাপের? কৌশলটা হলো প্রতিটা ধাপকে জিজ্ঞেস করা "এখান থেকে কত দূর ওঠা যায়", উত্তরটা লিখে রাখা, আর একই ধাপকে দ্বিতীয়বার কখনো জিজ্ঞেস না করা।
+  hi: |
+    पहाड़ की ढलान को काटकर सीढ़ीदार खेत बनाए गए हैं, और हर खेत की ऊंचाई पता है। आप उस पर चल रहे हैं एक जिद्दी नियम के साथ, कदम सिर्फ उसी पड़ोसी खेत पर रखेंगे जो आपके खेत से साफ तौर पर ऊंचा हो। शुरुआत ढलान पर कहीं से भी कर सकते हैं। सवाल पूछने में आसान है, सबसे लंबी चढ़ाई कितनी लंबी हो सकती है? तरकीब यह है कि हर खेत से पूछो "यहां से कितनी दूर चढ़ सकते हो", जवाब लिख लो, और किसी खेत से दोबारा कभी मत पूछो।
+  ar: |
+    سفح جبل منحوت على شكل مدرجات أرز، وكل مدرج له ارتفاع معروف. أنت تتسلقه بقاعدة واحدة عنيدة، لا تخطو إلا إلى مدرج مجاور أعلى من الذي تقف عليه بشكل صريح. ويمكنك أن تبدأ من أي نقطة على المنحدر. السؤال سهل النطق وصعب التجريب، ما أطول تسلق ممكن؟ الحيلة أن تسأل كل مدرج "إلى أي مدى يمكن الصعود من هنا"، ثم تكتب الجواب ولا تسأل المدرج نفسه مرتين أبداً.
+---
+
+## Boss 7: The Terrace Climb
+
+Six bosses into this dungeon, and every table so far was filled the same way: pick a sweep order, usually row by row, and by the time you reach a cell its dependencies are already done. Comfortable. Predictable.
+
+This boss takes that away. The dependencies don't point up-left or down-right, they point *uphill*, and uphill can be any of the four directions depending on the terrain. No fixed sweep works. The table still exists, but the recursion has to fill it in whatever order the mountain demands.
+
+---
+
+## The story
+
+A mountainside carved into rice terraces, each flat step at its own height, packed into a grid:
+
+```
+9  9  4
+6  6  8
+2  1  1
+```
+
+You're hiking it with one rule: from any terrace, you may step only to a neighboring terrace (up, down, left, right) that is *strictly higher*. No hopping to an equal ledge, no descending. You can start anywhere on the slope.
+
+The village elder's challenge: what's the longest climb anyone could ever make?
+
+Squint at the grid. Start at the `1` in the bottom middle: step to `2`, then `6`, then `9`. Four terraces. Can anything beat it? Checking by hand means tracing every uphill route from every starting terrace, and routes overlap *constantly*. That overlap is the whole boss.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` matrix of integers, return the length of the longest strictly increasing path. From each cell you can move in four directions: left, right, up, or down. You may start from any cell.
+
+LeetCode 329, "Longest Increasing Path in a Matrix". Hard-rated, and a famous interview closer, because it looks like a graph problem, smells like a DP problem, and is quietly both.
+
+---
+
+## The naive attempt
+
+Just walk. From every cell, DFS uphill, keep the best:
+
+```python
+def longest_increasing_path(matrix):
+    rows, cols = len(matrix), len(matrix[0])
+
+    def walk(r, c):
+        best = 1
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and matrix[nr][nc] > matrix[r][c]:
+                best = max(best, 1 + walk(nr, nc))
+        return best
+
+    return max(walk(r, c) for r in range(rows) for c in range(cols))
+```
+
+Correct. And doomed. This enumerates every uphill *path*, and paths overlap brutally. Picture a terrace field where heights rise smoothly toward one corner: from the lowest terrace, going right-then-up and up-then-right both land on the same high terrace, and the naive walk re-explores everything above that terrace *once per route that reaches it*. On a grid where heights increase toward a corner, the number of monotone routes grows like binomial coefficients, exponential in the grid size. A 15 by 15 smooth slope has more routes than you can walk in a lifetime.
+
+But notice what's being wasted. `walk(nr, nc)` answers a question that doesn't depend on how you got there: "what's the longest climb *starting from* this terrace?" Same cell, same answer, every time. That's overlapping subproblems, this dungeon's oldest bell.
+
+---
+
+## The weapon: DFS that writes down its answers
+
+Define the subproblem the way the hiker would:
+
+**`longest(r, c)` = the longest climb that starts at terrace `(r, c)`.**
+
+The recurrence is one line: stand on the terrace, look at the four neighbors, and only the strictly higher ones continue the climb.
+
+```
+longest(r, c) = 1 + max(longest(neighbor)) over strictly higher neighbors
+              = 1 if no neighbor is higher (a local peak, the climb ends)
+```
+
+That's a DP recurrence, and the memo table is exactly the DP table from Bosses 1 through 6. The difference is *who decides the fill order*. Before, we swept rows because dependencies pointed backward. Here, `longest(r, c)` depends on higher neighbors, which can sit in any direction. The terrain dictates the order, so we let recursion follow the terrain and cache what it finds.
+
+One fear needs killing first: can the recursion loop forever, chasing cells in a circle? No, and the reason is the word *strictly*. Every recursive step moves to a strictly greater height. Heights only go up along any chain of calls, so no chain can revisit a cell — you can never climb back down to where you started. The implicit graph (cells as nodes, uphill steps as edges) has no cycles. It's a **DAG**.
+
+That's the bridge back to Dungeon 15. DAGs are exactly the graphs with a topological order, and here the order comes free: *the heights themselves are the topo order*. Sort cells by height and every edge points from lower to higher. Memoized DFS is just DP evaluated in that implicit order without ever computing it explicitly. (The explicit version exists too: count uphill out-edges as in-degrees and peel the grid Kahn-style from the valleys inward, a topological BFS. Same complexity, more code, worth one breath and no more.)
+
+<MermaidBlock>
+graph TB
+    A["longest(r, c) is asked"] --> B["memo already has it?\nreturn the stored answer"]
+    A --> C["check 4 neighbors"]
+    C --> D["strictly higher neighbor\nrecurse uphill first"]
+    C --> E["equal or lower neighbor\nignore, no edge exists"]
+    D --> F["answer = 1 + max of\nuphill answers, or 1 at a peak"]
+    E --> F
+    F --> G["store in memo\nthis terrace never computes again"]
+    G --> H["heights always rise on the way up\nno cycles: the grid is a DAG"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+from functools import cache
+
+def longest_increasing_path(matrix: list[list[int]]) -> int:
+    rows, cols = len(matrix), len(matrix[0])
+
+    @cache
+    def longest(r: int, c: int) -> int:
+        best = 1                                  # the terrace itself
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and matrix[nr][nc] > matrix[r][c]:
+                best = max(best, 1 + longest(nr, nc))
+        return best
+
+    return max(longest(r, c) for r in range(rows) for c in range(cols))
+```
+
+Same code as the naive walk plus one decorator. That decorator is the entire boss fight: it collapses "every path" into "every cell".
+
+---
+
+## Watching it work
+
+The story's mountainside, `[[9, 9, 4], [6, 6, 8], [2, 1, 1]]`. Kick off from the top-left and watch the memo fill.
+
+`longest(0, 0)` stands on `9`. Neighbors are `9` (equal) and `6` (lower). No uphill edge, it's a peak: memo gets `1`. Same story for the other `9`. Then `longest(0, 2)` on the `4`: uphill neighbors are the `9` beside it and the `8` below, both already-or-soon memoized peaks worth `1`, so the `4` stores `2`.
+
+The interesting cascade starts in the valley. `longest(2, 1)` stands on the `1` at the bottom middle:
+
+- uphill to `6` above it, which climbs to a `9`: that `6` stores `2`
+- uphill to `2` on its left, which climbs to the *other* `6`, which climbs to a `9`: the `2` stores `3`
+- best is `1 + 3 = 4`
+
+Every stored value, laid over the terrain:
+
+```
+heights        memo (longest climb from here)
+9  9  4        1  1  2
+6  6  8        2  2  1
+2  1  1        3  4  2
+```
+
+Maximum is `4`, the climb `1 → 2 → 6 → 9`. And look at the memo's shape: valleys hold big numbers, peaks hold `1`. The table filled itself from the peaks downward, in reverse height order, exactly the topological order nobody had to compute. When the outer loop later asks about cells the cascade already touched, they answer from memo in constant time. Nine cells, nine computations, done.
+
+<Callout type="tip" title="Strictness is a free structural gift">
+"Strictly increasing" isn't a fussy detail, it's the load-bearing wall. Strict inequality means progress in a quantity that can never repeat, which forbids cycles, which makes the implicit graph a DAG, which is what lets memoized DFS terminate and touch each state once. And that's the general escape hatch: when a DP has no clean sweep order, don't force one. Recursion plus a memo *is* the DP, evaluated in whatever order the dependencies demand. If some quantity strictly rises along every edge, that order exists, guaranteed.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Softening "strictly higher" into "higher or equal".**
+Allow equal-height steps and two neighboring terraces at the same height point uphill *at each other*. The DAG grows a cycle, the recursion chases its own tail, and you meet a stack overflow instead of an answer. The strict inequality is not flavor text, it is the termination proof.
+
+**2. Returning `longest(0, 0)` instead of the max over all cells.**
+The hiker starts *anywhere*. In the story grid, starting at the top-left `9` scores exactly 1. The answer lives at the bottom of the valley, and only the max over every starting cell finds it. The outer loop is part of the algorithm, not ceremony.
+
+**3. Recursion depth on big grids.**
+The longest chain of calls equals the longest path, and on a 200 by 200 snake-shaped slope that can reach 40,000 frames — past Python's default limit of 1000. Either raise it (`sys.setrecursionlimit(200_000)`) or switch to the Kahn-style peel from the valleys, which is iterative and depth-proof. Interviewers accept the one-liner; production code prefers the peel.
+
+**4. Reaching for a `visited` set out of Dungeon 11 loyalty.**
+Islands needed `visited` because flood fill asks "have I been here at all". This boss asks "what is the *answer* from here", a different question. A visited set that blocks re-entry returns wrong lengths when two climbs merge; one that resets per start cell brings back the exponential blowup. The memo replaces `visited` entirely, and cycle protection comes from strictness, not bookkeeping.
+
+---
+
+## Complexity
+
+Each of the `m·n` cells computes exactly once, doing constant work over four neighbors; every later visit is a cache hit.
+
+**Time: O(m·n). Space: O(m·n)** for the memo, plus recursion stack up to the longest path.
+
+---
+
+## Boss down
+
+The elder gets the answer, four terraces, and the dungeon quietly levels up. Bosses 1 through 6 taught you tables with obedient sweep orders. This boss taught you what a DP table *really* is: answers to subproblems, in any order the dependencies allow. When the terrain picks the order, recursion plus a memo walks it for you, and Dungeon 15's DAG lore is what guarantees the walk ends.
+
+Boss 8 goes back to prefix tables, but with a twist of ambition: not "does one string hide inside another" but *how many ways* it hides there. **Distinct Subsequences — The Scrapbook Cutouts.** Counting, it turns out, is just DP with plus signs where the maxes used to be. See you there.
