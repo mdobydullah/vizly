@@ -33,8 +33,8 @@ Full dungeon list (ship in order):
 12. **1-D DP** — Dungeon 12 (COMPLETE)
 13. **Intervals** — Dungeon 13 (COMPLETE)
 14. **Greedy** — Dungeon 14 (COMPLETE)
-15. **Advanced Graphs** — Dungeon 15 (next to build)
-16. **2-D DP** — Dungeon 16
+15. **Advanced Graphs** — Dungeon 15 (COMPLETE)
+16. **2-D DP** — Dungeon 16 (next to build)
 17. **Bit Manipulation** — Dungeon 17
 18. **Math & Geometry** — Dungeon 18
 
@@ -255,8 +255,17 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 7: Partition Labels (Shooting Schedule)
 - [x] Boss 8: Valid Parenthesis String (Smudged Receipt)
 
-### Dungeons 15-18
-- [ ] Advanced Graphs, 2-D DP, Bit Manipulation, Math & Geometry
+### Dungeon 15 — Advanced Graphs (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Reconstruct Itinerary (Ticket Shoebox)
+- [x] Boss 2: Min Cost to Connect All Points (Village Power Grid)
+- [x] Boss 3: Network Delay Time (Telegraph Network)
+- [x] Boss 4: Swim in Rising Water (Flooded Quarry)
+- [x] Boss 5: Alien Dictionary (Lost Alphabet)
+- [x] Boss 6: Cheapest Flights Within K Stops (Budget Layover)
+
+### Dungeons 16-18
+- [ ] 2-D DP, Bit Manipulation, Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

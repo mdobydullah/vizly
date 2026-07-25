@@ -114,6 +114,12 @@
 - [Search in Rotated Sorted Array — The Shifted Vault Codes](/articles/search-rotated-array-shifted-vault): One half is always sorted, pick the half that can hold the target.
 - [Time Based Key-Value Store — The Ticker Tape](/articles/time-based-kv-store-ticker-tape): Predecessor search, rightmost timestamp at or before target.
 - [Median of Two Sorted Arrays — The Twin Libraries](/articles/median-two-sorted-arrays-twin-libraries): Partition binary search on the smaller array, O(log min(m,n)).
+- [Reconstruct Itinerary — The Ticket Shoebox](/articles/reconstruct-itinerary-ticket-shoebox): Hierholzer's algorithm, Eulerian path, post-order edge consumption.
+- [Min Cost to Connect All Points — The Village Power Grid](/articles/min-cost-connect-points-power-grid): Prim's minimum spanning tree, cut property, heap-driven frontier.
+- [Network Delay Time — The Telegraph Network](/articles/network-delay-time-telegraph): Dijkstra with a min-heap, lazy deletion, O(E log V) shortest paths.
+- [Swim in Rising Water — The Flooded Quarry](/articles/swim-rising-water-flooded-quarry): Minimax Dijkstra, minimize the max cell on a path, grid as graph.
+- [Alien Dictionary — The Lost Alphabet](/articles/alien-dictionary-lost-alphabet): Build a precedence graph from sorted words, Kahn's topological sort.
+- [Cheapest Flights Within K Stops — The Budget Layover](/articles/cheapest-flights-k-stops-budget-layover): Bellman-Ford bounded to k+1 relaxation rounds, snapshot copy.
 
 ## Guides — System Design
 

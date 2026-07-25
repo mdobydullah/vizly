@@ -1,11 +1,18 @@
 {
   "slug": "advanced-graphs",
   "title": "Advanced Graphs",
-  "description": "Dungeon 15. Dijkstra, Bellman-Ford, Union-Find, topological sort. The algorithms that power routing, scheduling, and infrastructure.",
+  "description": "Dungeon 15. Dijkstra, Bellman-Ford, Prim's MST, Eulerian paths, topological sort. The algorithms that power routing, scheduling, and infrastructure.",
   "icon": "🛰️",
   "color": "orange",
   "tags": ["DSA", "Graphs", "Dijkstra", "Union-Find"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-26T10:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "reconstruct-itinerary-ticket-shoebox", "title": "Reconstruct Itinerary — The Ticket Shoebox" },
+    { "order": 2, "slug": "min-cost-connect-points-power-grid", "title": "Min Cost to Connect All Points — The Village Power Grid" },
+    { "order": 3, "slug": "network-delay-time-telegraph", "title": "Network Delay Time — The Telegraph Network" },
+    { "order": 4, "slug": "swim-rising-water-flooded-quarry", "title": "Swim in Rising Water — The Flooded Quarry" },
+    { "order": 5, "slug": "alien-dictionary-lost-alphabet", "title": "Alien Dictionary — The Lost Alphabet" },
+    { "order": 6, "slug": "cheapest-flights-k-stops-budget-layover", "title": "Cheapest Flights Within K Stops — The Budget Layover" }
+  ]
 }

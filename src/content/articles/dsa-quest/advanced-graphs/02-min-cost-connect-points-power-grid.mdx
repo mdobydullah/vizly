@@ -1,0 +1,188 @@
+---
+title: "Min Cost to Connect All Points — The Village Power Grid"
+slug: min-cost-connect-points-power-grid
+category: dsa
+series: advanced-graphs
+seriesOrder: 2
+description: "Dungeon 15, Boss 2. A village of scattered houses needs electricity, and cable is priced by street distance. Any house can relay power to the next, so the question is which cables to lay for the least total wire. Grow the grid one cheapest frontier cable at a time, and Prim's algorithm turns out to be a greedy proof you already own."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "🔌"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A village is finally getting electricity. The mayor hands you a map of scattered houses and says "wire every one of them, and cable isn't cheap." The cost of a cable is the street distance between two houses, and any wired house can pass power along to the next. So you don't need a cable between every pair, just enough cables that power can reach everyone. Start at one house and keep grabbing the cheapest cable that reaches somewhere new, and somehow that stingy little rule builds the cheapest possible grid.
+  bn: |
+    গ্রামে অবশেষে বিদ্যুৎ আসছে। মেয়র আপনার হাতে ছড়ানো ছিটানো বাড়িগুলোর একটা ম্যাপ ধরিয়ে দিয়ে বললেন "প্রতিটা বাড়িতে তার পৌঁছাতে হবে, আর ক্যাবল কিন্তু সস্তা না।" দুই বাড়ির মধ্যে ক্যাবলের দাম হলো রাস্তার দূরত্ব, আর যে বাড়িতে বিদ্যুৎ আছে সে পাশের বাড়িতে পাস করে দিতে পারে। তাই সব জোড়া বাড়ির মাঝে তার লাগবে না, শুধু এমনভাবে লাগালেই হবে যেন সবাই কানেক্টেড থাকে। একটা বাড়ি থেকে শুরু করুন, আর বারবার সবচেয়ে সস্তা ক্যাবলটা নিন যেটা নতুন কোনো বাড়িতে পৌঁছায়। এই কিপটে নিয়মটাই শেষে সবচেয়ে সস্তা গ্রিড বানিয়ে দেয়।
+  hi: |
+    गांव में आखिरकार बिजली आ रही है। मेयर आपको बिखरे हुए घरों का नक्शा थमाकर कहता है "हर घर तक तार पहुंचाओ, और केबल सस्ती नहीं है।" दो घरों के बीच केबल की कीमत उनके बीच की गली वाली दूरी है, और जिस घर में बिजली है वह अगले घर को पास कर सकता है। तो हर जोड़ी के बीच तार नहीं चाहिए, बस इतने तार चाहिए कि बिजली सब तक पहुंच जाए। एक घर से शुरू कीजिए और हर बार वह सबसे सस्ती केबल उठाइए जो किसी नए घर तक जाती है। यही कंजूस नियम आखिर में सबसे सस्ता ग्रिड खड़ा कर देता है।
+  ar: |
+    القرية أخيراً ستصلها الكهرباء. يسلمك العمدة خريطة بيوت متناثرة ويقول "أوصل السلك لكل بيت، والكابل ليس رخيصاً." ثمن الكابل بين بيتين هو مسافة الشوارع بينهما، وأي بيت موصول يمكنه تمرير الكهرباء لجاره. إذن لا تحتاج كابلاً بين كل زوج من البيوت، يكفي أن تصل الكهرباء للجميع. ابدأ من بيت واحد وخذ في كل مرة أرخص كابل يصل إلى بيت جديد. هذه القاعدة البخيلة نفسها تبني في النهاية أرخص شبكة ممكنة.
+---
+
+## Boss 2: The Village Power Grid
+
+Boss 1 handed you a fistful of tickets and made you *consume* every edge exactly once. This boss flips the deal: the edges don't exist yet. You get to *choose* which ones to build, and every choice costs money. Selecting edges instead of spending them — that's the jump from Eulerian paths to spanning trees, and it's where the greedy proofs from Dungeon 14 walk back on stage wearing graph clothing.
+
+---
+
+## The story
+
+A village of scattered houses is getting electricity for the first time. The mayor unrolls a map: every house is a point on a grid.
+
+Cable runs along streets, not through walls, so the cost of connecting house `(x1, y1)` to house `(x2, y2)` is the **Manhattan distance**: `|x1 - x2| + |y1 - y2|`. And here's the merciful part: any wired house can relay power onward. House A powers B, B powers C, and C never needs its own line back to A.
+
+So the job is not "wire every pair." The job is "lay just enough cable that power can flow from anywhere to everywhere," and the mayor's only KPI is the total meters of cable on the invoice.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an array `points` where `points[i] = [xi, yi]` represents a point on a 2D plane. The cost of connecting two points is the Manhattan distance between them. Return the minimum cost to make all points connected, where all points are connected if there is exactly one simple path between any two points.
+
+LeetCode 1584, "Min Cost to Connect All Points". Read that last clause again: exactly one path between any pair. A connected graph with no wasted cycles. That object has a name — a **spanning tree** — and the cheapest one is the **minimum spanning tree**, MST.
+
+---
+
+## The naive attempt
+
+First instinct: every house just hooks up to its nearest neighbor. Cheap and local, what could go wrong?
+
+```python
+def wire_village(points):
+    n = len(points)
+
+    def dist(i, j):
+        return (abs(points[i][0] - points[j][0])
+                + abs(points[i][1] - points[j][1]))
+
+    total = 0
+    for i in range(n):
+        nearest = min(dist(i, j) for j in range(n) if j != i)
+        total += nearest
+    return total
+```
+
+Picture four houses: two at `(0, 0)` and `(1, 0)`, two more at `(10, 0)` and `(11, 0)`. Each house's nearest neighbor is its own cluster-mate. You lay two short cables, the invoice looks great, and the east side of the village sits in the dark. Nearest-neighbor builds **islands**, and islands are exactly what "connected" forbids. (It also double-counts cables, but the islands kill it first.)
+
+Second instinct: fine, enumerate every possible spanning tree and take the cheapest. Cayley's formula says there are n^(n-2) spanning trees on n points. For a 20-house village that is 20^18 candidate grids, roughly a billion billion billion. The mayor's term ends first.
+
+---
+
+## The weapon: grow the frontier greedily
+
+Here's the one fact that makes exploring unnecessary, Dungeon 14 style. It's called the **cut property**:
+
+Split the houses into two groups — the ones already wired, and everyone else. Look at every possible cable crossing that divide. **The cheapest crossing cable is always safe to build.** Why? Any complete grid must cross the divide somewhere. If it crosses with a pricier cable, swap in the cheapest one: still connected, never more expensive. So the cheapest crossing cable belongs to *some* optimal grid, and committing to it can't hurt. That's the same exchange argument every Dungeon 14 boss died to, just aimed at a cut instead of an array.
+
+Apply it repeatedly and you get **Prim's algorithm**: start with one wired house, and while anyone is dark, build the cheapest cable from the wired region to a dark house. The tool for "repeatedly hand me the cheapest thing" is the min-heap from Dungeon 10.
+
+If that loop feels familiar, it should. Prim is **Dijkstra's cousin**: same pop-cheapest, mark-visited, push-neighbors heartbeat. The only difference is the key. Dijkstra ranks a house by *total path cost from the source*. Prim ranks it by *the single cable connecting it to the wired region*. One word in the push line changes which classic you're running.
+
+<MermaidBlock>
+graph TB
+    A["start at any house\npush it with cost 0"] --> B["pop cheapest cable\nfrom the heap"]
+    B --> C["house already wired?\nstale entry, skip it"]
+    C --> B
+    B --> D["wire the house\nadd cable cost to total"]
+    D --> E["push a cable from it\nto every dark house"]
+    E --> B
+    D --> F["all n houses wired?\ntotal is the answer"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def min_cost_connect_points(points: list[list[int]]) -> int:
+    n = len(points)
+    visited = [False] * n
+    heap: list[tuple[int, int]] = [(0, 0)]   # (cable cost, house index)
+    total = 0
+    wired = 0
+
+    while wired < n:
+        cost, u = heapq.heappop(heap)
+        if visited[u]:
+            continue                          # stale entry, u got a cheaper cable earlier
+        visited[u] = True
+        total += cost
+        wired += 1
+        ux, uy = points[u]
+        for v in range(n):                    # dense graph: every dark house is a neighbor
+            if not visited[v]:
+                vx, vy = points[v]
+                heapq.heappush(heap, (abs(ux - vx) + abs(uy - vy), v))
+    return total
+```
+
+One design note. Kruskal's algorithm — sort all edges, take the cheap ones, and use the Union-Find you met on Dungeon 11's Redundant Connection boss to veto cycles — solves MST too, and it's the better pick on *sparse* graphs. But this village is an **implicit dense graph**: every pair of houses is a potential cable, n(n-1)/2 of them. Kruskal has to materialize and sort that entire pile first. Prim never builds the edge list — it manufactures cables lazily as the frontier expands, which is exactly the right shape for n² edges.
+
+---
+
+## Watching it work
+
+Five houses: A `(0, 0)`, B `(2, 2)`, C `(3, 10)`, D `(5, 2)`, E `(7, 0)`.
+
+```
+pop       action                                total  wired
+(0, A)    wire A, push B:4 C:13 D:7 E:7            0   A
+(4, B)    wire B, push C:9 D:3 E:7                 4   A B
+(3, D)    wire D, push C:10 E:4                    7   A B D
+(4, E)    wire E, push C:14                       11   A B D E
+(7, D)    stale, D already wired, skip            11
+(7, E)    stale, skip                             11
+(7, E)    stale, skip                             11
+(9, C)    wire C, everyone has power              20   all five
+```
+
+Total cable: **20**. Notice C almost got a 13-cost cable from A at the start, then a 10 from D, and finally rode in on the 9 from B — the heap quietly kept downgrading C's price as the frontier crept closer. Also notice the three stale pops: old offers for D and E surfacing after those houses were already lit. The `visited` check waves them through without damage.
+
+<Callout type="tip" title="The cut property is frontier greedy">
+Everything from Dungeon 14 compressed into one graph sentence: at any moment, the cheapest edge leaving your frontier is provably part of some optimal answer, by the same swap argument as always. Prim, Kruskal, and (soon) Dijkstra are all this one reflex with different bookkeeping. When a problem says "connect everything, minimize total cost", stop searching the space of whole solutions and start asking "what single commitment is provably safe right now?"
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Skipping the visited check on pop.**
+The heap accumulates multiple offers for the same house — C got three in the trace above. Pop without checking `visited` and you'll wire C twice, pay twice, and count `wired` twice. The lazy-deletion pattern is pop first, ask questions immediately: stale entries get skipped, never processed.
+
+**2. Building the full edge list for Kruskal without thinking.**
+Kruskal on this problem means constructing all n(n-1)/2 edges up front. At n = 1000 that's about half a million tuples to allocate and sort before any real work starts. It passes, but it's the memory-heavy road. Prim with lazy edges (or the O(n²) array variant) keeps the footprint honest.
+
+**3. Euclidean distance out of habit.**
+The cable follows streets: `abs(dx) + abs(dy)`, no squares, no square roots. Write `sqrt(dx*dx + dy*dy)` on autopilot and every cost is wrong, sometimes in ways that still produce a plausible-looking tree. Read the cost function in the problem before writing the one in your head.
+
+**4. Terminating on the wrong count.**
+A spanning tree over n houses has exactly n - 1 cables, but this implementation counts *wired houses*, not cables, and the start house arrives via a free cost-0 entry. Loop until `wired == n`. Mix the two conventions — counting edges but testing against n, or houses against n - 1 — and you either quit one cable early (island!) or pop from an empty heap.
+
+---
+
+## Complexity
+
+The heap can hold up to O(n²) entries, and each push or pop costs O(log n²) = O(log n).
+
+**Time: O(n² log n). Space: O(n²)** for the heap.
+
+Worth knowing: on a dense graph there's an even cleaner O(n²) array-based Prim — no heap, just a `min_dist` array scanned once per new house — and for this problem that's actually optimal. The heap version shown here is the one that generalizes, and the one interviewers expect.
+
+---
+
+## Boss down
+
+The last house flickers on, the village square lights up, and the mayor frames the invoice: not one meter of cable wasted, and a proof — not a hope — that no cheaper grid exists. Boss 1 spent edges someone else built. You just learned to choose them.
+
+Next up, Boss 3: **Network Delay Time — The Telegraph Network**. A signal leaves one station and you must find how long until every station hears it. That's Dijkstra proper — the promise Dungeon 14's finale made at the gate finally lands, and after today you already know 90% of the loop. Change one key, change the question.

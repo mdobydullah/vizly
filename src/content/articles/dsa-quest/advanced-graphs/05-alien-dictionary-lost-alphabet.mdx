@@ -1,0 +1,208 @@
+---
+title: "Alien Dictionary — The Lost Alphabet"
+slug: alien-dictionary-lost-alphabet
+category: dsa
+series: advanced-graphs
+seriesOrder: 5
+description: "Dungeon 15, Boss 5. An archaeologist digs a dictionary out of a ruined city. The entries are clearly sorted in that civilization's alphabetical order, but the alphabet chart itself is dust. Mine one precedence edge from each adjacent pair of words, hand the graph to Kahn's topological sort, and read the lost letter order back out, or prove the pages contradict themselves."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "📜"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An archaeologist pulls a dictionary out of a ruined city. The pages survived, and the words are clearly sorted in that civilization's own alphabetical order. But the page that listed the alphabet itself is gone. Your job is to rebuild the letter order using nothing but how the words are arranged. Compare each word with the next one, the first letter where they differ tells you which letter comes first, and a topological sort does the rest.
+  bn: |
+    এক প্রত্নতাত্ত্বিক এক ধ্বংস হয়ে যাওয়া শহর থেকে একটা অভিধান খুঁজে পেলেন। পাতাগুলো টিকে আছে, আর শব্দগুলো স্পষ্টতই ওই সভ্যতার নিজস্ব বর্ণমালার ক্রমে সাজানো। কিন্তু যে পাতায় বর্ণমালাটা লেখা ছিল, সেটাই হারিয়ে গেছে। শব্দগুলো কীভাবে সাজানো, শুধু সেটা দেখেই আপনাকে অক্ষরের ক্রম উদ্ধার করতে হবে। পাশাপাশি দুটো শব্দ মেলান, প্রথম যে অক্ষরে তারা আলাদা সেটাই বলে দেয় কোনটা আগে আসে, বাকিটা topological sort সামলে নেয়।
+  hi: |
+    एक पुरातत्वविद को एक बर्बाद शहर के खंडहर से एक डिक्शनरी मिलती है। पन्ने बच गए हैं और शब्द साफ तौर पर उस सभ्यता के अपने अल्फाबेट के क्रम में लगे हैं। लेकिन जिस पन्ने पर अल्फाबेट लिखा था, वही खो गया है। आपको सिर्फ शब्दों की जमावट देखकर अक्षरों का क्रम वापस खड़ा करना है। हर शब्द की तुलना अगले शब्द से कीजिए, पहला अलग अक्षर बता देता है कि कौन पहले आता है, बाकी काम topological sort कर देता है।
+  ar: |
+    يعثر عالم آثار على قاموس وسط أنقاض مدينة بائدة. الصفحات سليمة والكلمات مرتبة بوضوح حسب أبجدية تلك الحضارة الخاصة. لكن الصفحة التي كانت تحمل الأبجدية نفسها ضاعت. مهمتك أن تعيد بناء ترتيب الحروف من طريقة ترتيب الكلمات فقط. قارن كل كلمة بالكلمة التي تليها، وأول حرف مختلف بينهما يخبرك أي حرف يأتي أولاً، ثم يتكفل topological sort بالباقي.
+---
+
+## Boss 5: The Lost Alphabet
+
+Back in Dungeon 11, Course Schedule I and II handed you a graph on a silver platter: here are the courses, here are the prerequisite edges, sort them. This boss hands you no graph at all. It hands you *data*, a pile of sorted words, and the edges are buried inside it.
+
+That's the real skill being tested. Topological sort you already own. What's new is realizing that "this list is sorted" is a graph in disguise, and learning to dig the edges out.
+
+---
+
+## The story
+
+The dig site is a library. Or it was, before the city burned.
+
+Most of the shelves are ash, but one volume survived in a stone chest: the civilization's dictionary. The entries are intact, page after page of words in a script you can transliterate into lowercase letters. And dictionaries have one beautiful property, they're **sorted**. Whoever compiled this one followed their alphabet religiously.
+
+The problem: the alphabet chart, the page every schoolchild of that civilization memorized, is gone. You know the words are in alphabetical order. You just don't know what alphabetical *means* here.
+
+So the question becomes: from the ordering of the words alone, can you reconstruct the ordering of the letters? And if the pages disagree with each other, can you prove the "dictionary" is a forgery?
+
+---
+
+## The problem, dressed up properly
+
+> There is an alien language that uses lowercase English letters in an unknown order. You are given a list `words`, sorted lexicographically by that language's rules. Return a string of all the unique letters, arranged in a valid order for that alphabet. If no valid ordering exists, return `""`. If several orderings are valid, return any one of them.
+
+LeetCode 269, "Alien Dictionary". This is the famous premium-locked one, a NeetCode 150 staple and a hall-of-fame interview question, precisely because it welds two skills together: extracting a graph from raw data, then sorting it.
+
+---
+
+## The naive attempt
+
+Stare at the words and try to squeeze order out of them directly:
+
+```python
+def alien_order(words):
+    # idea 1: common letters probably come early in the alphabet... right?
+    freq = {}
+    for w in words:
+        for c in w:
+            freq[c] = freq.get(c, 0) + 1
+    return "".join(sorted(freq, key=lambda c: -freq[c]))
+
+    # idea 2: letters inside a word appear in alphabet order... right?
+    # "wrt" means w, then r, then t?
+```
+
+Both ideas are seductive and both are dead wrong. Frequency has *nothing* to do with alphabet position, "e" being everywhere in English doesn't make it letter one. And letters inside a single word carry zero ordering information: the English word "cab" does not mean c comes before a in our alphabet.
+
+Here is where the information actually lives. A dictionary is sorted by comparing **adjacent entries**, and two adjacent words are ordered by their **first differing character**. That single character pair is one hard fact: this letter comes before that one. Everything after the first difference is noise, and non-adjacent pairs add nothing that adjacency didn't already imply. The whole dictionary compresses into a handful of "u before v" facts.
+
+Facts of the form "u before v" have a name. They're edges.
+
+---
+
+## The weapon: mine the edges, then Kahn's
+
+Take the classic example: `["wrt", "wrf", "er", "ett", "rftt"]`.
+
+Walk the adjacent pairs, find each first difference:
+
+- `wrt` vs `wrf` → first difference at position 2 → **t before f**
+- `wrf` vs `er` → position 0 → **w before e**
+- `er` vs `ett` → position 1 → **r before t**
+- `ett` vs `rftt` → position 0 → **e before r**
+
+Four facts, and they chain:
+
+<MermaidBlock>
+graph LR
+    W["w"] -->|"wrf vs er"| E["e"]
+    E -->|"ett vs rftt"| R["r"]
+    R -->|"er vs ett"| T["t"]
+    T -->|"wrt vs wrf"| F["f"]
+    style W fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style R fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style T fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+A precedence graph, exactly the shape Course Schedule taught you to sort. From here it's Dungeon 11 muscle memory: count in-degrees, queue up everything with in-degree zero, peel letters off one at a time.
+
+Two ways the ruins can lie to you, and both must return `""`. If the graph has a **cycle**, the pages contradict each other and Kahn's queue starves before emptying the graph. And one sneakier trap that involves no edge at all: if a longer word appears *before* its own prefix, like `"abc"` before `"ab"`, no alphabet on any planet sorts that way. Check it during extraction.
+
+```python
+from collections import deque
+
+def alien_order(words: list[str]) -> str:
+    # every letter that appears anywhere is a node
+    adj = {c: set() for w in words for c in w}
+    indeg = {c: 0 for c in adj}
+
+    for first, second in zip(words, words[1:]):
+        for a, b in zip(first, second):
+            if a != b:
+                if b not in adj[a]:            # ignore duplicate edges
+                    adj[a].add(b)
+                    indeg[b] += 1
+                break
+        else:                                  # no difference found
+            if len(first) > len(second):       # "abc" before "ab": forgery
+                return ""
+
+    queue = deque(c for c in indeg if indeg[c] == 0)
+    order = []
+    while queue:
+        c = queue.popleft()
+        order.append(c)
+        for nxt in adj[c]:
+            indeg[nxt] -= 1
+            if indeg[nxt] == 0:
+                queue.append(nxt)
+
+    return "".join(order) if len(order) == len(adj) else ""
+```
+
+Same Kahn's engine as Course Schedule II, same `deque`, same in-degree bookkeeping. The only new part is the mining operation on top.
+
+---
+
+## Watching it work
+
+The story's dictionary: `["wrt", "wrf", "er", "ett", "rftt"]`.
+
+Extraction gives edges `t→f`, `w→e`, `r→t`, `e→r`, and starting in-degrees:
+
+```
+letter     w  e  r  t  f
+in-degree  0  1  1  1  1
+```
+
+Only `w` starts free. Kahn's takes it from there:
+
+```
+step  queue   pop   order    effect
+1     [w]     w     w        e drops to 0, enqueue e
+2     [e]     e     we       r drops to 0, enqueue r
+3     [r]     r     wer      t drops to 0, enqueue t
+4     [t]     t     wert     f drops to 0, enqueue f
+5     [f]     f     wertf    queue empty
+```
+
+Five letters out, five letters in the graph: `"wertf"`. Had the last page also claimed `f` before `w`, the cycle would leave the starting queue empty, zero letters emitted, and the length check would stamp the dictionary a fake.
+
+<Callout type="tip" title="Sorted data is a compressed graph">
+This boss's insight travels well beyond aliens. Any time someone hands you *sorted* data, they've handed you a set of pairwise facts, and pairwise facts are edges. The information isn't in the items, it's in the adjacency: each neighboring pair contributes exactly one constraint, and reconstruction is just topological sort. Version orderings, build logs, race results, seniority lists, same trick every time.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The prefix trap.**
+`["abc", "ab"]` produces no differing character, so no edge, so a naive extractor shrugs and moves on. But a longer word sorted before its own prefix is *instantly* invalid, every real dictionary puts `"ab"` first. This is the impossibility case that lives outside the graph entirely, and it's the single most-missed line in interviews. Check it in the `else` of the pair loop.
+
+**2. Duplicate edges inflating in-degree.**
+If `"wrt"`/`"wrf"` and later `"art"`/`"arf"` both yield t→f, adding the edge twice bumps `indeg[f]` to 2. One decrement later, `f` sits at 1 forever, never enters the queue, and a perfectly valid alphabet comes back as `""`. Store neighbors in a set and check membership before counting.
+
+**3. Forgetting the unconstrained letters.**
+A letter that only ever appears deep inside words might touch no edge at all. It still belongs in the answer, the problem wants *all* unique letters. Seed every letter as a node with in-degree 0 up front (the dict comprehension does this), and it'll ride the starting queue for free. Letters with no constraints can legally go anywhere, which is also why multiple answers are accepted.
+
+**4. Cycle detection is a length check, not a search.**
+No DFS coloring needed. If the pages contradict each other, some letters are trapped in a cycle, never reach in-degree 0, and never get emitted. Compare `len(order)` with the number of distinct letters at the end: shorter means cycle, return `""`. Same trick Course Schedule I used to detect impossible semesters.
+
+---
+
+## Complexity
+
+Extraction touches every character of every word once: **O(C)**, where C is the total length of all words. The sort runs on a graph with V distinct letters and E mined edges, so **O(V + E)**, and V is at most 26, which caps E below 26², both constants in practice.
+
+**Time: O(C). Space: O(V + E), effectively O(1) for a 26-letter script.**
+
+The dictionary can be enormous. The alphabet never is.
+
+---
+
+## Boss down
+
+The chart gets redrawn on fresh paper: `w e r t f`, in that civilization's hand. The archaeologist in you files the find, but the engineer files the lesson: Dungeon 11 taught you to sort a graph someone gave you, this boss taught you that nobody gives you graphs in the wild. You extract them, from sorted lists, from logs, from anything where order was a promise.
+
+One boss left, and it's the finale. **Cheapest Flights Within K Stops — The Budget Layover.** You're flying on a budget, willing to endure layovers, but at most k of them, and suddenly Dijkstra, greedy prince of Boss 1, starts giving wrong answers. Enter **Bellman-Ford**: the slower, humbler shortest-path algorithm that tolerates exactly what breaks Dijkstra, and closes out the dungeon by teaching you when greedy is no longer enough. See you at the gate.

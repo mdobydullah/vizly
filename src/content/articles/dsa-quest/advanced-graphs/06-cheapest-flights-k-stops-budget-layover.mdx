@@ -1,0 +1,221 @@
+---
+title: "Cheapest Flights Within K Stops — The Budget Layover"
+slug: cheapest-flights-k-stops-budget-layover
+category: dsa
+series: advanced-graphs
+seriesOrder: 6
+description: "Dungeon 15, Boss 6, the finale. A broke traveler, a departures board full of fares, and the cheapest route home needs five layovers the visa won't allow. Dijkstra's greedy settle breaks under a stop budget, so the finale weapon is honest brute force: Bellman-Ford, every flight relaxed, k+1 rounds, and the rounds themselves are the stop counter."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "🛫"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You're stuck in a foreign airport with a nearly empty wallet, staring at a wall of fares. The absolute cheapest way home takes five layovers, but your transit visa allows at most k stops. So the question shifts: not the cheapest route, the cheapest route that fits the rules. Your trusty Dijkstra trick from three bosses ago quietly picks a route that breaks the visa. The fix is almost embarrassingly humble: check every flight on the board, k+1 times over, and let the rounds count your stops for you.
+  bn: |
+    বিদেশের এক এয়ারপোর্টে আটকে আছেন, পকেট প্রায় খালি, সামনে ভাড়ার লম্বা তালিকা। বাড়ি ফেরার সবচেয়ে সস্তা রুটে পাঁচটা layover লাগে, কিন্তু আপনার transit visa বড়জোর k টা stop দেয়। তাই প্রশ্নটা পাল্টে গেল: সবচেয়ে সস্তা রুট নয়, নিয়মের ভেতরে থাকা সবচেয়ে সস্তা রুট। তিন বস আগের ভরসার Dijkstra চুপচাপ এমন রুট বেছে নেয় যা visa ভাঙে। সমাধানটা অদ্ভুত রকম সরল: বোর্ডের প্রতিটা ফ্লাইট দেখুন, মোট k+1 বার, আর রাউন্ডগুলোই আপনার stop গুনে দেবে।
+  hi: |
+    आप किसी विदेशी एयरपोर्ट पर फंसे हैं, जेब लगभग खाली, सामने किराए की लंबी लिस्ट। घर पहुंचने का सबसे सस्ता रास्ता पांच layover मांगता है, लेकिन आपका transit visa ज्यादा से ज्यादा k stop देता है। तो सवाल बदल जाता है: सबसे सस्ता रूट नहीं, नियमों में बैठने वाला सबसे सस्ता रूट। तीन बॉस पहले वाला भरोसेमंद Dijkstra चुपचाप ऐसा रूट चुन लेता है जो visa तोड़ देता है। इलाज हैरान करने वाली हद तक सीधा है: बोर्ड की हर flight जांचो, पूरे k+1 बार, और rounds खुद तुम्हारे stops गिन लेंगे।
+  ar: |
+    أنت عالق في مطار أجنبي ومحفظتك شبه فارغة، وأمامك لوحة مليئة بأسعار الرحلات. أرخص طريق إلى البيت يحتاج خمس محطات توقف، لكن تأشيرة العبور تسمح بما لا يزيد عن k توقفاً. إذن تغير السؤال: ليس أرخص طريق، بل أرخص طريق يحترم القواعد. حيلة Dijkstra التي أنقذتك قبل ثلاثة زعماء تختار بهدوء طريقاً يخالف التأشيرة. والحل متواضع بشكل مدهش: افحص كل رحلة على اللوحة، k+1 مرة كاملة، ودع الجولات تعدّ توقفاتك بدلاً عنك.
+---
+
+## Boss 6: The Budget Layover
+
+The dungeon finale, and it pulls the cruelest trick in the book: it hands you the exact problem Boss 3 taught you to solve — cheapest path through a weighted graph — then adds one constraint that snaps your best weapon in half.
+
+Five bosses of escalating cleverness. Post-order route splicing, the cut property, greedy-with-a-heap, minimax bottlenecks, mined edges feeding a topological peel. The finale's twist is that cleverness itself is the trap. The winning weapon is the dumbest one in the armory: a plain loop over every edge, repeated. The insight is knowing exactly *how many times* to repeat it.
+
+---
+
+## The story
+
+The trip of a lifetime ended the way those trips do: you're in an airport eleven time zones from home, and your bank balance has one comma fewer than you remembered.
+
+The departures board lists every flight in the region with its fare. You do the math on the absolute cheapest chain home and it's beautiful — five layovers, each hop a bargain, total cost almost nothing.
+
+Then the agent looks at your passport.
+
+"Transit visa. Maximum one stop."
+
+The five-hop miracle route is dead. The nonstop flight exists but costs more than your remaining dignity. Somewhere in between there's a cheapest route that uses **at most k intermediate stops**, and finding it is the difference between flying home and living in this terminal.
+
+The question is no longer "what's the cheapest route." It's "what's the cheapest route *I'm allowed to fly*."
+
+---
+
+## The problem, dressed up properly
+
+> There are `n` cities connected by flights, where `flights[i] = [from, to, price]`. Given `src`, `dst`, and `k`, return the cheapest price from `src` to `dst` with at most `k` stops. If there is no such route, return `-1`.
+
+LeetCode 787, "Cheapest Flights Within K Stops". A stop is an intermediate city, so at most `k` stops means at most `k + 1` flights. That one extra constraint is the whole boss.
+
+---
+
+## The naive attempt
+
+Try every route. Track the budget, prune anything already too expensive or over the stop limit:
+
+```python
+from collections import defaultdict
+
+def find_cheapest_price(n, flights, src, dst, k):
+    graph = defaultdict(list)
+    for u, v, w in flights:
+        graph[u].append((v, w))
+
+    best = float("inf")
+
+    def dfs(city, stops_left, cost):
+        nonlocal best
+        if cost >= best:
+            return                      # already pricier than a known route
+        if city == dst:
+            best = cost
+            return
+        if stops_left < 0:
+            return                      # visa says no
+        for nxt, fare in graph[city]:
+            dfs(nxt, stops_left - 1, cost + fare)
+
+    dfs(src, k, 0)
+    return -1 if best == float("inf") else best
+```
+
+Correct, and on a friendly fare board it even finishes. But every city fans out into every neighbor, `k + 1` levels deep — roughly O(n^k) routes on a dense board. A region with 100 cities and k = 5 is ten billion candidate itineraries, and the pruning only helps when cheap routes are found early. An adversarial fare grid feeds you expensive routes first and lets you drown.
+
+Memoize on `(city, stops_left)` and it becomes a real DP — hold that thought, because the final weapon *is* that DP wearing a trench coat. But first, the failure that makes this boss famous.
+
+---
+
+## Why Dijkstra buckles
+
+Boss 3's whole power was the settle argument: pop the cheapest city off the heap, lock it in, never revisit. Safe, because any other route to that city goes through pricier territory.
+
+The stop budget murders that argument. Four cities, k = 1:
+
+```
+0 → 1  costs 100
+1 → 2  costs 100
+0 → 2  costs 500
+2 → 3  costs 100
+```
+
+Dijkstra from city 0 settles city 2 at price 200 (the route 0 → 1 → 2) and throws away the "silly" 500 direct flight. Locked in, never revisited. Then it extends to city 3: price 300 — via a route with **two** stops. Illegal. If your code checks the stop count it returns -1; if it doesn't, it returns a route the visa desk will laugh at. The real answer is 600: pay the 500, fly 0 → 2 → 3, one stop.
+
+That's the heart of it. Under a stop budget, a pricier-so-far city can still be the right stepping stone, because it got there in fewer hops and has budget left to spend. "Cheapest so far" is no longer a fact strong enough to commit to. The greedy proof doesn't bend — it breaks.
+
+(You *can* rescue Dijkstra by putting the whole state `(city, stops_used)` in the heap, never settling cities, only states. It works, it passes, and it's a fiddlier version of what's coming. One breath spent, moving on.)
+
+---
+
+## The weapon: brute force with a leash
+
+Bellman-Ford is the shortest-path algorithm nobody brags about. No heap. No settle proof. No cleverness at all. It just takes every edge in the graph and asks: "does flying this flight improve the price at its destination?" That single sweep is called **relaxing** the edges. Then it does the sweep again. And again.
+
+The classical version sweeps `V - 1` times, because the longest useful simple path has `V - 1` edges. And here is the finale's gift: after `r` sweeps, the prices array holds the cheapest cost using **at most r flights**. The round counter isn't bookkeeping. It's a *stop counter*. This boss doesn't want the full `V - 1` rounds — it wants exactly `k + 1`, one per allowed flight, and the visa constraint enforces itself.
+
+One subtlety carries the entire algorithm. Within a round, relax against a **snapshot** of last round's prices, writing improvements into a copy. Read from the old array, write to the new one. Skip the snapshot and one round can chain flights — flight A improves a city, flight B immediately builds on it — and suddenly one "round" smuggles three hops past the visa desk.
+
+<MermaidBlock>
+graph TB
+    A["round r of k+1\none more flight allowed"] --> B["tmp = copy of prices\nthe snapshot"]
+    B --> C["for every flight u to v costing w\nimprove tmp v using prices u plus w"]
+    C --> D["prices = tmp\nround sealed"]
+    D --> A
+    D --> E["after k+1 rounds\nanswer is prices dst or -1"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def find_cheapest_price(n: int, flights: list[list[int]],
+                        src: int, dst: int, k: int) -> int:
+    INF = float("inf")
+    prices = [INF] * n
+    prices[src] = 0
+
+    for _ in range(k + 1):              # one round = one more flight
+        tmp = prices[:]                 # snapshot of last round
+        for u, v, w in flights:
+            if prices[u] + w < tmp[v]:  # read the old, write the new
+                tmp[v] = prices[u] + w
+        prices = tmp
+
+    return -1 if prices[dst] == INF else prices[dst]
+```
+
+Twelve lines, no heap, no adjacency list, not even a graph — the raw flight list is enough. And a free bonus: because there's no settle step to poison, Bellman-Ford shrugs at **negative edge weights**, the exact gotcha that Boss 3 warned would silently corrupt Dijkstra. Airlines don't pay you to fly (yet), but the algorithm wouldn't care if they did.
+
+---
+
+## Watching it work
+
+The trap graph from the Dijkstra ambush, src = 0, dst = 3, k = 1, so two rounds:
+
+```
+round  snapshot            0 → 1   1 → 2       0 → 2      2 → 3        prices after
+init                                                                   [0, INF, INF, INF]
+1      [0, INF, INF, INF]  1: 100  skip (INF)  2: 500     skip (INF)   [0, 100, 500, INF]
+2      [0, 100, 500, INF]  keep    2: 200      500 loses  3: 600       [0, 100, 200, 600]
+
+answer: prices[3] = 600 ✓
+```
+
+Round 2 is where the snapshot earns its keep. The flight 1 → 2 improves city 2 to 200 inside `tmp` — but when 2 → 3 relaxes moments later, it reads the *snapshot*, where city 2 still costs 500. Result at city 3: 600, the legal one-stop route. Had it read the live array, city 3 would get 200 + 100 = 300 — the two-stop route Dijkstra tried to sell us, built by chaining two new flights inside one round. The snapshot is the visa desk.
+
+Notice city 2 ends the run at 200 anyway. That's fine — it's the honest "cheapest within 2 flights" value, ready if a third round ever comes. The constraint lives entirely in *when the loop stops*.
+
+<Callout type="tip" title="Bounded relaxation is DP in a trench coat">
+Read `prices` after round r as `dp[r][city]`: the cheapest cost using at most r flights. The snapshot copy is literally the previous row of a 2-D table, and the loop is a rolling-array DP where the second axis is a *resource* — flights spent. Any time a constraint sounds like "best X using at most r of something", suspect a table with a resource axis. Dungeon 16 is nothing but tables like this, so you've already met the boss before walking in.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Relaxing against the live array.**
+Write `if tmp[u] + w < tmp[v]` — or skip the copy entirely — and one round chains multiple new flights, as the trace showed: city 3 gets the illegal 300. The bug is vicious because it *passes* many tests (extra reachability never raises prices, and plenty of inputs don't punish it) and then fails exactly the cases with tight k. Read old, write new, always.
+
+**2. Off-by-one on the rounds.**
+At most k *stops* means at most `k + 1` *flights*, so the loop runs `k + 1` times. Loop only `k` times and every route that uses its full stop allowance vanishes — including, on some boards, the only route that exists. When k = 0 the loop must still run once, or even the nonstop flight is unreachable.
+
+**3. INF plus a fare, in stricter languages.**
+Python's `float("inf") + w` is politely still infinite. In Java or C++, `INT_MAX + w` overflows into a large *negative* number that then wins every relaxation and floods the board with garbage prices. Guard with `if prices[u] == INF: continue`, or use a sentinel comfortably below the overflow line. Habits from other languages cut both ways.
+
+**4. City label off-by-ones.**
+LeetCode 787's cities are 0-indexed, `0` through `n - 1`. Port a textbook Bellman-Ford (which loves 1-indexed vertices and arrays of size `V + 1`) without adjusting, and you'll size the array wrong or read the answer for the city *next to* home. Landing one city away from home is very on-theme for this story, but the judge won't find it funny.
+
+---
+
+## Complexity
+
+Each round touches every flight once, and there are `k + 1` rounds.
+
+**Time: O(k · E). Space: O(V)** for the two price arrays. No heap, no recursion, no adjacency structure.
+
+---
+
+## Boss down. Dungeon cleared.
+
+The 600 clears your card with nothing to spare, the stamp hits the passport, and eleven time zones later you're home. Dungeon 15 is done, and the advanced-graphs toolkit is complete:
+
+- **Edge-consuming DFS** (Boss 1, the Ticket Shoebox): Hierholzer's post-order trick — get stuck on purpose, write the route backwards
+- **The cut property** (Boss 2, the Village Power Grid): Prim's proof that the cheapest edge across the frontier is always safe to buy
+- **Greedy plus a heap** (Boss 3, the Telegraph Network): Dijkstra's settle argument — cheapest popped is cheapest forever
+- **Minimax Dijkstra** (Boss 4, the Flooded Quarry): the same engine with max swapped in for sum, minimizing the worst edge instead of the total
+- **Topo sort from mined edges** (Boss 5, the Lost Alphabet): build the graph you were never given, then peel it by in-degree
+- **Bellman-Ford under a budget** (Boss 6, the Budget Layover): relax every edge, k + 1 times, and let the rounds be the stop counter
+
+The through-line: "advanced" graphs were never new traversals. Same BFS/DFS bones from Dungeon 11 all the way through — what changed was *priorities and proofs*. A heap deciding who moves next, an argument for when greedy commitment is safe, and tonight, the finale's lesson: when the proof breaks, bounded brute force with a sharp stopping rule beats broken cleverness every time.
+
+Next dungeon: **2-D DP.** The tables from the 1-D dungeon grow a second axis — grids of subproblems, edit distances between whole strings, paths through matrices where every cell remembers two neighbors instead of one. You've already had the preview: tonight's rounds-of-flights axis was a second dimension hiding in a loop counter. Dungeon 16 stops hiding it. See you at the grid.

@@ -1,0 +1,199 @@
+---
+title: "Network Delay Time — The Telegraph Network"
+slug: network-delay-time-telegraph
+category: dsa
+series: advanced-graphs
+seriesOrder: 3
+description: "Dungeon 15, Boss 3. The head telegraph office fires off an urgent message, and every wire in the network has its own relay delay. When does the last station hear it, and does everyone hear it at all? Dijkstra's algorithm arrives: the greedy proofs of Dungeon 14 riding the heap of Dungeon 10."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "📡"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The head telegraph office gets an urgent message and every station in the region needs to hear it. Stations are linked by wires, and each wire takes a known number of minutes to relay a signal. The operators are fast, they forward the message the second it arrives. So the real question is, when does the last station finally hear the news, and is there any station the wires simply never reach? One heap and a greedy rule answer both at once.
+  bn: |
+    প্রধান টেলিগ্রাফ অফিসে একটা জরুরি বার্তা এসেছে, আর অঞ্চলের প্রতিটা স্টেশনকে সেটা জানতে হবে। স্টেশনগুলো তারে তারে যুক্ত, আর প্রতিটা তারে সিগন্যাল যেতে নির্দিষ্ট কয়েক মিনিট লাগে। অপারেটররা দেরি করে না, বার্তা পৌঁছানো মাত্রই সামনে পাঠিয়ে দেয়। তাহলে আসল প্রশ্ন হলো, সবার শেষ স্টেশনটা খবর পায় কখন, আর এমন কোনো স্টেশন আছে কি যেখানে তার পৌঁছায়ই না? একটা heap আর একটা greedy নিয়ম দুটো প্রশ্নের উত্তর একসাথে দিয়ে দেয়।
+  hi: |
+    मुख्य टेलीग्राफ दफ्तर में एक जरूरी संदेश आया है और इलाके के हर स्टेशन तक उसे पहुंचना है। स्टेशन आपस में तारों से जुड़े हैं, और हर तार से सिग्नल जाने में तय मिनट लगते हैं। ऑपरेटर देर नहीं करते, संदेश पहुंचते ही आगे भेज देते हैं। तो असली सवाल यह है कि आखिरी स्टेशन को खबर कब मिलती है, और क्या कोई स्टेशन ऐसा भी है जहां तार पहुंचते ही नहीं? एक heap और एक greedy नियम दोनों सवालों का जवाब एक साथ दे देते हैं।
+  ar: |
+    وصلت رسالة عاجلة إلى مكتب التلغراف الرئيسي وعلى كل محطة في المنطقة أن تسمعها. المحطات موصولة بأسلاك، وكل سلك يحتاج عدداً معروفاً من الدقائق لنقل الإشارة. عمال التلغراف سريعون، يمررون الرسالة لحظة وصولها. إذن السؤال الحقيقي هو، متى تسمع آخر محطة الخبر، وهل هناك محطة لا تصلها الأسلاك أبداً؟ heap واحد وقاعدة greedy واحدة يجيبان عن السؤالين معاً.
+---
+
+## Boss 3: The Telegraph Network
+
+This is the boss the whole dungeon was built around. Dungeon 11 gave you BFS, which measures distance by counting hops. Dungeon 10 gave you the heap. Dungeon 14 closed with a promise: *"Dijkstra is just greedy with a priority queue."* Boss 3 is where that check gets cashed.
+
+And you've already fought half of it. Boss 2's Prim ran a heap-driven settle loop to grow a spanning tree. Dijkstra is the same loop with one line changed. Spot the line and this boss is yours.
+
+---
+
+## The story
+
+It's 1907. You run the head telegraph office in the capital, and a storm warning just landed on your desk. Every station in the region must hear it.
+
+The stations are wired together, but the wires are nothing alike: some are short copper runs, others sag across whole valleys. Each wire has a known relay delay in minutes. Your operators are the best in the country — the instant a message clicks in, they key it onward on every outgoing wire. No coffee breaks. No delay but the wire itself.
+
+The signal fans out from your office along every route at once, and each station learns the news at the *earliest* moment any route delivers it.
+
+Two questions decide whether the region survives the storm. When does the **last** station hear the warning? And is there some forgotten outpost the wires never reach at all?
+
+---
+
+## The problem, dressed up properly
+
+> You are given a network of `n` nodes labeled `1` to `n`, and a list `times` where `times[i] = (u, v, w)` means a directed edge from `u` to `v` with travel time `w`. A signal starts at node `k`. Return the time it takes for **all** nodes to receive the signal. If that's impossible, return `-1`.
+
+LeetCode 743, "Network Delay Time". The canonical single-source shortest path problem wearing a telegraph operator's visor.
+
+---
+
+## The naive attempt
+
+BFS conquered Dungeon 11, so reach for it again: spread outward level by level, record the time each station is first reached.
+
+```python
+from collections import deque, defaultdict
+
+def network_delay_time(times, n, k):
+    graph = defaultdict(list)
+    for u, v, w in times:
+        graph[u].append((v, w))
+
+    arrival = {k: 0}
+    queue = deque([k])
+    while queue:
+        node = queue.popleft()
+        for nxt, w in graph[node]:
+            if nxt not in arrival:            # first visit wins
+                arrival[nxt] = arrival[node] + w
+                queue.append(nxt)
+
+    return max(arrival.values()) if len(arrival) == n else -1
+```
+
+Here's the graph that kills it. Office `1`, station `2`, and a relay hut `3`:
+
+- wire `1 → 2`, delay **10**
+- wire `1 → 3`, delay **1**
+- wire `3 → 2`, delay **2**
+
+BFS pops `1`, visits `2` first (one hop, arrival 10), then `3`. When the route through the hut shows up offering arrival **3**, the "first visit wins" rule slams the door — station `2` is already marked. BFS answers 10. The telegraph answers 3. BFS's whole guarantee was "fewer hops = closer", and weighted wires shred it: one long wire can lose to three short ones.
+
+You could patch it by re-relaxing every edge again and again, `n - 1` full sweeps, until nothing improves. That's correct — it's the seed of Bellman-Ford, and it stars in Boss 6 — but it's O(V·E) of brute patience. The telegraph office can do better than patience.
+
+---
+
+## The weapon: Dijkstra, greedy with a priority queue
+
+Recover the one thing that made BFS work: it settled nodes in **increasing order of distance**. The queue handed them over nearest-first for free, because every edge cost 1. Weighted edges broke the free part, not the idea.
+
+So buy the ordering back. Replace the FIFO queue with the min-heap from Dungeon 10, keyed by *total delay from the source*. Then run Dungeon 14's greedy argument:
+
+> Pop the unsettled node with the smallest tentative delay `d`. That delay is **final**. Any other route to this node would have to leave through some node still in the heap — and everything in the heap already sits at delay `d` or worse, with non-negative wire delays only adding more.
+
+That's an exchange-free greedy proof, the kind Dungeon 14 drilled: the smallest popped value can never be beaten later, so commit to it and never look back. Each settled node then offers its neighbors new candidate routes, pushed into the heap.
+
+One practical wrinkle: a node can get pushed several times as better routes appear, and Python's `heapq` can't cheaply delete the outdated copies. Don't bother. Let them sit, and when a popped node is already settled, skip it. **Lazy deletion** — stale entries die of embarrassment on arrival.
+
+<MermaidBlock>
+graph TB
+    A["push 0, source\ninto the min-heap"] --> B["pop the entry with the\nsmallest total delay d"]
+    B --> C["node already settled?\nstale copy, skip it"]
+    C --> B
+    B --> D["settle the node: d is final\nno cheaper route can exist"]
+    D --> E["for each outgoing wire w\npush d plus w for the neighbor"]
+    E --> B
+    D --> F["heap empty: answer is the\nlargest settled delay,\nor -1 if a station is missing"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+from collections import defaultdict
+
+def network_delay_time(times: list[list[int]], n: int, k: int) -> int:
+    graph = defaultdict(list)
+    for u, v, w in times:
+        graph[u].append((v, w))
+
+    dist = {}                          # node -> settled shortest delay
+    heap = [(0, k)]
+    while heap:
+        d, node = heapq.heappop(heap)
+        if node in dist:
+            continue                   # lazy deletion: stale entry
+        dist[node] = d                 # settled, final, forever
+        for nxt, w in graph[node]:
+            if nxt not in dist:
+                heapq.heappush(heap, (d + w, nxt))
+
+    return max(dist.values()) if len(dist) == n else -1
+```
+
+Now put it next to Boss 2. Prim's loop popped `(edge_weight, node)` and grew a tree by cheapest *single edge*. Dijkstra pops `(total_delay, node)` and grows a shortest-path frontier by cheapest *whole route*. Same heap, same settle-and-skip, same neighbor push. The entire difference is one expression: push `w` versus push `d + w`. That's the promise from Dungeon 14's finale, kept literally.
+
+---
+
+## Watching it work
+
+Five stations, office is `k = 1`. Wires: `1→2 (2)`, `1→3 (5)`, `2→3 (1)`, `2→4 (7)`, `3→4 (2)`, `4→5 (1)`.
+
+| pop | action | settled | pushes |
+| --- | --- | --- | --- |
+| `(0, 1)` | settle office at 0 | `1: 0` | `(2,2)`, `(5,3)` |
+| `(2, 2)` | settle 2 at 2 | `2: 2` | `(3,3)`, `(9,4)` |
+| `(3, 3)` | settle 3 at 3 — the relay route beat the direct wire | `3: 3` | `(5,4)` |
+| `(5, 3)` | **stale**, 3 already settled, skip | — | — |
+| `(5, 4)` | settle 4 at 5 | `4: 5` | `(6,5)` |
+| `(6, 5)` | settle 5 at 6 | `5: 6` | — |
+| `(9, 4)` | **stale**, skip | — | — |
+
+All five stations settled: delays `0, 2, 3, 5, 6`. The last station to hear the warning is `5`, at minute **6**. That max is the answer. Notice the two stale pops doing exactly nothing — lazy deletion in action, the outdated `(5, 3)` and `(9, 4)` entries surfacing after better routes already won.
+
+<Callout type="tip" title="The settled frontier, and why negative wires are forbidden">
+Dijkstra maintains an invariant: settled nodes hold provably final distances, and the heap's minimum is always the next-nearest node overall. The proof leans on one physical fact — traveling an extra wire never *reduces* total delay. A negative-weight wire breaks that: some route through a "farther" node could loop back cheaper, and the greedy commitment becomes a lie. Telegraph wires can't send messages back in time, so Dijkstra is safe here. Graphs that can are Boss 6's problem.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Marking visited on push instead of on pop.**
+The BFS habit. In BFS the first push is the best route, so marking early is safe. With weights, the first push to a node may be a lousy route — station `3` above was pushed at 5 before the true 3 arrived. Mark on push and you freeze the bad number in. Settlement happens at *pop* time, when the heap has proven minimality.
+
+**2. Forgetting the stale-entry skip.**
+Without `if node in dist: continue`, every stale copy gets fully re-expanded: neighbors re-pushed, work multiplied, and on dense graphs the heap snowballs. The answer may even survive, which is worse — it hides the bug until a timeout. The skip line is two tokens of insurance; never ship Dijkstra without it.
+
+**3. Returning the wrong number at the end.**
+The question is when the *last* station hears the message: the **max** over all settled delays, not the delay to any single target and certainly not their sum. And if fewer than `n` stations ever settled, some outpost is unreachable — that's the `-1`, and it's checked with `len(dist) == n`, not by hoping the heap complains.
+
+**4. Trusting it with negative weights.**
+Everything above rests on "more wire never means less delay". Feed in a negative edge and settled nodes are no longer final, silently. Dijkstra won't crash. It will just be wrong, which is the most dangerous way an algorithm can fail. Negative edges need Bellman-Ford, three bosses from now.
+
+---
+
+## Complexity
+
+Every edge pushes at most one heap entry, so the heap holds O(E) items, and each push or pop costs O(log E) = O(log V²) = O(log V).
+
+**Time: O(E log V). Space: O(V + E)** for the graph, distances, and heap.
+
+---
+
+## Boss down
+
+The last station keys back its acknowledgment at minute six, and the storm warning beats the storm. The centerpiece weapon of Dungeon 15 is now on your belt: **Dijkstra**, which is nothing but Dungeon 14's greedy commitment served on Dungeon 10's heap, replacing BFS's hop-counting with true weighted distance. One loop, three dungeons deep.
+
+Next up, Boss 4: **Swim in Rising Water — The Flooded Quarry.** The quarry is filling, and you must cross as the water climbs. Dijkstra warps: the cost of a path is no longer the *sum* of its edges but the *maximum* single edge along it — and the settle loop barely notices the difference. See you at the waterline.

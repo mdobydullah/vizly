@@ -1,0 +1,209 @@
+---
+title: "Reconstruct Itinerary — The Ticket Shoebox"
+slug: reconstruct-itinerary-ticket-shoebox
+category: dsa
+series: advanced-graphs
+seriesOrder: 1
+description: "Dungeon 15, Boss 1. A shoebox of used plane tickets from one long trip out of JFK, and the airline wants the exact route back. Every ticket must be flown once, and when several routes fit, the alphabetically smallest wins. Greedy DFS strands itself in dead ends. Hierholzer's trick — write the route down backwards — doesn't."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "🎟️"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Your uncle the courier passed away mid-route, and clearing out his flat you find a shoebox stuffed with used plane ticket stubs. One long trip, every ticket flown exactly once, all of it starting at JFK. The airline needs the exact route to close his file, and when more than one order fits, they want the alphabetically smallest one. Rebuild it by hand and you keep flying yourself into dead ends. The fix sounds absurd: walk until you get stuck, and write the route down backwards.
+  bn: |
+    আপনার কুরিয়ার চাচা সফরের মাঝপথে মারা গেছেন। তার ফ্ল্যাট গোছাতে গিয়ে আপনি একটা জুতোর বাক্স পেলেন, ভেতরে ব্যবহৃত প্লেন টিকেটের স্তূপ। একটাই লম্বা সফর, প্রতিটা টিকেট ঠিক একবার ব্যবহার হয়েছে, আর শুরুটা JFK থেকে। এয়ারলাইন পুরো রুটটা চায়, আর একাধিক রুট মিললে চায় alphabetically সবচেয়ে ছোটটা। হাতে হাতে সাজাতে গেলে বারবার এমন শহরে আটকে যাবেন যেখান থেকে আর কোনো টিকেট নেই। সমাধানটা অদ্ভুত শোনায়: আটকে যাওয়া পর্যন্ত হাঁটুন, আর রুটটা উল্টো করে লিখুন।
+  hi: |
+    आपके कूरियर चाचा सफर के बीच में गुजर गए। उनका फ्लैट खाली करते वक्त आपको एक जूते का डिब्बा मिलता है, जो इस्तेमाल हो चुके प्लेन टिकटों से भरा है। एक ही लंबा सफर, हर टिकट ठीक एक बार उड़ा गया, और शुरुआत JFK से हुई थी। एयरलाइन को फाइल बंद करने के लिए पूरा रूट चाहिए, और अगर कई रूट बनते हों तो alphabetically सबसे छोटा वाला। हाथ से जोड़ने बैठो तो बार बार ऐसे शहर में फंस जाते हो जहां से आगे कोई टिकट नहीं। तरकीब सुनने में अजीब लगती है: फंसने तक चलते रहो, और रूट को उल्टा लिखो।
+  ar: |
+    توفي عمك الساعي في منتصف رحلة طويلة. وأنت ترتب شقته وجدت علبة أحذية مليئة بأرومات تذاكر طيران مستعملة. رحلة واحدة طويلة، كل تذكرة استُخدمت مرة واحدة بالضبط، والبداية كانت من JFK. شركة الطيران تريد المسار الكامل لإغلاق الملف، وإن تطابقت عدة مسارات فهي تريد الأصغر alphabetically. حاول ترتيبها بيدك وستجد نفسك عالقاً مراراً في مدينة لا تخرج منها أي تذكرة. الحل يبدو غريباً: امشِ حتى تعلق، واكتب المسار بالمقلوب.
+---
+
+## Boss 1: The Ticket Shoebox
+
+Dungeon 14 closed with a promise: *Dijkstra is just greedy with a priority queue*. That boss is real and it's coming. But every dungeon opens with a gatekeeper, and this one hands you a weapon you already own — plain DFS from Dungeon 11 — then changes one word in the manual.
+
+Every graph quest so far *visited nodes*. Mark a room seen, never enter it twice. This boss doesn't care how many times you pass through a room. It cares that you use every **door** exactly once. First time in the whole quest that the thing being consumed is the edge, not the node. That one word breaks your old DFS in a way that's genuinely fun to watch.
+
+---
+
+## The story
+
+Your uncle flew packages for a living. He died mid-route somewhere over the Pacific, and the airline can't close his expense file until someone reconstructs his final trip.
+
+Clearing out his flat, you find it: a shoebox of used ticket stubs. Each stub says only *from* and *to*. No dates, no times, no order.
+
+```
+JFK → KUL     JFK → NRT     NRT → JFK
+```
+
+You know two things for certain. The trip started at JFK, and he flew every ticket in the box exactly once — couriers don't buy tickets they don't use. The airline adds a third rule, because bureaucracies love ties: if more than one ordering of the stubs makes a valid trip, file the one that reads alphabetically smallest.
+
+Three stubs is easy. His real shoebox has three hundred, and half of them revisit the same airports.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a list of airline `tickets` where `tickets[i] = [from, to]`. Reconstruct the itinerary in order and return it. All tickets begin from `"JFK"`. If multiple valid itineraries exist, return the one with the smallest lexical order. You must use all tickets exactly once. At least one valid itinerary is guaranteed to exist.
+
+LeetCode 332, "Reconstruct Itinerary". Hard-rated for years, now medium, and the cleanest possible introduction to Eulerian paths — a path that walks every edge of a graph exactly once.
+
+---
+
+## The naive attempt
+
+The obvious plan: at every airport, try the alphabetically smallest unused ticket first. If that choice eventually strands you with tickets left over, undo it and try the next one. Backtracking.
+
+```python
+from collections import defaultdict
+
+def find_itinerary(tickets):
+    graph = defaultdict(list)
+    for src, dst in sorted(tickets):
+        graph[src].append(dst)      # each list is sorted, smallest first
+
+    n = len(tickets)
+    route = ["JFK"]
+
+    def backtrack(airport):
+        if len(route) == n + 1:     # every ticket flown
+            return True
+        dests = graph[airport]
+        for i in range(len(dests)):
+            nxt = dests.pop(i)      # try this ticket
+            route.append(nxt)
+            if backtrack(nxt):
+                return True
+            route.pop()             # dead end: un-fly it
+            dests.insert(i, nxt)
+        return False
+
+    backtrack("JFK")
+    return route
+```
+
+This is *correct*. Trying smallest-first means the first complete route it finds is the lexical winner. On LeetCode's real tests it even passes.
+
+But look at what it's doing. Every wrong turn is undone ticket by ticket, and a nasty graph can make it commit to a long, almost-right prefix before discovering the mistake — then unwind hundreds of flights and try again one ticket over. Worst case, that's exponential. The shoebox deserves better than "retry the whole trip".
+
+And here's the thing the backtracking is quietly hiding: the problem *guarantees* a valid itinerary exists. When an Eulerian path is guaranteed, you shouldn't need to undo anything. There should be a way to walk once and win.
+
+---
+
+## The weapon: get stuck on purpose
+
+First, feel the trap. Tickets: `JFK → KUL`, `JFK → NRT`, `NRT → JFK`. Greedy says: from JFK, fly to KUL — it beats NRT alphabetically. You land in KUL. KUL has no outgoing tickets. Two stubs still in the box. Stranded.
+
+The correct route is `JFK → NRT → JFK → KUL`. Greedy wasn't wrong that KUL comes cheap. It was wrong about *when*. KUL is a dead end, and dead ends belong at the **end** of the route, not wherever greedy happens to meet them.
+
+Hierholzer's algorithm turns that observation into the whole solution:
+
+1. Sort each airport's destinations alphabetically.
+2. DFS from JFK, always flying the smallest remaining ticket, **consuming** it as you go. No undo.
+3. When an airport has no tickets left — you're stuck — *that's* when you append it to the route.
+4. When the dust settles, reverse the route.
+
+Why does this work? When you get stuck, the airport you're stuck at must be the true final stop of some suffix of the journey — there's no ticket out of it, so nothing can come after it. Recording airports *at stuck-time* builds the route back-to-front. Any leftover tickets at airports you backtrack through are little side loops, and the recursion splices them in at exactly the right place, because a loop's airports only get recorded after everything beyond them is done.
+
+<MermaidBlock>
+graph TB
+    A["at an airport\nany unused tickets here?"] -->|yes| B["fly the alphabetically\nsmallest ticket, consume it"]
+    B --> A
+    A -->|no| C["stuck: append this\nairport to the route"]
+    C --> D["backtrack to the\nprevious airport"]
+    D --> A
+    D --> E["all tickets consumed\nreverse the route"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+from collections import defaultdict
+
+def find_itinerary(tickets: list[list[str]]) -> list[str]:
+    graph: dict[str, list[str]] = defaultdict(list)
+    for src, dst in sorted(tickets, reverse=True):
+        graph[src].append(dst)          # reverse-sorted, so pop() gives smallest
+
+    route: list[str] = []
+
+    def visit(airport: str) -> None:
+        stops = graph[airport]
+        while stops:
+            visit(stops.pop())          # consume the smallest ticket, O(1)
+        route.append(airport)           # record only when stuck (post-order)
+
+    visit("JFK")
+    return route[::-1]
+```
+
+No visited set. No undo. Every ticket is popped exactly once, forever. The sort in *reverse* order is a small pro move: the smallest destination sits at the end of each list, so `pop()` grabs it in O(1) instead of `pop(0)` shifting the whole list.
+
+---
+
+## Watching it work
+
+The trap graph, since it's the honest test. Adjacency after the reverse sort: JFK holds `[NRT, KUL]` (so `pop()` yields KUL first), NRT holds `[JFK]`.
+
+```
+visit(JFK)   pop KUL  → visit(KUL)
+visit(KUL)   no tickets            → route = [KUL]
+             back in JFK, pop NRT  → visit(NRT)
+visit(NRT)   pop JFK   → visit(JFK)
+visit(JFK)   no tickets left       → route = [KUL, JFK]
+             back in NRT, empty    → route = [KUL, JFK, NRT]
+             back in JFK, empty    → route = [KUL, JFK, NRT, JFK]
+
+reverse → [JFK, NRT, JFK, KUL]  ✓
+```
+
+The exact walk that stranded the greedy version happens here too — we *did* fly to KUL first. But getting stuck wasn't failure, it was information: KUL can only be last, so it's recorded first and the reversal buries it at the tail. The NRT loop we skipped gets spliced in on the way back, no undo required.
+
+<Callout type="tip" title="Post-order is a time machine">
+Appending on the way *back* instead of the way *in* shows up everywhere: topological sort records a node after all its dependencies, tree deletion frees children before parents, and Hierholzer records an airport after every trip beyond it is settled. When "this thing can only come after everything it leads to", build the answer backwards and reverse once. It converts an exponential search into a single walk.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Appending on arrival instead of on stuck.**
+Move `route.append(airport)` above the while loop and you've rebuilt the naive greedy — it files KUL in position two and strands the trip. The entire algorithm lives in that one line being *after* the loop. Post-order or nothing.
+
+**2. Forgetting the final reverse.**
+The route is constructed back-to-front. Return it raw and the trap example hands the airline `[KUL, JFK, NRT, JFK]`, a trip that starts at an airport with no tickets. `route[::-1]`, always.
+
+**3. Storing destinations in a set.**
+Real shoeboxes have duplicate tickets — he flew `ATL → JFK` twice. A set silently merges them and you finish with tickets unspent. The destination list is a *multiset*: keep the list, pop one copy per flight.
+
+**4. Sorting ascending and popping from the front.**
+`sorted(tickets)` plus `pop(0)` is correct but each pop shifts the rest of the list, O(V) per ticket, O(E · V) overall. Sort with `reverse=True` and `pop()` from the tail for O(1), or use a heap per airport if you'd rather not think about it.
+
+---
+
+## Complexity
+
+Sorting the tickets dominates. The walk itself touches every ticket exactly once.
+
+**Time: O(E log E). Space: O(E)** for the adjacency lists and the recursion stack (the route can revisit airports, so the stack is bounded by tickets, not airports).
+
+---
+
+## Boss down
+
+The itinerary lands on the airline's desk, alphabetically immaculate, and your uncle's file finally closes. The gatekeeper falls to a weapon from four dungeons ago with a single word changed: consume *edges*, not nodes, and record on the way out, not the way in.
+
+Keep the shoebox reflex — "a path that uses every edge exactly once" is an Eulerian path, and Hierholzer solves it in linear time wherever it appears: DNA fragment assembly, snow-plow routing, that old puzzle about drawing a figure without lifting the pen.
+
+Next boss: **Min Cost to Connect All Points — The Village Power Grid**. A valley of scattered houses, one budget, and every home must reach the grid. That's a minimum spanning tree, Prim's algorithm is the weapon, and the heap you forged in Dungeon 10 comes off the wall — its first swing in the direction Dungeon 14's finale promised. See you at the substation.

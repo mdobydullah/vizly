@@ -1,0 +1,206 @@
+---
+title: "Swim in Rising Water — The Flooded Quarry"
+slug: swim-rising-water-flooded-quarry
+category: dsa
+series: advanced-graphs
+seriesOrder: 4
+description: "Dungeon 15, Boss 4. Rain is flooding an abandoned quarry, and every platform sinks the moment the water level reaches its height. You wait at the rim until some fully-flooded path connects your corner to the far one. Dijkstra returns with a single line changed: the cost of a path is not its sum, it's its worst cell."
+tags:
+  - DSA
+  - Graphs
+  - Advanced
+icon: "🌊"
+color: orange
+createdAt: "2026-07-26T10:00:00Z"
+updatedAt: "2026-07-26T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Rain is filling an abandoned stone quarry, and its terraced platforms are going under one by one. At time t, every platform of height t or lower is underwater, and you can swim across it. You are standing at the top-left rim and need to reach the far corner. You could wait until the whole quarry drowns, but who has that kind of patience. The real question is the earliest moment some fully-flooded path connects your corner to the exit.
+  bn: |
+    একটা পরিত্যক্ত পাথরখাদানে বৃষ্টি নেমেছে, আর ধাপে ধাপে কাটা প্ল্যাটফর্মগুলো একে একে ডুবে যাচ্ছে। সময় t তে t বা তার কম উচ্চতার সব প্ল্যাটফর্ম পানির নিচে, আর সেগুলোর ওপর দিয়ে সাঁতার কাটা যায়। আপনি ওপরের বাম কোণের কিনারায় দাঁড়িয়ে, পৌঁছাতে হবে একদম উল্টো কোণে। পুরো খাদান ডোবা পর্যন্ত অপেক্ষা করা যেত, কিন্তু অত ধৈর্য কার আছে। আসল প্রশ্ন হলো, সবচেয়ে কম কতক্ষণ অপেক্ষার পর একটা পুরোপুরি ডুবে থাকা পথ আপনার কোণ থেকে বেরোনোর কোণ পর্যন্ত জুড়ে যায়।
+  hi: |
+    एक छोड़ी हुई पत्थर की खदान में बारिश हो रही है, और सीढ़ीदार प्लेटफॉर्म एक एक करके डूब रहे हैं। समय t पर t या उससे कम ऊंचाई वाला हर प्लेटफॉर्म पानी के नीचे है, और उस पर तैरा जा सकता है। आप ऊपर बाएं किनारे पर खड़े हैं और आपको सामने वाले कोने तक पहुंचना है। पूरी खदान डूबने तक रुका जा सकता है, पर इतना सब्र किसमें है। असली सवाल यह है कि कम से कम कितनी देर रुकने के बाद कोई पूरा डूबा हुआ रास्ता आपके कोने को बाहर निकलने वाले कोने से जोड़ देता है।
+  ar: |
+    المطر يملأ محجر حجارة مهجوراً، ومنصاته المتدرجة تغرق واحدة تلو الأخرى. عند اللحظة t تكون كل منصة ارتفاعها t أو أقل تحت الماء، ويمكنك السباحة فوقها. أنت واقف عند الحافة العلوية اليسرى وتحتاج إلى الوصول إلى الزاوية البعيدة. يمكنك الانتظار حتى يغرق المحجر كله، لكن من يملك هذا الصبر. السؤال الحقيقي هو أبكر لحظة يظهر فيها طريق مغمور بالكامل يصل زاويتك بزاوية الخروج.
+---
+
+## Boss 4: The Flooded Quarry
+
+Boss 3 gave you Dijkstra: a heap of frontier nodes, pop the cheapest, settle it forever. This boss hands you the exact same weapon and changes one line. The cost of a path is no longer the *sum* of what you crossed. It's the *worst thing* you crossed.
+
+That tiny swap has a name, the **minimax path**, and it's one of the most useful Dijkstra variants in existence. Bottleneck routing, quality-of-service networks, "safest route" problems: they're all this boss wearing different hats.
+
+---
+
+## The story
+
+An abandoned quarry, cut into square terraced platforms, every platform a different height. You're standing on the top-left rim. The way out is the far corner, diagonally across.
+
+Then it starts to rain. Hard.
+
+The quarry floods evenly: when the water level reaches `t`, every platform of height `t` or lower is underwater, and you can swim across it to any underwater neighbor, up, down, left, right. Platforms still above the waterline are sheer stone walls, no climbing.
+
+```
+0 1 2
+8 7 3
+6 5 4
+```
+
+You could wait for the whole quarry to drown, height 8 and all. But you're cold, and you're impatient. Squint at the map: if you wait until the water hits 4, the top row floods (0, 1, 2), then 3, then 4, and you can swim along the rim and down the right edge, never touching the tall stuff in the middle. Wait time: 4. Any earlier and platform 4 still blocks the only route.
+
+That's the game. **Least waiting time such that a fully-flooded path exists.**
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `n x n` grid where `grid[r][c]` is the elevation of that cell, all elevations distinct. Rain raises the water level: at time `t`, every cell with elevation at most `t` is underwater. You can swim between 4-directionally adjacent cells if both are underwater. Return the least time at which you can travel from `(0, 0)` to `(n - 1, n - 1)`.
+
+LeetCode 778, "Swim in Rising Water". Hard-rated, and the cleanest possible showcase of what Dijkstra actually proves.
+
+---
+
+## The naive attempt
+
+Simulate the rain. Try `t = 0, 1, 2, ...` and run a fresh BFS at each water level:
+
+```python
+from collections import deque
+
+def swim_in_water(grid):
+    n = len(grid)
+    t = 0
+    while True:
+        if grid[0][0] <= t:                    # can we even enter?
+            seen = {(0, 0)}
+            queue = deque([(0, 0)])
+            while queue:
+                r, c = queue.popleft()
+                if (r, c) == (n - 1, n - 1):
+                    return t
+                for nr, nc in ((r+1, c), (r-1, c), (r, c+1), (r, c-1)):
+                    if 0 <= nr < n and 0 <= nc < n \
+                            and (nr, nc) not in seen and grid[nr][nc] <= t:
+                        seen.add((nr, nc))
+                        queue.append((nr, nc))
+        t += 1
+```
+
+It works. It's also embarrassing. Elevations go up to `n² - 1`, so that's up to n² BFS runs of O(n²) each, O(n⁴)-ish, and every BFS re-discovers almost everything the previous one already knew. The water rises one unit and we flood the whole map from scratch.
+
+Two smarter families exist. **Binary search on `t`** with one BFS per guess, the "binary search the answer" move from Koko back in Dungeon 4, gets you O(n² log n). **Union-Find**, sinking cells in elevation order and merging them with underwater neighbors until the two corners share a component, also lands O(n² log n). Both are fine. But the cleanest version doesn't guess the answer or sort the cells. It grows the answer directly.
+
+---
+
+## The weapon: Dijkstra, with max instead of plus
+
+Reframe the question. Any route from corner to corner gets blocked by exactly one thing: its **tallest platform**. Wait time for that route = the max elevation along it. So the answer is:
+
+> Over all paths, minimize the maximum cell.
+
+That's a shortest-path problem where the "length" of a path is its worst cell, not its sum. And here's the beautiful part: Dijkstra doesn't care. Dijkstra's settle argument, "the cheapest thing in the heap can never be improved later", only needs one property: **path cost never decreases as the path grows**. Adding a positive edge to a sum can't shrink the sum. Taking max with one more cell can't shrink the max. Same monotone shape, same proof, same code, one line changed:
+
+```python
+new_cost = max(cost, elevation)     # Boss 3 wrote: cost + edge_weight
+```
+
+The grid is a graph exactly the way Dungeon 11 taught with Number of Islands: cells are nodes, 4-neighbors are edges. Pop the frontier cell with the smallest bottleneck-so-far. The first time the far corner pops, its bottleneck is the answer.
+
+<MermaidBlock>
+graph TB
+    A["heap of frontier cells\npriority is worst platform\non best known route there"] --> B["pop the cell with the\nsmallest bottleneck"]
+    B --> C["is it the far corner?\nits bottleneck is the answer"]
+    B --> D["for each unseen neighbor\nnew cost is max of bottleneck\nand neighbor height"]
+    D --> E["mark seen, push to heap"]
+    E --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+import heapq
+
+def swim_in_water(grid: list[list[int]]) -> int:
+    n = len(grid)
+    heap = [(grid[0][0], 0, 0)]        # (bottleneck so far, row, col)
+    seen = {(0, 0)}
+    while heap:
+        bottleneck, r, c = heapq.heappop(heap)
+        if r == n - 1 and c == n - 1:
+            return bottleneck
+        for nr, nc in ((r+1, c), (r-1, c), (r, c+1), (r, c-1)):
+            if 0 <= nr < n and 0 <= nc < n and (nr, nc) not in seen:
+                seen.add((nr, nc))
+                heapq.heappush(heap, (max(bottleneck, grid[nr][nc]), nr, nc))
+```
+
+Water spreading through a quarry, popping the lowest reachable platform first. The algorithm *is* the rain.
+
+---
+
+## Watching it work
+
+The classic warm-up grid first: `[[0, 2], [1, 3]]`. Start at 0. Push neighbors: right costs `max(0, 2) = 2`, down costs `max(0, 1) = 1`. Pop the 1, push its neighbor: `max(1, 3) = 3`. Pop the 2, its unseen neighbor also lands at `max(2, 3) = 3`. Pop 3, and that's the far corner. Answer: **3**. Both routes pass through the height-3 cell, so no cleverness could beat it.
+
+Now the quarry from the story:
+
+```
+0 1 2
+8 7 3
+6 5 4
+```
+
+| pop # | cell popped | bottleneck | pushed |
+|-------|-------------|------------|--------|
+| 1 | (0,0) elev 0 | 0 | (0,1) at 1, (1,0) at 8 |
+| 2 | (0,1) elev 1 | 1 | (0,2) at 2, (1,1) at 7 |
+| 3 | (0,2) elev 2 | 2 | (1,2) at 3 |
+| 4 | (1,2) elev 3 | 3 | (2,2) at 4 |
+| 5 | (2,2) elev 4 | **4** | target popped, done |
+
+Answer: **4**, exactly the hand-squinted route along the rim. Notice what never happened: the 8, the 7, the 6, the 5 sat in (or out of) the heap untouched. The heap kept steering around the tall stone because tall stone is expensive, and expensive things sink to the back of a min-heap.
+
+<Callout type="tip" title="Dijkstra is a proof shape, not a formula">
+The settle argument never mentions addition. It needs the cost of a path to be **monotone**, never decreasing as the path extends, and it needs you to combine "cost so far" with "next edge" consistently. Sum with positive weights qualifies. Max qualifies. Flip everything and min gives you *maximin*, the widest-path problem: maximize the narrowest pipe, which is bandwidth routing. Multiplying probabilities in `(0, 1]` to find the most reliable path qualifies after a log transform, or directly with a max-heap. Whenever a problem says "minimize the worst" or "maximize the weakest", check whether the combiner is monotone. If it is, Dijkstra already solves it.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Seeding the heap with 0 instead of `grid[0][0]`.**
+The start cell has a height too. If `grid[0][0]` is 7, you stand on the rim until the water reaches 7, you don't get to be underwater for free just because you started there. Seed with `(grid[0][0], 0, 0)` or every answer on grids with a tall start cell comes out low.
+
+**2. Writing `bottleneck + grid[nr][nc]` on reflex.**
+Muscle memory from Boss 3 is real. The plus version compiles, runs, and returns a confidently wrong number, sum of elevations along some path, which answers nothing anyone asked. If your answer looks suspiciously huge, this is the first place to look.
+
+**3. Fumbling the visited-at-push vs visited-at-pop choice.**
+This code marks cells seen at *push* time. In general Dijkstra that's a known trap, because a cheaper route to a pushed-but-unpopped node can appear later. Here it's safe: the cost into a cell is `max(bottleneck, its own elevation)`, and since pops come off the heap in nondecreasing order, any later route arrives with an equal-or-worse bottleneck, so the first push is already the best. If that argument makes you nervous, mark at pop and skip already-settled cells; it's still correct, the heap just holds a few duplicates.
+
+**4. Building cleverness on "all elevations are distinct".**
+The guarantee is flavor, not structure. It makes the story tidy, one platform sinks per tick, but the algorithm never uses it. Ties in the heap resolve arbitrarily and the answer is unchanged. If your solution *needs* distinctness, you've solved a different problem.
+
+---
+
+## Complexity
+
+n² cells, each pushed and popped a constant number of times, each heap operation costing the log of the heap size.
+
+**Time: O(n² log n). Space: O(n²)** for the heap and the seen set.
+
+The naive rain simulation was O(n⁴)-ish. Binary search plus BFS ties the heap at O(n² log n), and Union-Find matches it too. The heap wins on elegance: no guessing, no sorting, the answer grows out of the start cell like the flood itself.
+
+---
+
+## Boss down
+
+You push off the rim at the exact minute the last platform on your route slips underwater, swim the cold corridor along the rim, and haul yourself out at the far corner. Behind you the quarry keeps filling, but you're already gone.
+
+Take the reframe with you: **the cost of a path is whatever the problem says it is.** Sum, max, min, product, and Dijkstra survives every swap that stays monotone. One-line changes to old weapons are how late dungeons get cleared.
+
+Boss 5 is **Alien Dictionary — The Lost Alphabet**. Topological sort returns from Dungeon 11's epilogue, but with a cruel twist: nobody hands you the graph this time. All you get is a list of words, already sorted by an alphabet no human has seen, and you must reverse-engineer the letter ordering from how the words compare. Build the graph first, *then* sort it. Bring a notebook.
