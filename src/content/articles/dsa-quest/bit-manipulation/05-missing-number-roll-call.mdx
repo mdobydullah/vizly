@@ -1,0 +1,173 @@
+---
+title: "Missing Number — The Roll Call Gap"
+slug: missing-number-roll-call
+category: dsa
+series: bit-manipulation
+seriesOrder: 5
+description: "Dungeon 17, Boss 5. A field-trip teacher hands out numbered badges 0 through n, one kid stays home sick, and at the bus the headcount comes up short with no checklist in sight. XOR the ideal roster against the badges actually present and every attending kid cancels themselves out, leaving only the missing number standing."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "📋"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    It's field-trip morning. The teacher printed numbered badges, 0 up to n, one per kid, but one kid stayed home sick. Now everyone's on the bus, the headcount is short by one, and there's no checklist anywhere. Which badge number is missing? Here's the trick: XOR the full roster 0 to n against every badge on the bus. Every kid who showed up cancels their own roster entry, and the only number left is the sick kid's.
+  bn: |
+    আজ স্কুলের শিক্ষাসফরের সকাল। শিক্ষক ০ থেকে n পর্যন্ত নম্বর দেওয়া ব্যাজ ছাপিয়েছেন, প্রতিটা বাচ্চার জন্য একটা, কিন্তু একজন অসুস্থ হয়ে বাড়িতে রয়ে গেছে। বাসে গুনে দেখা গেল একজন কম, আর হাতে কোনো তালিকাও নেই। কোন নম্বরের ব্যাজটা নেই? কৌশলটা হলো, ০ থেকে n পুরো রোস্টার আর বাসের সব ব্যাজ একসাথে XOR করে ফেলুন। যে বাচ্চারা এসেছে তারা নিজের রোস্টার এন্ট্রি নিজেই কেটে দেয়, আর শেষে পড়ে থাকে শুধু অসুস্থ বাচ্চাটার নম্বর।
+  hi: |
+    आज स्कूल ट्रिप की सुबह है। टीचर ने 0 से n तक नंबर वाले बैज छापे, हर बच्चे के लिए एक, लेकिन एक बच्चा बीमार होकर घर रह गया। बस में गिनती एक कम निकली और चेकलिस्ट कहीं नहीं है। कौन सा बैज नंबर गायब है? तरकीब यह है कि 0 से n का पूरा रोस्टर और बस के सारे बैज एक साथ XOR कर दीजिए। जो बच्चे आए हैं वे अपनी रोस्टर एंट्री खुद काट देते हैं, और आखिर में बस बीमार बच्चे का नंबर बचता है।
+  ar: |
+    إنه صباح الرحلة المدرسية. طبعت المعلمة شارات مرقمة من 0 إلى n، شارة لكل طفل، لكن طفلاً واحداً بقي في البيت مريضاً. الآن الجميع في الحافلة والعدد ناقص واحد ولا توجد قائمة أسماء في أي مكان. أي رقم شارة هو المفقود؟ الحيلة بسيطة: طبّق XOR على القائمة الكاملة من 0 إلى n مع كل الشارات الموجودة في الحافلة. كل طفل حاضر يمحو رقمه من القائمة بنفسه، ولا يبقى في النهاية إلا رقم الطفل المريض.
+---
+
+## Boss 5: The Roll Call Gap
+
+Boss 1 was generous. The raffle bin *handed* you the twins: every ticket already sat in the array twice, and XOR just let them annihilate. This boss hands you nothing twice. Every number in the array is distinct, one copy each, and one number from the range never showed up at all.
+
+No twins, no cancellation, no weapon? Not quite. You can't find twins in this array, but you can *manufacture* them. Same cancel as Boss 1, one level more creative.
+
+---
+
+## The story
+
+Field-trip morning. The teacher printed badges numbered `0` through `n`, one per kid, and pinned them on at the school gate. One kid woke up with a fever and stayed home.
+
+Now everyone's climbing onto the bus. The teacher counts heads: one short. The checklist is sitting on a desk back at school, and the driver is revving the engine.
+
+The badges on the bus read something like:
+
+```
+3  0  1
+```
+
+Small enough to eyeball: badge 2 is missing, that's the sick kid. But this teacher runs a big school. Four hundred badges, kids bouncing between seats, no order to anything. The teacher needs to walk the bus once, keep one number in their head, and step off knowing exactly which badge stayed home.
+
+---
+
+## The problem, dressed up properly
+
+> Given an array `nums` containing `n` distinct numbers taken from the range `0` to `n`, return the only number in the range that is missing from the array.
+
+LeetCode 268, "Missing Number". Easy-rated, with a follow-up that is the actual boss: do it in O(n) time and O(1) space.
+
+---
+
+## The naive attempt
+
+Sort the badges and scan for the first seat where the number doesn't match the position:
+
+```python
+def missing_number(nums):
+    nums.sort()
+    for i, badge in enumerate(nums):
+        if badge != i:
+            return i
+    return len(nums)        # every seat matched: the last badge is missing
+```
+
+Correct, but sorting costs O(n log n), and the problem never needed order, only *membership*. The other reflex is a seen-set: dump every badge into a set, then walk `0` to `n` asking "are you here?" That's O(n) time but O(n) space, a paper checklist rebuilt from scratch. The teacher's head holds one number, not four hundred.
+
+---
+
+## The weapon: manufacture the twins
+
+Here's the shift. The array has no duplicates, but you know exactly what the *ideal* roster looks like: every number from `0` to `n`, no exceptions. So XOR both worlds together, the roster you expected and the badges you got.
+
+Every kid who made the bus now appears **twice** in that combined stream: once as a member of the ideal range, once as a badge value in the array. Boss 1 taught us what XOR does to twins: `x ^ x == 0`, gone without a trace. The sick kid appears only once, in the ideal roster, with no badge to cancel against. Everyone else erases themselves. The survivor *is* the answer.
+
+<MermaidBlock>
+graph TB
+    A["ideal roster\n0 1 2 3"] --> C["XOR both streams\ninto one running number"]
+    B["badges on the bus\n3 0 1"] --> C
+    C --> D["every present kid appears twice\nonce in roster, once as badge"]
+    D --> E["twins cancel to zero\nBoss 1 all over again"]
+    E --> F["badge 2 has no partner\nit alone survives"]
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+In code, the indices `0` to `n-1` play the roster for free, and seeding the accumulator with `n` covers the one roster entry that has no index:
+
+```python
+def missing_number(nums: list[int]) -> int:
+    acc = len(nums)                  # roster entry n, the index that doesn't exist
+    for i, badge in enumerate(nums):
+        acc ^= i ^ badge
+    return acc
+```
+
+One pass, one integer, zero shelf space.
+
+There's a second clean weapon here, courtesy of Gauss. The ideal roster's *sum* is `n * (n + 1) / 2`, so whatever the actual badges fall short by is the missing number:
+
+```python
+def missing_number(nums: list[int]) -> int:
+    n = len(nums)
+    return n * (n + 1) // 2 - sum(nums)
+```
+
+Same idea, arithmetic instead of bits: compare the ideal against the actual and the gap names the absentee. Its only real risk is overflow, the expected sum of a big range can blow past a 32-bit integer in fixed-width languages. Python shrugs at that, its integers grow as needed. Still, this is Dungeon 17, and XOR is the dungeon-native answer: no overflow, no arithmetic, just twins cancelling.
+
+---
+
+## Watching it work
+
+The story's bus: `[3, 0, 1]`, so `n = 3`. Seed the counter with `3`, then feed it each index-badge pair:
+
+```
+acc = 3                          seed: roster entry n
+pair (i=0, badge=3):  3 ^ 0 ^ 3 = 0    the two 3s cancel
+pair (i=1, badge=0):  0 ^ 1 ^ 0 = 1    the two 0s cancel
+pair (i=2, badge=1):  1 ^ 2 ^ 1 = 2    the two 1s cancel
+
+final: 2 ✓
+```
+
+Every roster number found its badge twin and vanished, in whatever scrambled order the kids sat down. Only `2` passed through the counter unpartnered, and there it sits at the end. The teacher steps off the bus and phones badge 2's parents.
+
+<Callout type="tip" title="XOR a set against its ideal">
+The move worth keeping: when you can write down what a collection *should* contain, XOR the ideal against the actual and absence becomes visible. Presence cancels, the anomaly survives. This works for any "one item differs" audit, a lost packet against expected sequence numbers, a corrupted record against a known schema of IDs, one swapped element between two lists. You don't need duplicates in your data if you can print the second copy yourself.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. XORing only `0` to `n-1` and forgetting `n` itself.**
+The array has `n` slots but the range has `n + 1` numbers. Loop over indices alone and roster entry `n` never enters the stream, so when `n` is the missing badge you get `0` back instead. That's why the accumulator is *seeded* with `len(nums)` before the loop. Off-by-one on the roster is this boss's favorite kill.
+
+**2. Assuming the array is sorted.**
+The badges are in seat order, which is to say no order at all. XOR doesn't care, commutativity means twins cancel from opposite ends of the bus, but any solution that scans for "the first position where `nums[i] != i`" silently assumes a sort that never happened.
+
+**3. The sum version overflowing.**
+In Java or C++, `n * (n + 1) / 2` with `n` near a billion overflows a 32-bit int before the division ever runs. Cast to 64-bit first, or subtract element-by-element as you go. Python users get to skip this bullet entirely, which is exactly why interviewers ask the follow-up in a fixed-width language.
+
+**4. Distinctness is load-bearing.**
+The cancel works because each present number appears *exactly* twice in the combined stream. If the array could hold duplicates, a badge appearing twice as a value would cancel against itself, orphan its roster entry, and the "missing" answer becomes garbage. Read the constraints: `n` distinct numbers is a promise, and this weapon spends it.
+
+---
+
+## Complexity
+
+One pass over the bus. One integer in the teacher's head.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down
+
+The counter reads `2`, the bus pulls out on schedule, and somewhere a kid with a fever is delighted to learn attendance found them anyway.
+
+Track the arc: Boss 1 cancelled twins that were handed to you, sitting right there in the array. This boss had no twins at all and *built* them, XORing the ideal roster against reality so every present number became its own partner. The lesson underneath is bigger than the problem: XOR doesn't need your data to cooperate. If you can describe what perfect looks like, you can make absence glow.
+
+Next up, Boss 6: **Sum of Two Integers — The Broken Plus Key**. Two numbers to add, and the `+` key itself is forbidden. Sounds impossible until you notice what XOR has been this whole dungeon: an adder that forgot how to carry. Bolt the carry back on with AND and a shift, and arithmetic rebuilds itself from bare bits. See you at the keyboard.

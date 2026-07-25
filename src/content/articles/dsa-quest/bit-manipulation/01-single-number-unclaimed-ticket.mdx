@@ -1,0 +1,194 @@
+---
+title: "Single Number — The Unclaimed Ticket"
+slug: single-number-unclaimed-ticket
+category: dsa
+series: bit-manipulation
+seriesOrder: 1
+description: "Dungeon 17, Boss 1. A charity raffle prints every ticket in twin pairs, and at closing the stubs bin holds every number twice except one whose twin never came back. Find the unpaired ticket with no notebook, just one running number. XOR everything, and the pairs erase themselves."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "🎫"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    It's closing night at a charity raffle. Every ticket was printed as a twin pair, one half for the guest and one for the stubs bin. The bin should hold every number exactly twice, but tonight one ticket's twin never came back. You have no notebook, just one running number in your head. XOR every stub together and the pairs erase themselves, leaving only the lonely ticket.
+  bn: |
+    চ্যারিটি র‍্যাফেলের শেষ রাত। প্রতিটা টিকিট ছাপা হয়েছিল জোড়ায়, একটা অতিথির হাতে, আরেকটা স্টাবের বাক্সে। বাক্সে প্রতিটা নম্বর ঠিক দুবার থাকার কথা, কিন্তু আজ একটা টিকিটের জোড়া আর ফেরত আসেনি। আপনার কাছে কোনো খাতা নেই, মাথায় শুধু একটা চলতি সংখ্যা রাখা যাবে। সব স্টাব XOR করে যান, জোড়াগুলো নিজেরাই মুছে যাবে, পড়ে থাকবে শুধু একা টিকিটটা।
+  hi: |
+    चैरिटी रैफल की आखिरी रात है। हर टिकट जुड़वां जोड़े में छपा था, एक हिस्सा मेहमान के पास और एक स्टब के डिब्बे में। डिब्बे में हर नंबर ठीक दो बार होना चाहिए, लेकिन आज एक टिकट का जुड़वां लौटा ही नहीं। आपके पास कोई नोटबुक नहीं, दिमाग में बस एक चलता हुआ नंबर रख सकते हैं। सारे स्टब XOR करते जाइए, जोड़े खुद मिट जाएंगे और आखिर में वही अकेला टिकट बचेगा।
+  ar: |
+    إنها ليلة إغلاق سحب خيري. كل تذكرة طُبعت بنسختين توأم، واحدة مع الضيف وواحدة في صندوق الأرومات. المفروض أن يحمل الصندوق كل رقم مرتين بالضبط، لكن الليلة توأم تذكرة واحدة لم يعد أبداً. لا دفتر معك، فقط رقم واحد جارٍ في رأسك. طبّق XOR على كل الأرومات فتمحو الأزواج نفسها ولا يبقى إلا الرقم الوحيد.
+---
+
+## Boss 1: The Unclaimed Ticket
+
+Welcome to Dungeon 17. Sixteen dungeons of *building* things: hash sets, stacks, heaps, trees, tries, whole graphs. This dungeon does the opposite. It strips the structures away and asks what you can do with the number itself, because under the costume every integer is already a data structure: a row of bits, each one a tiny on/off shelf.
+
+That's the promise of Bit Manipulation. Problems that seemed to need a hash set collapse into a single integer. Counting tricks hide inside `n - 1`. Whole sets fit in one machine word.
+
+The gate boss teaches the dungeon's favorite weapon, and it's a one-liner.
+
+---
+
+## The story
+
+The charity raffle is over, the hall is emptying, and you're the volunteer stuck with the stubs bin.
+
+Every ticket was printed as a twin pair. The guest keeps one half, drops the other half in the bin at the door on the way in, and drops the *kept* half back in when they leave. So by closing time the bin should hold every ticket number exactly twice.
+
+Except tonight it doesn't. One guest walked out with their half still in a coat pocket. One number in the bin has no twin, and that's the unclaimed prize you need to announce.
+
+Here's the annoying part: you have no notebook. The organizer's little tally counter can hold exactly one running number, nothing else. Thousands of stubs, one pass, one number of memory.
+
+Sounds impossible. It's a one-liner.
+
+---
+
+## The problem, dressed up properly
+
+> Given a non-empty array of integers `nums`, every element appears **twice** except for one. Find that single one. You must implement a solution with linear runtime and use only constant extra space.
+
+LeetCode 136, "Single Number". Easy-rated, and the single most famous bit trick in interviewing. The trick isn't finding *an* answer, it's meeting that space constraint.
+
+---
+
+## The naive attempt
+
+Count everything, then find the count of one:
+
+```python
+def single_number(nums):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    for n, count in counts.items():
+        if count == 1:
+            return n
+```
+
+Works fine. But that dictionary is a full notebook: O(n) extra space, one entry per distinct ticket. Sorting the stubs instead and scanning for the pair that breaks is O(1) space but O(n log n) time, and you spent the whole evening shuffling paper.
+
+The bin problem demands O(n) time *and* O(1) space. Time to meet the dungeon.
+
+---
+
+## The weapon: XOR, the twin eraser
+
+First, thirty seconds of binary. Every integer is a row of bits: `4` is `100`, `2` is `010`, `1` is `001`. Every trick in this dungeon works one bit-column at a time.
+
+XOR (`^` in Python) compares two bits and asks: **are you different?**
+
+| a | b | a XOR b |
+|---|---|---------|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 0 |
+
+Same bits give 0, different bits give 1. Four consequences fall out, and they're the whole boss fight:
+
+- `x ^ x == 0` — a number XORed with itself dies. Identical bits everywhere, so every column answers "same".
+- `x ^ 0 == x` — XOR with zero changes nothing. Zero is the blank slate.
+- **Commutative**: `a ^ b == b ^ a`. Order doesn't matter.
+- **Associative**: `(a ^ b) ^ c == a ^ (b ^ c)`. Grouping doesn't matter.
+
+Put those together. XOR the entire bin in whatever order the stubs come out. Because order and grouping don't matter, you can *mentally* rearrange the whole chain so twins sit next to each other. Each twin pair becomes 0. All the zeros vanish into each other. The only survivor is the ticket with no twin.
+
+<MermaidBlock>
+graph TB
+    A["stubs bin: 4 1 2 1 2\nXOR them all in any order"] --> B["reorder freely\nXOR is commutative and associative"]
+    B --> C["1 XOR 1\nbecomes 0"]
+    B --> D["2 XOR 2\nbecomes 0"]
+    B --> E["4\nno twin in the bin"]
+    C --> F["0 XOR 0 XOR 4\nequals 4: the unclaimed ticket"]
+    D --> F
+    E --> F
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+The tally counter is one integer. That's all XOR ever needs:
+
+```python
+def single_number(nums: list[int]) -> int:
+    result = 0
+    for n in nums:
+        result ^= n
+    return result
+```
+
+Or, since it's genuinely a fold over one operator:
+
+```python
+from functools import reduce
+from operator import xor
+
+def single_number(nums: list[int]) -> int:
+    return reduce(xor, nums)
+```
+
+---
+
+## Watching it work
+
+The bin holds `[4, 1, 2, 1, 2]`. Watch the counter in binary, one stub at a time:
+
+```
+counter   stub   counter after
+ 000       4      000 ^ 100 = 100
+ 100       1      100 ^ 001 = 101
+ 101       2      101 ^ 010 = 111
+ 111       1      111 ^ 001 = 110   ← 1's twin arrives, its bit erased
+ 110       2      110 ^ 010 = 100   ← 2's twin arrives, its bit erased
+
+final counter: 100 = 4 ✓
+```
+
+Notice the twins didn't arrive together. `1` showed up, two strangers passed through, then `1`'s twin landed and its bit still flipped cleanly back off. The counter briefly held `111`, a number that isn't any ticket, and that's fine. It's not tracking tickets, it's tracking *which bit-columns have seen an odd number of ones so far*. At the end, the odd columns spell exactly one ticket: the unclaimed 4.
+
+<Callout type="tip" title="XOR is a reversible toggle">
+XOR with `x` is a light switch: apply it once, bits flip. Apply it again, they flip back. That means anything appearing an *even* number of times, twice, four times, forty, vanishes completely from the running XOR. Only the odd-count survivors leave a trace. This "even things self-destruct" instinct is the master key to half the bosses in this dungeon.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Assuming order matters.**
+It's tempting to think the twins must be adjacent, or that you should sort first so pairs line up. Commutativity is the whole point: the pairs cancel no matter how scrambled the bin is. Sorting before XOR is paying O(n log n) for a property you already own for free.
+
+**2. Trying to find the pairs instead of erasing them.**
+The instinct from sixteen dungeons is "match each element with its partner," which drags you back to a hash set or a nested O(n²) scan. XOR never identifies a single pair. It lets every pair silently annihilate and only ever looks at the wreckage.
+
+**3. Reusing this on the triple-appearance variant.**
+Single Number II (LeetCode 137) has every element appearing *three* times except one. XOR alone dies there: `x ^ x ^ x == x`, so nothing cancels. The fix is counting each bit-column modulo 3, a different machine entirely. Know which twin problem you're actually holding.
+
+**4. Worrying about negative numbers.**
+In Python, `-3 ^ -3` is still `0` and the algorithm works untouched, because Python integers behave like two's complement with infinite sign bits. In fixed-width languages it also just works. The only real trap is *expecting* a trap and adding special cases that break a correct solution.
+
+---
+
+## Complexity
+
+One pass over the bin. One integer of state.
+
+**Time: O(n). Space: O(1).**
+
+---
+
+## Boss down
+
+The counter reads `4`, you announce the unclaimed prize, and somewhere a guest checks their coat pocket.
+
+There's a nice echo here. Dungeon 1 opened with Contains Duplicate, the Coat Check, where spotting a repeat took a hash set: a whole shelf of remembered items. Seventeen dungeons later, a twin problem falls with *zero* shelf space, because the "shelf" moved inside the number itself. That's this dungeon in one sentence.
+
+Next up, Boss 2: **Number of 1 Bits — The Punch Card Count**. One number, and the question is simply how many of its bits are lit. The obvious loop checks every position, but there's a trick that hops straight from one lit bit to the next and skips the zeros entirely. Bring the ticket counter. See you at the punch cards.

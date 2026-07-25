@@ -1,0 +1,213 @@
+---
+title: "Reverse Integer — The Upside-Down Meter"
+slug: reverse-integer-upside-down-meter
+category: dsa
+series: bit-manipulation
+seriesOrder: 7
+description: "Dungeon 17, Boss 7, the finale. A utility meter went in upside down, so months of logged readings are digit-reversed. A tech has to flip each number back, but the billing register tops out at 2147483647, and any reading that would blow past it must be flagged invalid, not stored. Pop digits, push digits, and check the limit before the multiply, never after."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "🔃"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A utility company calls you in with an embarrassing problem. One meter was installed upside down, so every reading logged for months is digit reversed. 321 on the books really means 123. Your job is to flip each number back before billing runs. One catch, the billing register maxes out at 2147483647, and any reading that would blow past it has to be flagged as invalid, not stored. So you peel digits off one end, push them onto the other, and check the limit before every push.
+  bn: |
+    এক ইউটিলিটি কোম্পানি আপনাকে ডেকে পাঠাল, বেশ লজ্জার ব্যাপার। একটা মিটার উল্টো করে লাগানো হয়েছিল, তাই মাসের পর মাস লগ হওয়া প্রতিটা রিডিং আসলে উল্টো সংখ্যা। খাতায় 321 মানে আসলে 123। বিলিং চালানোর আগে আপনাকে প্রতিটা সংখ্যা সোজা করে দিতে হবে। কিন্তু একটা ঝামেলা আছে, বিলিং রেজিস্টার 2147483647 এর বেশি রাখতে পারে না, আর যে রিডিং সেটা ছাড়িয়ে যাবে তাকে invalid ফ্ল্যাগ করতে হবে, রাখা যাবে না। তাই এক প্রান্ত থেকে digit খুলে অন্য প্রান্তে বসান, আর প্রতিবার বসানোর আগে লিমিট চেক করুন।
+  hi: |
+    एक यूटिलिटी कंपनी आपको बुलाती है, मामला शर्मिंदगी वाला है। एक मीटर उल्टा लगा दिया गया था, इसलिए महीनों से लॉग हुई हर रीडिंग के digit उलटे हैं। खाते में 321 का असली मतलब 123 है। बिलिंग चलने से पहले आपको हर नंबर सीधा करना है। बस एक पेच है, बिलिंग रजिस्टर 2147483647 से ऊपर नहीं जा सकता, और जो रीडिंग उसे पार कर जाए उसे invalid मार्क करना है, स्टोर नहीं करना। तो एक सिरे से digit निकालिए, दूसरे सिरे पर जोड़िए, और हर बार जोड़ने से पहले लिमिट जांच लीजिए।
+  ar: |
+    تستدعيك شركة مرافق لمشكلة محرجة. أحد العدادات رُكّب مقلوباً، فكل قراءة سُجلت لشهور صارت أرقامها معكوسة. الرقم 321 في السجل يعني فعلياً 123. مهمتك أن تعيد كل رقم إلى وضعه الصحيح قبل تشغيل الفواتير. لكن هناك عقبة، سجل الفواتير لا يتجاوز 2147483647، وأي قراءة ستتخطاه يجب وسمها invalid لا تخزينها. لذا تسحب رقماً من طرف وتدفعه في الطرف الآخر، وتفحص الحد قبل كل دفعة.
+---
+
+## Boss 7: The Upside-Down Meter
+
+The dungeon finale, and it plays a trick on you: there's not a single `<<` or `^` in sight. Six bosses lived in base 2. The seventh hands you base 10 and asks whether you actually learned the lesson or just memorized the operators.
+
+Because the lesson was never "XOR is neat". The lesson was that a number lives in a register of fixed width, and everything you do to it has to respect that width. Boss 4 peeled bits off one end and pushed them onto the other. Boss 6 masked every sum back into 32 bits because the register demanded it. This boss runs the exact same peel-and-push loop on decimal digits, and the entire fight is the moment *before* the push: will this one overflow the register?
+
+---
+
+## The story
+
+The utility company's newest installer had one job. The meter went onto the wall upside down.
+
+Nobody noticed for months. The automated logger photographed the dial every night and dutifully recorded what it saw, which was every reading with its digits reversed. A house that used 123 units is on the books for 321. A big apartment block that ran up 9646324351... well, that one's interesting, hold the thought.
+
+You're the tech sent to fix the ledger. For each logged number, reverse the digits back. Negative adjustment entries exist too (refunds, corrections), and the minus sign was hand-stamped by the clerk, so it's already the right way up: `-321` un-reverses to `-123`.
+
+One hard rule. The billing system's register is a signed 32-bit slot: it holds nothing above 2147483647 and nothing below -2147483648. If an un-reversed reading won't fit, the system must not try to store it, not even for an instant during the arithmetic. Flag it as invalid, log a zero, move on. A corrupted register is worse than a missing reading.
+
+---
+
+## The problem, dressed up properly
+
+> Given a signed 32-bit integer `x`, return `x` with its digits reversed. If reversing `x` causes the value to go outside the signed 32-bit range `[-2**31, 2**31 - 1]`, return `0`. Assume the environment does not allow you to store 64-bit integers.
+
+LeetCode 7, "Reverse Integer". Medium-rated, ancient, and famously not about the reversing. It's about that last sentence.
+
+---
+
+## The naive attempt
+
+Python makes the reverse itself a one-liner. Flip the string, juggle the sign, range-check at the end:
+
+```python
+def reverse(x: int) -> int:
+    sign = -1 if x < 0 else 1
+    rev = sign * int(str(abs(x))[::-1])
+    if rev < -2**31 or rev > 2**31 - 1:
+        return 0
+    return rev
+```
+
+This passes LeetCode. It is also cheating, and it's worth being precise about *why*.
+
+The check happens **after** `rev` already holds the oversized value. That's fine in Python, where integers grow without limit and 9646324351 sits in memory as comfortably as 7. But the problem statement built you a smaller world on purpose: an environment where nothing wider than 32 bits can be stored. In that world, the oversized value never exists to be checked. The multiply overflows first, the register now holds garbage (or, in C, you've hit undefined behavior), and your careful comparison inspects the garbage and nods it through.
+
+Build-it-then-check-it is not an option when building it is the crash. The whole exercise is learning to check a boundary you're not allowed to touch.
+
+---
+
+## The weapon: pop, guard, push
+
+The reverse itself is the loop this dungeon has drilled twice already. Pop the last digit off `x`, push it onto `rev`:
+
+```
+digit = x % 10      # pop the low digit
+x //= 10            # drop it
+rev = rev * 10 + digit   # push it onto the other number
+```
+
+Boss 4 did exactly this with `n & 1` and shifts, one bit at a time. Base 10 just changes the divisor. The new material is the guard, so let's derive it instead of pasting it.
+
+Call the limit `M = 2147483647`. The dangerous step is `rev * 10 + digit`. We need to know, *using only values that fit*, whether that expression would exceed `M`. Divide the limit instead of multiplying the value: `M // 10` is `214748364`, and that division is always safe because it makes numbers smaller. Now compare:
+
+- If `rev` is strictly greater than `214748364`, then `rev * 10` alone is at least 2147483650. Overflow, no matter the digit.
+- If `rev` equals `214748364` exactly, then `rev * 10` is 2147483640, and the push survives only if `digit` is at most 7, because `M` ends in 7.
+- If `rev` is below `214748364`, then `rev * 10 + digit` is at most 2147483639 plus 9. Safe.
+
+So the guard, checked *before* the push, is: overflow when `rev > 214748364`, or when `rev == 214748364` and `digit > 7`. Every quantity in that test already fits in 32 bits. We interrogate the boundary without ever stepping over it.
+
+<MermaidBlock>
+graph TB
+    A["strip the sign\nwork on the absolute value"] --> B["pop the low digit\ndigit is x mod 10\nthen drop it from x"]
+    B --> C["guard before the push\nwould rev times 10 plus digit\nexceed 2147483647"]
+    C --> D["yes\nregister would overflow\nflag invalid and return 0"]
+    C --> E["no\npush it\nrev becomes rev times 10 plus digit"]
+    E --> F["digits left in x"]
+    F --> B
+    F --> G["restore the sign\nstore the reading"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+One Python-specific landmine before the code. Python's `%` follows the sign of the *divisor*, so `-123 % 10` is `7`, not `-3`, and `-123 // 10` is `-13`, not `-12`. Run the pop loop on a negative number directly and it pops nonsense digits forever. The clean fix is the one the story already suggested: the minus sign was stamped separately, so peel it off, reverse the absolute value, stamp it back at the end.
+
+```python
+def reverse(x: int) -> int:
+    INT_MAX = 2**31 - 1        # 2147483647
+    sign = -1 if x < 0 else 1
+    x = abs(x)                 # Python quirk: -123 % 10 is 7, so shed the sign first
+    rev = 0
+    while x:
+        digit = x % 10         # pop
+        x //= 10
+        # guard BEFORE the push: would rev * 10 + digit leave the register?
+        if rev > INT_MAX // 10 or (rev == INT_MAX // 10 and digit > 7):
+            return 0
+        rev = rev * 10 + digit # push, now provably safe
+    return sign * rev
+```
+
+O(log₁₀ x) iterations, one per digit, constant space. And yes, Python would have let us skip the guard entirely. That's exactly why the problem forbids it: the guard *is* the boss.
+
+---
+
+## Watching it work
+
+The easy house first, `x = 123`:
+
+```
+digit  x     rev    guard
+3      12    3      0 is far below 214748364, push
+2      1     32     3 is far below, push
+1      0     321    32 is far below, push
+end: +321 ✓
+```
+
+Now the apartment block, `x = 1534236469`, a perfectly legal 32-bit reading whose mirror image is not:
+
+```
+digit  x           rev         guard
+9      153423646   9
+6      15342364    96
+4      1534236     964
+6      153423      9646
+3      15342       96463
+2      1534        964632
+4      153         9646324
+3      15          96463243
+5      1           964632435
+1      0           —           964632435 > 214748364 → return 0 ✗
+```
+
+Nine digits push through clean. On the tenth, `rev` is 964632435, already far beyond `214748364`, so multiplying by ten would land around 9.6 billion, more than four registers wide. The guard fires *before* the multiply, the reading gets flagged, and the billing register never sees a corrupt value. The full reverse would have been 9646324351, and no 32-bit slot on earth can hold it.
+
+<Callout type="tip" title="Check before, not after">
+The transferable habit: when a multiply or add might overflow, don't compute it and inspect the wreckage. Rearrange the comparison so the *limit* absorbs the arithmetic. Dividing the limit is always safe when multiplying your value might not be, because division only shrinks things. `rev > INT_MAX // 10` asks the same question as "`rev * 10` exceeds `INT_MAX`" without ever forming the dangerous product. This move shows up in production code constantly: safe allocators, timestamp math, checked arithmetic libraries. They all interrogate the boundary from the safe side.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Python's negative modulo will gaslight you.**
+`-123 % 10` is `7` and `-123 // 10` is `-13`, because Python rounds floor-ward and keeps the remainder's sign matching the divisor. C and Java truncate toward zero and would give you `-3` and `-12`. Port a C solution line-for-line into Python and the pop loop breaks on the very first negative input. Handle the sign explicitly: work on `abs(x)`, multiply the sign back at the end.
+
+**2. Guarding after the push.**
+`rev = rev * 10 + digit` followed by `if rev > INT_MAX: return 0` looks equivalent and passes in Python. In the 32-bit world the problem defines, it's the naive attempt wearing a trench coat: the overflow has already corrupted the register (or triggered undefined behavior in C) by the time the check runs. The guard must compare `rev` against `INT_MAX // 10` *before* the multiply exists.
+
+**3. The range isn't symmetric, and it mostly doesn't matter here.**
+Signed 32-bit runs from -2147483648 to 2147483647; the negative side reaches one further. Working on the absolute value and checking against `INT_MAX` looks like it might wrongly reject a legal -2147483648-flavored result. It can't: for a reversed absolute value to *equal* 2147483648, the original input would have to be 8463847412 with a sign, which is ten digits past anything a 32-bit input can be. The asymmetry is real and worth knowing (Boss 6's mask forced us through it), it just never bites on valid input here. Bonus trivia: `rev == INT_MAX // 10` with `digit > 7` is likewise unreachable for legal inputs, since a ten-digit 32-bit number must start with 1 or 2, but you write the full guard anyway, because the guard documents the boundary, not just the reachable part of it.
+
+**4. Trailing zeros vanish, and that's correct.**
+Reverse 120 and you get 21, not 021 or 210. Integers have no leading zeros, so the pop-and-push loop drops them naturally: the zero pops first, pushes as `rev = 0 * 10 + 0`, and contributes nothing. In meter terms, a reading of 021 was always just 21. No padding logic needed, and adding any is a bug.
+
+---
+
+## Complexity
+
+One loop iteration per decimal digit, a handful of integers total.
+
+**Time: O(log₁₀ x), the digit count. Space: O(1).**
+
+A 32-bit integer has at most ten digits, so in practice this is "at most ten laps", which is as close to free as algorithms get.
+
+---
+
+## Boss down. Dungeon cleared.
+
+The corrected ledger posts, the installer is sent back with a spirit level, and Dungeon 17 goes dark. Seven bosses, and the bit toolkit is complete:
+
+- **XOR cancel** (Boss 1, The Unclaimed Ticket): pairs erase themselves, the survivor remains
+- **Kernighan clear** (Boss 2, The Punch Card Count): `n & (n - 1)` deletes the lowest set bit, pay per hole, not per column
+- **Shift-DP** (Boss 3, The Locker Stencils): every count steals from the count of `n >> 1`, a whole table for the price of a shift
+- **Peel and relocate** (Boss 4, The Backwards Banner): pop bits off one end, push onto the other, the loop this finale ran in base 10
+- **Manufactured twins** (Boss 5, The Roll Call Gap): XOR the list against the full roster and the missing number is the one without a partner
+- **XOR as half-adder** (Boss 6, The Broken Plus Key): sum without carry, carry via AND-and-shift, addition rebuilt from logic gates
+- **Register-width discipline** (Boss 7, The Upside-Down Meter): respect the width of the slot you're writing into, and check the boundary from the safe side
+
+The through-line: bits were never tricks. They're what numbers *are*, and every "trick" in this dungeon was just arithmetic with the abstraction peeled off. XOR is addition that forgot how to carry. Kernighan is subtraction's borrow, cashed in. Overflow is a register running out of wall. Sixteen dungeons built structures on top of numbers; this one showed you the numbers were structures all along.
+
+Next: **Dungeon 18, Math & Geometry.** The last dungeon of the quest. Matrices rotating in place, spirals unwinding, happy numbers chasing their own tails, and `pow(x, n)` computed in logarithmic strides. Eighteen dungeons, one final gate, and everything you've carried since Dungeon 1 comes along for the ending. See you there.

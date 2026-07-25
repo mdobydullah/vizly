@@ -1,0 +1,190 @@
+---
+title: "Reverse Bits — The Backwards Banner"
+slug: reverse-bits-backwards-banner
+category: dsa
+series: bit-manipulation
+seriesOrder: 4
+description: "Dungeon 17, Boss 4. The print shop's new folding machine mounts the 32-lamp LED banner flipped, so the lamp pattern has to be loaded in reverse. Peel the lowest bit, push it onto a fresh number, 32 rounds, done. Then the rabbit hole: five masked swaps that reverse the whole strip at once."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "🪞"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You run the LED banner rig at a print shop. The new folding machine mounts the 32-lamp strip flipped, so lamp 1 ends up where lamp 32 should be. Reprinting is not an option, the fix has to happen in the wiring. So you peel the last lamp's state off the pattern, push it onto a fresh one, and do that 32 times. The banner goes up reading perfectly.
+  bn: |
+    প্রিন্টের দোকানে LED ব্যানারের দায়িত্ব আপনার। নতুন ফোল্ডিং মেশিনটা ৩২ বাতির স্ট্রিপটাকে উল্টো করে বসিয়ে দেয়, তাই ১ নম্বর বাতি গিয়ে পড়ে ৩২ নম্বরের জায়গায়। ব্যানার নতুন করে ছাপানোর উপায় নেই, সমাধান করতে হবে ওয়্যারিংয়ে। তাই প্যাটার্নের শেষ বাতির অবস্থা তুলে নিয়ে নতুন প্যাটার্নে ঠেলে দিন, এভাবে ৩২ বার। ব্যানার উঠল, লেখা একদম ঠিকঠাক।
+  hi: |
+    प्रिंट की दुकान में LED banner आपके जिम्मे है। नई folding machine 32 बत्तियों वाली strip को उल्टा लगा देती है, तो बत्ती नंबर 1 जा बैठती है नंबर 32 की जगह। banner दोबारा छापने का कोई रास्ता नहीं, हल wiring में ही निकालना होगा। तो pattern की आखिरी बत्ती की हालत उठाइए और नए pattern में धकेल दीजिए, ऐसा पूरे 32 बार। banner लगा और एकदम सही पढ़ा गया।
+  ar: |
+    أنت مسؤول عن لافتة LED في مطبعة. آلة الطي الجديدة تركّب شريط الاثنتين والثلاثين لمبة مقلوباً، فتنتهي اللمبة رقم 1 في مكان اللمبة رقم 32. لا مجال لإعادة طباعة اللافتة، والحل لا بد أن يكون في التوصيلات. فتأخذ حالة آخر لمبة من النمط وتدفعها في نمط جديد، وتكرر ذلك 32 مرة. ترتفع اللافتة وتُقرأ بشكل مثالي.
+---
+
+## Boss 4: The Backwards Banner
+
+Boss 2 taught you to peel bits off a number to *count* them. This boss peels the same bits for a different reason: to **relocate** them. Same `n & 1` chisel, new job. And the masks grow up too — until now a mask was a single spotlight on one bit. Today you'll meet masks that are whole *patterns*: alternating blocks of light and dark like `0x0F0F0F0F`, and they let you reverse 32 bits in five moves.
+
+But first, the honest version. The one you say out loud in an interview.
+
+---
+
+## The story
+
+You work the LED rig at a print shop. Big orders come with a banner: a strip of 32 lamps, each one on or off, spelling out a pattern the customer approved. The pattern lives in the controller as one 32-bit number. Lamp for bit, bit for lamp.
+
+Then the shop buys a folding machine. It's fast, it's shiny, and it has one quirk: it mounts the strip **flipped**. Lamp 1 ends up where lamp 32 should be, lamp 2 where 31 should be, all the way down the line. The first banner out of it greets a customer with their logo mirrored.
+
+The boss's verdict: "We're not reprinting. Fix it in the controller."
+
+So the job is exactly this: take the 32-bit pattern, produce the same 32 bits in reverse order, and load *that*. The machine flips the strip, your number pre-flips the pattern, and the two wrongs cancel into a right.
+
+---
+
+## The problem, dressed up properly
+
+> Reverse the bits of a given 32-bit unsigned integer. Bit 0 becomes bit 31, bit 1 becomes bit 30, and so on. Return the resulting integer.
+
+LeetCode 190, "Reverse Bits". Easy-rated, and one of those problems where the loop is simple but the *depths underneath* go surprisingly far.
+
+---
+
+## The naive attempt
+
+Every language can print a number in binary and every language can reverse a string. So:
+
+```python
+def reverse_bits(n: int) -> int:
+    s = bin(n)[2:].zfill(32)   # 32-char binary string, leading zeros restored
+    return int(s[::-1], 2)
+```
+
+It works. It also allocates three strings to move zero data, leans on `zfill(32)` to paper over a real bug (more on that in the gotchas), and teaches you nothing about bits. In C or a firmware controller — you know, the thing actually driving the lamp strip — there is no string to lean on. The boss didn't say "describe the pattern in prose and read it backwards". The boss said rewire it.
+
+---
+
+## The weapon: peel and push
+
+Think about physically re-threading the strip. You'd unclip the *last* lamp from the old pattern and clip it on as the *first* lamp of the new one. Then the next, and the next. Reversal is just "pop from one end, push onto the other", and both operations exist in bit-land:
+
+- **Peel the lowest bit of `n`**: `n & 1`. Old friend from Boss 2.
+- **Push it onto `res`**: shift `res` left one lamp to make room, then OR the bit into the empty slot. In code, `(res << 1) | bit`.
+- **Discard the used bit**: `n >>= 1`.
+
+Do that 32 times. The first bit peeled lands deepest in `res` and ends up shifted 31 times, exactly where bit 31 lives. The last bit peeled never shifts at all and stays as bit 0. Each bit travels to its mirror seat automatically, no bookkeeping.
+
+<MermaidBlock>
+graph TB
+    A["round k of 32"] --> B["grab lowest bit of n\nAND with 1"]
+    B --> C["make room in result\nshift result left by one"]
+    C --> D["drop the bit in\nOR it onto the result"]
+    D --> E["discard the used bit\nshift n right by one"]
+    E --> A
+    E --> F["after 32 rounds\nresult is n reversed"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def reverse_bits(n: int) -> int:
+    res = 0
+    for _ in range(32):
+        res = (res << 1) | (n & 1)
+        n >>= 1
+    return res
+```
+
+Four lines. That's the interview answer, and it's a complete one.
+
+### The rabbit hole: reversal by swap cascade
+
+Now, purely because it's beautiful: watch how deep this goes. You don't *have* to move bits one at a time. Reversing a strip is the same as swapping its two halves, then reversing each half. And reversing each half is swapping *its* halves... all the way down:
+
+1. Swap the two 16-bit halves.
+2. Inside each half, swap the two bytes.
+3. Inside each byte, swap the two nibbles.
+4. Inside each nibble, swap the two bit-pairs.
+5. Inside each pair, swap the two bits.
+
+Five rounds, and each round handles *every* swap at that level simultaneously using a patterned mask. `0xFFFF0000` lights up the high half. `0x00FF00FF` lights up the low byte of each half. `0x0F0F0F0F`, `0x33333333`, `0x55555555` keep alternating at finer and finer grain — grab one stripe, grab the other, shift them past each other, OR back together:
+
+```python
+def reverse_bits(n: int) -> int:
+    n = ((n & 0xFFFF0000) >> 16) | ((n & 0x0000FFFF) << 16)  # halves
+    n = ((n & 0xFF00FF00) >> 8)  | ((n & 0x00FF00FF) << 8)   # bytes
+    n = ((n & 0xF0F0F0F0) >> 4)  | ((n & 0x0F0F0F0F) << 4)   # nibbles
+    n = ((n & 0xCCCCCCCC) >> 2)  | ((n & 0x33333333) << 2)   # pairs
+    n = ((n & 0xAAAAAAAA) >> 1)  | ((n & 0x55555555) << 1)   # single bits
+    return n & 0xFFFFFFFF
+```
+
+That's O(log 32) shuffles instead of 32, no loop, no branch, and it's how real bit-twiddling libraries and hardware do it. You are not required to produce this in an interview. You *are* allowed to enjoy that it exists — and mentioning "there's a divide-and-conquer version with alternating masks" after nailing the loop is a very good look.
+
+---
+
+## Watching it work
+
+Small scale first: an 8-lamp strip holding `00000110` (the number 6). Reversed, it should read `01100000` (96). Run the peel-and-push loop:
+
+```
+round   bit peeled   res after push      n after shift
+1       0            0                   0000011
+2       1            01                  000001
+3       1            011                 00000
+4       0            0110                0000
+5       0            01100               000
+6       0            011000              00
+7       0            0110000             0
+8       0            01100000            (empty)
+```
+
+Rounds 1 through 3 do the interesting work: the `110` cluster peels off bottom-first and stacks up top-first, already mirrored. Rounds 4 through 8 look boring — peeling zeros, pushing zeros — but they're what marches that cluster from the bottom of `res` to the top. Skip them and the pattern reads reversed but sits in the wrong seats.
+
+The 32-bit version is the same dance with 24 more rounds of it. Nothing new happens, which is exactly why the loop is trustworthy.
+
+<Callout type="tip" title="Two ways to flip a strip">
+A reversal is either 32 tiny moves (peel one lamp, seat one lamp) or 5 big swaps (halves, bytes, nibbles, pairs, bits). Both finish in constant time and constant space. What neither one does is re-read the whole input once per output bit — the moment you catch yourself writing a loop inside a loop for this, one of these two shapes is what you were supposed to reach for.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Pushing before making room.**
+`res = (res << 1) | (n & 1)` shifts first, then ORs. Flip that order — OR the bit in, *then* shift — and every bit you place immediately gets bumped one seat left, ending with a stray zero in seat 0 and your first bit shoved off the end. Reversal code is all about order; this is the order that matters most.
+
+**2. Python forgets the strip is 32 lamps wide.**
+Python ints have no ceiling, so `n << 16` in the cascade happily grows to 48 bits and nothing truncates it for you. Every left shift in the cascade needs the result clamped, which the final `& 0xFFFFFFFF` (and pre-masking each stripe) handles. In C or Java the register does this clamping for free; in Python, *you* are the register.
+
+**3. 31 rounds instead of 32.**
+Off-by-one classic: `range(31)`, or "optimizing" the loop to `while n:` so it exits early once `n` hits zero. Both leave `res` under-shifted, and every bit sits one-or-more seats short of its mirror position. The loop count is the width of the strip, not the length of the number. 32, always.
+
+**4. Trusting the input's bit-length.**
+The number 6 is `110` — three bits, says `bin(6)`. But as a 32-lamp pattern it's 29 dark lamps followed by `110`, and those dark lamps *become the low 29 bits of the answer*. Reverse "just the bits that are there" and you get 3 (`011`) instead of the correct 1,610,612,736. Leading zeros are not decoration. They're lamps.
+
+---
+
+## Complexity
+
+Loop: 32 fixed rounds. Cascade: 5 fixed swap layers, O(log 32).
+
+**Time: O(1). Space: O(1).** The input never gets bigger than 32 bits, so neither does the work.
+
+---
+
+## Boss down
+
+The corrected pattern loads, the folding machine does its flip, and the flip un-flips it. The banner over the shop door reads perfectly, and nobody reprinted anything. The boss nods once, which around here counts as a parade.
+
+Your chisel has a second grip now: `n & 1` peels bits whether you're counting them or moving them, and masks are no longer single spotlights but full patterns — `0x55555555` and its cousins will show up again anywhere bits get shuffled in bulk.
+
+Next boss: **Missing Number — The Roll Call Gap**. XOR walks back in from Boss 1, and this time it's not finding one duplicate — it's cancelling an entire class list against itself until only the kid who skipped roll call is left standing. Bring the self-cancelling trick. You'll need all of it.

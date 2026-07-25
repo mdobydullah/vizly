@@ -1,0 +1,188 @@
+---
+title: "Number of 1 Bits — The Punch Card Count"
+slug: number-of-1-bits-punch-card
+category: dsa
+series: bit-manipulation
+seriesOrder: 2
+description: "Dungeon 17, Boss 2. An archive of old machine punch cards, where a hole means 1 and a blank means 0, and the archivist bills by the hole. Counting all 32 columns works, but Brian Kernighan's trick jumps straight from hole to hole: one AND with n minus 1 erases the lowest hole every time."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "💡"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You work in an archive full of punch cards from old machines. A hole means 1, a blank means 0, and the archivist bills clients by the number of holes on each card. Checking all 32 columns one by one is slow, and most of them are blank anyway. There is an old trick: subtract one from the card's number and AND the two together, and the lowest hole vanishes. Repeat until the card is blank, and the number of repeats is your bill.
+  bn: |
+    ভাবুন, আপনি এমন এক আর্কাইভে কাজ করেন যেখানে পুরনো মেশিনের punch card থরে থরে সাজানো। ফুটো মানে 1, ফাঁকা মানে 0, আর আর্কাইভিস্ট প্রতিটা ফুটোর হিসেবে বিল করেন। হাতে হাতে ৩২টা ঘর দেখা ভীষণ ধীর, তার ওপর বেশিরভাগ ঘর তো ফাঁকাই। একটা পুরনো কৌশল আছে: কার্ডের সংখ্যা থেকে এক বাদ দিয়ে দুটোকে AND করুন, সবচেয়ে নিচের ফুটোটা মুছে যাবে। কার্ড পুরো ফাঁকা না হওয়া পর্যন্ত এটাই করতে থাকুন, কতবার করলেন সেটাই বিল।
+  hi: |
+    मान लीजिए आप एक ऐसे आर्काइव में काम करते हैं जहां पुरानी मशीनों के punch card रखे हैं। छेद का मतलब 1, खाली जगह का मतलब 0, और आर्काइविस्ट हर छेद के हिसाब से बिल बनाता है। हाथ से 32 कॉलम गिनना धीमा है, और ज्यादातर कॉलम तो खाली ही निकलते हैं। एक पुरानी तरकीब है: कार्ड के नंबर में से एक घटाइए और दोनों का AND कर दीजिए, सबसे नीचे वाला छेद गायब हो जाता है। कार्ड खाली होने तक यही दोहराइए, जितनी बार दोहराया वही गिनती है।
+  ar: |
+    تخيل أنك تعمل في أرشيف مليء ببطاقات مثقوبة من آلات قديمة. الثقب يعني 1 والفراغ يعني 0، وأمين الأرشيف يحاسب الزبائن على عدد الثقوب في كل بطاقة. فحص 32 عموداً واحداً واحداً بطيء، ومعظمها فارغ أصلاً. هناك حيلة قديمة: اطرح واحداً من رقم البطاقة ثم اعمل AND بين الرقمين، فيختفي أدنى ثقب. كرر ذلك حتى تفرغ البطاقة تماماً، وعدد مرات التكرار هو الفاتورة.
+---
+
+## Boss 2: The Punch Card Count
+
+Boss 1 handed you the XOR wand: pair things up and watch them cancel. This boss hands you the other half of the starter kit. AND, used not as a blunt filter but as a scalpel, one that removes exactly one bit per cut. Between "XOR cancels" and "AND clears", most of this dungeon's remaining bosses are already half-dead.
+
+The problem itself looks almost insultingly small. Count the 1s in a number. That's it. Which is exactly why interviewers love it: the naive answer takes ten seconds, and the *good* answer reveals whether you actually understand what subtraction does to bits.
+
+---
+
+## The story
+
+The city archive keeps a basement of machine punch cards, thousands of them, each one a strip of 32 columns. A punched hole means 1. An untouched blank means 0.
+
+The archivist bills clients per hole. Every card that comes off the shelf needs its holes counted before it ships, and the queue behind you is long.
+
+```
+card #180:   0 0 0 ... 1 0 1 1 0 1 0 0
+                       ↑   ↑ ↑   ↑
+                     four holes punched
+```
+
+Your first shift, you do it the obvious way: slide a finger across all 32 columns, hole, blank, blank, hole. It works. It's also mostly a tour of blank paper, because a typical card has a handful of holes and a wasteland of zeros.
+
+The retired archivist watches you for a minute, then shows you the house trick: a way to jump finger-to-hole directly, skipping every blank column in between. Four holes, four moves, done.
+
+---
+
+## The problem, dressed up properly
+
+> Given a 32-bit unsigned integer, return the number of `1` bits it has (also known as the Hamming weight).
+
+LeetCode 191, "Number of 1 Bits". The gentlest-rated boss in the dungeon, and the one whose trick you'll reuse the most.
+
+---
+
+## The naive attempt
+
+Two honest baselines. The lazy one turns the card into text:
+
+```python
+def hamming_weight(n: int) -> int:
+    return bin(n).count("1")
+```
+
+Correct, short, and it teaches you nothing. It also allocates a brand-new string just to count characters in it, which is a silly thing to do in a hot loop. Python even has `int.bit_count()` since 3.10, which is the real production answer. But an interview isn't asking "can you find the stdlib", it's asking "do you know what the bits are doing".
+
+The honest baseline checks every column yourself:
+
+```python
+def hamming_weight(n: int) -> int:
+    count = 0
+    for _ in range(32):
+        count += n & 1     # is the lowest column a hole?
+        n >>= 1            # slide to the next column
+    return count
+```
+
+`n & 1` peeks at the lowest bit, `n >> 1` shifts the card over by one column. Thirty-two peeks, always, even when the card has one lonely hole at the top. This is your finger touring the blank paper.
+
+---
+
+## The weapon: erase the lowest hole
+
+Here's the archivist's trick, and it starts from a question that sounds unrelated: what does subtracting 1 actually *do* to a binary number?
+
+Subtraction borrows. Take `n = 180`, binary `10110100`. To subtract 1, you need a 1 in the lowest column, but there's a 0 there. So you borrow from the next column. Also 0. Borrow again. The borrow *ripples left* until it finds the lowest 1, consumes it, and turns every 0 it passed into a 1:
+
+```
+n     = 10110100
+n - 1 = 10110011
+           ↑ ↑↑
+   lowest 1 became 0, trailing 0s became 1s
+```
+
+Everything *above* the lowest set bit is untouched. Everything at-or-below it is flipped. Now AND the two together:
+
+- Above the lowest 1: both numbers agree, so those bits survive.
+- At the lowest 1: `n` has 1, `n - 1` has 0. Cleared.
+- Below it: `n` has 0s, `n - 1` has 1s. Still 0.
+
+So `n & (n - 1)` is `n` with its lowest set bit surgically removed, and nothing else changed. One expression, one hole erased. That's Brian Kernighan's trick, and it turns hole-counting into a loop that runs once *per hole* instead of once per column.
+
+<MermaidBlock>
+graph TB
+    A["card value n\ncount starts at 0"] --> B["is n zero?\nblank card means done"]
+    B --> C["yes: return count\none loop per hole, never per column"]
+    B --> D["no: n becomes n AND n minus 1\nborrow ripple erases the lowest hole"]
+    D --> E["count goes up by 1\none hole billed"]
+    E --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def hamming_weight(n: int) -> int:
+    count = 0
+    while n:
+        n &= n - 1     # erase the lowest hole
+        count += 1     # bill it
+    return count
+```
+
+Five lines. The loop body never inspects a blank column, because `n & (n - 1)` teleports straight to the next hole.
+
+---
+
+## Watching it work
+
+Card #180, binary `10110100`, four holes. Watch each AND erase exactly one:
+
+```
+step  n          n - 1       n AND (n - 1)   count
+1     10110100   10110011    10110000        1
+2     10110000   10101111    10100000        2
+3     10100000   10011111    10000000        3
+4     10000000   01111111    00000000        4
+n is zero → return 4 ✓
+```
+
+Four holes, four iterations. The naive loop would have taken 32. And notice step 4: `128 & 127` wipes the whole card in one move, because 127 is all-ones *below* that final hole. The borrow rippled through seven columns to find it, and the AND cashed that in.
+
+<Callout type="tip" title="The move to keep">
+`n & (n - 1)` clears the lowest set bit of `n`. Memorize that sentence, not the code. A free corollary: a positive number is a power of two exactly when it has *one* set bit, which means `n & (n - 1)` hits zero on the first strike. That one-liner power-of-two test shows up constantly, and it's this boss's trick wearing a hat.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Negative numbers can loop forever in the shift version.**
+In Java, `n >> 1` is an *arithmetic* shift: it drags the sign bit along, so a negative `n` never reaches zero and `while (n != 0)` with `>>` spins forever. Java wants `>>>`, the unsigned shift. Kernighan's loop dodges this entirely on fixed-width ints, since each step strictly removes a bit.
+
+**2. Python integers have no 32-bit edge.**
+Python ints are arbitrary-width, so a negative number has *infinitely many* conceptual sign bits, and both `-1 >> 1` and Kernighan on `-1` never terminate. LeetCode feeds you non-negative input so you're safe there, but when porting bit code to Python, mask first: `n &= 0xFFFFFFFF` gives you the 32-bit view the other languages had for free.
+
+**3. Clearing the lowest bit is not the same as keeping it.**
+`n & (n - 1)` *removes* the lowest set bit. Its sibling `n & -n` *isolates* it, throwing away everything else. Both show up in interviews, both look like line noise, and swapping them turns a popcount into an infinite loop. Clear-vs-keep. Say it out loud before you type.
+
+**4. String conversion in a hot path.**
+`bin(n).count("1")` builds a fresh string per call. Fine for one card, ugly for a million. If you genuinely need bulk popcounts in Python, `int.bit_count()` is a C-speed primitive. Everywhere else, Kernighan.
+
+---
+
+## Complexity
+
+The naive loop pays for every column. Kernighan pays only for holes: with `k` set bits, the loop runs exactly `k` times.
+
+**Time: O(k) with k = number of set bits, versus O(32) for the column walk. Space: O(1).**
+
+Worst case (all 32 holes punched) they tie. On real, mostly-blank cards, Kernighan wins by miles.
+
+---
+
+## Boss down
+
+The archivist stamps your card and slides the bill across the counter. Two bosses in, and the dungeon's grammar is taking shape: Boss 1 taught XOR as a *cancel*, this one taught AND as a *surgical clear*. Nearly every trap ahead is some combination of those two moves.
+
+Next up, Boss 3: **Counting Bits — The Locker Stencils**. Same archive, nastier order: the hole count for *every* card number from 0 to n, all at once. Running this boss's loop n times works, but there's a way to make each answer steal from an earlier one, and suddenly a weapon from Dungeon 12's DP halls is back in your hand. Bring it.

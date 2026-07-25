@@ -35,8 +35,8 @@ Full dungeon list (ship in order):
 14. **Greedy** — Dungeon 14 (COMPLETE)
 15. **Advanced Graphs** — Dungeon 15 (COMPLETE)
 16. **2-D DP** — Dungeon 16 (COMPLETE)
-17. **Bit Manipulation** — Dungeon 17 (next to build)
-18. **Math & Geometry** — Dungeon 18
+17. **Bit Manipulation** — Dungeon 17 (COMPLETE)
+18. **Math & Geometry** — Dungeon 18 (next to build)
 
 Note: Two Pointers was built out of order as MVP validation. That's fine — it's self-contained. Going forward, build remaining dungeons in strict NeetCode order starting from Sliding Window.
 
@@ -278,8 +278,18 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 10: Burst Balloons (Carnival Pop)
 - [x] Boss 11: Regular Expression Matching (Wildcard Stamp)
 
-### Dungeons 17-18
-- [ ] Bit Manipulation, Math & Geometry
+### Dungeon 17 — Bit Manipulation (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Single Number (Unclaimed Ticket)
+- [x] Boss 2: Number of 1 Bits (Punch Card Count)
+- [x] Boss 3: Counting Bits (Locker Stencils)
+- [x] Boss 4: Reverse Bits (Backwards Banner)
+- [x] Boss 5: Missing Number (Roll Call Gap)
+- [x] Boss 6: Sum of Two Integers (Broken Plus Key)
+- [x] Boss 7: Reverse Integer (Upside-Down Meter)
+
+### Dungeon 18
+- [ ] Math & Geometry
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

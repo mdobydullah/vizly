@@ -6,6 +6,14 @@
   "color": "orange",
   "tags": ["DSA", "Bit Manipulation"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-26T14:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "single-number-unclaimed-ticket", "title": "Single Number — The Unclaimed Ticket" },
+    { "order": 2, "slug": "number-of-1-bits-punch-card", "title": "Number of 1 Bits — The Punch Card Count" },
+    { "order": 3, "slug": "counting-bits-locker-stencils", "title": "Counting Bits — The Locker Stencils" },
+    { "order": 4, "slug": "reverse-bits-backwards-banner", "title": "Reverse Bits — The Backwards Banner" },
+    { "order": 5, "slug": "missing-number-roll-call", "title": "Missing Number — The Roll Call Gap" },
+    { "order": 6, "slug": "sum-two-integers-broken-plus-key", "title": "Sum of Two Integers — The Broken Plus Key" },
+    { "order": 7, "slug": "reverse-integer-upside-down-meter", "title": "Reverse Integer — The Upside-Down Meter" }
+  ]
 }

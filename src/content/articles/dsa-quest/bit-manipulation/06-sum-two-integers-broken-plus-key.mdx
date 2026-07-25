@@ -1,0 +1,187 @@
+---
+title: "Sum of Two Integers — The Broken Plus Key"
+slug: sum-two-integers-broken-plus-key
+category: dsa
+series: bit-manipulation
+seriesOrder: 6
+description: "Dungeon 17, Boss 6. A vintage desk calculator loses its plus key, snapped clean off, and the repair tech opens it up expecting an adder circuit. There isn't one. There's an XOR board, an AND board, and a shifter, because that's all addition ever was. Rebuild plus from parts, then fight Python's infinite integers to make it terminate."
+tags:
+  - DSA
+  - Bit Manipulation
+  - Advanced
+icon: "🧮"
+color: orange
+createdAt: "2026-07-26T14:00:00Z"
+updatedAt: "2026-07-26T14:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A vintage desk calculator lands on your repair bench with its plus key snapped clean off. No spare part exists, so you open the case to see what the key actually triggered. Surprise, there is no adder inside. Just an XOR board, an AND board, and a thing that slides bits left. Turns out that is all a plus key ever did, and you can wire it back by hand.
+  bn: |
+    একটা পুরনো ডেস্ক ক্যালকুলেটর আপনার মেরামতের টেবিলে এলো, তার প্লাস কী ভেঙে খুলে পড়ে গেছে। খুচরা যন্ত্রাংশ কোথাও পাওয়া যায় না, তাই আপনি ঢাকনা খুলে দেখলেন কী-টা আসলে ভেতরে কী চালাত। অবাক কাণ্ড, ভেতরে কোনো যোগ করার যন্ত্রই নেই। আছে শুধু একটা XOR বোর্ড, একটা AND বোর্ড, আর বিট বাঁয়ে সরানোর একটা অংশ। দেখা গেল প্লাস কী চিরকাল এটুকুই করত, আর আপনি হাতে হাতে সেই তার আবার জুড়ে দিতে পারেন।
+  hi: |
+    एक पुराना डेस्क कैलकुलेटर आपकी मरम्मत की मेज पर आता है, उसकी plus key टूटकर अलग हो चुकी है। उसका कोई spare part मिलता ही नहीं, तो आप ढक्कन खोलकर देखते हैं कि वह key अंदर चलाती क्या थी। हैरानी की बात, अंदर जोड़ने वाला कोई circuit है ही नहीं। बस एक XOR board, एक AND board, और bits को बाएं खिसकाने वाला हिस्सा। पता चला plus key हमेशा से यही करती थी, और आप हाथ से वही तार दोबारा जोड़ सकते हैं।
+  ar: |
+    تصل آلة حاسبة مكتبية قديمة إلى طاولة التصليح عندك وزر الجمع فيها مكسور ومخلوع تماماً. لا توجد قطعة بديلة في أي مكان، فتفتح الغطاء لترى ماذا كان الزر يشغّل في الداخل. المفاجأة أنه لا توجد دائرة جمع أصلاً. فقط لوحة XOR ولوحة AND وجزء يزيح البتات إلى اليسار. اتضح أن زر الجمع لم يفعل يوماً شيئاً غير هذا، وتستطيع إعادة توصيله بيدك.
+---
+
+## Boss 6: The Broken Plus Key
+
+Five bosses in, this dungeon has used XOR as a toggle, a pair-eraser, and an auditor. Boss 6 pulls off the mask. XOR was never a party trick. It's the bottom half of addition itself, and this fight makes you prove it by adding two numbers with the plus key ripped out of the keyboard.
+
+LeetCode files this one under "medium". In C it's four lines. In Python it's four lines plus a fistfight with infinity, and the fistfight is where the real lesson lives.
+
+---
+
+## The story
+
+A customer carries in a 1970s desk calculator, heavy as a brick, keys like typewriter hammers. The plus key has snapped off at the stem. The minus, times, and divide keys all still click. The customer wants their plus back.
+
+No manufacturer, no spare parts, no schematics. So you open the case, expecting to find the "addition unit" the broken key was wired to.
+
+There isn't one.
+
+Inside, three logic boards: one that XORs two rows of bits, one that ANDs them, and a shifter that slides a row one position left. That's it. That's the entire arithmetic section. The plus key never triggered an adder, because the machine never had one. It had these three boards and a loop of wire feeding the output back to the input.
+
+The repair isn't finding a new part. It's realizing the parts on the bench were always the whole of addition.
+
+---
+
+## The problem, dressed up properly
+
+> Given two integers `a` and `b`, return their sum without using the operators `+` and `-`.
+
+LeetCode 371, "Sum of Two Integers". The constraint is the whole problem. Remove it and this is `return a + b`.
+
+---
+
+## The naive attempt
+
+The forbidden operators are `+` and `-`, so the tempting move is smuggling:
+
+```python
+def get_sum(a, b):
+    return sum([a, b])          # sum() is + wearing a trench coat
+
+def get_sum(a, b):
+    return a - (-b)             # uses -, twice, brazenly
+
+def get_sum(a, b):
+    import math
+    return round(math.log(math.exp(a) * math.exp(b)))  # e^a * e^b = e^(a+b), also insane
+```
+
+All of these "work". All of them miss the point so hard the interviewer can feel it. The log one is at least funny, right up until `math.exp(700)` overflows and the calculator on your bench outperforms you. The exercise isn't "avoid two ASCII characters". It's "show me you know what those characters *do*". Which means building it from the boards.
+
+---
+
+## The weapon: the half adder in the case
+
+Go back to grade school column addition. Two moves per column: **write** a digit, **carry** the overflow to the next column. In binary those two moves split perfectly across the boards in the calculator:
+
+- **XOR is the write.** Per column: `0+0=0`, `1+0=1`, `1+1=0` (write 0, carry the 1). That's exactly the XOR truth table. XOR is addition that forgot to carry.
+- **AND then shift is the carry.** A column overflows only when *both* bits are 1, which is AND. And a carry lands one column to the *left*, which is the shift. So the carries are `(a & b) << 1`.
+
+Neither half is the sum. But write-without-carry plus carry-without-write *is* the sum, so feed both back in and go again. Each round the carries move left, and since numbers are finite, the carries eventually fall off the top and drain to zero. What's left in the XOR register is the answer.
+
+<MermaidBlock>
+graph TB
+    A["two numbers a and b\non the input rows"] --> B["XOR board\nwrites each column, ignores carry"]
+    A --> C["AND board\nfinds columns where both bits are 1"]
+    C --> D["shifter\nslides the carries one column left"]
+    B --> E["carry row all zero?"]
+    D --> E
+    E -->|no| A
+    E -->|yes| F["XOR row holds the sum\nplus key repaired"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+In C-shaped languages, the loop is the whole answer: `a, b = a ^ b, (a & b) << 1` until `b` is zero. In Python there's a trap, and it's not a footnote.
+
+**The Python trap.** Python ints have no top edge. On a 32-bit machine, a carry that marches off bit 31 falls into the void and negative numbers self-resolve. In Python there is no void. Try `-1 + 1` naively: the carry shifts left forever through infinite precision, chasing a top bit that doesn't exist. Infinite loop.
+
+The fix is to build the void yourself: mask every result to 32 bits, so Python is forced to behave like the hardware the algorithm was born on.
+
+```python
+def get_sum(a: int, b: int) -> int:
+    mask = 0xFFFFFFFF          # keep only the low 32 bits, like real hardware
+
+    while b != 0:
+        a, b = (a ^ b) & mask, ((a & b) << 1) & mask
+
+    # if bit 31 is set, this is a negative number in 32-bit clothing
+    if a > 0x7FFFFFFF:
+        a = ~(a ^ mask)
+    return a
+```
+
+That final `if` needs two's complement to stop looking like magic. A 32-bit machine stores a negative number `-x` as `2^32 - x`: same 32 bits, but the top bit is *worth* minus `2^31` instead of plus. So after masking, `-3` sits in `a` as `0xFFFFFFFD`, which Python happily reads as 4294967293. Any masked value above `0x7FFFFFFF` has its top bit set and is really negative. The repair: `a ^ mask` flips the low 32 bits, and `~` flips all of them back plus the infinite ones above, which nets out to exactly `a - 2^32`. Same bits, correct sign, Python and the hardware agree again.
+
+---
+
+## Watching it work
+
+Add 5 and 3 on a 4-bit machine. `5 = 0101`, `3 = 0011`, and we know the answer should be `8 = 1000`.
+
+```
+round 1:  a = 0101, b = 0011
+          XOR   → 0110          (write each column, no carries)
+          AND   → 0001 → shift → 0010   (both bottom bits were 1)
+
+round 2:  a = 0110, b = 0010
+          XOR   → 0100
+          AND   → 0010 → shift → 0100
+
+round 3:  a = 0100, b = 0100
+          XOR   → 0000          (columns cancel completely)
+          AND   → 0100 → shift → 1000
+
+round 4:  a = 0000, b = 1000
+          XOR   → 1000
+          AND   → 0000          carry drained, stop
+
+a = 1000 = 8 ✓
+```
+
+Watch the carry: born at bit 0, marching one column left per round until it settles where no collision remains. That single carry from `1 + 1` in the bottom column had to ripple through three rounds, which is exactly why the loop runs more than once, and exactly why it can't run forever on a machine with an edge.
+
+<Callout type="tip" title="XOR was the adder all along">
+Per column, XOR is addition mod 2, the part of the sum that fits in one bit. AND finds the columns that overflowed, and the shift delivers each overflow to its neighbor. That's a half adder, and every adder circuit ever fabricated, from this desk calculator to the ALU running this page, is this loop unrolled into silicon: a chain of XOR gates for the writes and AND gates passing carries down the line. Boss 1 called XOR a toggle and Boss 5 called it an auditor. Its day job was addition the whole time.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. The infinite loop on negatives.**
+The unmasked loop is correct on every fixed-width machine and wrong in Python, which is a rude combination: it passes every positive test and then hangs on `get_sum(-1, 1)`. Arbitrary precision means the carry never falls off the top. If your solution has no `mask`, it has a time bomb, not a bug you'll see in the happy path.
+
+**2. Masking but forgetting the sign fix.**
+Return `a` straight after the loop and `get_sum(-1, 2)` comes back as 1 (fine) but `get_sum(-2, 1)` comes back as 4294967295. Masked arithmetic produces a 32-bit *pattern*; anything above `0x7FFFFFFF` still needs translating back into a Python negative with `~(a ^ mask)`. Two halves, one repair.
+
+**3. Shifting before ANDing.**
+The carry is `(a & b) << 1`: find the collisions *first*, then move them left. Shift one operand first and you're ANDing misaligned columns, which manufactures carries that never happened. Also update `a` and `b` simultaneously (tuple assignment or a temp): compute the new `a` first on its own line and the AND in the next line reads the wrong `a`.
+
+**4. Thinking subtraction needs a fourth board.**
+It doesn't, and the calculator is proof: its minus key still works with no subtractor inside. Two's complement makes `a - b` into `a + (~b + 1)`, flip the bits and add one. Subtraction is addition of the complement, which is why the interviewer bans both operators and why one loop answers for both.
+
+---
+
+## Complexity
+
+Each round pushes the surviving carries at least one bit left, and a 32-bit word has 32 slots to push through.
+
+**Time: O(1), at most about 32 iterations. Space: O(1).**
+
+---
+
+## Boss down
+
+The plus key clicks back onto its stem, and the customer never learns their "broken adder" was three healthy boards and a loop of wire. That's the dungeon's running punchline, said out loud now: the CPU was never doing arithmetic *and* bit tricks. The bit tricks are the arithmetic, and everything above them is habit.
+
+One boss left, and the finale changes the game: **Reverse Integer — The Upside-Down Meter**. A meter read upside down, digits flipped end to end, and the twist is that the enemy isn't bits this time, it's the 32-bit ceiling you just learned to respect. Reversed numbers can overflow, and the machine gives no second chances: you have to see the crash coming *before* the digit that causes it, not after. Base 10, same walls. See you at the finale.

@@ -131,6 +131,13 @@
 - [Edit Distance — The Proofreader's Bill](/articles/edit-distance-proofreaders-bill): Levenshtein, three moves per cell, base row and column as all-inserts.
 - [Burst Balloons — The Carnival Pop](/articles/burst-balloons-carnival-pop): Interval DP, fix the last balloon popped, O(n³).
 - [Regular Expression Matching — The Wildcard Stamp](/articles/regex-matching-wildcard-stamp): Prefix table with dot and star, star reads two columns back.
+- [Single Number — The Unclaimed Ticket](/articles/single-number-unclaimed-ticket): XOR cancellation, pairs vanish, O(1) space.
+- [Number of 1 Bits — The Punch Card Count](/articles/number-of-1-bits-punch-card): Kernighan's trick, clear the lowest set bit per step.
+- [Counting Bits — The Locker Stencils](/articles/counting-bits-locker-stencils): Shift-based DP, count[i] from count of i shifted right.
+- [Reverse Bits — The Backwards Banner](/articles/reverse-bits-backwards-banner): Peel-and-push 32-bit mirror, plus the mask swap cascade.
+- [Missing Number — The Roll Call Gap](/articles/missing-number-roll-call): XOR the ideal range against the array, absence surfaces.
+- [Sum of Two Integers — The Broken Plus Key](/articles/sum-two-integers-broken-plus-key): XOR half-adder with AND-shift carries, Python 32-bit masking.
+- [Reverse Integer — The Upside-Down Meter](/articles/reverse-integer-upside-down-meter): Digit pop-and-push with pre-multiply overflow guard.
 
 ## Guides — System Design
 
