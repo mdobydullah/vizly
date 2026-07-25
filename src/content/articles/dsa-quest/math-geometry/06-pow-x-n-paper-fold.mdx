@@ -1,0 +1,172 @@
+---
+title: "Pow(x, n) — The Paper Fold"
+slug: pow-x-n-paper-fold
+category: dsa
+series: math-geometry
+seriesOrder: 6
+description: "Dungeon 18, Boss 6. A paper craftsman has to build a stack that doubles in thickness a billion times, and gluing one layer at a time would outlive him. Then he folds the strip once and everything changes: one fold doubles the whole stack. Computing x to a huge power works the same way — square what you have instead of multiplying one at a time, and two billion steps collapse into thirty-one."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "📄"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A paper craftsman gets a strange order: a stack whose thickness doubles over and over, billions of times. He starts gluing sheets one at a time and does the math. At one sheet per second he will be dead long before he finishes. Then he folds the strip once and stares at it, because one fold doubled everything he already had. Ten folds is over a thousand layers, not ten, and computing x to a huge power is the same trick: square what you have instead of multiplying one at a time.
+  bn: |
+    এক কাগজের কারিগর অদ্ভুত এক অর্ডার পেলেন: এমন একটা স্তূপ বানাতে হবে যার পুরুত্ব বারবার দ্বিগুণ হয়, কোটি কোটি বার। তিনি এক এক করে কাগজ আঠা দিয়ে লাগাতে শুরু করলেন, তারপর হিসাব কষলেন। সেকেন্ডে একটা করে লাগালে কাজ শেষ হওয়ার বহু আগেই তার আয়ু ফুরাবে। তারপর তিনি স্ট্রিপটা একবার ভাঁজ করে তাকিয়ে রইলেন, কারণ এক ভাঁজেই তার হাতে যা ছিল সব দ্বিগুণ হয়ে গেছে। দশ ভাঁজে হাজারের বেশি স্তর, দশটা নয়। x এর বিশাল power বের করাও একই কৌশল: এক এক করে গুণ না করে যা আছে তাকেই square করুন।
+  hi: |
+    एक कागज़ कारीगर को अजीब ऑर्डर मिलता है: ऐसा बंडल बनाना है जिसकी मोटाई बार बार दोगुनी हो, अरबों बार। वह एक एक करके परतें चिपकाना शुरू करता है और फिर हिसाब लगाता है। एक सेकंड में एक परत की रफ्तार से काम खत्म होने से बहुत पहले उसकी उम्र खत्म हो जाएगी। फिर वह पट्टी को एक बार मोड़ता है और देखता रह जाता है, क्योंकि एक मोड़ ने उसके पास जो कुछ था सब दोगुना कर दिया। दस मोड़ मतलब हज़ार से ज़्यादा परतें, दस नहीं। x की बड़ी power निकालना भी यही तरकीब है: एक एक करके गुणा मत करो, जो हाथ में है उसे square करते जाओ।
+  ar: |
+    يتلقى حرفي ورق طلبية غريبة: كومة يتضاعف سمكها مرة بعد مرة، مليارات المرات. يبدأ بلصق الطبقات واحدة واحدة ثم يحسبها. بمعدل طبقة في الثانية سيموت قبل أن ينهي العمل بزمن طويل. ثم يطوي الشريط مرة واحدة ويحدق فيه، لأن طية واحدة ضاعفت كل ما كان بين يديه. عشر طيات تعني أكثر من ألف طبقة، لا عشرا. وحساب x مرفوعة إلى قوة هائلة هو الحيلة نفسها: خذ ما عندك واضربه في نفسه بدل أن تضرب مرة مرة.
+---
+
+## Boss 6: The Paper Fold
+
+This boss looks like a joke. Compute `x ** n`? Python has an operator for it. But the operator has to be *implemented* by someone, and the technique inside it — fast exponentiation — is one of the most reused ideas in all of computing. It powers RSA handshakes, O(log n) Fibonacci, hashing, and half of number theory. The final dungeon would be incomplete without it.
+
+And it's a reunion boss. The halving instinct comes straight from Dungeon 4, and the implementation is pure Dungeon 17 bit-walking.
+
+---
+
+## The story
+
+A paper craftsman gets a commission from a mathematician with too much money: "Start with a strip x millimeters thick. I want the thickness after it doubles n times. And n is around two billion."
+
+The craftsman starts the honest way — glue a copy of the stack onto itself, one layer operation at a time, updating a running thickness. Then he does the arithmetic on his own lifespan and puts the brush down.
+
+While thinking, he absent-mindedly folds the strip in half. And stares.
+
+One fold doubled the *entire* stack. Not one layer added — everything he had, doubled in a single motion. Fold again: four layers. Ten folds: 1024 layers, not ten. The number of layers isn't the number of operations. It's two raised to the number of operations.
+
+That's the whole weapon. Don't multiply a million times to get x to the millionth power. Fold: square what you have, and the exponent doubles for free.
+
+---
+
+## The problem, dressed up properly
+
+> Implement `pow(x, n)`, which calculates `x` raised to the power `n`. Here `n` is a 32-bit signed integer and can be negative.
+
+LeetCode 50, "Pow(x, n)". Medium-rated, deceptively short, and the canonical home of *binary exponentiation*.
+
+---
+
+## The naive attempt
+
+Glue one layer at a time:
+
+```python
+def my_pow(x, n):
+    if n < 0:
+        x, n = 1 / x, -n
+    result = 1.0
+    for _ in range(n):
+        result *= x     # one glue stroke
+    return result
+```
+
+Correct. Now the lifespan arithmetic. The exponent can be as large as `2^31 - 1`, which is 2,147,483,647. If the craftsman glues one layer per second, that's about 2.1 billion seconds — roughly **68 years** of non-stop gluing. He'd finish the order sometime in his next life.
+
+A computer is faster, but not saved: an interpreted Python loop grinds through maybe ten million iterations a second, so this runs for *minutes* and blows straight past any time limit. Meanwhile `log2(2^31)` is 31. Thirty-one folds cover what two billion glue strokes cover. That gap — decades versus a blink — is the entire lesson of logarithmic time.
+
+---
+
+## The weapon: fold, don't glue
+
+Squaring is the fold. If you already hold `x^k`, one multiplication gives you `x^k * x^k = x^(2k)`. The exponent doubles per operation, so you reach n in about `log2(n)` steps.
+
+Reading it top-down: to get `x^n`, first get `x^(n // 2)`, square it, and if n was odd, multiply one extra loose `x` — the layer that didn't fit in the fold.
+
+<MermaidBlock>
+graph TB
+    A["x^13\n13 is odd: set one x aside\nthen solve x^6"] --> B["x^6\neven: just square x^3"]
+    B --> C["x^3\nodd: set one x aside\nthen solve x^1"]
+    C --> D["x^1\nodd: set one x aside"]
+    D --> E["x^0 = 1\nbase case: empty stack"]
+    E --> F["unwind: square back up\nmultiply the set-aside x at odd levels\n4 levels instead of 12 glue strokes"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+Halving the problem until it's trivial — that's the same instinct as Dungeon 4's binary search. Koko halved a speed range, the Warehouse Deadline halved an answer space, and here we halve the *exponent*. Different objects, same knife.
+
+The iterative version is even better, and it's a straight Dungeon 17 flashback. Write n in binary: the binary expansion **is the recipe**. `13 = 1101` in binary, so `x^13 = x^8 * x^4 * x^1` — one factor per set bit. Walk n's bits with `n & 1` and `n >> 1`, squaring the base every step so it's always `x`, `x^2`, `x^4`, `x^8`... and multiply the base into the result exactly when the current bit is 1.
+
+```python
+def my_pow(x: float, n: int) -> float:
+    if n < 0:
+        x, n = 1.0 / x, -n   # x^-n == (1/x)^n
+    result = 1.0
+    base = x                 # x^1, x^2, x^4, x^8, ... the folded strip
+    while n:
+        if n & 1:            # this power of two is in the recipe
+            result *= base
+        base *= base         # fold: exponent of base doubles
+        n >>= 1              # next bit
+    return result
+```
+
+One caution on that first line: in Python, negating n is always safe because integers are arbitrary-width. In Java or C++, `n = -2^31` is a trap — its positive twin doesn't fit in 32 bits, so negate *after* widening to a 64-bit type, or the negation silently overflows back to itself.
+
+---
+
+## Watching it work
+
+Compute `x^13`. In binary, 13 is `1101`, read right to left as bits 1, 0, 1, 1.
+
+```
+n (binary)  bit   result                base (after squaring)
+1101         1    1 * x    = x^1        x^2
+110          0    x^1 (unchanged)       x^4
+11           1    x^1 * x^4 = x^5       x^8
+1            1    x^5 * x^8 = x^13      x^16 (never used)
+```
+
+Four loop turns. Three result multiplications, four squarings — about seven multiplications total instead of twelve, and the gap explodes with size: `x^(2^31)` is 31 loop turns instead of two billion.
+
+Negative exponent? `x^-13` flips the base to `1/x`, negates n to 13, and the exact same walk runs. The fold doesn't care which direction the thickness grows.
+
+<Callout type="tip" title="The fold works on anything associative">
+Nothing here used the fact that x is a number. Squaring only needs an associative operation, so the same 31-step ladder computes matrix powers (Fibonacci in O(log n) via matrix exponentiation), modular powers (the beating heart of RSA and Diffie-Hellman key exchanges, where exponents are hundreds of bits long), and even "apply this transformation n times" problems. Whenever you see a repeated associative operation with a huge repeat count, the paper fold is sitting right there.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Forgetting the odd leftover x.**
+`x^13` is not `(x^6)^2`. That's `x^12` — the loose layer that didn't fit in the fold got dropped. Every time you halve an odd exponent, one bare `x` must be set aside and multiplied back in. The iterative version encodes this as the `n & 1` check; skip it and every odd bit of n silently vanishes.
+
+**2. Negating n in a fixed-width language.**
+`n = -2^31` fits in a 32-bit int, but `2^31` does not. Writing `n = -n` in Java or C++ overflows and hands you a negative "positive" exponent that never reaches zero. Widen to a 64-bit long first, then negate. Python users get this one free, which is exactly why interviewers love asking about it.
+
+**3. Trusting floats at huge exponents.**
+Each multiplication rounds a little, and `x^(2^31)` for x near 1 accumulates real drift — plus anything with `|x|` meaningfully above 1 overflows to infinity long before the loop ends. LeetCode's judge tolerates the drift, but this is why serious applications (crypto, combinatorics) run the same algorithm on *integers under a modulus*, where every step is exact.
+
+**4. Recursing without halving.**
+`return x * my_pow(x, n - 1)` is the glue-one-layer loop wearing a recursion costume: O(n) time *and* O(n) stack frames, which is a stack overflow around n in the tens of thousands, never mind two billion. A subtler cousin: recursing with `my_pow(x, n // 2) * my_pow(x, n // 2)` calls the half-problem *twice* and lands right back at O(n) multiplications. Compute the half once, store it, square the stored value.
+
+---
+
+## Complexity
+
+The loop runs once per bit of n, and n has at most 32 bits.
+
+**Time: O(log n). Space: O(1)** for the iterative version (the recursive one pays O(log n) stack).
+
+---
+
+## Boss down
+
+The craftsman ships the order the same afternoon: thirty-one folds, a note about which folds got an extra loose sheet, and an invoice the mathematician can't argue with. Two billion glue strokes, refused on principle.
+
+That's six of eight in the final dungeon. Boss 7 is **Multiply Strings — The Abacus Clerk**: a clerk asked to multiply numbers so large no register, no `long`, no 64-bit anything can hold them. The only way through is the way schoolchildren and abacus beads have always done it — digit by digit, cell by cell, carrying as you go. Bring paper.

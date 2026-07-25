@@ -1,0 +1,195 @@
+---
+title: "Multiply Strings — The Abacus Clerk"
+slug: multiply-strings-abacus-clerk
+category: dsa
+series: math-geometry
+seriesOrder: 7
+description: "Dungeon 18, Boss 7. Two cargo values arrive at the customs house so large they overflow every register in the office, and the clerk multiplies them anyway, bead by bead on an abacus. School long multiplication was secretly an addressing scheme all along: digit i times digit j always lands in cells i+j and i+j+1. Allocate m+n cells, pile up the raw products, sweep the carries once."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "✖️"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You work at a customs house, and two cargo manifests just landed on your desk with values so big they overflow every calculating machine in the office. The old clerk in the corner doesn't even blink. He pulls out his abacus and multiplies them the way you did in school, one digit pair at a time, column by column. The whole secret is knowing which column each little product belongs to. Once you see that digit i times digit j always lands in the same two cells, the monster multiplication turns into plain bookkeeping.
+  bn: |
+    ভাবুন, আপনি একটা কাস্টমস হাউসে কাজ করেন। দুটো কার্গোর মূল্য এত বড় যে অফিসের প্রতিটা হিসাবযন্ত্র ফেল মেরে যায়। কোণার পুরোনো কেরানি একটুও ঘাবড়ালেন না। অ্যাবাকাস বের করে স্কুলের মতো করে গুণ শুরু করলেন, এক জোড়া অঙ্ক করে, কলাম ধরে ধরে। আসল কায়দা হলো কোন ছোট গুণফল কোন কলামে বসবে সেটা জানা। একবার বুঝে গেলে যে i নম্বর অঙ্ক আর j নম্বর অঙ্কের গুণফল সবসময় একই দুটো ঘরে পড়ে, বিশাল গুণটা তখন স্রেফ খাতা মেলানোর কাজ।
+  hi: |
+    मान लीजिए, आप एक कस्टम हाउस में काम करते हैं। दो कार्गो की कीमतें इतनी बड़ी आई हैं कि दफ्तर की हर गिनने वाली मशीन जवाब दे जाती है। कोने में बैठा पुराना क्लर्क जरा भी नहीं घबराता। वह अपना abacus निकालता है और स्कूल वाले तरीके से गुणा शुरू कर देता है, एक बार में अंकों की एक जोड़ी, कॉलम दर कॉलम। पूरा राज बस यह जानने में है कि कौन सा छोटा गुणनफल किस कॉलम में बैठेगा। जब समझ आ जाता है कि अंक i और अंक j का गुणनफल हमेशा उन्हीं दो खानों में गिरता है, तो वह विशाल गुणा सिर्फ हिसाब की खाताबही बन जाता है।
+  ar: |
+    تخيل أنك تعمل في دار جمارك، ووصلت قيمتا شحنتين ضخمتان لدرجة أن كل آلة حاسبة في المكتب تعجز عنهما. الكاتب العجوز في الزاوية لا يرتبك أبداً. يخرج معداده ويضرب الرقمين كما تعلمنا في المدرسة، زوج أرقام في كل مرة، عموداً بعد عمود. السر كله في معرفة العمود الذي يخص كل ناتج صغير. وحين تدرك أن الرقم i مضروباً في الرقم j يقع دائماً في الخانتين نفسيهما، يتحول الضرب الهائل إلى مجرد مسك دفاتر.
+---
+
+## Boss 7: The Abacus Clerk
+
+One boss left after this, and the dungeon knows it. Boss 5, the Odometer Tick, asked you to add one to a number stored as digits and watch a single carry ripple down the line. This boss scales that discipline to industry: multiply two numbers stored as digits, which means a whole *field* of products landing everywhere at once, and a whole field of carries to settle. Same base-10 cells, same rules, a hundred times the traffic.
+
+The reward is one of the cleanest insights in the catalog: school long multiplication was never a ritual. It was an addressing scheme.
+
+---
+
+## The story
+
+The customs house handles everything that comes through the port, and today two manifests hit the counting desk at once. Cargo one is valued at a number 180 digits long. Cargo two, 150 digits. The duty owed is their product, and the office's counting machines top out at numbers you could read aloud in one breath.
+
+Every register overflows. Every machine jams.
+
+Except the clerk in the corner, who has been here forty years and owns an abacus. He lines the two numbers up, and does what every schoolchild once did: multiply one digit by one digit, put the little result in the right column, move on. Column by column, bead by bead. He doesn't need a machine that holds the whole number. He needs cells that each hold one digit, and the discipline to always know *which cell*.
+
+Your job is to write down what his hands already know.
+
+---
+
+## The problem, dressed up properly
+
+> Given two non-negative integers `num1` and `num2` represented as strings, return their product, also as a string. You must not convert the inputs to integers directly, and you must not use any built-in big-number library.
+
+LeetCode 43, "Multiply Strings". The inputs can be up to 200 digits each. The ban on conversion isn't arbitrary spite: it's the whole point.
+
+---
+
+## The naive attempt
+
+The forbidden move first:
+
+```python
+def multiply(num1, num2):
+    return str(int(num1) * int(num2))
+```
+
+Banned by the problem statement, and the ban mirrors reality. Python happens to have big integers built in, but in C, Java, Go, or any fixed-width world, a 200-digit number doesn't fit in 64 bits. It doesn't fit in 64 bits two hundred times over. There is no register to convert *into*. The interview question is really "implement the thing Python's `int` does under the hood."
+
+The other naive idea, for scale: multiplication is repeated addition, so add `num1` to itself `num2` times. For a 200-digit `num2`, that's around 10^200 additions. The universe has hosted roughly 10^17 seconds so far. The clerk would like his afternoon back.
+
+---
+
+## The weapon: the i+j addressing scheme
+
+Go back to school for a second. Multiplying 23 by 45 on paper, you wrote partial products in a staircase, each row shifted one column left, then added the columns. The shifting is the entire algorithm. Every digit pair's product got slid into a *position*, and the position followed a rule nobody said out loud.
+
+Say it out loud. Index both numbers from the right, so digit 0 is the units digit. Digit `i` of one number carries weight 10^i. Digit `j` of the other carries weight 10^j. Their product carries weight 10^(i+j). So the product of digit `i` and digit `j` belongs in **cell `i+j`**, and since two digits multiply to at most 81, its overflow spills into **cell `i+j+1`**. Always those two cells. No exceptions.
+
+That's the addressing scheme. The grid of partial products you drew in school was a physical rendering of `i+j`.
+
+The plan, formalized:
+
+1. Reverse both numbers into digit arrays, so index equals weight.
+2. Allocate `m+n` result cells, all zero. An m-digit number times an n-digit number has at most `m+n` digits, so the cells always suffice.
+3. For every pair `(i, j)`, dump the raw product into cell `i+j`. Don't carry yet. Just pile beads.
+4. One sweep from cell 0 upward: each cell keeps its last digit, pushes the rest into the next cell as carry.
+5. Strip leading zeros, reverse back into a string.
+
+<MermaidBlock>
+graph TB
+    A["reverse the digits\nnum1 becomes 3 2 and num2 becomes 5 4"] --> B["pair i=0 j=0\n3 times 5 = 15 into cell 0"]
+    A --> C["pair i=0 j=1\n3 times 4 = 12 into cell 1"]
+    A --> D["pair i=1 j=0\n2 times 5 = 10 into cell 1"]
+    A --> E["pair i=1 j=1\n2 times 4 = 8 into cell 2"]
+    B --> F["raw cells pile up\n15 22 8 0"]
+    C --> F
+    D --> F
+    E --> F
+    F --> G["one carry sweep left to right\ncells settle to 5 3 0 1"]
+    G --> H["reverse and strip zeros\nanswer 1035"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+def multiply(num1: str, num2: str) -> str:
+    if num1 == "0" or num2 == "0":
+        return "0"
+
+    a = [int(d) for d in reversed(num1)]   # index 0 = units digit
+    b = [int(d) for d in reversed(num2)]
+    cells = [0] * (len(a) + len(b))        # m+n cells always suffice
+
+    for i, da in enumerate(a):             # pile raw products, no carrying yet
+        for j, db in enumerate(b):
+            cells[i + j] += da * db
+
+    carry = 0                              # one sweep settles every cell
+    for k in range(len(cells)):
+        total = cells[k] + carry
+        cells[k] = total % 10
+        carry = total // 10
+
+    while len(cells) > 1 and cells[-1] == 0:   # strip leading zeros
+        cells.pop()
+    return "".join(str(d) for d in reversed(cells))
+```
+
+Two loops to scatter, one sweep to settle. The abacus never held the big number. It held columns.
+
+---
+
+## Watching it work
+
+The clerk's warm-up: `"23"` times `"45"`, which should come out to `"1035"`.
+
+Reversed, `a = [3, 2]` and `b = [5, 4]`. Four cells, all zero.
+
+```
+pair            product   lands in   cells after
+i=0 j=0         3x5 = 15  cell 0     [15,  0,  0,  0]
+i=0 j=1         3x4 = 12  cell 1     [15, 12,  0,  0]
+i=1 j=0         2x5 = 10  cell 1     [15, 22,  0,  0]
+i=1 j=1         2x4 =  8  cell 2     [15, 22,  8,  0]
+```
+
+Cell 1 is holding 22. That's fine. Beads pile; nobody settles accounts mid-shift. Now the sweep:
+
+```
+cell 0: 15      → keep 5, carry 1    [5, 22, 8, 0]
+cell 1: 22 + 1  → keep 3, carry 2    [5,  3, 8, 0]
+cell 2:  8 + 2  → keep 0, carry 1    [5,  3, 0, 0]
+cell 3:  0 + 1  → keep 1, carry 0    [5,  3, 0, 1]
+```
+
+Reverse `[5, 3, 0, 1]`, read it back: `1035`. ✓ No leading zero to strip this time, but a case like `"12"` times `"85"` fills only three of its four cells, and the empty top cell is exactly what the strip loop removes.
+
+<Callout type="tip" title="School algorithms are algorithms">
+Long multiplication, long division, column addition: the "procedures" drilled in childhood are real algorithms with real invariants, and interviewers love them because everyone *knows* the steps but few can state the rule underneath. Here the entire problem collapses once you can say "digit i times digit j lands in cell i+j". Formalizing the addressing scheme isn't a step toward the answer. It usually is the answer.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Under-allocating the result.**
+An m-digit times an n-digit number can genuinely need `m+n` digits: 99 times 99 is 9801, two digits times two digits filling four. Allocate `m+n` cells and the final carry always has a home. Allocate `m+n-1` because "it usually fits" and 99 times 99 writes off the end of the array.
+
+**2. Carrying inside the double loop vs one sweep after.**
+Both are correct. The in-loop version does `cells[i+j] += product`, then immediately pushes overflow into `cells[i+j+1]` on every single pair. The version above lets cells pile past 9 and settles everything in one final sweep. Mixing the two, carrying sometimes, is how you end up with a cell holding 22 in the final answer. Know which version you wrote and commit.
+
+**3. The zero strip eating the whole number.**
+If either input is `"0"`, every cell ends up zero, and a careless strip loop pops all of them, returning an empty string. Either guard `"0"` inputs up front like the code does, or make the strip condition keep at least one cell. Do both and sleep well.
+
+**4. Building the answer by string concatenation in the loop.**
+`result = str(d) + result` inside a loop copies the growing string every iteration, turning the finish into O(n²) for no reason. Collect digits in a list and `join` once. In an interview it's a small flag; on a 400-digit answer it's a real cost.
+
+---
+
+## Complexity
+
+Every digit of one number meets every digit of the other exactly once, and the sweep is one more pass over the cells.
+
+**Time: O(m·n). Space: O(m+n).**
+
+---
+
+## Boss down
+
+The clerk slides the last bead, writes a 330-digit duty into the ledger in a steady hand, and stamps both manifests. The machines are still jammed. The abacus is fine.
+
+The pairing with the Odometer Tick is worth carrying out of the dungeon: Boss 5 taught you one carry rippling down a line of cells, and this one scaled it to a full field of products with the carries deferred and settled in a single sweep. Same base-10 cell discipline, industrial scale. Between them you've now built, by hand, the add and multiply that big-number libraries wrap in a nicer API.
+
+One boss remains. Not just in this dungeon: in the entire quest. **Detect Squares — The Surveyor's Stakes.** A surveyor drives stakes into a scattered field, and after every new stake you must count how many perfect squares his stakes can form. Eighteen dungeons of hash maps, geometry, and counting tricks converge on one final fight at the end of the road. Bring everything. See you at the last gate.

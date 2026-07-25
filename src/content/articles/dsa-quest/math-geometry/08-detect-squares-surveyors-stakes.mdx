@@ -1,0 +1,231 @@
+---
+title: "Detect Squares — The Surveyor's Stakes"
+slug: detect-squares-surveyors-stakes
+category: dsa
+series: math-geometry
+seriesOrder: 8
+description: "Dungeon 18, Boss 8, the last boss of the quest. A surveyor's field full of stakes, some spots hammered more than once, and one question asked from any corner: how many square plots can I fence right now? Fix the diagonal and the other two corners have nowhere to hide, then let a hash map of counts do the rest. The quest ends with the weapon it started with."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "📍"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A surveyor has spent months hammering stakes into a huge field, and some spots got two or three stakes each. Now they stand at one stake and ask "how many square plots can I fence, using this stake as a corner and three stakes already in the ground?" Trying every trio of stakes would take all season. Here is the trick: pick the stake diagonally across first. Once the diagonal is chosen, the other two corners have exactly one spot each, so you just look them up in a count map and multiply.
+  bn: |
+    এক জরিপকারী মাসের পর মাস ধরে বিশাল এক মাঠে খুঁটি পুঁতেছেন, কোনো কোনো জায়গায় দুই তিনটা করে। এখন তিনি একটা খুঁটির পাশে দাঁড়িয়ে ভাবছেন, "এই খুঁটিকে এক কোণা ধরে আর মাটিতে থাকা তিনটা খুঁটি দিয়ে কয়টা বর্গাকার প্লট ঘেরা যায়?" তিনটা করে খুঁটির সব কম্বিনেশন দেখতে গেলে পুরো মৌসুম চলে যাবে। কৌশলটা হলো আগে কোনাকুনি উল্টো দিকের খুঁটিটা বেছে নেওয়া। ডায়াগোনাল ঠিক হয়ে গেলে বাকি দুই কোণার জায়গা একদম নির্দিষ্ট, তখন একটা count map এ দেখে গুণ করলেই উত্তর।
+  hi: |
+    एक सर्वेयर महीनों से एक बड़े खेत में खूंटे गाड़ रहा है, कुछ जगहों पर तो दो तीन खूंटे तक लग गए हैं। अब वह एक खूंटे के पास खड़ा होकर पूछता है, "इस खूंटे को एक कोना मानकर और जमीन में लगे तीन खूंटों से मैं कितने चौकोर प्लॉट घेर सकता हूं?" हर तीन खूंटों की जोड़ी आजमाने में पूरा मौसम निकल जाएगा। तरकीब यह है कि पहले तिरछे सामने वाला खूंटा चुनो। diagonal तय होते ही बाकी दोनों कोनों की जगह अपने आप तय हो जाती है, फिर बस count map में देखो और गुणा कर दो।
+  ar: |
+    قضى مسّاح أراضٍ شهوراً وهو يدق أوتاداً في حقل واسع، وبعض المواضع نالت وتدين أو ثلاثة. الآن يقف عند وتد ويسأل "كم قطعة مربعة أستطيع تسييجها، بهذا الوتد ركناً وثلاثة أوتاد مغروسة أصلاً؟" تجربة كل ثلاثية من الأوتاد ستأكل الموسم كله. الحيلة أن تختار أولاً الوتد المقابل قطرياً. فبمجرد تحديد القطر يصبح لكل ركن من الركنين الباقيين موضع واحد لا غير، فتبحث عنهما في count map وتضرب الأعداد.
+---
+
+## Boss 8: The Surveyor's Stakes
+
+The last door of the last dungeon. Behind it, no monster. Just a field, a hammer, and a question about squares.
+
+Eighteen dungeons ago you walked into a coat check with a hash map and a duplicate-spotting problem. The quest ends here with the same weapon in your hand, aimed at geometry this time, and the final lesson is the quiet one underneath all the others: when a structure is constrained enough, you don't search for it. You *look it up*.
+
+---
+
+## The story
+
+A land surveyor works a vast field, month after month. Client marks a spot, the surveyor hammers a stake. Some spots are popular: a corner gets claimed twice, three times, each claim its own stake in the same hole.
+
+One afternoon the surveyor leans on a stake and squints across the field.
+
+"If this stake is one corner of a square plot, and the other three corners must already have stakes in them, how many square plots could I fence right now?"
+
+Sides parallel to the field's edges, because fences follow property lines, not whims. Plots must have real area, a plot of size zero fences nothing. And if a corner spot has three stakes, that's three different claims, three different plots. Count them all.
+
+The field holds thousands of stakes. The surveyor asks this question at a different stake every day. Answers are due before sundown.
+
+---
+
+## The problem, dressed up properly
+
+> Design a data structure with two operations. `add(point)` records a new point on the plane, duplicates allowed. `count(point)` returns the number of ways to choose three previously added points that form an axis-aligned square with positive area together with the query point. Duplicated points count as distinct choices.
+
+LeetCode 2013, "Detect Squares". A design problem wearing a geometry costume, and the closing boss of the entire quest.
+
+---
+
+## The naive attempt
+
+Three unknown corners, so try every three stakes:
+
+```python
+def count(self, point):
+    total = 0
+    pts = self.all_points          # every stake, duplicates included
+    n = len(pts)
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                if forms_square(point, pts[i], pts[j], pts[k]):
+                    total += 1
+    return total
+```
+
+Cubic per query. Ten thousand stakes means a trillion trios, and the surveyor asks daily. Even the smarter version, all *pairs* plus a lookup for the third, is quadratic and still wasteful, because it treats the three missing corners as three free choices.
+
+They aren't free. That's the whole boss.
+
+---
+
+## The weapon: the diagonal decides everything
+
+Look at what a square actually is. The query stake sits at (qx, qy). Suppose some stored stake at (px, py) is the corner *diagonally opposite* it. For an axis-aligned square, the diagonal must span equal distance in x and in y:
+
+- `abs(px - qx) == abs(py - qy)`, and both differences nonzero (otherwise the "square" is a flat line).
+
+And here's the collapse. Once the diagonal is fixed, the other two corners have no freedom at all. One must sit at (qx, py), directly above or below the query. The other must sit at (px, qy), directly left or right of it. Not "somewhere over there". *Exactly* there.
+
+Three unknowns just became one. Scan the stored stakes as diagonal candidates, and for each valid one, look up how many stakes sit at the two forced corners. Duplicates multiply: 1 diagonal stake times 2 stakes at one corner times 1 at the other is 2 distinct squares, because each physical stake is a separate claim.
+
+<MermaidBlock>
+graph TB
+    A["query stake at qx qy\none corner already fixed"] --> B["scan stored stakes\ncandidate diagonal at px py"]
+    B --> C["abs of px minus qx equals\nabs of py minus qy\nand both nonzero?"]
+    C -->|no| B
+    C -->|yes| D["corners forced\none at qx py\none at px qy"]
+    D --> E["multiply three counts\ndiagonal times corner times corner"]
+    E --> F["add product to total\nback to the scan"]
+    F --> B
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style E fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+And the structure holding it all? A hash map from point to stake count. Dungeon 1's opening weapon, unchanged.
+
+```python
+from collections import defaultdict
+
+class DetectSquares:
+    def __init__(self):
+        self.stakes = defaultdict(int)     # point -> how many stakes there
+
+    def add(self, point) -> None:
+        x, y = point
+        self.stakes[(x, y)] += 1
+
+    def count(self, point) -> int:
+        qx, qy = point
+        total = 0
+        for (px, py), diag in list(self.stakes.items()):
+            if px == qx or py == qy:
+                continue                   # zero width or height, no area
+            if abs(px - qx) != abs(py - qy):
+                continue                   # rectangle, not a square
+            corner_a = self.stakes.get((qx, py), 0)
+            corner_b = self.stakes.get((px, qy), 0)
+            total += diag * corner_a * corner_b
+        return total
+```
+
+Note the scan runs over *stored* points, not over the plane. Coordinates can reach anywhere, but the surveyor only ever hammered so many spots, and the diagonal candidate must be one of them.
+
+---
+
+## Watching it work
+
+The surveyor hammers three stakes: (3, 10), (11, 2), (3, 2). Then stands at (11, 10) and asks.
+
+```
+diagonal candidate   test                              forced corners        product
+(3, 10)              dy is 0                           —                     skip
+(11, 2)              dx is 0                           —                     skip
+(3, 2)               dx 8, dy 8, equal and nonzero     (11, 2) and (3, 10)   1 × 1 × 1 = 1
+
+count((11, 10)) = 1 ✓
+```
+
+One square plot: corners (11, 10), (3, 10), (3, 2), (11, 2), an 8 by 8 parcel.
+
+Now a second claim lands on the same spot: `add((11, 2))`. Two stakes in one hole. Ask again from (11, 10):
+
+```
+diagonal candidate   forced corners        counts           product
+(3, 2)               (11, 2) and (3, 10)   1 × 2 × 1        2
+
+count((11, 10)) = 2 ✓
+```
+
+Same geometry, two plots, because the doubled corner is two separate claims. No special-case code ran. The multiplication *was* the duplicate handling, which is why counting in a hash map beats storing in a hash set: sets remember presence, counters remember multiplicity, and multiplicity is where the answer lives.
+
+<Callout type="tip" title="Fix the most constrained piece first">
+Three unknown corners looked like a three-dimensional search. But one choice, the diagonal, was carrying all the constraint: pick it and the remaining corners snap into place. That reflex generalizes far beyond geometry. When a problem offers several things to guess, guess the one that forces the others, and what's left stops being a search and becomes a lookup.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Zero-area squares sneaking through.**
+If the candidate shares an x or y with the query, the differences are zero, `abs(0) == abs(0)` passes, and you'd count a degenerate line as a square. Worse, the query point's own spot in the map passes this test against itself. The `px == qx or py == qy` guard kills the whole family at once.
+
+**2. Iterating the plane instead of the stakes.**
+Coordinates run up to 1000 in each direction, so it's tempting to loop over every possible side length or every grid cell. That's a million-ish checks per query regardless of how few stakes exist. Scanning the stored points keeps the cost proportional to what the surveyor actually hammered.
+
+**3. Forgetting that duplicates multiply.**
+Storing points in a set, or capping counts at 1, silently merges claims. The second trace above would answer 1 instead of 2. The problem says duplicates count, and the counter map makes that free, but only if every lookup uses the count, all three factors of it.
+
+**4. Rectangles slipping past a lazy check.**
+Testing only "both differences nonzero" without the `abs` equality admits any rectangle whose diagonal touches the query. dx of 8 and dy of 3 forces corners just fine, it just doesn't force a *square*. The equal-span check is the one line of actual geometry in the file. Don't lose it.
+
+---
+
+## Complexity
+
+`add` drops a count into a map. `count` scans distinct stored points once, with two O(1) lookups each.
+
+**Time: O(1) per add, O(P) per count, where P is the number of distinct stored points. Space: O(P).**
+
+---
+
+## Boss down. Dungeon cleared.
+
+The surveyor signs the last plat, pulls the field flag, and Dungeon 18 closes behind you. The math and geometry toolkit, in full:
+
+- **Factoring rotations into mirrors** (Boss 1): transpose plus flip beats moving pixels one arc at a time
+- **Shrinking boundaries** (Boss 2): four edges marching inward, the spiral as bookkeeping
+- **Borrowing the input as scratch space** (Boss 3): first row and column drafted as their own markers
+- **Cycle detection on implicit lists** (Boss 4): happy numbers as a linked list nobody built
+- **Carry ripple** (Boss 5): the odometer's nines rolling over, one digit of state
+- **Squaring up exponents** (Boss 6): fold the paper, halve the work, pow in log time
+- **School arithmetic formalized** (Boss 7): the abacus clerk's digit grid, `i + j` knowing where products land
+- **Constraint-collapsed geometry** (Boss 8): fix the diagonal and the square has no freedom left
+
+The through-line of this dungeon: math problems reward you for finding the *invariant* before writing the loop. Every boss here was one observation, then bookkeeping.
+
+---
+
+## Quest complete.
+
+Eighteen dungeons. Look back down the mountain for a second.
+
+Dungeons 1 through 6 put hand tools on your belt: hashing, two pointers, stacks, binary search, sliding windows, linked lists. Small, sharp things you now reach for without thinking, the way you stopped noticing the coat check's hash map somewhere around Dungeon 4.
+
+Dungeons 7 through 11 grew structures. Trees taught recursion that trusts itself, tries taught prefixes as paths, backtracking taught the courage to undo, heaps taught partial order, graphs taught that everything is a graph if you squint. You stopped solving problems and started *modeling* them.
+
+Dungeons 12 through 16 taught planning. Dynamic programming in one dimension, then two. Intervals, and the discipline of sorting before deciding. Greedy, and the harder discipline of proving you're allowed to be. These were the dungeons where the answer stopped being code and started being an argument.
+
+And then 17 and 18 stripped it all back down: bits, digits, coordinates, carries. First principles, held with eighteen dungeons of hands.
+
+The learner who nervously checked an array for duplicates in Dungeon 1 just counted squares in an infinite plane, with the same hash map, and called it the easy part. That distance is the whole quest.
+
+What now? Three things. Revisit dungeons cold, weeks from now, and see which weapons come back on their own. Re-solve the bosses from memory, no peeking, because recall under pressure is the only version of knowing that counts in a real interview. Then go hunt wild problems, contest sets, interview banks, whatever the world throws, and notice how often a stranger's problem is just a boss you've already beaten wearing a different coat.
+
+The patterns are yours now. The dungeons stay open.
+
+Go.

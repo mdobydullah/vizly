@@ -1,0 +1,173 @@
+---
+title: "Plus One — The Odometer Tick"
+slug: plus-one-odometer-tick
+category: dsa
+series: math-geometry
+seriesOrder: 5
+description: "Dungeon 18, Boss 5. An old mechanical odometer needs one more mile ticked onto it. Most miles just bump the last wheel, but a wheel at 9 rolls to 0 and nudges its neighbor, and a full row of 9s needs a brand new wheel bolted on the front. Walk the digits backward, return early, and meet carry propagation in base 10."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "🚗"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    An old car rolls into your garage and the job sheet says the mechanical odometer must tick forward exactly one mile. Most of the time that is nothing, the last wheel just bumps up by one and you are done. But a wheel sitting on 9 rolls over to 0 and nudges the wheel next to it. And if every single wheel shows 9, you have to bolt a whole new wheel onto the front. That is Plus One, adding 1 to a number stored digit by digit in an array, and the trick is to walk the wheels from the back and stop the moment one of them is not a 9.
+  bn: |
+    একটা পুরনো গাড়ি আপনার গ্যারেজে এলো, আর কাজের তালিকায় লেখা তার যান্ত্রিক ওডোমিটারটা ঠিক এক মাইল এগিয়ে দিতে হবে। বেশিরভাগ সময় এটা কোনো ব্যাপারই না, শেষ চাকাটা এক ঘর ঘুরিয়ে দিলেই কাজ শেষ। কিন্তু কোনো চাকা যদি 9-এ বসে থাকে, সেটা ঘুরে 0 হয়ে যায় আর পাশের চাকাটাকে এক ধাক্কা দেয়। আর যদি সব কটা চাকাই 9 দেখায়, তাহলে সামনে একটা আস্ত নতুন চাকা লাগাতে হয়। এটাই Plus One, একটা array-তে অঙ্ক ধরে ধরে রাখা সংখ্যায় 1 যোগ করা। কৌশলটা হলো পেছন থেকে চাকাগুলো ধরে হাঁটা, আর যে চাকাটা 9 নয় সেখানেই থেমে যাওয়া।
+  hi: |
+    एक पुरानी कार आपके गैराज में आती है और काम की पर्ची कहती है कि उसका mechanical odometer ठीक एक मील आगे बढ़ाना है। ज्यादातर बार यह मामूली काम है, आखिरी पहिया एक घर घुमाया और हो गया। पर जो पहिया 9 पर बैठा हो, वह घूमकर 0 हो जाता है और बगल वाले पहिये को धक्का देता है। और अगर सारे पहिये 9 दिखा रहे हों, तो आगे एक बिल्कुल नया पहिया कसना पड़ता है। यही है Plus One, array में अंक दर अंक रखे नंबर में 1 जोड़ना। तरकीब यह है कि पहियों को पीछे से देखते चलो और जो पहिया 9 नहीं है, वहीं रुक जाओ।
+  ar: |
+    تدخل سيارة قديمة إلى ورشتك وورقة العمل تقول إن عداد المسافات الميكانيكي يجب أن يتقدم ميلاً واحداً بالضبط. في أغلب الأحيان الأمر تافه، العجلة الأخيرة تتقدم خانة واحدة وانتهى العمل. لكن العجلة الواقفة على 9 تدور إلى 0 وتدفع العجلة المجاورة لها. وإذا كانت كل العجلات تعرض 9، فعليك تركيب عجلة جديدة كاملة في المقدمة. هذه هي Plus One، إضافة 1 إلى رقم مخزن خانة بخانة في array. والحيلة أن تمشي على العجلات من الخلف وتتوقف عند أول عجلة ليست 9.
+---
+
+## Boss 5: The Odometer Tick
+
+Let's be honest about this one: it's the smallest boss in the final dungeon. Four bosses in, you've built power functions and spiraled through matrices, and now the game hands you "add 1 to a number". You could write it half asleep.
+
+But finale dungeons put a breather boss here on purpose. This fight isn't about difficulty. It's about *naming* something you've already used: **carry propagation**, the ripple that runs through digits when one of them overflows. You fought it in binary back in Dungeon 17. Today it comes back in base 10, wearing chrome.
+
+Take the easy win. Just don't skip the lesson attached to it.
+
+---
+
+## The story
+
+A customer brings in a car older than you are, and the job sheet has one strange line: the mechanical odometer reads one mile short after a repair, and it has to be corrected by hand. One mile. Tick it forward.
+
+You pop the cluster out and look at the row of number wheels:
+
+```
+0 4 2 1 8 9
+```
+
+Most miles are boring. The last wheel clicks from 8 to 9 and everyone goes home. But this one's last wheel is *on* 9, so one more mile rolls it around to 0, and the little tab on its side catches the neighbor and drags it forward one notch: `042190`.
+
+And the nightmare case sits on the shelf behind you, a junked cluster reading `999999`. One more mile there rolls *every* wheel to 0, and the only honest fix is bolting a brand new wheel onto the front of the row: `1000000`. The mechanism literally doesn't have room for the answer.
+
+Three cases. One wheel, a ripple, or a whole new wheel. That's the entire fight.
+
+---
+
+## The problem, dressed up properly
+
+> You are given a large integer represented as an array `digits`, most significant digit first. Increment the integer by one and return the resulting array of digits. No leading zeros, and every element is between 0 and 9.
+
+LeetCode 66, "Plus One". Rated easy, solved by millions, and still failed in interviews weekly by people who reach for the wrong tool first.
+
+---
+
+## The naive attempt
+
+The array is a number, so make it a number:
+
+```python
+def plus_one(digits):
+    n = int("".join(map(str, digits)))
+    return [int(d) for d in str(n + 1)]
+```
+
+In Python this *works*, because Python integers grow forever. And that's exactly why it misses the point. The array representation exists because in most languages a 10000-digit number fits in no int, no long, nothing. The array **is** the number. If you convert it, you've assumed away the entire problem, and any interviewer will say the magic words: "now do it without big integers."
+
+So do it the way the odometer does.
+
+---
+
+## The weapon: walk the wheels from the back
+
+Start at the last wheel and ask one question: is it under 9?
+
+- **Under 9.** Bump it and walk away. Nothing to the left can possibly change. Done, return *right now*.
+- **Exactly 9.** It rolls to 0, and the carry nudges the next wheel left. Same question, one wheel over.
+- **Ran out of wheels.** You walked off the front of the array, which means every wheel was a 9 and every one is now 0. Bolt a `1` on the front.
+
+<MermaidBlock>
+graph TB
+    A["one more mile\nlook at the current wheel\nstarting from the back"] --> B["wheel under 9\nbump it by one\nstop, return early"]
+    A --> C["wheel shows 9\nroll it to 0\ncarry nudges the next wheel left"]
+    C --> A
+    A --> D["walked off the front\nevery wheel was 9\nbolt a new 1 on the front"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+```python
+def plus_one(digits: list[int]) -> list[int]:
+    for i in range(len(digits) - 1, -1, -1):
+        if digits[i] < 9:
+            digits[i] += 1
+            return digits          # most miles end here
+        digits[i] = 0              # wheel rolls over, carry continues
+    return [1] + digits            # every wheel was 9
+```
+
+The elegance is the early return. There's no carry flag, no second pass, no cleanup. The loop only keeps running while wheels keep overflowing, and the instant one doesn't, the function is gone. For a random number, that's usually the very first wheel.
+
+And notice the shape of this: a change enters at the low end, and it either gets absorbed immediately or ripples left through maxed-out positions. Dungeon 17's Broken Plus Key did the identical thing with `AND` and a shift, rippling carries through binary bits. Same ripple, bigger wheels. Base 2, base 10, base anything: carry propagation is one pattern, and now you've fought it twice.
+
+---
+
+## Watching it work
+
+The story's cluster, `[1, 2, 9]`:
+
+```
+i=2   wheel 9   roll to 0        → [1, 2, 0], carry moves left
+i=1   wheel 2   under 9, bump    → [1, 3, 0], return
+result: [1, 3, 0] ✓
+```
+
+Two wheels touched, loop never saw index 0. The junked cluster, `[9, 9, 9]`:
+
+```
+i=2   wheel 9   roll to 0   → [9, 9, 0]
+i=1   wheel 9   roll to 0   → [9, 0, 0]
+i=0   wheel 9   roll to 0   → [0, 0, 0]
+loop ends without returning → prepend 1
+result: [1, 0, 0, 0] ✓
+```
+
+And the everyday case, `[4, 3, 1]`: index 2 holds a 1, bump to 2, return. One wheel, one comparison, done before the loop's second lap.
+
+<Callout type="tip" title="Why odometers are cheap">
+The carry stops at the first digit that isn't maxed out, and most digits aren't. Only 1 number in 10 ends in a 9, only 1 in 100 ends in 99, and so on, so the expected number of wheels touched per tick is 1 + 1/10 + 1/100 + ... which is about 1.11. This is exactly why real odometers and binary hardware counters last: almost every increment is one wheel of work, and the expensive full ripple is vanishingly rare. "Cheap on average, ripple in the worst case" is the signature of every carry-based counter you'll ever meet.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Walking the wheels front to back.**
+The carry is born at the *last* digit and travels left. Start the loop at index 0 and you're asking the highest wheel about an overflow that hasn't happened yet, and `[1, 9]` comes out as `[2, 9]` or worse. The traversal direction isn't a style choice, it's the physics of the machine.
+
+**2. Forgetting the all-nines prepend.**
+Test with `[1, 2, 3]` and everything passes. Then `[9, 9, 9]` returns `[0, 0, 0]`, a car that drove a million miles back to the factory. If the loop finishes without returning, that fact alone *proves* every digit was 9. The `return [1] + digits` line isn't an edge-case patch, it's the third wheel case from the story.
+
+**3. Half mutating, half copying.**
+The version above mutates the caller's list on the common path but builds a fresh list on the all-nines path. Fine for LeetCode, a real bug factory in production code where the caller keeps using the original. Pick one contract: either always mutate in place (impossible for the grow case without tricks) or always return a new list. Mixed behavior that depends on the *value* passed in is the kind of bug that hides for months.
+
+**4. Special-casing the single digit.**
+People see `[0]` or `[9]` and bolt on an `if len(digits) == 1` branch out of nerves. Trace it: `[0]` has a wheel under 9, bump, return `[1]`. `[9]` rolls to 0, loop ends, prepend, `[1, 0]`. The general machine already handles the one-wheel odometer. Extra branches for cases the loop covers are how clean solutions grow barnacles.
+
+---
+
+## Complexity
+
+Worst case, every wheel is a 9 and the carry ripples the full row: **O(n) time**. Typical case, the last wheel is under 9 and you touch one digit: **O(1)**, and the amortized cost over sequential ticks is O(1) too, per the odometer math in the callout.
+
+**Space: O(1) extra.** The only allocation is the all-nines prepend, which happens once per n digits' worth of ticking, so it never dominates.
+
+---
+
+## Boss down
+
+The wheel clicks, the cluster goes back in the dash, and the customer never knows their odometer was briefly an algorithm. Smallest boss of the dungeon, but it handed you a real name for a real pattern: carry propagation, the ripple that binary adders, decimal odometers, and every counter in every CPU all share. You'll recognize it instantly from now on, whatever base it hides in.
+
+Boss 6 is where this dungeon stops being polite: **Pow(x, n) — The Paper Fold**. Raising a number to the 2 billionth power, one multiply at a time, would outlive you. But fold the problem in half, then in half again, like creasing a sheet of paper, and 2 billion multiplications collapse into about thirty. Exponentiation in logarithmic steps, and the first genuinely sharp edge of the finale. Bring a straightedge.

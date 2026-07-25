@@ -1,0 +1,212 @@
+---
+title: "Set Matrix Zeroes — The Condemned Rows"
+slug: set-matrix-zeroes-condemned-rows
+category: dsa
+series: math-geometry
+seriesOrder: 3
+description: "Dungeon 18, Boss 3. A building inspector walks a grid of storage units where one structural failure condemns an entire corridor and an entire stack. No notebook allowed, so every marking has to go on the units themselves. The matrix's own first row and column become the clipboard, and the order you erase them decides everything."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "🚧"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    You are a building inspector walking a huge grid of storage units. The rule is brutal, if one unit has a structural failure, its whole corridor and its whole stack get condemned. Here is the catch, you have no notebook. Any mark you make has to go on the units themselves. So you borrow the first corridor and the first stack as your clipboard, and you have to be very careful about when you erase it.
+  bn: |
+    ভাবুন, আপনি একজন বিল্ডিং ইন্সপেক্টর, আর সামনে বিশাল এক গ্রিডে সাজানো স্টোরেজ ইউনিট। নিয়মটা নির্মম, একটা ইউনিটে ফাটল মানে তার পুরো করিডোর আর পুরো স্ট্যাক বাতিল। ঝামেলা হলো, আপনার হাতে কোনো নোটবুক নেই। যা দাগ দেওয়ার, ইউনিটের গায়েই দিতে হবে। তাই প্রথম করিডোর আর প্রথম স্ট্যাককেই ক্লিপবোর্ড বানিয়ে নিতে হয়, আর কখন সেই দাগ মুছবেন সেটা নিয়ে খুব সাবধান থাকতে হয়।
+  hi: |
+    मान लीजिए आप एक बिल्डिंग इंस्पेक्टर हैं और सामने स्टोरेज यूनिट्स का एक बड़ा ग्रिड है। नियम सख्त है, किसी एक यूनिट में दरार मिली तो उसका पूरा कॉरिडोर और पूरा स्टैक सील हो जाएगा। दिक्कत यह है कि आपके पास कोई नोटबुक नहीं है। जो भी निशान लगाना है, यूनिट पर ही लगाना होगा। तो आप पहले कॉरिडोर और पहले स्टैक को ही अपना क्लिपबोर्ड बना लेते हैं, बस उसे मिटाने का सही वक्त चूकना नहीं है।
+  ar: |
+    تخيل أنك مفتش مبانٍ تمشي بين شبكة ضخمة من وحدات التخزين. القاعدة قاسية، إذا وُجد شرخ في وحدة واحدة يُدان ممرها كله ورصّتها كلها. المشكلة أنك بلا دفتر ملاحظات. أي علامة تضعها يجب أن تكون على الوحدات نفسها. لذلك تستعير الممر الأول والرصة الأولى لتكون لوحة علاماتك، وعليك أن تحذر جداً من توقيت مسحها.
+---
+
+## Boss 3: The Condemned Rows
+
+Two bosses into the final dungeon and the theme is showing itself: Math and Geometry problems don't hand you new data structures, they take away the ones you have. This boss takes away your notebook. The problem itself is easy to *solve*. Solving it with **zero extra memory** is the fight, and the winning move is one of the prettiest tricks in the catalog: writing your notes on the enemy.
+
+---
+
+## The story
+
+You're the city's building inspector, standing at the entrance of a warehouse: a grid of storage units, `m` corridors deep, `n` stacks wide. Your job is a structural survey.
+
+The condemnation rule is merciless. If any single unit shows structural failure — a `0` on your scanner — the entire corridor it sits in gets condemned, and the entire stack above and below it too. Every unit in that row, every unit in that column: marked `0`, sealed, done.
+
+One more thing. The city, in its infinite budget wisdom, gave you no notebook. No clipboard, no chalk board, nothing. Any marking you make goes *on the units themselves*.
+
+So: walk the grid, find the failures, condemn the corridors and stacks, and do it all in place. Try not to condemn the whole building by accident. (You will condemn the whole building by accident. Once.)
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` integer matrix, if an element is `0`, set its entire row and column to `0`. You must do it **in place**.
+
+LeetCode 73, "Set Matrix Zeroes". The follow-up is the real boss: the straightforward answer uses O(m·n) extra space, a better one uses O(m+n), but can you do it with **constant** extra space?
+
+---
+
+## The naive attempt
+
+First instinct: walk the grid, and the moment you see a `0`, condemn its row and column right there.
+
+Watch what happens on a grid with one failure in the middle:
+
+```
+1 1 1        1 0 1
+1 0 1   →    0 0 0    (condemned row 1 and column 1)
+1 1 1        1 0 1
+```
+
+Correct so far! But you're *still scanning*. Next cell you visit is `(1, 2)`... which you just set to `0`. Your scanner screams: structural failure! Condemn column 2! Then you reach `(2, 1)`, also freshly zeroed: condemn row 2! Each condemnation plants new zeros, each new zero triggers more condemnations, and thirty seconds later you've condemned the entire warehouse. One cracked unit, whole building demolished. The mayor would like a word.
+
+The lesson: you must **separate finding from condemning**. Read everything first, write afterwards.
+
+The honest fix is to note the failures somewhere else. Level 1: copy the whole matrix and read from the copy — O(m·n) extra, embarrassing. Level 2, genuinely respectable:
+
+```python
+def set_zeroes(matrix):
+    m, n = len(matrix), len(matrix[0])
+    bad_rows, bad_cols = set(), set()
+    for i in range(m):
+        for j in range(n):
+            if matrix[i][j] == 0:
+                bad_rows.add(i)
+                bad_cols.add(j)
+    for i in range(m):
+        for j in range(n):
+            if i in bad_rows or j in bad_cols:
+                matrix[i][j] = 0
+```
+
+Two sets, O(m+n) space, and this passes the judge. But the boss's follow-up is staring at you: *constant* space. Where do you write m+n verdicts with no notebook?
+
+---
+
+## The weapon: the first row and column are the notebook
+
+Here's the trick. To condemn row `i`, you only need one bit of information: "row i is condemned." Where's a natural place to store one bit per row? **Column 0** — cell `matrix[i][0]` is one cell per row. And one bit per column? **Row 0**. The matrix already contains its own clipboard.
+
+So the plan: when you find a `0` at `(i, j)`, write a `0` into `matrix[i][0]` and `matrix[0][j]`. Those cells become verdict markers — "this corridor dies, this stack dies."
+
+Two complications, both about the marker board itself.
+
+**First:** the first row and first column are *also part of the building*. A `0` sitting in row 0 might be a real structural failure, or it might be a marker you wrote two minutes ago. You can't tell them apart afterwards. So *before* writing any markers, check the original first row and first column for real zeros, and remember the answer in two boolean flags. Two booleans is O(1). The city can afford two booleans.
+
+**Second, and this is the trap that eats people:** the sweep order. When it's time to actually condemn, you must zero the **interior first**, and only *then* the first row and column. Do it backwards — wipe the first row because its flag said so — and you've just erased every column marker while the interior still needed to read them. The notebook must outlive the notes.
+
+<MermaidBlock>
+graph TB
+    A["phase 0: flags\ndoes the original first row hold a zero\ndoes the original first column hold a zero"] --> B["phase 1: mark\nscan the interior only\nzero at row i col j writes markers\ninto matrix i 0 and matrix 0 j"]
+    B --> C["phase 2: sweep interior\nfor every interior cell\nzero it if its row marker\nor its column marker is zero"]
+    C --> D["phase 3: the notebook last\nrow flag set: zero the first row\ncol flag set: zero the first column"]
+    style A fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+```python
+def set_zeroes(matrix) -> None:
+    m, n = len(matrix), len(matrix[0])
+
+    # Phase 0: is the notebook itself condemned?
+    first_row_zero = any(matrix[0][j] == 0 for j in range(n))
+    first_col_zero = any(matrix[i][0] == 0 for i in range(m))
+
+    # Phase 1: mark. Read the interior, write verdicts on the borders.
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][j] == 0:
+                matrix[i][0] = 0     # condemn corridor i
+                matrix[0][j] = 0     # condemn stack j
+
+    # Phase 2: sweep the interior. The notebook is still intact.
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][0] == 0 or matrix[0][j] == 0:
+                matrix[i][j] = 0
+
+    # Phase 3: only now, the notebook itself.
+    if first_row_zero:
+        for j in range(n):
+            matrix[0][j] = 0
+    if first_col_zero:
+        for i in range(m):
+            matrix[i][0] = 0
+```
+
+This is the same move Dungeon 17 kept pulling — no extra shelf, the structure you were handed *is* the workspace. Rotate the image inside the image, cycle the values through themselves. Here the matrix stores the verdict about the matrix. Borrowing the input as scratch space is a whole genre, and this problem is its cleanest specimen.
+
+---
+
+## Watching it work
+
+The one-crack warehouse, `[[1,1,1],[1,0,1],[1,1,1]]`.
+
+**Phase 0.** Original first row `1 1 1`: no zero, `first_row_zero = False`. Original first column `1 1 1`: no zero, `first_col_zero = False`.
+
+**Phase 1, mark.** Scanning the interior, the only `0` is at `(1, 1)`. Write markers: `matrix[1][0] = 0` (corridor 1 condemned) and `matrix[0][1] = 0` (stack 1 condemned).
+
+```
+1 0 1     ← marker for stack 1
+0 0 1
+1 1 1
+↑ marker for corridor 1
+```
+
+Note the grid already looks different — and that's fine, because the mark phase only *reads* the interior, and phase 0 already took its snapshot of the borders.
+
+**Phase 2, sweep the interior.** For each interior cell, glance at its two markers. `(1, 1)`: row marker is 0, zero it (already was). `(1, 2)`: row marker `matrix[1][0]` is 0, zero it. `(2, 1)`: column marker `matrix[0][1]` is 0, zero it. `(2, 2)`: both markers are 1, survives.
+
+```
+1 0 1
+0 0 0
+1 0 1
+```
+
+**Phase 3, the notebook.** Both flags are `False` — the first row and column had no *original* failures, those zeros on the border are just spent markers that happen to be exactly the right answer anyway. Marker at `matrix[0][1]`? Stack 1 was condemned, so a `0` there is correct. Nothing more to do.
+
+Final: `[[1,0,1],[0,0,0],[1,0,1]]`. One crack, one corridor and one stack condemned, the rest of the building stands.
+
+<Callout type="tip" title="When the boss says O(1), check the input's pockets">
+"Constant extra space" is rarely a demand to be clever with arithmetic. It's usually a hint that the input already contains unused capacity: cells you can overwrite, sign bits you can flip, indices you can encode into. The discipline that comes with it: markers must outlive their usefulness. Plan the write order so nothing gets erased while something else still needs to read it. Interior first, notebook last.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Zeroing the first row or column before the interior sweep.**
+The classic. `first_row_zero` is true, so you helpfully wipe row 0 first — and every column marker goes with it. The interior sweep then reads an all-zero marker row and condemns every stack in the building. Phase 3 is called phase 3 for a reason.
+
+**2. Skipping the separate flags.**
+The first row and column do double duty: they're real units *and* the marker board. Without the two booleans taken before marking, you can't distinguish "this border cell was cracked all along" from "I wrote this marker myself," and you'll either condemn a healthy first row or fail to condemn a cracked one.
+
+**3. Letting the mark scan read the markers it just wrote.**
+Both interior loops start at index 1 for a reason. Include the borders in the mark scan and a marker you wrote at `matrix[0][j]` gets re-read as an original failure of row 0 — the naive disaster sneaking back in through the notebook. Read interior, write borders, never the reverse.
+
+**4. A condemned first column via a zero further down it.**
+Sneaky case: `matrix[3][0] == 0`. That's a real failure sitting *in* the first column, so the whole first column must die — but the interior scan never sees it, and a marker written into column 0 can't represent it. Only `first_col_zero` catches it. If your solution passes the centered-zero test and fails on judge input, this is almost always the missing case.
+
+---
+
+## Complexity
+
+Phase 0 reads two lines, phases 1 and 2 each read the interior once, phase 3 writes two lines.
+
+**Time: O(m·n). Space: O(1)** — two booleans, and a matrix that spent the middle of the algorithm moonlighting as its own notebook.
+
+---
+
+## Boss down
+
+The survey is filed, the condemned corridors are sealed, and the rest of the warehouse gets its certificate. The inspector walks out with two booleans and no notebook, which is exactly how the city likes its paperwork.
+
+Boss 4 trades the grid for a single number with a strange habit: **Happy Number — The Numerologist's Loop**. Take a number, square its digits, add them up, repeat. Some numbers spiral down to 1 and stay there, blissful. Others circle the same values forever, never arriving. Telling the two apart sounds like it needs a memory of everywhere you've been — unless you remember a certain tortoise and hare from Dungeon 6, who are about to prove they can race down a chain of digits just as well as a linked list. See you at the séance.

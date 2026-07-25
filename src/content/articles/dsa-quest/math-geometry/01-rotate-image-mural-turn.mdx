@@ -1,0 +1,193 @@
+---
+title: "Rotate Image — The Mural Turn"
+slug: rotate-image-mural-turn
+category: dsa
+series: math-geometry
+seriesOrder: 1
+description: "Dungeon 18, Boss 1. A museum's square mosaic mural must make a quarter turn clockwise, but the tiles are mortared to a frame that cannot move, and no second frame exists. All you can do is swap tiles in place. Mirror the mural across its diagonal, then flip each row, and two reflections quietly add up to one rotation."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "🖼️"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    The museum wants its big square mosaic mural turned a quarter turn clockwise. Problem is, the tiles are mortared into a frame that can't be moved, and there is no second frame to lay tiles onto. All you're allowed to do is swap tiles around inside the frame. Then you notice something odd. Mirror the mural across its diagonal, flip each row, and the whole thing has quietly made exactly a quarter turn. No second frame needed.
+  bn: |
+    মিউজিয়াম চায় তাদের বিশাল বর্গাকার মোজাইক মুরালটা ঘড়ির কাঁটার দিকে এক কোয়ার্টার ঘুরিয়ে দেওয়া হোক। সমস্যা হলো, টাইলগুলো ফ্রেমের সাথে গাঁথা, ফ্রেম নড়ানো যাবে না, আর টাইল বসানোর মতো দ্বিতীয় কোনো ফ্রেমও নেই। আপনি শুধু ফ্রেমের ভেতরেই টাইল অদলবদল করতে পারবেন। তখনই একটা মজার জিনিস চোখে পড়ে। মুরালটাকে কর্ণ বরাবর আয়নার মতো উল্টে তারপর প্রতিটা সারি উল্টে দিন, পুরো মুরাল ঠিক এক কোয়ার্টার ঘুরে গেছে। দ্বিতীয় ফ্রেমের দরকারই পড়ল না।
+  hi: |
+    म्यूज़ियम चाहता है कि उसकी बड़ी चौकोर मोज़ेक म्यूरल घड़ी की दिशा में एक चौथाई घूम जाए। दिक्कत यह है कि टाइलें फ्रेम में जड़ी हुई हैं, फ्रेम हिल नहीं सकता, और टाइलें रखने के लिए दूसरा फ्रेम है ही नहीं। आप बस फ्रेम के अंदर टाइलों की जगहें बदल सकते हैं। तभी एक अजीब चीज़ दिखती है। म्यूरल को उसके diagonal पर आईने की तरह पलट दो, फिर हर row को उलट दो, और पूरी म्यूरल ठीक एक चौथाई घूम चुकी होती है। दूसरे फ्रेम की ज़रूरत ही नहीं पड़ी।
+  ar: |
+    يريد المتحف تدوير جداريته الفسيفسائية المربعة ربع دورة باتجاه عقارب الساعة. المشكلة أن البلاطات مثبتة بالملاط في إطار لا يمكن تحريكه، ولا يوجد إطار ثانٍ لترتيب البلاطات عليه. كل ما تستطيع فعله هو تبديل أماكن البلاطات داخل الإطار نفسه. وهنا تلاحظ شيئاً غريباً. اعكس الجدارية حول قطرها كالمرآة ثم اقلب كل صف، وستجد أن الجدارية كلها دارت ربع دورة بالضبط. لم تحتج إلى إطار ثانٍ أبداً.
+---
+
+## Boss 1: The Mural Turn
+
+Seventeen dungeons down. One gate left.
+
+Every dungeon so far handed you a data structure or an algorithm family and said "master this". The final dungeon is different. Math and Geometry bosses don't hide behind clever structures. They hide behind a *fact*: a symmetry, a pattern, an invariant sitting in plain sight. Once you see the math, the code collapses into bookkeeping. Miss it, and no amount of clever coding saves you.
+
+Boss 1 is the purest example in the catalog. The entire fight is one geometric identity.
+
+---
+
+## The story
+
+The city museum has a prized mosaic mural: a perfect square of tiles, `n` rows by `n` columns. The new director walks in, tilts her head, and says the composition would look better rotated a quarter turn clockwise.
+
+One problem. The tiles are mortared into a frame bolted to the wall. The frame cannot be turned, tilted, or taken down. And the workshop that made it is long gone, so there is no second frame to rebuild the mural onto.
+
+What the restorers *can* do is pry individual tiles out and swap their positions within the frame. That's the whole toolkit: rearrange tiles inside the square they already occupy, until the mural reads as if the entire thing had been turned 90 degrees.
+
+Same tiles. Same frame. New orientation.
+
+---
+
+## The problem, dressed up properly
+
+> You are given an `n x n` 2D matrix representing an image. Rotate the image by 90 degrees clockwise. You must rotate the image **in place**, without allocating another 2D matrix.
+
+LeetCode 48, "Rotate Image". A medium that shows up constantly in interviews, because it separates people who memorized an answer from people who can *derive* one.
+
+---
+
+## The naive attempt
+
+Forget the frame constraint for a second. Where does a tile actually go under a clockwise quarter turn?
+
+Watch one tile. The top row of the old mural becomes the *right column* of the new one. Row `i` becomes column `n-1-i`, and a tile's column `j` becomes its new row. So the tile at row `i`, column `j` lands at row `j`, column `n-1-i`. With a second frame, that's the whole job:
+
+```python
+def rotate_with_copy(matrix):
+    n = len(matrix)
+    rotated = [[0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            rotated[j][n - 1 - i] = matrix[i][j]
+    return rotated
+```
+
+Correct, clean, O(n²) time... and it builds a second n-by-n frame. The story forbids exactly this, and so does the problem statement. O(n²) extra space is the thing we're here to kill.
+
+But that mapping, `(i, j)` goes to `(j, n-1-i)`, is the key to everything. Stare at it.
+
+---
+
+## The weapon: transpose, then flip
+
+Split the destination into two halves and the trick falls out:
+
+- Going from `(i, j)` to `(j, i)` is a **transpose**: mirror the mural across its main diagonal (top-left to bottom-right).
+- Going from `(j, i)` to `(j, n-1-i)` keeps the row and flips the column: that's **reversing each row**, a mirror across the vertical center line.
+
+Chain them: transpose sends the tile to `(j, i)`, then reversing row `j` carries it from column `i` to column `n-1-i`. Final position `(j, n-1-i)`. Exactly the rotation. A quarter turn is two mirrors in a trench coat, and both mirrors are just swaps, which is all the frame allows.
+
+<MermaidBlock>
+graph TB
+    A["tile at row i, col j\nmust land at row j, col n-1-i"] --> B["mirror 1: transpose\nswap across the main diagonal\ntile now at row j, col i"]
+    B --> C["mirror 2: reverse each row\ncol i becomes col n-1-i\ntile now at row j, col n-1-i"]
+    C --> D["that is the quarter turn\ntwo reflections compose\ninto one rotation"]
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+</MermaidBlock>
+
+Both mirrors are in-place swaps, so the code is short:
+
+```python
+def rotate(matrix: list[list[int]]) -> None:
+    n = len(matrix)
+    # Mirror 1: transpose (swap across the diagonal)
+    for i in range(n):
+        for j in range(i + 1, n):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+    # Mirror 2: reverse each row
+    for row in matrix:
+        row.reverse()
+```
+
+Note the inner loop starts at `i + 1`. The transpose only touches tiles *above* the diagonal and swaps each with its partner below. That's the mirror.
+
+### The second weapon: the four-way ring swap
+
+Some interviewers follow up with "now do it in a single pass, moving each tile exactly once". That's the ring swap: peel the mural into square rings, and within each ring rotate tiles in cycles of four. Top goes to right, right to bottom, bottom to left, left to top, using one temporary tile-sized gap:
+
+```python
+def rotate_rings(matrix: list[list[int]]) -> None:
+    n = len(matrix)
+    for layer in range(n // 2):
+        first, last = layer, n - 1 - layer
+        for i in range(first, last):
+            offset = i - first
+            top = matrix[first][i]                          # save top
+            matrix[first][i] = matrix[last - offset][first]  # left -> top
+            matrix[last - offset][first] = matrix[last][last - offset]  # bottom -> left
+            matrix[last][last - offset] = matrix[i][last]    # right -> bottom
+            matrix[i][last] = top                            # top -> right
+    # same O(n^2) time, but each tile is written exactly once
+```
+
+Same complexity, more index arithmetic, more ways to bleed. Lead with transpose-and-reverse. Mention the ring swap exists, and pull it out only when asked. Knowing *when* each weapon is expected is part of the fight.
+
+---
+
+## Watching it work
+
+A 3-by-3 mural, tiles numbered so we can track them:
+
+```
+start          transpose      reverse rows
+1 2 3          1 4 7          7 4 1
+4 5 6    ->    2 5 8    ->    8 5 2
+7 8 9          3 6 9          9 6 3
+```
+
+Check it against the mural on the wall. The old top row `1 2 3` now runs *down the right edge*, top to bottom. The old left column `1 4 7` became the new top row, reversed into `7 4 1`. Tile `5` never moved, the center of a square doesn't under rotation. Tile `1` went from top-left to top-right, exactly where a clockwise turn sends it.
+
+Two dumb mirrors. One perfect rotation.
+
+<Callout type="tip" title="Rotations are just mirrors in disguise">
+This is a general fact from geometry: any rotation can be decomposed into two reflections. Transpose then reverse rows gives clockwise. Transpose then reverse *columns* gives counterclockwise. Reverse rows then transpose also gives counterclockwise. When a boss demands a transform that looks impossible in place, ask whether it factors into simpler transforms that are each just swaps. In this dungeon, that question is the weapon.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Transposing with a full double loop.**
+Run `j` from `0` instead of `i + 1` and every pair gets swapped twice, landing right back where it started. Your "transpose" is the identity, your rotation is just row-reversal, and the output is a mirror image, not a turn. The diagonal split isn't an optimization, it's correctness.
+
+**2. Reversing the wrong axis.**
+Transpose then reverse each *column* is a counterclockwise turn. So is reversing rows *before* transposing. The mirrors don't commute, and each pairing gives a different rotation. If your output looks rotated the wrong way, you almost certainly did one of these. Verify direction with a 2-by-2 like `[[1,2],[3,4]]` before trusting anything.
+
+**3. Ring-swap off-by-ones.**
+The inner loop must stop *before* `last`, or the corner rotates twice. And the left-column read uses `last - offset`, not `first + offset`, because the left edge feeds the top in reverse order. This is why the ring swap eats candidates alive at the whiteboard: four coupled indices, one wrong and the mural scrambles silently.
+
+**4. Assuming it works on rectangles.**
+A quarter turn of an m-by-n matrix produces an n-by-m matrix. Different shape, different frame, so "in place" is meaningless for rectangles. Every in-place trick here leans on the matrix being square. If an interviewer slides a rectangular grid at you, the answer *is* the naive copy, stated with confidence.
+
+---
+
+## Complexity
+
+Every tile gets touched a constant number of times: once in the transpose (as one half of a swap), once in the row reversal. The ring swap writes each tile exactly once.
+
+**Time: O(n²). Space: O(1).**
+
+You can't beat the time, n² tiles must move. And the story's whole point was beating the space.
+
+---
+
+## Boss down
+
+The director steps back, squints, and nods. The mural turned a quarter circle without ever leaving its frame, and the restorers never touched a second one. The trick was never about tiles. It was about seeing that one rotation is two mirrors, and mirrors are cheap.
+
+That's the shape of this whole dungeon: find the math fact, and the code writes itself.
+
+Next up, Boss 2: **Spiral Matrix — The Spiral Plow**. A field must be plowed in a spiral from the outside in, one continuous furrow, and the plow can never cross its own tracks. Walking a grid in a shrinking spiral sounds trivial until your boundaries start eating each other. See you inside the ring.

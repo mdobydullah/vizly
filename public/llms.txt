@@ -138,6 +138,14 @@
 - [Missing Number — The Roll Call Gap](/articles/missing-number-roll-call): XOR the ideal range against the array, absence surfaces.
 - [Sum of Two Integers — The Broken Plus Key](/articles/sum-two-integers-broken-plus-key): XOR half-adder with AND-shift carries, Python 32-bit masking.
 - [Reverse Integer — The Upside-Down Meter](/articles/reverse-integer-upside-down-meter): Digit pop-and-push with pre-multiply overflow guard.
+- [Rotate Image — The Mural Turn](/articles/rotate-image-mural-turn): Transpose plus row reverse, in-place 90° rotation, ring swaps.
+- [Spiral Matrix — The Spiral Plow](/articles/spiral-matrix-spiral-plow): Four shrinking boundaries with mid-loop collapse guards.
+- [Set Matrix Zeroes — The Condemned Rows](/articles/set-matrix-zeroes-condemned-rows): First row and column as marker board, O(1) extra space.
+- [Happy Number — The Numerologist's Loop](/articles/happy-number-numerologists-loop): Digit-square chains as implicit linked lists, Floyd cycle detection.
+- [Plus One — The Odometer Tick](/articles/plus-one-odometer-tick): Backward carry ripple with early exit, all-nines prepend.
+- [Pow(x, n) — The Paper Fold](/articles/pow-x-n-paper-fold): Binary exponentiation, squaring along n's bits, O(log n).
+- [Multiply Strings — The Abacus Clerk](/articles/multiply-strings-abacus-clerk): Long multiplication with i+j cell addressing and carry sweep.
+- [Detect Squares — The Surveyor's Stakes](/articles/detect-squares-surveyors-stakes): Point-count hash map, diagonal fixes the square, quest finale.
 
 ## Guides — System Design
 

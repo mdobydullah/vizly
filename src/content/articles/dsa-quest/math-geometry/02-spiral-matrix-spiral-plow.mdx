@@ -1,0 +1,215 @@
+---
+title: "Spiral Matrix — The Spiral Plow"
+slug: spiral-matrix-spiral-plow
+category: dsa
+series: math-geometry
+seriesOrder: 2
+description: "Dungeon 18, Boss 2. A farmer plows a rectangular field in a spiral, never crossing a furrow he's already cut, and you have to write down the order the soil turns. Four boundary fences that shrink inward do the whole job, but skip one mid-loop check and a single-row field gets plowed twice."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "🌀"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    A farmer stands at the corner of a rectangular field with one rule: never cross a furrow you already plowed. So he goes along the top edge, down the far side, back along the bottom, up the near side, then does the same thing one ring in. Your job is to write down the order the soil gets turned. The trick is four fences that keep sliding inward after every pass. The only real danger is a field one row tall, where a careless plow runs the same strip twice.
+  bn: |
+    এক চাষি আয়তাকার জমির কোণে দাঁড়িয়ে, নিয়ম একটাই: যে ফালি একবার চষা হয়েছে সেটা আর মাড়ানো যাবে না। তাই তিনি ওপরের ধার ধরে যান, দূরের পাশ দিয়ে নামেন, নিচের ধার ধরে ফেরেন, কাছের পাশ দিয়ে ওঠেন, তারপর এক রিং ভেতরে ঢুকে আবার একই কাজ। আপনার কাজ হলো মাটি কোন ক্রমে চষা হলো তা লিখে রাখা। কৌশলটা হলো চারটা বেড়া, যেগুলো প্রতিবার একটু করে ভেতরে সরে আসে। আসল বিপদ শুধু এক সারির জমিতে, অসাবধান হলে একই ফালি দুবার চষা পড়ে যায়।
+  hi: |
+    एक किसान आयताकार खेत के कोने पर खड़ा है, नियम बस एक: जो नाली एक बार जोत दी, उसे दोबारा नहीं लांघना। तो वह ऊपर के किनारे चलता है, दूर वाली तरफ से नीचे उतरता है, नीचे के किनारे से वापस आता है, पास वाली तरफ से ऊपर चढ़ता है, फिर एक घेरा अंदर जाकर वही दोहराता है। आपका काम है लिखना कि मिट्टी किस क्रम में जुती। तरकीब है चार बाड़ें, जो हर चक्कर के बाद थोड़ा अंदर खिसक जाती हैं। असली खतरा सिर्फ एक पंक्ति वाले खेत में है, जहां लापरवाही से वही पट्टी दो बार जुत जाती है।
+  ar: |
+    يقف مزارع عند زاوية حقل مستطيل وعنده قاعدة واحدة: لا تعبر ثلماً حرثته من قبل. فيمشي على الحافة العلوية، ثم ينزل من الجانب البعيد، ثم يعود على الحافة السفلية، ثم يصعد من الجانب القريب، ثم يكرر الشيء نفسه بعد أن يدخل حلقة واحدة. مهمتك أن تكتب ترتيب حرث التربة. الحيلة كلها في أربعة أسوار تنزلق إلى الداخل بعد كل مرور. الخطر الحقيقي الوحيد في حقل من صف واحد، حيث يحرث المحراث الشريط نفسه مرتين إن لم تنتبه.
+---
+
+## Boss 2: The Spiral Plow
+
+Dungeon 18, the final dungeon, and this boss looks like it belongs in a warm-up room. Walk a matrix in a spiral, write down what you see. No clever math, no data structure you haven't met. And yet it's one of the most-failed easy-looking problems in interviews, because the spiral has exactly one sharp edge, and it only cuts when the field gets thin.
+
+There's also an old friend hiding in here. Dungeon 2 taught you two pointers walking toward each other on a line. This boss is that same instinct lifted into 2-D: four pointers, closing in from four sides.
+
+---
+
+## The story
+
+A farmer inherits a rectangular field and a stubborn old plow. The plow has one rule burned into its handle: **never cross a furrow you already cut.**
+
+So the farmer does the only thing the rule allows. Along the top edge, left to right. Down the far side. Back along the bottom, right to left. Up the near side. Now the outer ring is done, and the same four passes repeat one ring in. And again. Until the field runs out.
+
+Your job, standing at the fence with a notebook, is to record the order every strip of soil gets turned. Number the field like a matrix, and the notebook is the answer.
+
+---
+
+## The problem, dressed up properly
+
+> Given an `m x n` matrix, return all elements of the matrix in spiral order.
+
+LeetCode 54, "Spiral Matrix". No trick input, no adversary. Just you, a rectangle, and the question of whether your loop bounds actually mean what you think they mean.
+
+---
+
+## The naive attempt
+
+The honest first instinct: simulate the plow. Keep a direction, step forward, and when you'd leave the field or hit plowed ground, turn right.
+
+```python
+def spiral_order(matrix):
+    m, n = len(matrix), len(matrix[0])
+    visited = [[False] * n for _ in range(m)]
+    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]   # right, down, left, up
+    r = c = d = 0
+    out = []
+    for _ in range(m * n):
+        out.append(matrix[r][c])
+        visited[r][c] = True
+        nr, nc = r + dirs[d][0], c + dirs[d][1]
+        if not (0 <= nr < m and 0 <= nc < n) or visited[nr][nc]:
+            d = (d + 1) % 4                      # hit a wall or old furrow: turn
+            nr, nc = r + dirs[d][0], c + dirs[d][1]
+        r, c = nr, nc
+    return out
+```
+
+This works, and it's a perfectly respectable answer to have in your pocket. But the `visited` grid costs O(m·n) extra space just to remember where the plow has been. The farmer doesn't carry a map of his own furrows. He can *see* the field shrinking. Interviews want the version that sees it too.
+
+---
+
+## The weapon: four fences closing in
+
+Replace the memory with geometry. Four boundaries describe the unplowed part of the field at all times:
+
+- `top` — first unplowed row
+- `bottom` — last unplowed row
+- `left` — first unplowed column
+- `right` — last unplowed column
+
+Walk the top edge, then `top` moves down: that row is done forever. Walk the right edge, then `right` moves in. Walk the bottom edge, `bottom` moves up. Walk the left edge, `left` moves in. The rectangle shrinks by one ring, and the loop repeats while `top` has not passed `bottom` and `left` has not passed `right`.
+
+Now the sharp edge. The outer `while` checked the boundaries *once*, at the top of the loop. But `top` moved after the first walk and `right` moved after the second, **mid-loop**. If the remaining field was a single row, walking the top edge consumed it entirely, and `top` slid past `bottom` while the loop was still running. The bottom-edge walk that follows would stride right back across the same row, in reverse, plowing every furrow twice.
+
+So the last two walks each need their own fresh guard: re-check `top` against `bottom` before walking the bottom edge, and `left` against `right` before walking the left edge. Two `if` statements. That's the entire difference between accepted and wrong-answer on this boss.
+
+<MermaidBlock>
+graph TB
+    A["walk top edge left to right\nthen top slides down"] --> B["walk right edge top to bottom\nthen right slides in"]
+    B --> C["guard: any rows left?\ntop has not passed bottom"]
+    C --> D["walk bottom edge right to left\nthen bottom slides up"]
+    D --> E["guard: any columns left?\nleft has not passed right"]
+    E --> F["walk left edge bottom to top\nthen left slides in"]
+    F --> A
+    C -->|no rows remain| G["stop\nfield fully plowed"]
+    E -->|no columns remain| G
+    style A fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style D fill:#1a1f2b,stroke:#b985f4,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+```python
+def spiral_order(matrix):
+    if not matrix or not matrix[0]:
+        return []
+    top, bottom = 0, len(matrix) - 1
+    left, right = 0, len(matrix[0]) - 1
+    out = []
+    while top <= bottom and left <= right:
+        for c in range(left, right + 1):          # top edge
+            out.append(matrix[top][c])
+        top += 1
+        for r in range(top, bottom + 1):          # right edge
+            out.append(matrix[r][right])
+        right -= 1
+        if top <= bottom:                         # rows still remain?
+            for c in range(right, left - 1, -1):  # bottom edge
+                out.append(matrix[bottom][c])
+            bottom -= 1
+        if left <= right:                         # columns still remain?
+            for r in range(bottom, top - 1, -1):  # left edge
+                out.append(matrix[r][left])
+            left += 1
+    return out
+```
+
+No visited grid. The four fences *are* the memory.
+
+---
+
+## Watching it work
+
+The classic square, `[[1,2,3],[4,5,6],[7,8,9]]`. Start: top 0, bottom 2, left 0, right 2.
+
+```
+top edge     → 1 2 3     top becomes 1
+right edge   → 6 9       right becomes 1
+guard ok (top 1, bottom 2)
+bottom edge  → 8 7       bottom becomes 1
+guard ok (left 0, right 1)
+left edge    → 4         left becomes 1
+
+second ring: top 1, bottom 1, left 1, right 1
+top edge     → 5         top becomes 2
+right edge   → (empty)   right becomes 0
+guard fails (top 2 has passed bottom 1) — skip bottom edge
+guard fails (left 1 has passed right 0) — skip left edge
+
+output: 1 2 3 6 9 8 7 4 5 ✓
+```
+
+Now the killer: a single-row field, `[[1,2,3,4]]`. Start: top 0, bottom 0, left 0, right 3.
+
+```
+top edge     → 1 2 3 4   top becomes 1
+right edge   → (empty)   right becomes 2
+
+WITHOUT the guard:
+bottom edge  → 3 2 1     the same row, walked backward!
+output: 1 2 3 4 3 2 1 ✗
+
+WITH the guard:
+top 1 has passed bottom 0 → skip. Output: 1 2 3 4 ✓
+```
+
+One row, plowed twice, minus the corner the shrunk `right` fence happened to protect. That mangled `1 2 3 4 3 2 1` is exactly what unguarded code produces, and a 4×1 column matrix breaks the other guard the same way.
+
+<Callout type="tip" title="Four fences turn 2-D into four 1-D walks">
+The shrinking-boundary trick converts a 2-D traversal into four straight-line walks per ring, each one a plain `for` loop with no coordinates to reason about diagonally. The guards matter precisely when a dimension collapses: the moment the unplowed field becomes a single row or single column, two of the four edges are the *same* strip of soil, and only a fresh boundary check knows it.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Missing the mid-loop guards.**
+The number one killer, worth restating. `top` and `right` move *inside* the loop body, so the outer `while` condition is stale by the time the bottom and left walks begin. On any matrix whose inner ring thins to a single row or column (that's most non-square matrices), the plow re-crosses its own furrow. Re-check before each of the last two walks, every time.
+
+**2. Walking the edges out of order or in the wrong direction.**
+The spiral is top→right→bottom→left, with the bottom edge walked right-to-left and the left edge bottom-to-top. Swap an order or flip a direction and you'll produce a plausible-looking sequence that's simply not a spiral. Write the four comments first, then fill in the loops.
+
+**3. Inclusive-exclusive confusion at the corners.**
+Each edge must claim its corner exactly once. The convention here: every walk is inclusive of both fence values (`range(left, right + 1)` and friends), and the fence moves immediately after its walk, so the next edge starts one square in. Mix inclusive walks with pre-moved fences and corners get eaten or doubled.
+
+**4. The empty field.**
+`[]` or `[[]]` has no ring zero. The two-line check up front costs nothing and saves an index error on `len(matrix[0])`. Bosses love throwing an empty field at code that assumed at least one furrow.
+
+---
+
+## Complexity
+
+Every element is appended exactly once, and the four fences are four integers.
+
+**Time: O(m·n). Space: O(1)** extra, output aside.
+
+---
+
+## Boss down
+
+The field is turned, ring by ring, and the notebook holds every furrow in order. The lesson travels well beyond farming: when a 2-D walk feels fiddly, look for boundaries that shrink toward each other. Two pointers closing on a line became four fences closing on a rectangle, and the "stale condition after a mid-loop move" bug is one you'll now smell from across the room.
+
+Next up, Boss 3: **Set Matrix Zeroes — The Condemned Rows.** An inspector walks a grid of buildings, and any zero condemns its entire row and column to demolition. The catch: you get no notepad. You'll mark the condemned using the matrix's own first row and column as the ledger, and one poor corner cell ends up doing two jobs at once. See you there.

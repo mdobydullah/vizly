@@ -1,11 +1,20 @@
 {
   "slug": "math-geometry",
   "title": "Math & Geometry",
-  "description": "Dungeon 18. The final dungeon. Rotating matrices, spiral order, prime sieves. Where math problems wear coding problem clothes.",
+  "description": "Dungeon 18. The final dungeon. Rotating matrices, spiral order, fast exponentiation, big-number arithmetic. Where math problems wear coding problem clothes.",
   "icon": "📐",
   "color": "orange",
   "tags": ["DSA", "Math", "Geometry"],
   "createdAt": "2026-04-14T14:00:00Z",
-  "updatedAt": "2026-04-14T14:00:00Z",
-  "articles": []
+  "updatedAt": "2026-07-26T16:00:00Z",
+  "articles": [
+    { "order": 1, "slug": "rotate-image-mural-turn", "title": "Rotate Image — The Mural Turn" },
+    { "order": 2, "slug": "spiral-matrix-spiral-plow", "title": "Spiral Matrix — The Spiral Plow" },
+    { "order": 3, "slug": "set-matrix-zeroes-condemned-rows", "title": "Set Matrix Zeroes — The Condemned Rows" },
+    { "order": 4, "slug": "happy-number-numerologists-loop", "title": "Happy Number — The Numerologist's Loop" },
+    { "order": 5, "slug": "plus-one-odometer-tick", "title": "Plus One — The Odometer Tick" },
+    { "order": 6, "slug": "pow-x-n-paper-fold", "title": "Pow(x, n) — The Paper Fold" },
+    { "order": 7, "slug": "multiply-strings-abacus-clerk", "title": "Multiply Strings — The Abacus Clerk" },
+    { "order": 8, "slug": "detect-squares-surveyors-stakes", "title": "Detect Squares — The Surveyor's Stakes" }
+  ]
 }

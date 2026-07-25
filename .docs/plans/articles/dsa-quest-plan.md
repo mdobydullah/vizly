@@ -36,7 +36,7 @@ Full dungeon list (ship in order):
 15. **Advanced Graphs** — Dungeon 15 (COMPLETE)
 16. **2-D DP** — Dungeon 16 (COMPLETE)
 17. **Bit Manipulation** — Dungeon 17 (COMPLETE)
-18. **Math & Geometry** — Dungeon 18 (next to build)
+18. **Math & Geometry** — Dungeon 18 (COMPLETE — quest finished)
 
 Note: Two Pointers was built out of order as MVP validation. That's fine — it's self-contained. Going forward, build remaining dungeons in strict NeetCode order starting from Sliding Window.
 
@@ -288,8 +288,19 @@ Conversational, human-friendly, not AI-sounding. Analogies from daily life. Shor
 - [x] Boss 6: Sum of Two Integers (Broken Plus Key)
 - [x] Boss 7: Reverse Integer (Upside-Down Meter)
 
-### Dungeon 18
-- [ ] Math & Geometry
+### Dungeon 18 — Math & Geometry (COMPLETE)
+- [x] Series JSON with real article list
+- [x] Boss 1: Rotate Image (Mural Turn)
+- [x] Boss 2: Spiral Matrix (Spiral Plow)
+- [x] Boss 3: Set Matrix Zeroes (Condemned Rows)
+- [x] Boss 4: Happy Number (Numerologist's Loop)
+- [x] Boss 5: Plus One (Odometer Tick)
+- [x] Boss 6: Pow(x, n) (Paper Fold)
+- [x] Boss 7: Multiply Strings (Abacus Clerk)
+- [x] Boss 8: Detect Squares (Surveyor's Stakes) — final boss of the quest
+
+### Quest status
+All 18 dungeons shipped. NeetCode 150 fully covered, story-framed.
 
 ### Phase gates
 - [ ] Phase 2 decision after Dungeon 1+2 ship and metrics reviewed

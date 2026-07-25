@@ -1,0 +1,215 @@
+---
+title: "Happy Number — The Numerologist's Loop"
+slug: happy-number-numerologists-loop
+category: dsa
+series: math-geometry
+seriesOrder: 4
+description: "Dungeon 18, Boss 4. A carnival numerologist runs your lucky number through a ritual: square each digit, add them up, repeat. Some numbers ascend to 1 and are declared happy. Others circle the same values forever. Spot the trap without waiting forever, using a cycle detector you already own from the linked list dungeon."
+tags:
+  - DSA
+  - Math
+  - Advanced
+icon: "🔮"
+color: orange
+createdAt: "2026-07-26T16:00:00Z"
+updatedAt: "2026-07-26T16:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    At a carnival booth, a numerologist takes your lucky number and runs it through a ritual. Square each digit, add them up, and do it again with the result. Some numbers climb their way down to 1 and get declared happy. Others just circle through the same values forever, and the numerologist will happily let you stand there all night. Your job is to tell fate from the trap without waiting forever, and the trick is realizing this ritual is secretly a linked list.
+  bn: |
+    মেলার এক স্টলে একজন সংখ্যাতাত্ত্বিক আপনার লাকি নাম্বার নিয়ে একটা রিচুয়াল শুরু করলেন। প্রতিটা ডিজিটের বর্গ করে যোগ করেন, তারপর ফলাফল নিয়ে আবার একই কাজ। কিছু সংখ্যা ঘুরতে ঘুরতে 1 এ পৌঁছে যায়, সেগুলো happy। আর কিছু সংখ্যা একই মানগুলোর মধ্যে চিরকাল চক্কর খেতে থাকে। আপনার কাজ হলো অনন্তকাল অপেক্ষা না করে ভাগ্য আর ফাঁদের পার্থক্য ধরা। মজার ব্যাপার, এই রিচুয়ালটা আসলে একটা লুকানো linked list।
+  hi: |
+    मेले के एक स्टॉल पर एक अंकशास्त्री आपका लकी नंबर लेकर एक रस्म शुरू करता है। हर डिजिट का वर्ग करो, सबको जोड़ो, फिर नतीजे के साथ यही दोहराओ। कुछ नंबर घूमते घूमते 1 पर पहुंच जाते हैं और happy कहलाते हैं। बाकी वही चंद वैल्यूज के बीच हमेशा चक्कर काटते रहते हैं। आपका काम है हमेशा इंतजार किए बिना किस्मत और जाल में फर्क पहचानना। और राज यह है कि यह रस्म असल में एक छिपी हुई linked list है।
+  ar: |
+    في كشك بمهرجان، يأخذ عرّاف الأرقام رقم حظك ويبدأ طقساً غريباً. يربّع كل خانة ثم يجمعها، ويكرر نفس الشيء على الناتج. بعض الأرقام تهبط في النهاية إلى 1 ويعلن أنها سعيدة. وأرقام أخرى تظل تدور بين نفس القيم إلى الأبد. مهمتك أن تميز القدر من الفخ دون أن تنتظر إلى الأبد. والسر أن هذا الطقس في حقيقته linked list مخفية.
+---
+
+## Boss 4: The Numerologist's Loop
+
+Halfway through the final dungeon, and this boss pulls a trick no other has: it hands you a linked list with no nodes in it. No pointers, no memory, no structure at all. Just a number and a rule for what comes next. And the moment you see it that way, a weapon you forged twelve dungeons ago slides out of its sheath on its own.
+
+---
+
+## The story
+
+The carnival is packing up, but one booth still glows. A numerologist in a star-print robe beckons you over. "Give me your lucky number. I'll tell you if it's *happy*."
+
+You say 19. She writes it down and begins the ritual: square each digit, add the squares, write the result. Repeat.
+
+```
+19 → 1² + 9² = 82
+82 → 8² + 2² = 68
+68 → 6² + 8² = 100
+100 → 1² + 0² + 0² = 1
+```
+
+"One!" she announces. "Nineteen ascends. A happy number." The crowd claps.
+
+The next customer says 2. She writes: 4, 16, 37, 58, 89, 145, 42, 20, 4... and keeps writing. 16 again. 37 again. Ten minutes pass. The customer shifts his weight. "How long does this take?"
+
+She smiles. "As long as it takes."
+
+That's the trap. Happy numbers announce themselves by hitting 1. Unhappy numbers never announce anything — they just circle, and the ritual gives you no signal to stop. Your job is to call it, happy or trapped, in finite time.
+
+---
+
+## The problem, dressed up properly
+
+> Write an algorithm to determine if a number `n` is happy. Replace the number with the sum of the squares of its digits, and repeat until it equals 1, or it loops endlessly in a cycle that does not include 1. Return `true` if `n` is happy.
+
+LeetCode 202, "Happy Number". Rated easy, and the code is. The *proof that your code terminates* is the actual boss.
+
+---
+
+## The naive attempt
+
+Just run the ritual and hope:
+
+```python
+def is_happy(n):
+    for _ in range(100):        # surely 100 is enough?
+        n = sum(int(d) ** 2 for d in str(n))
+        if n == 1:
+            return True
+    return False
+```
+
+This passes. And it teaches you nothing, because 100 is a number you made up. Why not 50? Why not 10,000? If an interviewer asks "how do you know 100 iterations suffice?", the honest answer is "I don't."
+
+The honest fix: unhappy numbers must be *repeating* something, otherwise they'd eventually hit 1 or grow forever. So remember every value you've seen:
+
+```python
+def is_happy(n):
+    seen = set()
+    while n != 1 and n not in seen:
+        seen.add(n)
+        n = sum(int(d) ** 2 for d in str(n))
+    return n == 1
+```
+
+Reach 1: happy. Revisit a value: you're in a loop that will never contain 1, declare the trap. Correct, provable, done — except for that set eating memory. And a nagging feeling that you've fought this exact fight before.
+
+---
+
+## The weapon: a linked list with no nodes
+
+Look at what the ritual really is. Every number has exactly *one* successor: `digitSquareSum(n)` is deterministic. Each value points to exactly one next value. That's not "like" a linked list. That **is** a linked list — `19 → 82 → 68 → 100 → 1`, nodes made of arithmetic instead of memory.
+
+And "does this chain reach a terminal or loop forever" is a question you already answered in Dungeon 6, Boss 3. The Night Watchman walked a corridor of doors checking for a cycle, and Floyd's tortoise and hare caught it with two pointers and zero extra space. Same weapon. New battlefield.
+
+One thing first, though: why can't the chain simply run off to infinity, a third fate the watchman never faced? Because the map crushes big numbers. A number with `d` digits maps to at most `81 * d` (every digit contributing at worst 9² = 81). A 4-digit number lands at or below 324. A 10-digit monster lands at or below 810. Anything above 999 *must* shrink, so every chain crashes down into a small pen below 1000 within a few steps and stays there. A bounded orbit that never branches has exactly two fates: hit 1, or repeat a value. No third option.
+
+And when a chain repeats, it always falls into the same drain. Every unhappy number, all of them, ends up circling this eight-value loop:
+
+<MermaidBlock>
+graph LR
+    A["4"] --> B["16"]
+    B --> C["37"]
+    C --> D["58"]
+    D --> E["89"]
+    E --> F["145"]
+    F --> G["42"]
+    G --> H["20"]
+    H --> A
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style B fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style G fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style H fill:#1a1f2b,stroke:#f59e0b,color:#fff
+</MermaidBlock>
+
+So: tortoise steps once, hare steps twice. If the chain ends at 1, the hare gets there first. If it's the trap, the hare laps the tortoise inside the loop and they collide.
+
+```python
+def is_happy(n: int) -> bool:
+    def next_num(x: int) -> int:
+        total = 0
+        while x:
+            x, digit = divmod(x, 10)
+            total += digit * digit
+        return total
+
+    slow, fast = n, next_num(n)
+    while fast != 1 and slow != fast:
+        slow = next_num(slow)
+        fast = next_num(next_num(fast))
+    return fast == 1
+```
+
+No set. No memory of the past at all. Two numbers chasing each other through a list that exists only as a function.
+
+---
+
+## Watching it work
+
+Happy case, `n = 19`. The chain is `19 → 82 → 68 → 100 → 1`:
+
+```
+slow   fast    note
+19     82      start, hare one link ahead
+82     100     hare hops 68 then 100
+68     1       hare hops 1 then stays: chain terminates
+→ fast == 1 → True ✓
+```
+
+Three turns, done. The tortoise never even saw the finish line — it didn't need to. The hare hitting 1 is the announcement.
+
+Trap case, `n = 2`. The chain immediately enters the drain: `2 → 4 → 16 → 37 → 58 → 89 → 145 → 42 → 20 → 4 → ...`
+
+```
+slow   fast
+2      4
+4      37
+16     89
+37     42
+58     4
+89     37
+145    89
+42     42     ← collision
+→ fast == 1 is False ✗
+```
+
+The hare laps the tortoise at 42, they collide, and the answer comes back false in a dozen steps instead of never.
+
+<Callout type="tip" title="Every x → f(x) is a linked list">
+Any deterministic process where the next state depends only on the current one — `x → f(x)` — is an implicit linked list, and every cycle-detection tool you own transfers instantly: seen-sets, Floyd, Brent, all of them. Pseudorandom generators, game-of-life boards, dance of the planets in a simulation, this ritual. The quest keeps doing this: structures dissolving into pure functions, and the algorithms not caring one bit.
+</Callout>
+
+---
+
+## Gotchas
+
+**1. Hare stepping once instead of twice.**
+`fast = next_num(fast)` compiles fine and loops forever on unhappy inputs, because two pointers moving at the same speed in a cycle never meet. The whole trick is the speed *difference*. Double-step the hare: `next_num(next_num(fast))`.
+
+**2. Checking `slow == 1` instead of `fast == 1`.**
+Both eventually work, but the hare reaches 1 first — often several steps first — and on `n = 1` or `n = 7` the difference is real wasted work. Worse, some hybrid versions check slow for 1 but let fast run the collision check, and end up returning from the wrong branch. Pick fast for the happy exit and keep it consistent.
+
+**3. Digit extraction via strings in a hot loop.**
+`sum(int(d) ** 2 for d in str(n))` is fine for one call. But `next_num` runs many times per query, and string conversion allocates a fresh object every single call. `divmod(x, 10)` peels digits with pure arithmetic, no allocation. In a function this hot, it's the difference between a math solution and a string-parsing solution wearing a math costume.
+
+**4. Assuming some numbers might diverge upward.**
+The interview follow-up that separates memorizers from understanders: "how do you know it terminates?" If you can't produce the `81 * d` bound — big numbers crash below 1000 fast, bounded orbit means reach 1 or cycle — then your loop's termination is faith, not proof. The bound is one sentence. Carry it.
+
+---
+
+## Complexity
+
+Each `next_num` call costs O(log n), one unit of work per digit. The chain plummets below 1000 in a handful of steps and cycles are tiny, so the total step count is effectively constant after the first descent.
+
+**Time: O(log n). Space: O(1) with Floyd, O(log n) with the seen-set.**
+
+---
+
+## Boss down
+
+The numerologist watches you call "trapped" after twelve scribbles instead of standing there all night, and packs up her booth with grudging respect. Boss 4 falls to a weapon from Dungeon 6, swung at a list that was never built.
+
+That's the running theme of this final dungeon: the data structures are gone, but their ghosts remain. Rotate Matrix was index arithmetic wearing a grid, and this was cycle detection wearing a carnival trick.
+
+Next up, **Boss 5: Plus One — The Odometer Tick.** The simplest boss in the dungeon on paper: add 1 to a number stored as an array of digits. And yet the carry ripple at `999 → 1000` still trips people in real interviews, because the array grows under your feet. Bring a spare digit.
