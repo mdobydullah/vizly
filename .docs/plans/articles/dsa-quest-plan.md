@@ -19,6 +19,7 @@ Why lean first:
 Dependencies are real (Sliding Window needs Two Pointers, Trees need recursion, DP needs trees/graphs). We follow NeetCode's 18-pattern order as the dungeon map, reinvent the *experience*, not the order.
 
 Full dungeon list (ship in order):
+0. **Foundations** — Dungeon 0 (COMPLETE — added 2026-08-14: "Time and Space Complexity — The Scale Lens", series `dsa-foundations`, prologue before Dungeon 1)
 1. **Arrays & Hashing** — Dungeon 1 (COMPLETE)
 2. **Two Pointers** — Dungeon 2 (COMPLETE)
 3. **Stack** — Dungeon 3 (COMPLETE)

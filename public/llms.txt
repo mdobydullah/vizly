@@ -22,6 +22,7 @@
 - [Statistics & Probability](/series/statistics-probability): The language of uncertainty every ML model speaks — probability, distributions, Bayes, hypothesis testing, bias-variance. 7 articles.
 - [Classical Machine Learning](/series/classical-ml): Regression, trees, gradient boosting, clustering, and honest evaluation — the models production ML actually runs on. 10 articles.
 - [Applied ML Systems](/series/applied-ml-systems): Fraud detection, credit scoring, recommenders, forecasting, and the ML system design interview. 5 articles.
+- [Foundations (DSA Quest)](/series/dsa-foundations): Dungeon 0 of DSA Quest. Time and space complexity from zero — read any code, state the Big-O, make it faster. 1 article.
 - [Arrays & Hashing (DSA Quest)](/series/arrays-hashing): Dungeon 1 of DSA Quest. Story-framed problems covering the foundation of every DSA journey. 7 articles.
 - [Two Pointers (DSA Quest)](/series/two-pointers): Dungeon 2 of DSA Quest. Full Two Pointers pattern across 6 story-framed bosses. Complete.
 - [Stack (DSA Quest)](/series/stack): Dungeon 3 of DSA Quest. LIFO, monotonic stacks, bracket matching, histograms across 7 bosses. Complete.

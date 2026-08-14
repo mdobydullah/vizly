@@ -1,0 +1,597 @@
+---
+title: "Time and Space Complexity — The Scale Lens"
+slug: time-space-complexity-scale-lens
+category: dsa
+series: dsa-foundations
+seriesOrder: 1
+description: "Dungeon 0. Before you fight any boss, learn to read the O(n) runes. A complete, interview-ready guide to time and space complexity: how to analyze any code, say the answer out loud and then make it faster."
+tags:
+  - DSA
+  - Big-O
+  - Complexity
+  - Interview
+  - Fundamental
+readTime: "25 min"
+icon: "🧭"
+color: orange
+createdAt: "2026-08-14T10:00:00Z"
+updatedAt: "2026-08-14T10:00:00Z"
+author: obydul
+mermaid: true
+storySummary:
+  en: |
+    Before you enter the first dungeon, an old armorer stops you at the training grounds. She hands you a strange monocle called the Scale Lens. "Every weapon looks fast against ten enemies," she says. "This lens shows you what happens against a million." You look through it and suddenly every piece of code has glowing runes on it, like O(n) and O(n²). This is the lesson where you learn to read them.
+  bn: |
+    প্রথম dungeon এর গেটে ঢোকার আগেই এক বুড়ি armorer আপনার পথ আটকে দাঁড়ালেন। আপনার হাতে ধরিয়ে দিলেন অদ্ভুত এক চশমা, নাম Scale Lens। বললেন, "দশটা শত্রুর সামনে সব weapon ই fast মনে হয়। এই lens দেখায় দশ লাখ শত্রুর সামনে কী হবে।" Lens টা চোখে দিতেই দেখলেন সব code এর গায়ে O(n) আর O(n²) এর মতো চিহ্ন জ্বলজ্বল করছে। আজ শিখবেন এই চিহ্নগুলো কীভাবে পড়তে হয়।
+  hi: |
+    पहले dungeon के gate में घुसने से पहले ही एक बूढ़ी armorer आपका रास्ता रोक लेती है। आपके हाथ में एक अजीब सा चश्मा थमा देती है, नाम है Scale Lens। कहती है, "दस दुश्मनों के सामने हर weapon fast लगता है। यह lens दिखाता है कि दस लाख के सामने क्या होगा।" Lens लगाते ही हर code पर O(n) और O(n²) जैसे निशान चमकने लगते हैं। आज आप सीखेंगे कि ये निशान कैसे पढ़े जाते हैं।
+  ar: |
+    قبل أن تدخل بوابة أول dungeon تعترض طريقك صانعة أسلحة عجوز. تضع في يدك نظارة غريبة اسمها Scale Lens. تقول لك: "كل weapon يبدو سريعاً أمام عشرة أعداء. هذه العدسة تريك ما يحدث أمام مليون." وما إن تنظر من خلالها حتى ترى على كل code علامات مضيئة مثل O(n) و O(n²). اليوم ستتعلم كيف تقرأ هذه العلامات.
+---
+
+## Welcome to the training grounds
+
+You are standing at the gates of Dungeon 1, sword in hand, ready to fight The Biryani Token. An old armorer blocks your path.
+
+"Not yet," she says. "First, take this."
+
+She hands you a monocle. The **Scale Lens**. When you look at any code through it, glowing runes appear: `O(1)`, `O(n)`, `O(n²)`. Every boss card in this quest carries these runes and every interviewer on Earth will ask you to read them.
+
+This article is the full training. By the end you will be able to look at any code, state its time and space complexity out loud and suggest how to improve it. That is exactly the skill interviews test.
+
+---
+
+## Why not just use a stopwatch?
+
+Fair question. Why invent weird notation when you could time the code?
+
+Because a stopwatch lies. The same code runs at different speeds on your laptop, on a server and on your phone. It runs faster the second time because of caching. It depends on the language, the compiler, the weather in the data center.
+
+Interviewers do not care how fast code runs on some machine. They care about one thing:
+
+**When the input grows, how does the work grow?**
+
+If you double the input, does the work double? Stay the same? Quadruple? That growth pattern is the *complexity* and it stays true on every machine ever built. That is what the Scale Lens shows.
+
+<Callout type="info" title="The one-sentence definition">
+Time complexity describes how the number of operations grows as the input size n grows. Space complexity describes how the extra memory grows. Both ignore machines, languages and constants. They only care about the shape of the growth.
+</Callout>
+
+---
+
+## Big-O in plain words
+
+**Big-O notation** is how we write that growth pattern. `O(n)` reads as "order n" and means: the work grows in a straight line with the input. Double the input, roughly double the work.
+
+Three cousins show up in textbooks:
+
+- **Big-O (O)**: an upper bound. "It grows *at most* this fast." This is what everyone means in practice.
+- **Big-Omega (Ω)**: a lower bound. "It grows *at least* this fast."
+- **Big-Theta (Θ)**: a tight bound. "It grows *exactly* this fast."
+
+Here is the honest truth for interviews: people say Big-O but usually mean the tight bound of the **worst case**. When an interviewer asks "what's the complexity?", answer with the worst case unless they ask for average or best. If you want a small bonus point, mention it: "Worst case O(n), best case O(1) if we find it at the first index."
+
+---
+
+## The ladder of growth
+
+Every complexity you will ever meet sits somewhere on this ladder. Lower is faster.
+
+<MermaidBlock>
+graph LR
+    A["O(1)\nconstant"] --> B["O(log n)\nlogarithmic"]
+    B --> C["O(n)\nlinear"]
+    C --> D["O(n log n)\nlinearithmic"]
+    D --> E["O(n²)\nquadratic"]
+    E --> F["O(2^n)\nexponential"]
+    F --> G["O(n!)\nfactorial"]
+    style A fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style C fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style D fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style E fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style F fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style G fill:#1a1f2b,stroke:#ef4444,color:#fff
+</MermaidBlock>
+
+Numbers make it real. Assume a computer does about 100 million simple operations per second. Here is how long each complexity takes:
+
+| n | O(log n) | O(n) | O(n log n) | O(n²) | O(2^n) |
+|---|---|---|---|---|---|
+| 10 | instant | instant | instant | instant | instant |
+| 1,000 | instant | instant | instant | 0.01 sec | longer than the universe |
+| 100,000 | instant | 0.001 sec | 0.017 sec | 100 sec | forget it |
+| 10,000,000 | instant | 0.1 sec | 2.3 sec | 11 days | forget it |
+
+Read that table twice. The gap between `O(n log n)` and `O(n²)` is the gap between "2 seconds" and "11 days". This is why interviewers reject the brute force and wait for something better.
+
+Quick intuition for each rung:
+
+- **O(1)**: same work no matter the input. Array index lookup, hash map get, push to a stack.
+- **O(log n)**: you cut the problem in half each step. Binary search. Even a billion items need only about 30 halvings.
+- **O(n)**: touch every item once. A single loop.
+- **O(n log n)**: do a log-sized amount of work for each of n items. Good sorting lives here.
+- **O(n²)**: for every item, touch every item. Nested loops over the same input.
+- **O(2^n)**: every item doubles the possibilities. Trying all subsets.
+- **O(n!)**: every item multiplies the possibilities. Trying all orderings.
+
+---
+
+## The four rules of the Lens
+
+Before reading code, learn the four simplification rules. These are the whole grammar of Big-O.
+
+### Rule 1: drop constants
+
+`O(2n)` becomes `O(n)`. `O(n/2)` becomes `O(n)`. Two separate loops over the array is still `O(n)`.
+
+Why? Because constants depend on the machine and Big-O only tracks growth shape. A line is a line whether it is steep or shallow.
+
+### Rule 2: drop the smaller terms
+
+`O(n² + n + 500)` becomes `O(n²)`. When n is a million, the n² term is a trillion and the n term is a rounding error. Only the biggest term survives.
+
+### Rule 3: different inputs get different variables
+
+This one catches people constantly. If a function takes two arrays of different sizes, you cannot call both n.
+
+```python
+def common_items(a, b):
+    set_a = set(a)          # O(a)
+    return [x for x in b if x in set_a]   # O(b)
+```
+
+This is `O(a + b)`, not `O(n)`. A nested loop over two different arrays is `O(a * b)`, not `O(n²)`. Saying "n squared" here is a classic interview mistake.
+
+### Rule 4: worst case by default
+
+An early `return` might save you on lucky input, but Big-O reports the unlucky day. Linear search is `O(n)` even though it might find the answer at index 0.
+
+---
+
+## Reading code, pattern by pattern
+
+Now the core skill. You see code, you say the rune. Here is every common shape.
+
+### Straight-line code: O(1)
+
+```python
+def get_middle(arr):
+    mid = len(arr) // 2
+    return arr[mid]
+```
+
+No loops, no recursion, work does not depend on n. Constant time. Even 50 lines of plain statements is still `O(1)`.
+
+### One loop: O(n)
+
+```python
+def find_max(arr):
+    best = arr[0]
+    for x in arr:
+        if x > best:
+            best = x
+    return best
+```
+
+Touch each element once. Linear.
+
+### Two loops in a row: still O(n)
+
+```python
+def sum_and_max(arr):
+    total = 0
+    for x in arr:        # O(n)
+        total += x
+    best = arr[0]
+    for x in arr:        # O(n)
+        best = max(best, x)
+    return total, best
+```
+
+Loops that run one *after* another add up: n + n = 2n, drop the constant, `O(n)`. Sequential means add. Nested means multiply. That distinction does most of the work in complexity analysis.
+
+### Nested loops: O(n²)
+
+```python
+def has_duplicate(arr):
+    for i in range(len(arr)):
+        for j in range(len(arr)):
+            if i != j and arr[i] == arr[j]:
+                return True
+    return False
+```
+
+For each of n items you do n steps. Multiply: `O(n²)`.
+
+### The triangle trap: still O(n²)
+
+```python
+for i in range(n):
+    for j in range(i + 1, n):   # inner loop shrinks each time
+        ...
+```
+
+The inner loop runs n-1 times, then n-2, then n-3... That sums to roughly n²/2. Drop the constant: still `O(n²)`. A shrinking inner loop does not save you from quadratic.
+
+### The halving loop: O(log n)
+
+```python
+def binary_search(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            return mid
+        if arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+```
+
+Each pass throws away half the remaining items. How many times can you halve n before hitting 1? That is log₂(n). For a million items: about 20 steps. Any loop that multiplies or divides its counter (`i *= 2`, `n //= 2`) is logarithmic.
+
+### Loop with a log inside: O(n log n)
+
+```python
+for x in arr:              # n times
+    binary_search(sorted_arr, x)   # log n each
+```
+
+n items, log n work each: `O(n log n)`. Sorting a list also costs `O(n log n)`, so "sort first, then do a linear pass" is `O(n log n + n)` which simplifies to `O(n log n)`.
+
+<Callout type="warning" title="Hidden costs inside innocent-looking lines">
+The biggest source of wrong answers is a single line that secretly loops. In Python: `x in my_list` is O(n), `my_list.insert(0, x)` is O(n), slicing `arr[1:]` copies and is O(n), `sorted(arr)` is O(n log n), string concatenation `s += ch` inside a loop builds O(n²) total. Meanwhile `x in my_set` and `my_dict[key]` are O(1). Before you announce a complexity, mentally expand every library call.
+</Callout>
+
+---
+
+## Recursion: the recursion tree method
+
+Recursion scares people in interviews. One tool handles nearly all of it: draw the tree of calls, then multiply two numbers.
+
+**Total work = number of nodes in the call tree × work done per call.**
+
+A fast shortcut for the node count: **branches ^ depth**. How many recursive calls does each call make (branches) and how deep does it go (depth)?
+
+### Example 1: naive Fibonacci
+
+```python
+def fib(n):
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+```
+
+Each call spawns 2 calls. Depth is about n. Nodes: 2^n. Work per node: constant.
+
+<MermaidBlock>
+graph TB
+    A["fib(5)"] --> B["fib(4)"]
+    A --> C["fib(3)"]
+    B --> D["fib(3)"]
+    B --> E["fib(2)"]
+    C --> F["fib(2)"]
+    C --> G["fib(1)"]
+    D --> H["fib(2)"]
+    D --> I["fib(1)"]
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style D fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style E fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style F fill:#1a1f2b,stroke:#60a5fa,color:#fff
+    style H fill:#1a1f2b,stroke:#60a5fa,color:#fff
+</MermaidBlock>
+
+See `fib(3)` computed twice and `fib(2)` three times? The tree is full of repeated work. Time: `O(2^n)`. This is why `fib(50)` never finishes.
+
+Add a cache (memoization) and every distinct input is computed once. There are only n distinct inputs, so time drops to `O(n)`. That single idea is the heart of dynamic programming, waiting for you in Dungeon 12.
+
+### Example 2: merge sort
+
+```python
+def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+    return merge(left, right)    # merging is O(n)
+```
+
+Each call splits into 2 calls but on *half* the data, so the depth is only log n. At every level of the tree, the merging work across all calls adds up to n. Levels × work per level: log n × n = `O(n log n)`.
+
+### The cheat table for recurrences
+
+You do not need the formal Master Theorem in interviews. Memorize these five shapes:
+
+| Recurrence | Meaning | Result | Example |
+|---|---|---|---|
+| T(n) = T(n/2) + O(1) | halve, constant work | O(log n) | binary search |
+| T(n) = 2T(n/2) + O(1) | split in two, constant work | O(n) | tree traversal |
+| T(n) = 2T(n/2) + O(n) | split in two, linear work | O(n log n) | merge sort |
+| T(n) = T(n-1) + O(1) | shrink by one | O(n) | simple recursion |
+| T(n) = 2T(n-1) + O(1) | branch twice per step | O(2^n) | naive fib, subsets |
+
+---
+
+## Amortized time: the strange case of append
+
+Here is a puzzle. A dynamic array (Python `list`, Java `ArrayList`) sometimes runs out of room when you append. It then allocates a bigger array and copies everything over, which costs `O(n)`. So is append `O(n)`?
+
+Technically the worst single append is. But the resize doubles the capacity, so resizes get rarer and rarer as the list grows. Spread the copying cost across all the appends and each one averages out to `O(1)`.
+
+That average-over-a-sequence cost is called **amortized** time. Say the word in an interview and you sound like you know what you are doing, because you do.
+
+Same story with hash maps: insert and lookup are `O(1)` on average, `O(n)` in the pathological worst case when everything collides. In interviews, treat hash operations as `O(1)` and mention the caveat once if you want the bonus point.
+
+---
+
+## Space complexity: the other rune
+
+Same Big-O language, but now the question is: **how much *extra* memory does the algorithm use as n grows?**
+
+Two conventions matter:
+
+- **Auxiliary space**: only the extra memory you allocate. The input itself is free.
+- When interviewers say "space complexity" they almost always mean auxiliary space. If unsure, ask. It is a good look.
+
+The patterns:
+
+```python
+def find_max(arr):        # Space: O(1)
+    best = arr[0]         # a few variables, no matter how big arr is
+    for x in arr:
+        best = max(best, x)
+    return best
+```
+
+```python
+def squares(arr):         # Space: O(n)
+    return [x * x for x in arr]   # new list, same size as input
+```
+
+```python
+def count_pairs(grid):    # Space: O(n * m)
+    seen = [[False] * m for _ in range(n)]   # a whole 2D structure
+```
+
+### The sneaky one: recursion uses space
+
+Every active recursive call sits on the **call stack** and the call stack is memory. Space cost from recursion = maximum depth of the call tree.
+
+```python
+def sum_list(arr, i=0):
+    if i == len(arr):
+        return 0
+    return arr[i] + sum_list(arr, i + 1)
+```
+
+No arrays allocated, looks like O(1) space. Wrong. At the deepest moment there are n stacked calls: **O(n) space**. This exact question is an interview favorite.
+
+More examples of stack depth:
+
+- Binary search done recursively: depth log n, so `O(log n)` space. The iterative version is `O(1)`.
+- Merge sort: `O(n)` space (the merge buffers dominate).
+- Quicksort: `O(log n)` average for the stack, sorts in place.
+- DFS on a tree: O(h) where h is the tree height. Balanced tree: O(log n). A degenerate chain: O(n).
+
+<Callout type="tip" title="The time-space trade">
+Most optimizations in this quest are a trade: spend memory to buy speed. The hash set in Dungeon 1 turns an O(n²) duplicate check into O(n) time by paying O(n) space. Memoization turns O(2^n) into O(n) the same way. When an interviewer asks "can you do better?", your first thought should be: what can I remember so I stop recomputing?
+</Callout>
+
+---
+
+## The cheat sheets
+
+Pin these somewhere. These cover 95 percent of interview follow-up questions.
+
+### Data structure operations (typical/average)
+
+| Structure | Access | Search | Insert | Delete |
+|---|---|---|---|---|
+| Array | O(1) | O(n) | O(n) | O(n) |
+| Dynamic array (append at end) | O(1) | O(n) | O(1) amortized | O(n) |
+| Sorted array | O(1) | O(log n) | O(n) | O(n) |
+| Linked list | O(n) | O(n) | O(1) at head | O(1) with node ref |
+| Stack / Queue | O(1) top/front | O(n) | O(1) | O(1) |
+| Hash map / set | n/a | O(1) | O(1) | O(1) |
+| Heap | O(1) peek | O(n) | O(log n) | O(log n) pop |
+| Balanced BST | O(log n) | O(log n) | O(log n) | O(log n) |
+
+### Sorting
+
+| Algorithm | Time | Space | Note |
+|---|---|---|---|
+| Merge sort | O(n log n) | O(n) | stable, predictable |
+| Quicksort | O(n log n) average, O(n²) worst | O(log n) | fastest in practice |
+| Heap sort | O(n log n) | O(1) | no extra memory |
+| Timsort (Python/Java builtin) | O(n log n) | O(n) | what `sorted()` actually runs |
+| Counting sort | O(n + k) | O(k) | only for small integer ranges |
+
+### Graphs
+
+| Algorithm | Time | Space |
+|---|---|---|
+| BFS / DFS | O(V + E) | O(V) |
+| Dijkstra (with heap) | O((V + E) log V) | O(V) |
+| Topological sort | O(V + E) | O(V) |
+
+Graph complexities use two variables (Rule 3 in action): V vertices and E edges.
+
+---
+
+## The interview meta-trick: read n, guess the target
+
+Here is a secret that feels like cheating. Competitive programmers use constraints to *reverse-engineer* the intended solution. When a problem says "n up to 10^5", it is telling you which complexity will pass.
+
+| n up to | Your target complexity | Typical weapon |
+|---|---|---|
+| 10 to 12 | O(n!) or O(2^n · n) | brute force, permutations |
+| 20 to 25 | O(2^n) | bitmask, subsets, backtracking |
+| 100 | O(n³) | triple loop, DP on pairs |
+| 1,000 to 5,000 | O(n²) | nested loops, classic DP |
+| 100,000 to 1,000,000 | O(n log n) or O(n) | sort, heap, hash, two pointers, sliding window |
+| 10^8 and beyond | O(log n) or O(1) | binary search, math formula |
+
+So when a LeetCode problem says n can be 100,000 and your idea is a nested loop, you already know it will time out before you write a line. The constraint told you.
+
+---
+
+## The improvement playbook
+
+The question after "what's the complexity?" is always "can you do better?". Here is the map from slow pattern to faster weapon. Each row is a dungeon in this quest.
+
+<MermaidBlock>
+graph TB
+    A["O(n²) nested loop\nsearching for a partner"] --> B["Hash map\nO(n) time O(n) space"]
+    C["O(n²) nested loop\non sorted or sortable data"] --> D["Sort + two pointers\nO(n log n)"]
+    E["O(n²) repeated subarray sums"] --> F["Prefix sums or\nsliding window O(n)"]
+    G["O(2^n) recursion\nwith repeated subproblems"] --> H["Memoization / DP\nO(n) or O(n²)"]
+    I["O(n log n) repeated sorting\nfor min or max only"] --> J["Heap\nO(n log k)"]
+    K["O(n) search\nin sorted data"] --> L["Binary search\nO(log n)"]
+    style A fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style C fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style E fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style G fill:#1a1f2b,stroke:#ef4444,color:#fff
+    style I fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style K fill:#1a1f2b,stroke:#f59e0b,color:#fff
+    style B fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style D fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style F fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style H fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style J fill:#1a1f2b,stroke:#3effa3,color:#fff
+    style L fill:#1a1f2b,stroke:#3effa3,color:#fff
+</MermaidBlock>
+
+In words:
+
+1. **Inner loop searching for something?** Replace it with a hash map or set. This is the single most common optimization in all of interviewing. O(n²) becomes O(n).
+2. **Comparing pairs and order does not matter?** Sort first, then use two pointers or binary search. O(n²) becomes O(n log n).
+3. **Recomputing sums of ranges?** Prefix sums or a sliding window. Compute once, reuse forever.
+4. **Recursion solving the same subproblem twice?** Cache it. Memoization or bottom-up DP.
+5. **Only need the top k items?** A heap of size k beats sorting everything.
+6. **Data sorted and you scan it linearly?** Binary search instead.
+
+Notice every one of these is a dungeon in the quest. The whole DSA Quest is really one long answer to "can you do better?".
+
+---
+
+## Your script for the interview
+
+When you see code (yours or theirs), run this exact checklist out loud. Interviewers grade the reasoning as much as the answer.
+
+1. **Identify the input size.** "Let n be the length of the array." If there are two inputs, name both.
+2. **Walk the structure.** Sequential blocks add. Nested loops multiply. Halving is log. Recursion: branches ^ depth, times work per call.
+3. **Expand hidden costs.** Any `in list`, slice, sort, string concat inside a loop.
+4. **Keep the biggest term, drop constants.** State the worst case.
+5. **State space too, without being asked.** "Time O(n log n), space O(n) for the sorted copy plus O(1) extra." Mentioning the recursion stack unprompted is a strong signal.
+6. **Offer the trade.** "We could get O(n) time by using a hash set at the cost of O(n) space."
+
+Practice saying full sentences: "This is O(n²) time because for each element we scan the rest of the array, and O(1) extra space since we only use two indices."
+
+---
+
+## Boss fight: five drills
+
+Read each snippet, say the time and space complexity out loud, then check the answer. No skipping. This is the actual training.
+
+### Drill 1
+
+```python
+def mystery(arr):
+    n = len(arr)
+    total = 0
+    for i in range(n):
+        for j in range(i, n):
+            total += arr[j]
+    return total
+```
+
+<Callout type="success" title="Answer">
+Time O(n²), the triangle trap: the inner loop shrinks but the total is still about n²/2. Space O(1). Bonus: prefix sums make it O(n).
+</Callout>
+
+### Drill 2
+
+```python
+def mystery(n):
+    count = 0
+    i = 1
+    while i < n:
+        count += 1
+        i *= 3
+    return count
+```
+
+<Callout type="success" title="Answer">
+Time O(log n). The counter multiplies by 3 each pass, so the loop runs log₃(n) times and the log base is a constant we drop. Space O(1).
+</Callout>
+
+### Drill 3
+
+```python
+def mystery(words):
+    result = []
+    for w in words:              # k words
+        result.append(sorted(w)) # each word has up to m letters
+    return result
+```
+
+<Callout type="success" title="Answer">
+Rule 3 in action: two variables. Sorting one word of length m costs O(m log m) and we do it k times: time O(k · m log m). Space O(k · m) for the result. Calling this O(n log n) without defining n would lose points.
+</Callout>
+
+### Drill 4
+
+```python
+def mystery(root):
+    if root is None:
+        return 0
+    return 1 + max(mystery(root.left), mystery(root.right))
+```
+
+<Callout type="success" title="Answer">
+Tree height. Every node is visited exactly once: time O(n). Space is the recursion stack: O(h) where h is the tree height, so O(log n) if balanced and O(n) worst case for a chain-shaped tree.
+</Callout>
+
+### Drill 5
+
+```python
+def mystery(arr, target):
+    for i in range(len(arr)):
+        if target - arr[i] in arr:    # careful here
+            return True
+    return False
+```
+
+<Callout type="success" title="Answer">
+The trap: `in arr` on a list is a hidden O(n) scan. Loop times hidden scan: time O(n²), space O(1). Fix: build a set first, check `in` against the set. Time O(n), space O(n). You just re-derived Two Sum, the boss of Dungeon 1.
+</Callout>
+
+How did you do? If you got drill 5, you are ready for the dungeons.
+
+---
+
+## Common traps, one last sweep
+
+A quick rogue's gallery of mistakes that cost people offers:
+
+- **Calling two inputs n.** Two different arrays are O(a + b) or O(a · b), never O(n²).
+- **Forgetting the recursion stack in space.** "O(1) space" for a recursive function is almost always wrong.
+- **Trusting library calls.** `sorted`, `in`, `insert(0, ...)`, slicing, string `+=` in a loop. Expand them all.
+- **Thinking the shrinking inner loop helps.** n²/2 is still O(n²).
+- **Saying O(n) for hash operations without the word "average".** Fine in practice, but know the caveat.
+- **Confusing O(log n) levels with O(n) work per level.** Merge sort is not O(log n). It is O(n log n) because each level does linear work.
+- **Reporting best case.** Big-O answers are worst case unless someone asks otherwise.
+
+---
+
+## What you unlocked
+
+Look through the Scale Lens one more time. Loops, halvings, recursion trees, hidden library costs, the call stack: all of them glow with readable runes now. You can name the complexity of code you have never seen and you know the standard trade to make it faster.
+
+The armorer steps aside. "One more thing," she says. "The first boss guards a stack of 5,000 wedding tokens and the naive fight is O(n²). You know what to do."
+
+Next up: **Dungeon 1, Arrays and Hashing**, where a hash set turns a 12-million-comparison disaster into a single pass. Go get your biryani.

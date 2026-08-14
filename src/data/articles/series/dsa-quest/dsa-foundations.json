@@ -1,0 +1,18 @@
+{
+  "slug": "dsa-foundations",
+  "title": "Foundations",
+  "description": "Dungeon 0. The training grounds before the first boss. Learn to read the O(n) runes on every boss card: time complexity, space complexity and how to spot a faster weapon in any code you see.",
+  "icon": "🧭",
+  "color": "orange",
+  "tags": ["DSA", "Big-O", "Fundamentals"],
+  "createdAt": "2026-08-14T10:00:00Z",
+  "updatedAt": "2026-08-14T10:00:00Z",
+  "articles": [
+    {
+      "order": 1,
+      "slug": "time-space-complexity-scale-lens",
+      "title": "Time and Space Complexity — The Scale Lens",
+      "badges": [{ "label": "Fundamental" }]
+    }
+  ]
+}
