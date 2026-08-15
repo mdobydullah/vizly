@@ -141,6 +141,11 @@
     display: block;
 }
 
+/* Set after clicking an item — keeps menu hidden until pointer leaves */
+.nav-dropdown-menu.is-closed {
+    display: none !important;
+}
+
 .nav-dropdown-menu-inner {
     background: var(--surface);
     border: 1px solid var(--border);

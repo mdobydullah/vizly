@@ -36,6 +36,7 @@ export default function Header() {
     const nextTheme = NEXT_THEME[theme];
     const NextThemeIcon = { dark: Moon, light: Sun, white: Lightbulb }[nextTheme];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [dropdownClosed, setDropdownClosed] = useState(false);
     const pathname = usePathname();
 
     // Close menu on scroll or resize
@@ -159,18 +160,19 @@ export default function Header() {
                                 );
                             }
                             return (
-                                <div key={href} className="nav-dropdown">
+                                <div key={href} className="nav-dropdown" onMouseLeave={() => setDropdownClosed(false)}>
                                     <Link href={href} style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: '3px' }} className="nav-link">
                                         {label}
                                         <ChevronDown size={12} className="nav-dropdown-chevron" />
                                     </Link>
-                                    <div className="nav-dropdown-menu">
+                                    <div className={`nav-dropdown-menu${dropdownClosed ? ' is-closed' : ''}`}>
                                         <div className="nav-dropdown-menu-inner">
                                             {children.map(child => (
                                                 <Link
                                                     key={child.href}
                                                     href={child.href}
                                                     className={`nav-dropdown-item${pathname === child.href ? ' is-active' : ''}`}
+                                                    onClick={e => { e.currentTarget.blur(); setDropdownClosed(true); }}
                                                 >
                                                     {child.label}
                                                 </Link>
