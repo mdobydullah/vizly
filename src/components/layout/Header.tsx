@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { config } from "@/lib/config";
-import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon, Lightbulb, ChevronDown } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
 interface NavItem {
@@ -28,8 +28,13 @@ const NAV_LINKS: NavItem[] = [
     { href: '/jobs', label: 'Jobs' },
 ];
 
+const NEXT_THEME = { white: 'light', light: 'dark', dark: 'white' } as const;
+const THEME_LABEL = { dark: 'Dark Mode', light: 'Light Mode', white: 'White Mode' } as const;
+
 export default function Header() {
     const { theme, toggleTheme } = useSettings();
+    const nextTheme = NEXT_THEME[theme];
+    const NextThemeIcon = { dark: Moon, light: Sun, white: Lightbulb }[nextTheme];
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
 
@@ -192,9 +197,10 @@ export default function Header() {
                                 flexShrink: 0
                             }}
                             className="theme-toggle-btn"
-                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                            aria-label={`Switch to ${nextTheme} mode`}
+                            title={`Switch to ${nextTheme} mode`}
                         >
-                            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+                            <NextThemeIcon size={15} />
                         </button>
                         <button
                             onClick={() => window.open(config.urls.githubRepo, '_blank')}
@@ -273,8 +279,8 @@ export default function Header() {
                         style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, width: '100%' }}
                     >
                         <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                            <NextThemeIcon size={18} />
+                            {THEME_LABEL[nextTheme]}
                         </span>
                     </button>
 

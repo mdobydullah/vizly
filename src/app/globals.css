@@ -93,6 +93,34 @@
     --grid-line: rgba(0, 148, 168, .04);
 }
 
+/* ════════════════════════════════════════
+   WHITE THEME OVERRIDES
+   Variant of light: html keeps data-theme="light"
+   (all light selectors apply) + data-theme-variant="white".
+   Only neutral tokens change — accents inherit from light.
+════════════════════════════════════════ */
+[data-theme-variant="white"] {
+    --bg: #ffffff;
+    --surface: #f7f7f8;
+    --surface2: #efeff1;
+    --border: #e4e4e7;
+    --border2: #d4d4d8;
+    --dim: #f4f4f5;
+
+    --text: #3f3f46;
+    --text-dim: #71717a;
+    --text-hi: #09090b;
+
+    --header-bg: rgba(255, 255, 255, .88);
+    --footer-bg: rgba(255, 255, 255, .94);
+    --overlay-bg: rgba(255, 255, 255, .98);
+
+    --scrollbar-track: #f4f4f5;
+    --scrollbar-thumb: #d4d4d8;
+
+    --grid-line: rgba(0, 148, 168, .035);
+}
+
 *,
 *::before,
 *::after {

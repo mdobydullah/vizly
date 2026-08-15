@@ -4,7 +4,7 @@ export const config = {
     fullName: "Vizly — Learn Through Visuals",
     description: "Animated guides to system design, security, and complex engineering concepts.",
     gtmId: process.env.NEXT_PUBLIC_GTM_ID,
-    defaultTheme: (process.env.NEXT_PUBLIC_DEFAULT_THEME || "light") as "dark" | "light",
+    defaultTheme: (process.env.NEXT_PUBLIC_DEFAULT_THEME || "white") as "dark" | "light" | "white",
   },
   urls: {
     domain: "vizly.dev",

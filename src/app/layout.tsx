@@ -23,7 +23,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d='${config.app.defaultTheme}';try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'||t==='dark'?t:d)}catch(e){document.documentElement.setAttribute('data-theme',d)}})();`,
+            __html: `(function(){var d='${config.app.defaultTheme}';var t=d;try{var s=localStorage.getItem('theme');if(s==='light'||s==='dark'||s==='white')t=s}catch(e){}var r=document.documentElement;r.setAttribute('data-theme',t==='white'?'light':t);if(t==='white')r.setAttribute('data-theme-variant','white')})();`,
           }}
         />
       </head>

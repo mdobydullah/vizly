@@ -11,7 +11,7 @@ interface GuideCardProps {
 
 export function GuideCard({ guide, index }: Readonly<GuideCardProps>) {
   const { theme } = useSettings();
-  const isLight = theme === 'light';
+  const isLight = theme !== 'dark';
   const animationDelay = `.${index + 1}s`;
 
   const isUpcoming = guide.link === '#' || guide.link === null;

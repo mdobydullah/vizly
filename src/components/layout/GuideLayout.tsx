@@ -33,7 +33,7 @@ export function GuideLayout({
 }: Readonly<GuideLayoutProps>) {
     const router = useRouter();
     const { theme } = useSettings();
-    const isLight = theme === 'light';
+    const isLight = theme !== 'dark';
 
     // In light mode, use a static muted color instead of neon primaryColor
     const displayColor = isLight ? '#57534e' : primaryColor;

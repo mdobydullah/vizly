@@ -3,7 +3,21 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { config } from '@/lib/config';
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light' | 'white';
+
+const THEME_CYCLE: Theme[] = ['white', 'light', 'dark'];
+
+// 'white' is a variant of light: it keeps data-theme="light" (so all light-mode
+// CSS selectors apply) and adds data-theme-variant="white" for token overrides.
+function applyDomTheme(theme: Theme) {
+    const root = document.documentElement;
+    root.dataset.theme = theme === 'white' ? 'light' : theme;
+    if (theme === 'white') {
+        root.dataset.themeVariant = 'white';
+    } else {
+        delete root.dataset.themeVariant;
+    }
+}
 
 interface SettingsContextType {
     readonly animationSpeed: number; // multiplier: 0.25 (fast) to 2.0 (slow)
@@ -23,7 +37,7 @@ export function SettingsProvider({ children }: Readonly<{ children: React.ReactN
     const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
         if (globalThis.window !== undefined) {
             const saved = localStorage.getItem('theme');
-            if (saved === 'light' || saved === 'dark') return saved;
+            if (saved === 'light' || saved === 'dark' || saved === 'white') return saved;
         }
         return config.app.defaultTheme;
     });
@@ -37,11 +51,11 @@ export function SettingsProvider({ children }: Readonly<{ children: React.ReactN
 
     // Keep DOM in sync with React state
     useEffect(() => {
-        document.documentElement.dataset.theme = currentTheme;
+        applyDomTheme(currentTheme);
     }, [currentTheme]);
 
     const applyTheme = useCallback((newTheme: Theme) => {
-        document.documentElement.dataset.theme = newTheme;
+        applyDomTheme(newTheme);
         localStorage.setItem('theme', newTheme);
     }, []);
 
@@ -52,7 +66,7 @@ export function SettingsProvider({ children }: Readonly<{ children: React.ReactN
 
     const toggleTheme = useCallback(() => {
         setCurrentTheme(prev => {
-            const next = prev === 'dark' ? 'light' : 'dark';
+            const next = THEME_CYCLE[(THEME_CYCLE.indexOf(prev) + 1) % THEME_CYCLE.length];
             applyTheme(next);
             return next;
         });
