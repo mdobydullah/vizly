@@ -4,14 +4,27 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { config } from "@/lib/config";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
-const NAV_LINKS = [
+interface NavItem {
+    href: string;
+    label: string;
+    children?: { href: string; label: string }[];
+}
+
+const NAV_LINKS: NavItem[] = [
     { href: '/guides', label: 'Guides' },
     { href: '/articles', label: 'Articles' },
     { href: '/series', label: 'Series' },
     { href: '/learning-paths', label: 'Paths' },
+    {
+        href: '/theory/backend-engineer',
+        label: 'Theory',
+        children: [
+            { href: '/theory/backend-engineer', label: 'Backend Engineer' },
+        ],
+    },
     { href: '/jobs', label: 'Jobs' },
 ];
 
@@ -120,21 +133,46 @@ export default function Header() {
                         alignItems: 'center',
                         gap: 'clamp(.8rem, 2vw, 1.6rem)'
                     }}>
-                        {NAV_LINKS.map(({ href, label }) => {
-                            const isActive = pathname === href || pathname.startsWith(href + '/');
+                        {NAV_LINKS.map(({ href, label, children }) => {
+                            const base = children ? href.split('/').slice(0, 2).join('/') : href;
+                            const isActive = pathname === base || pathname.startsWith(base + '/');
+                            const linkStyle = {
+                                color: isActive ? 'var(--text-hi)' : 'var(--text-dim)',
+                                fontSize: '.8rem',
+                                textDecoration: 'none',
+                                fontFamily: 'var(--font-mono)',
+                                transition: 'color .2s',
+                                cursor: 'pointer',
+                                borderBottom: isActive ? '2px solid var(--cyan)' : '2px solid transparent',
+                                paddingBottom: '2px',
+                            } as const;
+                            if (!children) {
+                                return (
+                                    <Link key={href} href={href} style={linkStyle} className="nav-link">
+                                        {label}
+                                    </Link>
+                                );
+                            }
                             return (
-                                <Link key={href} href={href} style={{
-                                    color: isActive ? 'var(--text-hi)' : 'var(--text-dim)',
-                                    fontSize: '.8rem',
-                                    textDecoration: 'none',
-                                    fontFamily: 'var(--font-mono)',
-                                    transition: 'color .2s',
-                                    cursor: 'pointer',
-                                    borderBottom: isActive ? '2px solid var(--cyan)' : '2px solid transparent',
-                                    paddingBottom: '2px',
-                                }} className="nav-link">
-                                    {label}
-                                </Link>
+                                <div key={href} className="nav-dropdown">
+                                    <Link href={href} style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: '3px' }} className="nav-link">
+                                        {label}
+                                        <ChevronDown size={12} className="nav-dropdown-chevron" />
+                                    </Link>
+                                    <div className="nav-dropdown-menu">
+                                        <div className="nav-dropdown-menu-inner">
+                                            {children.map(child => (
+                                                <Link
+                                                    key={child.href}
+                                                    href={child.href}
+                                                    className={`nav-dropdown-item${pathname === child.href ? ' is-active' : ''}`}
+                                                >
+                                                    {child.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             );
                         })}
                         <button
@@ -202,15 +240,28 @@ export default function Header() {
             {/* Mobile Menu Overlay */}
             <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
                 <div className="mobile-menu-links">
-                    {NAV_LINKS.map(({ href, label }, i) => {
+                    {NAV_LINKS.map(({ href, label, children }, i) => {
                         const isActive = pathname === href || pathname.startsWith(href + '/');
                         return (
                             <span key={href}>
-                                <Link href={href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                                    <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', color: isActive ? 'var(--cyan)' : undefined }}>
-                                        {label}
+                                {children ? (
+                                    <span>
+                                        <span className="mobile-link-text mobile-group-label">{label}</span>
+                                        {children.map(child => (
+                                            <Link key={child.href} href={child.href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
+                                                <span className="mobile-link-text mobile-sublink" style={{ textDecoration: 'none', border: 'none', color: pathname === child.href ? 'var(--cyan)' : undefined }}>
+                                                    {child.label}
+                                                </span>
+                                            </Link>
+                                        ))}
                                     </span>
-                                </Link>
+                                ) : (
+                                    <Link href={href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
+                                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', color: isActive ? 'var(--cyan)' : undefined }}>
+                                            {label}
+                                        </span>
+                                    </Link>
+                                )}
                                 {i < NAV_LINKS.length - 1 && <hr className="mobile-divider" />}
                             </span>
                         );

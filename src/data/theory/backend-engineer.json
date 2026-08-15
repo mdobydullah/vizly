@@ -1,0 +1,1113 @@
+[
+  {
+    "id": "os-concurrency",
+    "title": "OS & Concurrency",
+    "track": "fundamentals",
+    "topics": [
+      {
+        "q": "Process vs Thread",
+        "level": "junior",
+        "a": [
+          "A process is an independent running program with its own memory space — isolated, so a crash in one process doesn't directly corrupt another. A thread is a unit of execution within a process, sharing that process's memory with other threads in it — cheaper to create/switch than a process, but shared memory means threads can step on each other's data without synchronization."
+        ],
+        "example": "A web server process handles many requests using a pool of threads — all threads share the same loaded application code/memory (fast to spin up), but a shared in-memory counter accessed by two threads at once needs a lock or it'll be corrupted."
+      },
+      {
+        "q": "Concurrency vs Parallelism",
+        "level": "junior",
+        "a": [
+          "Concurrency: dealing with multiple tasks making progress over the same time period — can happen on a single core via time-slicing/interleaving (task switching gives the illusion of 'at once'). Parallelism: multiple tasks literally executing at the exact same instant, requiring multiple cores. Concurrency is about structure (how you design the program); parallelism is about execution (whether it actually runs simultaneously)."
+        ],
+        "example": "A single-core machine running an async event loop (Node.js) achieves concurrency (many I/O-bound requests interleaved) without parallelism. A multi-core machine running a thread pool doing CPU-heavy image resizing achieves true parallelism."
+      },
+      {
+        "q": "Mutex vs Semaphore",
+        "level": "mid",
+        "a": [
+          "Mutex (mutual exclusion lock): binary, owned by whoever locked it — only that thread can unlock it — used to protect a critical section so only one thread touches a shared resource at a time. Semaphore: a counter allowing up to N holders at once, not tied to a single owner — used to limit concurrent access to a pool of N resources (e.g. N DB connections)."
+        ],
+        "example": "A mutex protects a single shared counter++ operation (only one thread at a time). A semaphore initialized to 10 limits a connection pool so at most 10 threads can hold a DB connection simultaneously, others wait."
+      },
+      {
+        "q": "Deadlock",
+        "level": "mid",
+        "a": [
+          "Deadlock: two or more threads/processes are each waiting on a resource the other holds, so none can proceed. Requires 4 conditions simultaneously (Coffman conditions): mutual exclusion, hold-and-wait, no preemption, circular wait. Break any one of them to prevent deadlock — the easiest in practice is eliminating circular wait by always acquiring locks in a fixed, consistent order."
+        ],
+        "example": "Thread A locks resource 1 then tries to lock resource 2; Thread B locks resource 2 then tries to lock resource 1 — both wait forever. Fix: both threads must always acquire resource 1 before resource 2."
+      },
+      {
+        "q": "Race Condition",
+        "level": "junior",
+        "a": [
+          "A race condition happens when the correctness of a result depends on the unpredictable timing/order of concurrent operations — usually from unsynchronized access to shared state. It may work fine in testing and fail intermittently in production under real concurrency, which makes it notoriously hard to debug."
+        ],
+        "example": "Two requests both read a counter as 5, both increment locally to 6, both write 6 back — one increment is silently lost (should have been 7). Fix: use an atomic increment, a DB-level UPDATE counter = counter + 1, or a lock around the read-modify-write."
+      },
+      {
+        "q": "Memory Management (Stack, Heap, GC)",
+        "level": "junior",
+        "a": [
+          "Stack: fast, fixed-size, automatically managed memory for function calls and local variables — LIFO, freed automatically when a function returns. Heap: larger, manually or GC-managed memory for dynamically-sized/long-lived data — allocation/deallocation is more expensive and, without a garbage collector, must be freed explicitly (or leaks).",
+          "Garbage collection (Java, Go, JS, Python) automatically reclaims heap memory no longer reachable from the program — trades a bit of runtime overhead/pause time for eliminating most manual memory bugs (use-after-free, double-free)."
+        ],
+        "example": "A recursive function with no base case overflows the stack (StackOverflowError) — each call frame keeps consuming stack space. A large object allocated on the heap and referenced by a global variable never gets garbage collected — a classic memory leak even in GC'd languages."
+      },
+      {
+        "q": "Context Switching",
+        "level": "mid",
+        "a": [
+          "When the CPU switches from running one thread/process to another, it must save the current one's state (registers, program counter) and load the next one's — this overhead is a context switch. Frequent context switching (too many threads competing for too few cores) can hurt throughput even though each individual thread makes progress."
+        ],
+        "example": "Running 1,000 OS threads on a 4-core machine causes heavy context-switch overhead, since only 4 can truly run at once — this is one reason async/event-loop models (fewer OS threads, many logical tasks) often outperform 'a thread per connection' at high concurrency."
+      }
+    ]
+  },
+  {
+    "id": "networking",
+    "title": "Networking & APIs",
+    "track": "fundamentals",
+    "topics": [
+      {
+        "q": "TCP vs UDP",
+        "level": "junior",
+        "a": [
+          "TCP: connection-oriented, guarantees ordered/reliable delivery via handshake + acknowledgements + retransmission — used when correctness matters more than raw speed (HTTP, databases). UDP: connectionless, no delivery guarantee or ordering, but lower overhead/latency — used where speed matters more than occasional loss (video/voice calls, DNS, gaming, some metrics pipelines)."
+        ],
+        "example": "A video call uses UDP: a dropped frame just causes a brief glitch, and waiting to retransmit it would make things worse (stutter). A file download uses TCP: every byte must arrive correctly and in order, or the file is corrupt."
+      },
+      {
+        "q": "HTTP/HTTPS & TLS Handshake",
+        "level": "junior",
+        "a": [
+          "HTTP is stateless request/response over TCP. HTTPS = HTTP over TLS, which adds encryption, integrity, and server authentication (via certificates).",
+          "TLS handshake (simplified): client hello (supported ciphers) → server hello + certificate → key exchange to derive a shared symmetric session key → both sides switch to encrypted communication using that symmetric key (asymmetric crypto is only used up front to safely exchange the key — it's too slow for bulk data)."
+        ],
+        "example": "Browser connects to https://bank.com: it verifies the server's certificate is signed by a trusted CA and matches the domain, then negotiates a session key — after that, all traffic (including headers/cookies) is encrypted, so it can't be read or tampered with in transit."
+      },
+      {
+        "q": "REST vs GraphQL vs gRPC",
+        "level": "mid",
+        "a": [
+          "REST: resource-based URLs + HTTP verbs, simple, cacheable, widely understood — but can over-fetch/under-fetch data and need multiple round-trips for related resources. GraphQL: client specifies exactly the fields it needs in one query, solves over/under-fetching — but harder to cache, and a naive resolver can hide N+1 query problems. gRPC: binary protocol (Protobuf) over HTTP/2, strongly typed contracts, very fast, supports streaming — great for internal service-to-service calls, less natural for public browser-facing APIs."
+        ],
+        "example": "Public-facing product API for third-party developers → REST (familiar, cacheable). Mobile app screen needing user + their last 5 orders + reviews in one round trip → GraphQL. Internal calls between orders-service and inventory-service at high throughput → gRPC."
+      },
+      {
+        "q": "Load Balancing (L4 vs L7)",
+        "level": "mid",
+        "a": [
+          "A load balancer spreads traffic across multiple backend instances for availability and scale. L4 (transport layer): routes based on IP/port only, fast, protocol-agnostic. L7 (application layer): routes based on HTTP content (path, host, headers) — enables smarter routing (e.g. /api → service A, /images → service B) and features like SSL termination.",
+          "Common algorithms: round robin, least connections, weighted (send more traffic to bigger instances), consistent hashing (same client/key routes to the same backend — good for caching)."
+        ],
+        "example": "An L7 load balancer routes app.com/api/* to the API service and app.com/static/* to a CDN-backed static file service, terminating TLS at the load balancer so backend services only handle plain HTTP internally."
+      },
+      {
+        "q": "DNS Resolution",
+        "level": "junior",
+        "a": [
+          "DNS translates a human-readable domain into an IP address. Simplified lookup path: browser cache → OS cache → recursive resolver (often your ISP or 8.8.8.8) → root nameserver → TLD nameserver (.com) → authoritative nameserver for the domain, which returns the IP. Results are cached at each layer according to TTL."
+        ],
+        "example": "Looking up api.example.com: resolver asks the root for .com, gets the .com TLD server; asks that for example.com, gets the authoritative nameserver; asks that for api.example.com and gets back the IP — then caches it for the record's TTL (e.g. 300s)."
+      },
+      {
+        "q": "CDN",
+        "level": "junior",
+        "a": [
+          "A Content Delivery Network caches static (and sometimes dynamic) content on edge servers geographically close to users, cutting latency and offloading origin servers. Cache behavior is controlled by headers (Cache-Control, ETag) and can be invalidated/purged on deploy."
+        ],
+        "example": "A user in Dhaka requesting a JS bundle hosted on a US origin instead gets it from a CDN edge node in a nearby region — much lower latency, and the origin server never even sees that request after the first cache fill."
+      },
+      {
+        "q": "API Rate Limiting & Versioning",
+        "level": "mid",
+        "a": [
+          "Rate limiting protects an API from being overwhelmed (by abuse or bugs) by capping requests per client over a time window — commonly implemented with token bucket or sliding window algorithms, tracked in Redis for shared state across instances.",
+          "Versioning lets you evolve an API without breaking existing clients — via URL (/v1/users), header (Accept: application/vnd.api.v2+json), or query param. Prefer additive, backward-compatible changes when possible; reserve a new version for breaking changes."
+        ],
+        "example": "429 Too Many Requests with a Retry-After header when a client exceeds 100 requests/minute. Meanwhile /v1/orders keeps its old response shape while /v2/orders adds new required fields for new clients."
+      },
+      {
+        "q": "WebSockets vs Polling",
+        "level": "junior",
+        "a": [
+          "Polling: client repeatedly asks the server 'anything new?' on an interval — simple but wasteful and adds latency between updates. Long polling: client holds a request open until the server has something to send, then immediately reopens — less wasteful than plain polling. WebSockets: a single persistent, full-duplex connection — server can push updates instantly with no per-message HTTP overhead, ideal for chat, live dashboards, notifications."
+        ],
+        "example": "A live chat app uses a WebSocket connection per client; when another user sends a message, the server pushes it down that open socket instantly — no polling delay, no repeated HTTP handshake overhead."
+      }
+    ]
+  },
+  {
+    "id": "database",
+    "title": "Database",
+    "track": "data",
+    "topics": [
+      {
+        "q": "Normal Forms (1NF, 2NF, 3NF, BCNF)",
+        "level": "junior",
+        "a": [
+          "Normalization removes duplicate data by splitting tables so each fact lives in exactly one place.",
+          "1NF: every column holds a single atomic value, no repeating groups. 2NF: 1NF + every non-key column depends on the WHOLE primary key (matters for composite keys). 3NF: 2NF + no non-key column depends on another non-key column (no transitive dependency). BCNF: a stricter 3NF for edge cases with overlapping candidate keys.",
+          "In interviews: denormalization is a valid trade-off for read-heavy systems — say so, don't just recite the forms."
+        ],
+        "example": "Bad (violates 2NF): orders(order_id, product_id, product_name, qty) — product_name depends only on product_id, not the full key.\nFixed: orders(order_id, product_id, qty) + products(product_id, product_name)."
+      },
+      {
+        "q": "ACID Principles",
+        "level": "junior",
+        "a": [
+          "ACID is what a database transaction guarantees so your data stays correct even under failures or concurrent access.",
+          "Atomicity: all steps in a transaction succeed or none do (all-or-nothing). Consistency: a transaction moves the DB from one valid state to another, respecting constraints. Isolation: concurrent transactions don't see each other's half-finished work. Durability: once committed, data survives a crash (written to disk/WAL)."
+        ],
+        "example": "Bank transfer: debit account A, credit account B. Atomicity ensures if the credit fails, the debit is rolled back too — money never disappears. This is why it's wrapped in BEGIN ... COMMIT."
+      },
+      {
+        "q": "Isolation Levels & Read Phenomena",
+        "level": "mid",
+        "a": [
+          "Isolation level = how much one transaction is allowed to 'see' of another's uncommitted or concurrent changes. Stricter = safer but slower.",
+          "Read Uncommitted: can see uncommitted changes (dirty reads). Read Committed (Postgres default): only sees committed data, but a re-read within the same transaction can change (non-repeatable read). Repeatable Read: same rows stay stable for the transaction's duration, but new matching rows can appear (phantom read). Serializable: transactions behave as if run one after another — no anomalies, but most locking/retries.",
+          "Phenomena to name-drop: dirty read, non-repeatable read, phantom read, lost update."
+        ],
+        "example": "Two transactions both run SELECT balance WHERE id=1 under Read Committed. Between their two reads, another transaction commits an update — the second read in each returns a different value (non-repeatable read)."
+      },
+      {
+        "q": "Indexing",
+        "level": "junior",
+        "a": [
+          "An index is a separate data structure (usually a B-Tree) that lets the DB find rows without scanning the whole table — trades write speed + storage for read speed.",
+          "B-Tree index: default, good for equality and range queries (=, <, >, BETWEEN, ORDER BY). Hash index: fast equality lookups only. Composite (multi-column) index: order matters — it helps queries that filter on a left-to-right prefix of the columns. Covering index: includes all columns a query needs so it never touches the table (index-only scan).",
+          "Cost: every INSERT/UPDATE/DELETE has to update every index on that table too — don't over-index write-heavy tables."
+        ],
+        "example": "CREATE INDEX idx_orders_user_created ON orders(user_id, created_at);\nThis speeds up WHERE user_id = 5 AND created_at > '2026-01-01', and also just WHERE user_id = 5 — but NOT a query that filters on created_at alone."
+      },
+      {
+        "q": "Query Optimization",
+        "level": "mid",
+        "a": [
+          "Use EXPLAIN / EXPLAIN ANALYZE to see the query planner's chosen path (seq scan vs index scan, join order, estimated vs actual rows) before guessing.",
+          "Common wins: add an index on filter/join/order-by columns, avoid SELECT *, avoid functions on indexed columns in WHERE (kills index usage), fix N+1 queries (one query per loop iteration) by batching or using JOIN/eager loading, and watch for implicit type casts that force a full scan."
+        ],
+        "example": "N+1 in an ORM: fetching 50 orders then looping to fetch each order's user = 51 queries. Fix: eager-load with a JOIN — SELECT * FROM orders o JOIN users u ON u.id = o.user_id — one query instead of 51."
+      },
+      {
+        "q": "Memory Caching (Redis vs Memcached)",
+        "level": "mid",
+        "a": [
+          "Caching stores hot data in memory to skip expensive DB/computation round-trips. Redis: rich data structures (strings, hashes, lists, sets, sorted sets), persistence options, pub/sub, TTLs — closer to an in-memory data store. Memcached: pure key-value, multi-threaded, simpler and slightly faster for plain get/set at scale, no persistence.",
+          "Patterns: cache-aside (app checks cache, falls back to DB, then populates cache — most common), write-through (write to cache and DB together), write-behind (write to cache, async flush to DB). Always set a TTL and have an invalidation plan — 'cache invalidation' is famously one of the two hard problems in CS."
+        ],
+        "example": "Cache-aside for a user profile: GET user:42 from Redis → miss → SELECT * FROM users WHERE id=42 → SETEX user:42 300 (the JSON payload, 5-min TTL) → return data. Next request within 5 min hits Redis, skips Postgres."
+      },
+      {
+        "q": "SQL vs NoSQL",
+        "level": "junior",
+        "a": [
+          "SQL (Postgres/MySQL): fixed schema, strong ACID transactions, relational joins — best when data is structured and consistency matters (money, inventory).",
+          "NoSQL isn't one thing: document stores (MongoDB — flexible JSON-like docs), key-value (DynamoDB, Redis — simple, extremely fast), wide-column (Cassandra — huge write volume, time-series), graph (Neo4j — relationships-first). Trade-offs usually follow CAP: many NoSQL stores favor availability + partition tolerance over strict consistency, using eventual consistency instead."
+        ],
+        "example": "E-commerce: orders/payments → Postgres (need ACID). Product catalog with wildly varying attributes per category → MongoDB (flexible schema). Session store / rate-limit counters → Redis (speed, TTL)."
+      },
+      {
+        "q": "Transactions & Locking",
+        "level": "mid",
+        "a": [
+          "Locking controls concurrent access to the same row/table. Pessimistic locking: lock the row up front (SELECT ... FOR UPDATE) and block others until you commit — safe but reduces concurrency. Optimistic locking: don't lock; instead check a version/timestamp column at write time and reject if it changed — better throughput, needs a retry loop.",
+          "Deadlock: two transactions each hold a lock the other needs — DB detects and kills one (deadlock victim). Avoid by always acquiring locks in the same order."
+        ],
+        "example": "Optimistic locking: UPDATE accounts SET balance = 90, version = 6 WHERE id = 1 AND version = 5. If 0 rows affected, someone else updated it first — reload and retry."
+      },
+      {
+        "q": "Replication & Sharding",
+        "level": "senior",
+        "a": [
+          "Replication: copy data to multiple nodes for availability + read scaling. Primary-replica (leader-follower): writes go to the primary, reads can go to replicas (with replication lag to be aware of). Multi-leader/leaderless setups exist but add conflict resolution complexity.",
+          "Sharding (partitioning): split a huge table across multiple nodes by a shard key (e.g. user_id range or hash) so no single node holds all the data — scales writes, but cross-shard joins/transactions get hard."
+        ],
+        "example": "A social app shards its posts table by hash(user_id) % 16 across 16 database nodes. A read replica of each shard's primary serves analytics queries so they never slow down live traffic."
+      }
+    ]
+  },
+  {
+    "id": "pg-redis",
+    "title": "PostgreSQL & Redis Deep Dive",
+    "track": "data",
+    "topics": [
+      {
+        "q": "MVCC & VACUUM",
+        "level": "senior",
+        "a": [
+          "Postgres MVCC: an UPDATE never overwrites a row, it writes a new row version; each version carries xmin/xmax (creating/deleting transaction IDs) and every transaction sees only versions visible to its snapshot. Readers never block writers and writers never block readers.",
+          "Cost: old versions become dead tuples (bloat). VACUUM reclaims them; autovacuum does it in the background. If autovacuum falls behind on a hot table, the table and its indexes bloat and scans slow down. Also prevents transaction ID wraparound, which is why you never disable it.",
+          "Interview line: long-running transactions are dangerous in Postgres because VACUUM cannot clean anything their snapshot might still see."
+        ],
+        "example": "A batch job holds a transaction open for 2 hours while an orders table takes heavy updates. Dead tuples pile up because VACUUM must keep every version since the snapshot. Table bloats 3x, p99 read latency climbs. Fix: chunk the batch job into short transactions."
+      },
+      {
+        "q": "WAL, Checkpoints & Replication",
+        "level": "senior",
+        "a": [
+          "Write-Ahead Log: every change is appended to the WAL and fsynced before it is considered committed; data pages in memory are flushed later at checkpoints. Crash recovery replays WAL from the last checkpoint. This is the D in ACID.",
+          "The WAL is also the replication stream: streaming replication ships WAL to replicas (async by default: small lag window; synchronous: zero loss but slower commits). Logical replication/CDC (Debezium) decodes WAL into row-change events, which is how you feed Kafka from Postgres without dual writes."
+        ],
+        "example": "synchronous_commit = on + a sync replica means a commit waits until the replica has the WAL record: RPO of zero for payments. Analytics replicas stay async: seconds of lag is fine there."
+      },
+      {
+        "q": "Connection Pooling (PgBouncer)",
+        "level": "mid",
+        "a": [
+          "Each Postgres connection is a whole OS process with real memory cost, so max_connections is small (low hundreds). Kubernetes makes this a trap: 50 pods × 20 connections in each app pool = 1000 connections, and Postgres falls over.",
+          "PgBouncer sits in front and multiplexes thousands of client connections onto few real ones. Modes: session (1 client = 1 server conn while connected, safest), transaction (server conn borrowed per transaction, the usual choice, but session state like prepared statements and SET breaks), statement (rarely used).",
+          "App side: always use a pool with a max, sane idle timeout and a connect timeout, so a slow DB causes fast failures instead of goroutine/thread pileups."
+        ],
+        "example": "Incident story shape: deploy doubles pod count, DB hits max_connections, everything errors. Fix: PgBouncer in transaction mode, app pools capped at 5 per pod, total real connections ~80. Same hardware, no more connection storms."
+      },
+      {
+        "q": "Postgres Index Types Beyond B-Tree",
+        "level": "senior",
+        "a": [
+          "GIN: inverted index for multi-value columns: jsonb containment (@>), arrays, full-text search. Slower to update, great to query. GiST: geometric/nearest-neighbor searches, powers PostGIS: directly relevant to delivery radius and rider proximity queries. BRIN: tiny index storing min/max per block range, perfect for huge append-only tables queried by time.",
+          "Partial index: index only rows matching a WHERE clause: small and fast when queries always target a subset (active orders). Expression index: index a computed value like lower(email) so the query can use it."
+        ],
+        "example": "CREATE INDEX ON orders (restaurant_id) WHERE status IN ('placed','preparing'): the index only holds live orders (thousands), not all-time history (millions). Dispatch queries hit it constantly and stay fast. Delivered orders fall out of the index automatically."
+      },
+      {
+        "q": "Redis Persistence & Eviction",
+        "level": "mid",
+        "a": [
+          "Persistence: RDB = periodic snapshots (compact, fast restart, can lose minutes on crash). AOF = append every write (configurable fsync, minimal loss, bigger files, slower restart). Common production setup: both, or RDB only when Redis is a pure cache and loss is fine.",
+          "Eviction at maxmemory: noeviction (writes error: default, wrong for caches), allkeys-lru (evict least-recently-used anywhere: the usual cache choice), volatile-lru (only keys with TTL), allkeys-lfu (frequency-based). Wrong policy is a classic prod incident: cache fills, writes start failing.",
+          "One more: Redis is single-threaded for commands, so one slow command (KEYS *, huge SMEMBERS) blocks everything. Use SCAN, keep values small."
+        ],
+        "example": "Cache cluster at maxmemory with noeviction: SETs start erroring, cache hit rate collapses, DB gets the full read load and browns out. Fix: allkeys-lru, alerts on evicted_keys and hit rate."
+      },
+      {
+        "q": "Cache Stampede, Hot Keys & Distributed Locks",
+        "level": "senior",
+        "a": [
+          "Stampede (thundering herd): a popular key expires and 5,000 concurrent requests all miss and hit the DB at once. Fixes: per-key mutex so one request recomputes while the rest wait or serve stale, TTL jitter so keys don't expire together, background refresh before expiry for known-hot keys.",
+          "Hot key: one key (top restaurant's menu) takes so much traffic that its Redis shard saturates. Fixes: replicate the value under N suffixed keys and read a random one, or add a small in-process cache with a short TTL in front.",
+          "Distributed lock: SET key value NX PX 30000, delete only if value matches (Lua) so you never release someone else's lock. Redlock exists but is debated; for correctness-critical exclusion prefer DB row locks or a consensus store, and say that in the interview."
+        ],
+        "example": "Dinner-rush spike: menu:top-restaurant expires at peak, DB gets hammered. Fix: singleflight mutex per key (one recompute, others serve stale for 2s), TTL 300s ± random 30s, top-100 menus refreshed by a background worker every 60s."
+      }
+    ]
+  },
+  {
+    "id": "patterns",
+    "title": "Design Patterns & Principles",
+    "track": "design",
+    "topics": [
+      {
+        "q": "SOLID Principles",
+        "level": "junior",
+        "a": [
+          "S — Single Responsibility: a class/module should have one reason to change. O — Open/Closed: open for extension, closed for modification (add new behavior via new code, not by editing existing tested code). L — Liskov Substitution: a subclass should be usable anywhere its parent type is expected, without breaking correctness. I — Interface Segregation: prefer several small, focused interfaces over one large one clients are forced to depend on fully. D — Dependency Inversion: depend on abstractions (interfaces), not concrete implementations — high-level modules shouldn't depend on low-level details."
+        ],
+        "example": "Dependency Inversion in practice: an OrderService depends on a PaymentGateway interface, not directly on StripeGateway — so swapping to a different provider, or mocking it in tests, doesn't require touching OrderService at all."
+      },
+      {
+        "q": "Common Design Patterns",
+        "level": "junior",
+        "a": [
+          "Singleton: exactly one instance of a class exists app-wide (e.g. a DB connection pool) — use sparingly, it's effectively global state. Factory: centralizes object creation logic so callers don't need to know concrete classes. Strategy: encapsulate interchangeable algorithms/behaviors behind a common interface, swappable at runtime. Observer: subscribers get notified automatically when a subject's state changes (pub/sub within a single process). Repository: abstracts data access behind an interface, so business logic doesn't depend on the specific ORM/DB in use."
+        ],
+        "example": "Strategy pattern: a ShippingCostCalculator interface with StandardShipping, ExpressShipping, and FreeShipping implementations — the checkout flow picks one at runtime based on the order, without an if/else chain scattered through the code."
+      },
+      {
+        "q": "Dependency Injection",
+        "level": "junior",
+        "a": [
+          "Instead of a class constructing its own dependencies internally (tight coupling), dependencies are 'injected' from outside (constructor, setter, or a DI framework/container) — makes code easier to test (swap in mocks/fakes) and easier to reconfigure without editing the class itself."
+        ],
+        "example": "class OrderService {\n  constructor(private paymentGateway: PaymentGateway) {}\n}\nIn production, inject StripeGateway; in tests, inject a FakePaymentGateway that never hits the network — OrderService's code never changes."
+      },
+      {
+        "q": "Layered / Clean Architecture",
+        "level": "mid",
+        "a": [
+          "Organizes code into layers with a strict dependency direction — typically: presentation (controllers/API) → application/business logic (use cases/services) → domain (core entities/rules) → infrastructure (DB, external APIs). The core idea (from Clean/Hexagonal architecture): business logic shouldn't depend on frameworks, databases, or UI — those are 'details' that plug into the core via interfaces, not the other way around, so you can swap infrastructure (e.g. Postgres → DynamoDB) without touching business rules."
+        ],
+        "example": "A UserService (business logic) depends on a UserRepository interface, not directly on Postgres — the Postgres-backed implementation lives in the infrastructure layer and is injected in. Swapping to MongoDB later means writing a new repository implementation, not rewriting UserService."
+      }
+    ]
+  },
+  {
+    "id": "ddd",
+    "title": "Domain-Driven Design",
+    "track": "design",
+    "topics": [
+      {
+        "q": "Bounded Context & Ubiquitous Language",
+        "level": "senior",
+        "a": [
+          "Ubiquitous language: the team and the code use the exact same domain terms, so methods read the way the business talks. A bounded context is the boundary inside which one model and one language stay consistent: the same word can mean different things in different contexts, and that is fine as long as the boundary is explicit.",
+          "Bounded contexts are the best starting point for microservice boundaries: roughly one context per service. Context mapping describes the relationships between them; an anti-corruption layer translates another context's model at the border so it never leaks into yours."
+        ],
+        "example": "'Order' in the checkout context means cart, payment and promo codes. 'Order' in the logistics context means pickup point, rider and ETA. Two models, two services: logistics consumes an OrderPlaced event and translates it into its own Delivery model."
+      },
+      {
+        "q": "Entities, Value Objects & Aggregates",
+        "level": "mid",
+        "a": [
+          "Entity: has an identity that persists over time (User #42 stays the same user as fields change). Value object: no identity, immutable, compared by value (Money(10, 'SAR'), an Address). Prefer value objects where possible: immutable things are safer to reason about.",
+          "Aggregate: a cluster of entities and value objects treated as one consistency unit, with a single aggregate root that outside code must go through. Invariants (order total equals sum of lines) are enforced by the root. Rule: one transaction updates one aggregate; effects on other aggregates go through domain events, eventually consistent."
+        ],
+        "example": "Order is the aggregate root holding OrderLine children. Code never edits an OrderLine directly: it calls order.AddItem(product, qty) and the root revalidates invariants (max items, recalculated total). The repository loads and saves the whole aggregate."
+      },
+      {
+        "q": "Repositories, Domain Events & the Outbox",
+        "level": "senior",
+        "a": [
+          "Repository: one per aggregate root, gives the domain collection-like access (FindByID, Save) and hides the database. Domain event: a fact that happened, named in past tense (OrderPlaced), used to trigger reactions in other aggregates or contexts without direct coupling.",
+          "Outbox pattern: saving the aggregate and publishing the event must not half-fail. Write the event into an outbox table in the same DB transaction as the aggregate, then a relay publishes it to Kafka/PubSub and marks it sent. Guarantees at-least-once publishing; consumers stay idempotent."
+        ],
+        "example": "PlaceOrder use case: one transaction inserts the order rows and an OrderPlaced row into outbox. A poller reads outbox, publishes to Pub/Sub, marks the row sent. If the process crashes right after commit, the event still goes out on the next poll: nothing is lost."
+      }
+    ]
+  },
+  {
+    "id": "testing",
+    "title": "Testing & Quality",
+    "track": "quality",
+    "topics": [
+      {
+        "q": "Test Pyramid (Unit vs Integration vs E2E)",
+        "level": "junior",
+        "a": [
+          "Unit tests: fast, isolated, test one function/class with dependencies faked. The base of the pyramid, you want the most of these. Integration tests: verify real pieces working together (your code plus a real Postgres/Redis/broker). Fewer and slower. E2E tests: drive the whole deployed system through its public API or UI. Fewest, slowest, most brittle.",
+          "Anti-pattern: the ice-cream cone (mostly e2e, few unit tests). The suite gets slow and flaky and the feedback loop dies."
+        ],
+        "example": "Orders service: ~200 unit tests for pricing/discount logic (run in milliseconds), ~30 integration tests against a real Postgres in a container, ~5 e2e happy-path flows on staging before deploy."
+      },
+      {
+        "q": "Mocks, Stubs & Fakes",
+        "level": "junior",
+        "a": [
+          "Test double = any stand-in for a real dependency. Stub: returns canned answers, no assertions. Mock: also verifies interactions (was sendEmail called exactly once with X). Fake: a real but lightweight implementation, like an in-memory repository. Spy: records calls for later inspection.",
+          "Rule of thumb: test behavior, not implementation. Over-mocking couples tests to internals, so refactors break tests even when behavior is unchanged. Prefer fakes for interfaces you own, mock only at true external boundaries (payment gateway, email)."
+        ],
+        "example": "OrderService test injects a FakeOrderRepository (in-memory map) and a mocked PaymentGateway. Assert: order saved with status=paid and gateway.charge called exactly once. No real DB, runs in milliseconds."
+      },
+      {
+        "q": "Integration & Contract Testing (Microservices)",
+        "level": "senior",
+        "a": [
+          "Testcontainers pattern: spin up a real Postgres/Kafka/Redis in Docker for integration tests, so tests hit the same engine as production instead of an in-memory imitation.",
+          "Consumer-driven contract testing (Pact): the consumer publishes a contract describing exactly what it calls and what shape it expects back; the provider's CI replays that contract against the real service. Catches breaking API changes without a shared staging environment or a slow e2e suite."
+        ],
+        "example": "checkout-service (consumer) publishes a contract: GET /menu-items/42 must return {id, price, available}. menu-service CI verifies every build against it. Renaming price to unit_price fails the provider build before deploy, not in production."
+      },
+      {
+        "q": "TDD & Testing Mindset",
+        "level": "mid",
+        "a": [
+          "TDD loop: red (write a failing test first), green (simplest code that passes), refactor (clean up with the test as a safety net). Even without strict TDD the mindset matters: every bug fix starts with a failing test that reproduces the bug, so it can never silently return.",
+          "Deterministic tests: no sleeps, no real clocks, no shared mutable state between tests. Inject time and randomness so you control them. Flaky tests destroy trust in the whole suite."
+        ],
+        "example": "Bug: discount applied twice on retry. Step 1: write a failing test that retries the request and asserts one discount. Step 2: fix with an idempotency check. Step 3: the test passes and stays forever as a regression guard."
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "title": "Security Fundamentals",
+    "track": "quality",
+    "topics": [
+      {
+        "q": "Authentication vs Authorization",
+        "level": "junior",
+        "a": [
+          "Authentication (AuthN): verifying who you are (login — password, OTP, biometric, SSO). Authorization (AuthZ): verifying what you're allowed to do once identified (permissions, roles, scopes). They're often confused but are separate steps — you can be authenticated but not authorized for a specific action."
+        ],
+        "example": "You log into an app with your password (authentication). You then try to delete another user's account and get a 403 Forbidden because you're not an admin (authorization) — you were correctly identified, just not permitted."
+      },
+      {
+        "q": "OWASP Top 10 (Overview)",
+        "level": "mid",
+        "a": [
+          "A regularly-updated list of the most critical web app security risks, maintained by OWASP — useful shorthand vocabulary in interviews. Recurring themes: broken access control (missing authorization checks), cryptographic failures (weak/missing encryption), injection (SQL/command/etc.), insecure design, security misconfiguration, vulnerable/outdated components, identification & authentication failures, software/data integrity failures, logging & monitoring failures, and server-side request forgery (SSRF)."
+        ],
+        "example": "Broken access control example: an API endpoint /api/orders/123 returns order 123's data for any logged-in user, without checking that order 123 actually belongs to them — the classic 'insecure direct object reference' (IDOR)."
+      },
+      {
+        "q": "SQL Injection",
+        "level": "junior",
+        "a": [
+          "SQL injection happens when untrusted user input is concatenated directly into a SQL query, letting an attacker change the query's meaning. Prevented by parameterized queries/prepared statements (the DB driver keeps user input strictly as data, never as executable SQL) or an ORM that does this by default — never by 'escaping' strings manually."
+        ],
+        "example": "Vulnerable: \"SELECT * FROM users WHERE email = '\" + input + \"'\" — input=\"' OR '1'='1\" returns every user. Safe: db.query(\"SELECT * FROM users WHERE email = ?\", [input]) — the input is always treated as a literal value, never as SQL syntax."
+      },
+      {
+        "q": "XSS vs CSRF",
+        "level": "mid",
+        "a": [
+          "XSS (Cross-Site Scripting): attacker injects malicious JavaScript into a page that other users view — runs in the victim's browser with their session, can steal cookies/tokens. Prevented by escaping/sanitizing any user content rendered as HTML and setting a Content-Security-Policy.",
+          "CSRF (Cross-Site Request Forgery): tricks a logged-in user's browser into submitting an unwanted request to a site they're authenticated on (e.g. via a malicious link/form on another site), since browsers auto-attach cookies. Prevented by CSRF tokens, SameSite cookies, and checking the request's origin."
+        ],
+        "example": "XSS: a comment field stores an injected script payload (e.g. one that reads document.cookie and sends it to an attacker's server) unescaped — it runs for every visitor who views that comment. CSRF: a malicious page auto-submits a hidden form to bank.com/transfer while you're logged into your bank in another tab — SameSite cookies block this."
+      },
+      {
+        "q": "JWT vs Session-Based Auth",
+        "level": "mid",
+        "a": [
+          "Session-based: server creates a session on login, stores it server-side (memory/Redis/DB), and gives the client a session ID cookie — server can revoke instantly, but needs shared/centralized session storage to scale across instances. JWT (JSON Web Token): a signed, self-contained token holding claims (user id, roles, expiry) — the server verifies the signature without a DB lookup, making it stateless and easy to scale — but revoking a single JWT before it expires is hard (needs a blocklist, which reintroduces state)."
+        ],
+        "example": "A microservices system uses JWTs so any service can verify a request's identity/roles from the token alone (no call back to an auth service needed) — but they keep JWT expiry short (e.g. 15 min) with a refresh token flow, to limit the damage window if a token leaks."
+      },
+      {
+        "q": "OAuth2 / OpenID Connect",
+        "level": "senior",
+        "a": [
+          "OAuth2 is an authorization framework: lets a user grant a third-party app limited access to their data on another service, without sharing their password (e.g. 'Sign in with Google' granting calendar access) — the core output is an access token. OpenID Connect (OIDC) is built on top of OAuth2 specifically for authentication — it adds an ID token (a JWT) that proves who the user is, standardizing login.",
+          "Common flow: Authorization Code flow (with PKCE for public/mobile clients) — app redirects to the provider, user approves, provider redirects back with a code, app exchanges the code (server-side) for tokens."
+        ],
+        "example": "'Sign in with Google' on a website: OIDC gives the app an ID token confirming 'this is jane@gmail.com', and if the app also requested Calendar scope, OAuth2 gives an access token the app can use to call Google Calendar's API on Jane's behalf."
+      },
+      {
+        "q": "Encryption vs Hashing vs Encoding",
+        "level": "junior",
+        "a": [
+          "Encryption: reversible with the right key — used to protect data confidentiality (you can decrypt it back). Symmetric (same key encrypts/decrypts, fast — AES) vs asymmetric (public key encrypts, private key decrypts — RSA/ECC, slower, used for key exchange and signatures). Hashing: one-way, deterministic, fixed-size output — used for passwords (never store plaintext) and integrity checks; a good password hash (bcrypt/argon2) is deliberately slow to resist brute force. Encoding (Base64, URL-encoding): not security at all — just a reversible format transformation, anyone can decode it."
+        ],
+        "example": "Storing passwords: hash with bcrypt/argon2 + a per-user salt, never encrypt (you should never be able to recover the original password, only verify a match). Storing credit card numbers you must retrieve later: encrypt with AES, key managed by a KMS."
+      },
+      {
+        "q": "HTTPS/TLS in Practice",
+        "level": "mid",
+        "a": [
+          "Beyond the handshake: TLS certificates are issued by a Certificate Authority (CA) and chain up to a root CA the browser trusts; HSTS (HTTP Strict Transport Security) header forces browsers to always use HTTPS for a domain, preventing downgrade attacks; certificate pinning (mostly mobile apps) hard-codes the expected certificate/key to resist even a compromised CA."
+        ],
+        "example": "Strict-Transport-Security: max-age=63072000; includeSubDomains header tells the browser 'never even try plain HTTP for this domain again for 2 years' — closing the window where a man-in-the-middle could intercept an initial HTTP request before a redirect to HTTPS."
+      }
+    ]
+  },
+  {
+    "id": "devops",
+    "title": "DevOps & Containerization",
+    "track": "infra",
+    "topics": [
+      {
+        "q": "Microservices vs Monolith",
+        "level": "mid",
+        "a": [
+          "Monolith: one deployable app, one codebase — simple to develop and deploy early, but scaling and team ownership get harder as it grows.",
+          "Microservices: the app is split into small, independently deployable services (each owns its own data), communicating over the network (REST/gRPC/events). Gains: independent scaling, deploys, and team ownership. Costs: network latency, distributed debugging, data consistency across services, operational overhead (more moving parts to monitor/deploy)."
+        ],
+        "example": "An e-commerce monolith splits into: orders-service, payments-service, inventory-service, notifications-service — each with its own DB and deploy pipeline, talking via REST calls and a Kafka event bus for order-placed events."
+      },
+      {
+        "q": "Docker Fundamentals",
+        "level": "junior",
+        "a": [
+          "Docker packages an app + its dependencies into an image, run as an isolated container sharing the host OS kernel (lighter than a VM). An image is built in layers (each Dockerfile instruction = a cached layer), which makes rebuilds fast when only the top layers change.",
+          "Key objects: Image (the blueprint), Container (a running instance of an image), Dockerfile (build recipe), Volume (persistent storage outside the container's writable layer), Registry (e.g. Docker Hub/ECR — stores images)."
+        ],
+        "example": "FROM node:20-slim\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production\nCOPY . .\nCMD [\"node\", \"server.js\"]\nCopying package.json before the rest of the source lets Docker cache the npm install layer across builds."
+      },
+      {
+        "q": "Kubernetes Core Objects",
+        "level": "mid",
+        "a": [
+          "Kubernetes (K8s) orchestrates containers across a cluster of machines: scheduling, scaling, self-healing, networking.",
+          "Pod: smallest deployable unit — one or more containers sharing network/storage. Deployment: manages a set of replica Pods, handles rolling updates and self-healing. Service: stable network endpoint (ClusterIP/NodePort/LoadBalancer) that load-balances traffic to matching Pods (Pods' IPs are ephemeral). Ingress: HTTP(S) routing into the cluster from outside. ConfigMap/Secret: externalize config and sensitive values from the container image."
+        ],
+        "example": "A Deployment with replicas: 3 keeps 3 Pods of your API running; if one crashes, K8s reschedules a new one automatically. A Service in front load-balances requests across whichever 3 Pods are currently healthy."
+      },
+      {
+        "q": "Kubernetes Scaling (HPA / Resource Limits)",
+        "level": "senior",
+        "a": [
+          "Horizontal Pod Autoscaler (HPA): automatically adds/removes Pod replicas based on metrics (CPU, memory, or custom metrics like queue depth) to match load.",
+          "Resource requests vs limits (set per container): 'requests' = what the scheduler guarantees/reserves for placement; 'limits' = the hard ceiling before the container is throttled (CPU) or OOM-killed (memory). Under-setting limits risks noisy-neighbor issues; over-setting wastes cluster capacity."
+        ],
+        "example": "resources:\n  requests: { cpu: \"250m\", memory: \"256Mi\" }\n  limits: { cpu: \"500m\", memory: \"512Mi\" }\nHPA rule: scale between 3-10 replicas, target 70% average CPU utilization."
+      },
+      {
+        "q": "Service Mesh Basics",
+        "level": "senior",
+        "a": [
+          "A service mesh (e.g. Istio, Linkerd) adds a network layer of sidecar proxies next to each service to handle cross-cutting concerns without changing app code: mTLS encryption between services, retries/timeouts/circuit breaking, traffic shifting (canary), and fine-grained observability (per-hop latency, error rate)."
+        ],
+        "example": "Canary rollout via service mesh: route 95% of traffic to app v1 and 5% to app v2, watch error rate/latency on v2, then gradually shift more traffic — all via mesh config, no app redeploy needed."
+      },
+      {
+        "q": "CI/CD Pipelines",
+        "level": "junior",
+        "a": [
+          "CI (Continuous Integration): every push triggers automated build + tests, catching integration bugs early. CD (Continuous Delivery/Deployment): automatically packages and ships that build toward production — Delivery stops at a manual approval gate, Deployment goes straight to prod.",
+          "A typical pipeline: lint → unit tests → build image → push to registry → deploy to staging → integration/e2e tests → (approval) → deploy to prod, often with a rollback step wired in."
+        ],
+        "example": "GitHub Actions workflow on push to main: run tests → docker build & push to ECR → kubectl apply the new image tag → run smoke tests → if smoke tests fail, automatically roll back the Deployment to the previous image."
+      },
+      {
+        "q": "Infrastructure as Code",
+        "level": "mid",
+        "a": [
+          "IaC defines infrastructure (servers, networks, DBs) in version-controlled config files instead of manual console clicks — reproducible, reviewable, and diffable like application code.",
+          "Terraform (declarative, provider-agnostic — describe the desired end state, it figures out the plan). Ansible (mostly imperative/procedural — good for config management and app deploys on top of existing servers). Both support 'plan before apply' to preview changes."
+        ],
+        "example": "resource \"aws_instance\" \"web\" {\n  ami           = \"ami-123456\"\n  instance_type = \"t3.medium\"\n}\nterraform plan shows exactly what will be created/changed/destroyed before terraform apply touches real infrastructure."
+      },
+      {
+        "q": "Deployment Strategies",
+        "level": "mid",
+        "a": [
+          "Rolling update: replace old instances with new ones gradually, keeping the service up the whole time (K8s Deployment default). Blue-green: run two full identical environments (blue = live, green = new); switch traffic all at once, instant rollback by switching back. Canary: release the new version to a small % of traffic first, watch metrics, then ramp up — catches bad releases before they hit everyone."
+        ],
+        "example": "Blue-green on a payments API: green (v2) is deployed and smoke-tested with zero live traffic; once verified, the load balancer target group is switched from blue to green in one shot — if something's wrong, switch back instantly."
+      },
+      {
+        "q": "AWS & GCP Core Services (Backend)",
+        "level": "mid",
+        "a": [
+          "The concepts transfer 1:1 between clouds; interviews mostly test that you can name the managed service for each need. Managed Kubernetes: EKS (AWS) / GKE (GCP). Managed Postgres/MySQL: RDS and Aurora / Cloud SQL. Managed Redis: ElastiCache / Memorystore. Messaging: SQS for queues + SNS for fanout / Pub/Sub covers both. Object storage: S3 / Cloud Storage. Serverless containers: Fargate or App Runner / Cloud Run. Functions: Lambda / Cloud Functions.",
+          "Glue to know on both: IAM roles/service accounts with least privilege for workloads, VPC networking, CloudWatch / Cloud Monitoring for metrics and logs, ECR / Artifact Registry for container images. Learn one cloud deeply and map the names in the other."
+        ],
+        "example": "Same delivery-app stack, both clouds: API pods on EKS or GKE, orders in RDS Postgres or Cloud SQL, cart cache in ElastiCache or Memorystore Redis, order.placed on SNS+SQS or Pub/Sub, invoices in S3 or Cloud Storage, dashboards in CloudWatch or Cloud Monitoring plus Grafana."
+      },
+      {
+        "q": "Monolith → Microservices Migration (Strangler Fig)",
+        "level": "senior",
+        "a": [
+          "Strangler fig pattern: put a gateway/facade in front of the monolith, then peel capabilities out one at a time into services. The gateway routes each request to either the monolith or the new service, so migration is gradual and reversible. Avoid a big-bang rewrite: it freezes features for months and usually fails.",
+          "Order of attack: start with a domain that is loosely coupled and changes often (high payoff, low risk). The hardest part is the database: give each extracted service its own schema/DB, sync data during transition with events or CDC (change data capture), and remove shared-table access last."
+        ],
+        "example": "Extracting payments from a food-delivery monolith: build payments-service with its own DB, route POST /payments to it at the gateway, make the monolith read payment status via the service API instead of the old table, run both paths behind a feature flag, then delete the monolith's payment module."
+      }
+    ]
+  },
+  {
+    "id": "observability",
+    "title": "Monitoring, Alerting & Logging",
+    "track": "infra",
+    "topics": [
+      {
+        "q": "Observability: Metrics, Logs, Traces",
+        "level": "junior",
+        "a": [
+          "The three pillars. Metrics: numeric time-series (request rate, error rate, latency, CPU) — cheap to store, great for dashboards/alerts, but no per-request detail. Logs: timestamped event records — great for 'what exactly happened' on one request, expensive at scale if unstructured. Traces: follow a single request across multiple services, showing where time was spent at each hop.",
+          "Together they answer: metrics say something's wrong, traces show where, logs show why."
+        ],
+        "example": "Alert fires: p99 latency on checkout-service spiked (metric). You open the trace for a slow request and see 400ms was spent in a call to the inventory-service (trace). You check inventory-service logs at that timestamp and find it was retrying a timed-out DB query (log)."
+      },
+      {
+        "q": "Prometheus Metric Types",
+        "level": "mid",
+        "a": [
+          "Counter: only goes up (or resets to 0 on restart) — e.g. total requests served, total errors. Gauge: goes up or down — e.g. current memory usage, active connections. Histogram: buckets observations (e.g. request duration) so you can compute percentiles/quantiles server-side or at query time. Summary: similar to histogram but computes quantiles client-side (less flexible for aggregation across instances)."
+        ],
+        "example": "http_requests_total (counter) increments on every request. http_request_duration_seconds (histogram) buckets latencies so you can query histogram_quantile(0.99, ...) in PromQL to get p99 latency."
+      },
+      {
+        "q": "SLI / SLO / SLA",
+        "level": "mid",
+        "a": [
+          "SLI (Service Level Indicator): the actual measured metric — e.g. '99.95% of requests succeeded in the last 30 days.' SLO (Service Level Objective): your internal target for that SLI — e.g. 'we aim for 99.9% availability.' SLA (Service Level Agreement): an external, often contractual promise to customers, usually with a penalty if missed — typically looser than your internal SLO so you have buffer."
+        ],
+        "example": "SLI: measured uptime = 99.92% this month. SLO (internal target): 99.9%. SLA (customer contract): 99.5%, with service credits if breached. You're inside SLO and SLA, but watching the trend closely."
+      },
+      {
+        "q": "Alerting Best Practices",
+        "level": "senior",
+        "a": [
+          "Alert on symptoms users feel (high error rate, high latency, SLO burn rate) — not on every internal cause, or you get alert fatigue and people start ignoring pages. Every alert should be actionable: if it fires and there's nothing to do, it shouldn't page anyone (make it a dashboard instead).",
+          "Use burn-rate alerting for SLOs: alert faster when you're burning your error budget fast (multi-window, multi-burn-rate alerts), not on a single static threshold."
+        ],
+        "example": "Instead of paging on 'CPU > 80% for 1 minute' (noisy, not always user-impacting), page on 'error rate > 5% for 5 minutes' or 'we've burned 10% of this month's error budget in the last hour' — both directly reflect user pain."
+      },
+      {
+        "q": "Centralized Logging",
+        "level": "junior",
+        "a": [
+          "In distributed systems, logs from dozens of services/instances must be shipped to one searchable place — you can't SSH into every box. Common stack: app writes structured (JSON) logs → shipped (Fluentd/Vector/Filebeat) → stored & indexed (Elasticsearch/Loki) → visualized (Kibana/Grafana).",
+          "Structured logging (key-value/JSON, not free-text) is what makes logs queryable and correlatable across a whole request."
+        ],
+        "example": "{\"timestamp\":\"...\",\"level\":\"error\",\"service\":\"checkout\",\"trace_id\":\"abc123\",\"msg\":\"payment gateway timeout\",\"user_id\":42}\nThe shared trace_id lets you pull every log line across every service for that one request."
+      },
+      {
+        "q": "Distributed Tracing",
+        "level": "mid",
+        "a": [
+          "A trace represents one request's full journey across services; it's made of spans (one span per unit of work, e.g. one service call or DB query), each with a start/end time and parent-child relationship. OpenTelemetry (OTel) is the current standard for instrumenting apps to emit traces/metrics/logs consistently."
+        ],
+        "example": "Request → API gateway span → auth-service span (50ms) → orders-service span (30ms) → payments-service span (400ms, the slow one) → response. The trace waterfall view instantly shows payments-service as the bottleneck."
+      },
+      {
+        "q": "Dashboards (Grafana)",
+        "level": "junior",
+        "a": [
+          "Grafana visualizes metrics (from Prometheus, ClickHouse, etc.) as dashboards — graphs, gauges, tables — usually organized around a service or an SLO, so on-call can see health at a glance without querying manually. Good dashboards follow the USE method (Utilization, Saturation, Errors) for resources, or the RED method (Rate, Errors, Duration) for services."
+        ],
+        "example": "A service dashboard using RED: request rate (req/s), error rate (%), duration (p50/p95/p99 latency) — three panels that answer 'is this service healthy right now' in one glance."
+      }
+    ]
+  },
+  {
+    "id": "distributed",
+    "title": "Distributed Systems & Messaging",
+    "track": "distributed",
+    "topics": [
+      {
+        "q": "Message Queue vs Pub/Sub",
+        "level": "junior",
+        "a": [
+          "Message queue (e.g. RabbitMQ, SQS): a message is typically consumed by exactly one worker from the queue — good for distributing work/tasks across a worker pool. Pub/Sub (e.g. Kafka topics, SNS): a message is broadcast to every subscriber independently — good for fanning an event out to multiple, unrelated consumers who each need to react to it."
+        ],
+        "example": "A queue: image-resize jobs are pushed to a queue, and any one of 10 worker instances picks up and processes each job exactly once. Pub/Sub: an order-placed event is published once, and both the email-service and the analytics-service each independently receive and process their own copy."
+      },
+      {
+        "q": "Delivery Guarantees",
+        "level": "mid",
+        "a": [
+          "At-most-once: message might be lost, never duplicated (fire and forget). At-least-once: message is guaranteed delivered, but might be delivered more than once (most common default — retries on ambiguous failures). Exactly-once: delivered and processed exactly one time — very hard/expensive to guarantee end-to-end in a distributed system; in practice it's usually 'effectively-once' via at-least-once delivery + idempotent processing."
+        ],
+        "example": "A payment consumer might receive the same 'charge card' message twice due to a retry after a network blip (at-least-once) — without idempotency, that's a double charge. Making the handler idempotent (checked by a unique request/idempotency key) turns 'at-least-once delivery' into 'effectively-once processing.'"
+      },
+      {
+        "q": "Idempotency",
+        "level": "mid",
+        "a": [
+          "An operation is idempotent if running it multiple times has the same effect as running it once — critical for safely retrying in distributed systems, since retries are inevitable (timeouts, network blips) and you often can't tell if the first attempt actually succeeded.",
+          "Common technique: an idempotency key (client-generated unique ID per logical operation) — the server stores which keys it has already processed and returns the original result instead of re-executing on a duplicate."
+        ],
+        "example": "POST /payments with header Idempotency-Key: abc123. If the client retries the same request (e.g. after a timeout) with the same key, the server recognizes it's already been processed and returns the original charge result instead of charging the card again."
+      },
+      {
+        "q": "Event-Driven Architecture",
+        "level": "mid",
+        "a": [
+          "Services communicate by emitting events ('order placed', 'user signed up') to a broker, and other services react asynchronously — instead of directly calling each other synchronously. Decouples producers from consumers (a producer doesn't need to know who's listening), improves resilience (a consumer being down doesn't block the producer) and scalability, at the cost of harder-to-trace flows and eventual consistency between services."
+        ],
+        "example": "When an order is placed, orders-service just publishes order.placed — it doesn't know or care that inventory-service will decrement stock and notifications-service will send a confirmation email; both react independently, and orders-service isn't blocked waiting on either."
+      },
+      {
+        "q": "Kafka Partitions & Consumer Groups",
+        "level": "mid",
+        "a": [
+          "A Kafka topic is split into partitions for parallelism — each partition is an ordered, append-only log. Order is guaranteed within a partition, not across the whole topic. A consumer group has multiple consumer instances that split up a topic's partitions between them (each partition is read by exactly one consumer in the group at a time) — this is how Kafka scales consumption horizontally while still guaranteeing at-least-once processing per partition."
+        ],
+        "example": "A topic with 6 partitions and a consumer group of 3 instances: each instance gets 2 partitions. Messages for the same order_id are keyed to the same partition (same key → same partition), so all events for that order are processed in order by the same consumer."
+      },
+      {
+        "q": "Consensus & Eventual Consistency",
+        "level": "senior",
+        "a": [
+          "Consensus algorithms (Raft, Paxos) let a cluster of nodes agree on a single value/state even if some nodes fail or messages are delayed — the backbone of leader election in systems like etcd, Zookeeper, and many distributed databases. Raft in particular is popular because it's designed to be more understandable than Paxos: nodes elect a leader, the leader replicates a log to followers, and a value is committed once a majority acknowledge it.",
+          "Eventual consistency (contrast): no coordination overhead, replicas just converge over time — much simpler and more available, but the app must tolerate briefly stale reads."
+        ],
+        "example": "etcd (used by Kubernetes to store cluster state) uses Raft: a write is only acknowledged once a majority of etcd nodes have durably stored it, so the cluster state survives the loss of a minority of nodes without losing data or electing two conflicting leaders."
+      },
+      {
+        "q": "Circuit Breaker Pattern",
+        "level": "mid",
+        "a": [
+          "Prevents a failing downstream service from cascading failure through the whole system. States: Closed (normal, requests flow through), Open (after too many failures, requests fail fast immediately without even calling the downstream service, giving it room to recover), Half-Open (after a cooldown, let a few test requests through to see if it's healthy again before fully closing)."
+        ],
+        "example": "orders-service calls a flaky recommendations-service. After 5 consecutive failures, the circuit opens — for the next 30s, orders-service instantly returns a fallback (e.g. no recommendations) instead of waiting on timeouts, protecting its own latency and threads from the downstream outage."
+      },
+      {
+        "q": "Saga Pattern (Distributed Transactions)",
+        "level": "senior",
+        "a": [
+          "Since a single ACID transaction can't span multiple services/databases, a saga breaks a business transaction into a sequence of local transactions, each with a compensating action to undo it if a later step fails — trading strict atomicity for eventual consistency plus explicit rollback logic.",
+          "Choreography: each service listens for events and reacts, no central coordinator (simple, but flow gets hard to trace as it grows). Orchestration: a central coordinator explicitly tells each service what to do next (clearer flow, one more moving part to maintain)."
+        ],
+        "example": "Booking a trip = reserve flight → reserve hotel → charge card. If charging the card fails, the saga runs compensating actions in reverse: cancel hotel reservation, cancel flight reservation — no single DB transaction ever touched all three services."
+      }
+    ]
+  },
+  {
+    "id": "resilience",
+    "title": "Resilience & Kafka Operations",
+    "track": "distributed",
+    "topics": [
+      {
+        "q": "Retries, Backoff & Jitter",
+        "level": "mid",
+        "a": [
+          "Naive retries make outages worse: a struggling service gets hit by original traffic plus every client's retries (retry storm). Rules: retry only idempotent operations (or make them idempotent with keys), cap attempts (2-3), exponential backoff (1s, 2s, 4s) with jitter (randomness) so thousands of clients don't retry in synchronized waves.",
+          "Retry at ONE layer. If the client, the gateway and the service each retry 3x, one user click becomes 27 downstream calls. Also budget retries: stop retrying when overall error rate is high (retry budget/circuit breaker combo)."
+        ],
+        "example": "Payment call times out. Wrong: retry immediately in a loop, 5 times, at three layers. Right: idempotency key on the charge, 2 retries with backoff 500ms×2^n + jitter, then fail the request and let the circuit breaker open if the error rate stays high."
+      },
+      {
+        "q": "Timeouts & Deadline Propagation",
+        "level": "mid",
+        "a": [
+          "Every network call needs an explicit timeout: the default in most clients is infinite, and infinite waits pile up threads/goroutines until the service itself dies. A hanging dependency should cost you milliseconds of latency budget, not your worker pool.",
+          "Deadline propagation: the edge sets an overall budget (say 2s) and passes the remaining time down the chain (gRPC deadlines, Go context). Inner calls fail fast instead of doing work the caller already gave up on. Timeouts should shrink as you go deeper, never grow."
+        ],
+        "example": "Gateway budget 2s → orders-service uses 1.5s for its work → its call to inventory gets 500ms max. Without propagation: inventory happily takes 10s, gateway already returned 504 at 2s, and the work was wasted on a response nobody reads."
+      },
+      {
+        "q": "Bulkheads, Load Shedding & Backpressure",
+        "level": "senior",
+        "a": [
+          "Bulkhead: partition resources per dependency (separate connection pools, worker pools) so one slow downstream can only exhaust its own compartment, not the whole service. Named after ship compartments.",
+          "Load shedding: past a threshold, reject cheap and early (429/503 at the edge) instead of degrading for everyone. A bounded queue with rejection beats an unbounded queue that grows until OOM. Backpressure: consumers signal producers to slow down (bounded channels, Kafka consumer lag, TCP flow control) so pressure propagates instead of exploding somewhere.",
+          "Priority under stress: shed analytics and recommendations first, keep order placement and payment alive."
+        ],
+        "example": "recommendations-service goes slow. With one shared thread pool, all 200 threads end up stuck waiting on it and checkout dies too. With a 20-thread bulkhead for recommendations: those 20 block, timeouts + fallback (empty list) fire, checkout keeps its 180 threads."
+      },
+      {
+        "q": "Kafka Rebalancing & Offset Management",
+        "level": "senior",
+        "a": [
+          "Rebalance: when a consumer joins/leaves a group, partitions are reassigned. Classic (eager) rebalance stops the whole group during reassignment: frequent deploys/crash-loops mean constant pauses. Cooperative (incremental) rebalancing only moves the partitions that must move. Rolling deploys of consumers trigger rebalances: know that.",
+          "Offsets: auto-commit on a timer can commit offsets for messages you have not finished processing (crash = message lost) or lose work done after last commit (crash = reprocessing). For at-least-once: process first, then commit manually. Consumer lag (latest offset minus committed) is THE health metric for consumers: alert on it.",
+          "Poison pill risk: a message that always crashes the consumer blocks its whole partition forever unless you catch, route to DLQ and commit past it."
+        ],
+        "example": "order-events consumer crash-loops on one malformed message: partition 3 lag grows unbounded while other partitions are fine. Fix: try/catch around processing, 3 local attempts, then produce to order-events-dlq and commit the offset. Alert on DLQ rate and lag."
+      },
+      {
+        "q": "Dead Letter Queues & Replay",
+        "level": "senior",
+        "a": [
+          "DLQ: after N failed processing attempts, move the message to a dead-letter topic/queue with error metadata (exception, attempt count, original topic/offset) instead of retrying forever or dropping silently. The main flow keeps moving; failures become inspectable.",
+          "Retry topics pattern (Kafka): retry-5m and retry-1h topics with delayed consumers give transient failures time to heal before the DLQ. Replay: after fixing the bug, re-produce DLQ messages to the original topic. This only works because consumers are idempotent: replay means duplicates by design.",
+          "A DLQ nobody monitors is a silent data-loss pit: alert on DLQ depth and age."
+        ],
+        "example": "Payment webhook handler fails on a new provider field: 40 messages land in webhooks-dlq, alert fires, main flow unaffected. Deploy the fix, run the replay job, 40 messages reprocess cleanly, idempotency keys prevent double-charging the two that had partially succeeded."
+      }
+    ]
+  },
+  {
+    "id": "system-design",
+    "title": "System Design Fundamentals",
+    "track": "system design",
+    "topics": [
+      {
+        "q": "CAP Theorem",
+        "level": "mid",
+        "a": [
+          "In a distributed system, when a network partition happens, you must choose between Consistency (every read gets the latest write) and Availability (every request gets a response, even if not the latest data) — you can't have both during the partition. Partition tolerance is basically mandatory for any real distributed system, so CAP is really a C-vs-A trade-off during a partition.",
+          "CP systems (e.g. traditional RDBMS with sync replication, Zookeeper, HBase): reject requests rather than return stale data. AP systems (e.g. Cassandra, DynamoDB default): stay available and reconcile/eventual-consistency later."
+        ],
+        "example": "Two DB replicas in different regions lose their network link. A CP system refuses writes on the minority side until the link is restored (consistency over availability). An AP system keeps accepting writes on both sides and reconciles conflicts once reconnected (availability over consistency)."
+      },
+      {
+        "q": "Consistency Models",
+        "level": "senior",
+        "a": [
+          "Strong consistency: every read sees the latest committed write, everywhere, immediately — simplest to reason about, costliest to scale globally. Eventual consistency: replicas converge to the same value over time, but a read right after a write might return stale data — much easier to scale, needs conflict-resolution thinking. Causal consistency sits in between: operations that are causally related are seen in the same order by everyone, unrelated ones can differ."
+        ],
+        "example": "You update your profile photo. On a strongly consistent system, every friend sees the new photo instantly on any server. On an eventually consistent system, some friends might briefly still see the old photo until replication catches up (usually milliseconds to seconds)."
+      },
+      {
+        "q": "Horizontal vs Vertical Scaling",
+        "level": "junior",
+        "a": [
+          "Vertical scaling: make one machine bigger (more CPU/RAM) — simple, no architecture change needed, but has a hard ceiling and a single point of failure. Horizontal scaling: add more machines and distribute load across them (with a load balancer) — near-unlimited ceiling and better fault tolerance, but requires the app to be stateless (or externalize state to a shared store like Redis/DB) so any instance can handle any request."
+        ],
+        "example": "A stateful app storing sessions in local memory can't scale horizontally without breaking logins on other instances — moving sessions to Redis makes any instance interchangeable, unlocking horizontal scaling behind a load balancer."
+      },
+      {
+        "q": "Caching Strategies (System-Level)",
+        "level": "mid",
+        "a": [
+          "Layer caches close to where they save the most work: browser cache → CDN (static assets) → application-layer cache (Redis, for computed/DB results) → database's own query cache/buffer pool.",
+          "Key decisions: what to cache, TTL, and invalidation strategy (time-based expiry vs explicit invalidation on write vs versioned/keyed cache entries that just go stale naturally)."
+        ],
+        "example": "A product page: static images via CDN, the rendered page fragment cached in Redis for 60s (accepts slightly stale prices for huge read reduction), and the DB itself indexed so any cache miss is still fast."
+      },
+      {
+        "q": "Rate Limiting Algorithms",
+        "level": "mid",
+        "a": [
+          "Fixed window: count requests per fixed time bucket (e.g. per minute) — simple but allows bursts at window edges (2x limit right at the boundary). Sliding window: smooths that out by weighting the previous window. Token bucket: tokens refill at a steady rate, each request consumes one — allows short bursts up to the bucket size while enforcing a long-term average rate. Leaky bucket: requests queue and are processed at a constant rate, smoothing bursts entirely."
+        ],
+        "example": "Token bucket with 10 tokens, refilling 1/sec: a client can burst 10 requests instantly, then is limited to 1/sec after — good for APIs that need to tolerate occasional bursts without being abusable."
+      },
+      {
+        "q": "Database Sharding Strategies",
+        "level": "senior",
+        "a": [
+          "Range-based sharding: split by value ranges (e.g. user_id 1–1M on shard A) — simple, but can create hot shards if traffic isn't uniform. Hash-based sharding: hash the shard key to pick a shard — spreads load evenly, but makes range queries across shards harder and resharding painful. Directory-based: a lookup service maps keys to shards — flexible but adds a dependency/bottleneck.",
+          "Also decide a shard key that keeps related data together (e.g. shard by tenant_id in a multi-tenant app) to avoid expensive cross-shard joins."
+        ],
+        "example": "A multi-tenant SaaS shards its DB by tenant_id % N, so every query for one customer's data always hits a single shard — no cross-shard joins needed for normal app queries."
+      },
+      {
+        "q": "Reverse Proxy vs Load Balancer vs API Gateway",
+        "level": "junior",
+        "a": [
+          "Reverse proxy: sits in front of one or more backend servers, forwarding client requests to them (can also do TLS termination, caching, compression) — e.g. Nginx. Load balancer: a reverse proxy whose main job is distributing traffic across multiple identical backend instances. API Gateway: a reverse proxy specialized for APIs — adds auth, rate limiting, request routing to different microservices, request/response transformation, all in one entry point."
+        ],
+        "example": "An API Gateway sits at the edge: authenticates the JWT, rate-limits the client, then routes /orders/* to the orders-service and /payments/* to the payments-service, each of which has its own internal load balancer across its Pods."
+      },
+      {
+        "q": "Back-of-Envelope Estimation",
+        "level": "mid",
+        "a": [
+          "Interviewers often want quick capacity math to sanity-check a design, not exact numbers. Know rough orders of magnitude: 1 day ≈ 86,400s (~100k for quick math), memory access ~100ns, SSD read ~100μs, network round trip within a region ~0.5-1ms, cross-continent ~100-150ms.",
+          "Standard approach: estimate DAU/QPS → estimate read:write ratio and peak factor (often 2-3x average) → estimate storage growth per day/year → sanity check against a single machine's typical capacity (thousands of QPS, TBs of disk) to decide if you actually need to distribute."
+        ],
+        "example": "10M DAU, each makes 10 requests/day → 100M requests/day → ~1,150 req/s average, ~3,000-4,000 req/s at peak. That's enough to justify multiple app instances behind a load balancer, but likely still fits on a single well-indexed Postgres primary with read replicas — no need to shard yet."
+      }
+    ]
+  },
+  {
+    "id": "cases",
+    "title": "System Design Case Studies",
+    "track": "system design",
+    "topics": [
+      {
+        "q": "Interview Framework (How to Attack Any Design)",
+        "level": "mid",
+        "a": [
+          "Fixed order, say it out loud: 1) Requirements: functional + non-functional (scale, latency, consistency needs). 2) Back-of-envelope: DAU, QPS, storage. 3) API sketch: main endpoints. 4) Data model: core tables/entities. 5) High-level diagram: services, DB, cache, queue. 6) Deep dive where the interviewer steers. 7) Bottlenecks: single points of failure, hot spots, what breaks at 10x.",
+          "Senior signal: state trade-offs explicitly ('I choose eventual consistency here because...') and name what you are NOT building. Do not jump to microservices and Kafka before justifying them."
+        ],
+        "example": "Bad open: 'So we'll have a load balancer, some microservices and Kafka.' Good open: 'Who are the users, how many orders/day, and is order placement allowed to be down for a minute or never? That decides how much I invest in availability.'"
+      },
+      {
+        "q": "Design a Food Delivery App",
+        "level": "senior",
+        "a": [
+          "Core services: order-service (order state machine: placed → accepted → preparing → picked_up → delivered / cancelled), restaurant-service (menu, availability), dispatch-service (assign riders), payments, notifications. Orders and payments in Postgres (ACID). Menu/catalog cacheable in Redis. Events (order.placed, order.accepted) on a broker so services stay decoupled.",
+          "Rider tracking: riders ping location every few seconds. That write volume does not belong in Postgres: push to Redis (geo sets) or a time-series store, fan out to the customer over WebSocket/SSE. Dispatch: match by proximity (geohash / Redis GEO), rider load and restaurant prep time.",
+          "Peak handling (lunch and dinner rush): autoscale stateless services (HPA), queue order processing so bursts buffer instead of dropping, degrade gracefully: ETA and tracking can be stale, order placement and payment must not fail."
+        ],
+        "example": "Order flow: POST /orders → order-service validates cart against menu cache, creates order in Postgres + outbox event in one tx → payments charges (idempotency key) → order.paid event → restaurant tablet accepts → dispatch assigns nearest free rider via Redis GEO query → rider app streams GPS → customer WebSocket shows live ETA."
+      },
+      {
+        "q": "Design a Rate Limiter",
+        "level": "mid",
+        "a": [
+          "Requirements first: per-user or per-IP, limit shape (steady rate vs bursts allowed), global or per-instance, what happens on breach (429 + Retry-After).",
+          "Standard answer: token bucket per key stored in Redis, so all API instances share state. Check-and-decrement must be atomic: use a Lua script (read count, refill by elapsed time, decrement, set TTL in one call), otherwise two instances race. Local in-memory limiter in front as a cheap first layer is a nice bonus point.",
+          "Mention failure mode: if Redis is down, fail open (allow traffic) for availability or fail closed for protection. Say which and why for this API."
+        ],
+        "example": "Key rl:user:42, bucket size 20, refill 10/s. Lua script returns allowed/denied plus remaining. Response headers: X-RateLimit-Remaining, Retry-After on 429. Payment endpoints get a stricter separate bucket than read endpoints."
+      },
+      {
+        "q": "Design a Notification System",
+        "level": "senior",
+        "a": [
+          "Ingest: services publish notification events to a queue, never call SMS/email providers inline (slow, flaky third parties must not sit in the request path). Workers consume, apply user preferences and quiet hours, pick channel (push, SMS, email), call the provider adapter.",
+          "Reliability: retries with backoff per provider, DLQ for poison messages, idempotency key per notification so retries never double-send. Priority queues: OTP beats marketing. Dedup/collapse: 10 likes become one 'You have 10 likes' push.",
+          "Scale reads: delivery status and unread counts in Redis; full history in DB, partitioned by user."
+        ],
+        "example": "order.delivered event → notification-service worker checks prefs (push on, SMS off) → renders template in user's language (AR/EN) → pushes via FCM adapter with idempotency key order-123-delivered → marks sent. FCM 5xx: retry 3x with backoff, then DLQ + alert."
+      },
+      {
+        "q": "Design a URL Shortener",
+        "level": "junior",
+        "a": [
+          "Classic warm-up. Core: generate a short code for a long URL, redirect fast. Code generation options: base62-encode an auto-increment ID (simple, predictable), pre-generated key pool, or hash + collision check. For distributed ID generation without a single counter: Snowflake-style IDs or per-node ranges.",
+          "Read path dominates (100:1 or more): cache code → URL in Redis, CDN can even cache redirects. 301 (permanent, browsers cache, less analytics) vs 302 (temporary, every hit reaches you, full analytics): pick 302 if click tracking matters.",
+          "Storage math: 100M URLs × ~500 bytes ≈ 50 GB. Fits one Postgres with replicas: say that instead of sharding reflexively."
+        ],
+        "example": "GET /abc123 → Redis hit → 302 to long URL, click event dropped onto a queue for async analytics. Miss → Postgres lookup → backfill cache with TTL. Write path: POST /shorten → next ID from allocated range → base62 → store → return short URL."
+      }
+    ]
+  },
+  {
+    "id": "troubleshooting",
+    "title": "Troubleshooting Scenarios",
+    "track": "operations",
+    "topics": [
+      {
+        "q": "Debugging Methodology (Where to Start)",
+        "level": "mid",
+        "a": [
+          "A fixed order beats intuition under pressure: 1) Scope the blast radius: one endpoint or everything, one region or all, all users or a subset. 2) Check what changed: deploys, config flags, traffic shifts, dependency releases. Most incidents follow a change. 3) Read RED metrics (rate, errors, duration) for the service, then USE (utilization, saturation, errors) for its resources. 4) Follow one failing request with a trace, then read its logs. 5) Mitigate first (rollback, scale, flag off), root-cause later.",
+          "Say the mitigation-first part out loud in interviews: restoring service beats finding the bug. Rollback is a valid answer, not an admission of defeat."
+        ],
+        "example": "Checkout error rate hits 8% at 12:03. Deploy log shows a release at 11:58. Roll back first, confirm recovery at 12:07, then diff the release to find the bug. Total impact: 9 minutes. The wrong version: debugging live while users keep failing for an hour."
+      },
+      {
+        "q": "API Latency Spike (p99 up 10x)",
+        "level": "senior",
+        "a": [
+          "First split: p99 up while p50 flat means a subset of requests is slow: queueing, lock contention, one slow shard or dependency, GC pauses, cold cache. Both up means systemic: saturation, downstream slowdown or a bad deploy.",
+          "Checklist: RED dashboard to find which endpoint; a trace to see where the time goes (own CPU vs downstream call vs DB); connection pool wait time; DB slow query log; cache hit rate; GC pause metrics; retry amplification (a slow dependency plus retries multiplies its own load)."
+        ],
+        "example": "Trace shows 1.8s of a 2s request inside one DB call. pg_stat_activity: dozens of queries waiting on the same row lock. Root cause: a new cron job runs a long transaction updating hot rows. Kill the job, p99 recovers instantly; permanent fix: move it off-peak and commit in small chunks."
+      },
+      {
+        "q": "Database CPU at 100%",
+        "level": "senior",
+        "a": [
+          "Order of checks: 1) pg_stat_activity: what runs right now, is one query piled up many times. 2) pg_stat_statements: top queries by total time. 3) EXPLAIN the top offender: a seq scan on a big table usually means a missing or unusable index (function on an indexed column, implicit cast, stale statistics). 4) Connection count: hundreds of active backends burn CPU on context switching even when each query is fine. 5) Autovacuum health: bloat and outdated stats push the planner into bad plans.",
+          "Quick mitigations: kill the offending query, CREATE INDEX CONCURRENTLY for the missing index, route reads to a replica, cache the hot query in Redis."
+        ],
+        "example": "An ORM upgrade silently dropped eager loading: 50k identical single-row SELECTs per minute (N+1 flood). Each query is cheap; together they eat all CPU. pg_stat_statements shows the calls count exploding while mean time stays tiny: that signature = N+1. Fix: restore the JOIN/eager load."
+      },
+      {
+        "q": "Memory Leak Hunt",
+        "level": "mid",
+        "a": [
+          "Symptoms: RSS climbs steadily under flat traffic, restarts fix it temporarily, Kubernetes shows OOMKilled (exit code 137) restart loops that look like random crashes. Confirm leak vs load: memory must grow while traffic does not.",
+          "Method: take two heap profiles at different times and diff them (pprof in Go, heap snapshots in Node, jmap + MAT in Java). Usual suspects: unbounded in-memory caches or maps, listeners and goroutines never cleaned up on error paths, per-connection buffers, globals holding request-scoped data."
+        ],
+        "example": "Go service: goroutine count in pprof grows forever. Each request spawns a goroutine waiting on a channel that is never closed on the error path. Fix: pass a context and select on ctx.Done() so the goroutine exits when the request dies."
+      },
+      {
+        "q": "Queue Backlog Growing",
+        "level": "senior",
+        "a": [
+          "Lag grows when produce rate exceeds consume rate. First question: spike (will drain on its own) or steady growth (never drains without action). Then check consumer health: crash loops, rebalance storms, one stuck partition (poison message), or a slow downstream dependency inside the handler.",
+          "Fix by cause: scale consumers (in Kafka this only helps up to the partition count), DLQ the poison message and commit past it, batch the slow downstream call, raise partition count for future headroom, apply backpressure upstream if producers can slow down."
+        ],
+        "example": "Lag alert: one partition lagging, the rest fine → poison message crash-looping its consumer; DLQ it and lag drains in minutes. All partitions lagging evenly → the payment API the handler calls got 300ms slower; batch the calls or scale consumers."
+      },
+      {
+        "q": "Cascading Failure Triage",
+        "level": "senior",
+        "a": [
+          "The pattern: one dependency slows down, callers' threads and connections pile up waiting on it, their pools exhaust, their own callers start failing, and the whole system browns out. Retries and aggressive health-check evictions amplify every step.",
+          "Triage: find the deepest unhealthy service (the first to degrade in the timeline), not the loudest alert: alerts fire top-down but causes live bottom-up. Mitigate: shed load at the edge, open circuit breakers or flag the feature off, scale the true bottleneck, temporarily disable retries.",
+          "Prevention vocabulary to name: timeouts with deadline propagation, circuit breakers, bulkheads, load shedding, jittered retries, graceful degradation."
+        ],
+        "example": "Recommendations DB slows → recommendations-service saturates → product-page calls it with no timeout and exhausts its thread pool → homepage goes down. One 200ms timeout plus an empty-list fallback at the top restores everything except recommendations while the DB is fixed."
+      }
+    ]
+  },
+  {
+    "id": "dsa",
+    "title": "DSA Pattern Cheat Sheet",
+    "track": "coding",
+    "topics": [
+      {
+        "q": "Pattern Triggers (Which Tool When)",
+        "level": "junior",
+        "a": [
+          "Sorted input + target or pair → two pointers or binary search. Contiguous subarray/substring with a constraint → sliding window. Counting, duplicates, complements → hash map. Top-K or K-th largest → heap. All paths, permutations, nested choices → DFS/backtracking. Shortest path or level-by-level → BFS. Overlapping subproblems with optimal substructure → dynamic programming. Prerequisites or ordering → topological sort. Connectivity and grouping → union-find.",
+          "Interviews reward naming the pattern before coding: 'longest substring with at most K distinct characters is a sliding window with a frequency map.' It shows recognition, not luck."
+        ],
+        "example": "Two numbers summing to a target: unsorted → one-pass hash map of complements, O(n). Already sorted → two pointers from both ends, O(n) time and O(1) space. Same problem, two patterns; the sorted property decides."
+      },
+      {
+        "q": "Two Pointers & Sliding Window",
+        "level": "junior",
+        "a": [
+          "Two pointers, three flavors: converging ends on sorted data (pair sum, container with most water), fast/slow (cycle detection, middle of a linked list), read/write (in-place dedup or removal). Sliding window: grow the right edge, shrink the left edge while the constraint is broken, keep window state in counters or a frequency map.",
+          "Why they are O(n): each element enters and leaves the window (or is passed by a pointer) at most once. No restart from scratch per position."
+        ],
+        "example": "Longest substring without repeating characters: move right adding chars to a set; on a duplicate, move left removing chars until unique again; track max window size. Every char is added once and removed at most once."
+      },
+      {
+        "q": "BFS vs DFS vs Binary Search Decisions",
+        "level": "mid",
+        "a": [
+          "BFS: shortest path in unweighted graphs, minimum number of steps, level-order processing. Queue plus a visited set. DFS: exhaustive exploration, path existence, backtracking, tree recursion, topological sort. Watch recursion depth on large inputs.",
+          "Binary search is not just for sorted arrays: any monotonic yes/no question ('does capacity X suffice?') can be binary searched on the answer space. If feasibility only flips once as X grows, binary search the smallest feasible X."
+        ],
+        "example": "Minimum ship capacity to deliver packages within D days: bigger capacity always still works (monotonic), so binary search capacity between max(weight) and sum(weights), greedily checking each candidate in O(n). Classic binary search on the answer."
+      },
+      {
+        "q": "Complexity Quick Reference",
+        "level": "junior",
+        "a": [
+          "Rules of thumb: roughly 10^8 simple operations per second. n ≤ 20 → exponential/backtracking is fine. n ≤ 5,000 → O(n²) is fine. n around 10^5 to 10^6 → you need O(n log n) or O(n). Sorting is O(n log n); heap push/pop O(log n); hash operations O(1) average; binary search O(log n).",
+          "Space counts too: recursion depth is stack space, and many DP tables compress to two rows.",
+          "Practice reps live in vizly DSA Quest; this section is recall only."
+        ],
+        "example": "n = 10^5 with a nested loop = 10^10 operations: guaranteed timeout. That number alone tells you to reach for sort + two pointers, a hash map, or a heap to drop a factor of n before writing any code."
+      }
+    ]
+  },
+  {
+    "id": "golang",
+    "title": "Go (GoLang)",
+    "track": "language",
+    "topics": [
+      {
+        "q": "Goroutines & Channels",
+        "level": "junior",
+        "a": [
+          "A goroutine is a lightweight thread managed by the Go runtime: a few KB of stack, multiplexed onto OS threads by the scheduler (M:N), so hundreds of thousands are fine. Started with the go keyword.",
+          "Channels are typed pipes between goroutines: 'share memory by communicating, not communicate by sharing memory.' Unbuffered channel: send blocks until a receiver is ready (a synchronization point). Buffered channel: send blocks only when the buffer is full. close(ch) signals no more values; range over a channel reads until it is closed."
+        ],
+        "example": "Worker pool: jobs := make(chan Job, 100). Start 10 goroutines that do 'for job := range jobs { process(job) }'. The producer sends jobs and calls close(jobs) when done; a sync.WaitGroup waits for all workers to finish."
+      },
+      {
+        "q": "select, context & sync",
+        "level": "mid",
+        "a": [
+          "select waits on multiple channel operations and runs whichever is ready first: the core tool for timeouts, cancellation and multiplexing. context.Context carries deadlines and cancellation down a call chain; every blocking call should respect ctx.Done(). Cancel a parent context and everything below it stops.",
+          "sync package: Mutex/RWMutex for shared state, WaitGroup to wait for a set of goroutines, Once for one-time init. errgroup (golang.org/x/sync) combines WaitGroup with error propagation and context cancellation."
+        ],
+        "example": "HTTP handler: ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second); defer cancel(). Pass ctx into the DB query. If the client disconnects or 2s pass, the query is cancelled instead of leaking a goroutine."
+      },
+      {
+        "q": "Interfaces & Composition",
+        "level": "mid",
+        "a": [
+          "Go interfaces are satisfied implicitly: any type with the matching methods implements the interface, no 'implements' keyword. This keeps packages decoupled: define the interface where it is used (the consumer), not where it is implemented.",
+          "Idioms: keep interfaces small (io.Reader has one method), 'accept interfaces, return structs.' There is no inheritance: reuse comes from struct embedding (composition)."
+        ],
+        "example": "The orders package defines: type Notifier interface { Notify(ctx context.Context, msg string) error }. EmailNotifier and SlackNotifier satisfy it automatically just by having that method, and never need to import the orders package."
+      },
+      {
+        "q": "Error Handling in Go",
+        "level": "junior",
+        "a": [
+          "Errors are plain values returned as the last result and checked with if err != nil. No exceptions for normal control flow. Wrap errors with context: fmt.Errorf(\"fetch user %d: %w\", id, err); inspect the chain with errors.Is (sentinel match) and errors.As (type match).",
+          "panic/recover is only for truly unrecoverable states, never for expected failures like a missing row. defer runs cleanup on the way out (close files, unlock mutexes) in LIFO order."
+        ],
+        "example": "if errors.Is(err, sql.ErrNoRows) { return nil, ErrUserNotFound }. The repository translates a driver-level error into a domain error, and the HTTP handler maps that domain error to a 404."
+      },
+      {
+        "q": "Slices, Maps & the Runtime",
+        "level": "mid",
+        "a": [
+          "A slice is a small header (pointer, length, capacity) over a backing array: two slices can share the same array, so a write through one is visible in the other. append may reallocate, so always assign the result back. Maps are not safe for concurrent writes: guard with a mutex or use sync.Map.",
+          "Runtime: concurrent mark-and-sweep GC tuned for sub-millisecond pauses, GOMAXPROCS controls parallelism. Go compiles to one static binary, which is why Go container images are tiny (FROM scratch works)."
+        ],
+        "example": "b := a[:2] then b = append(b, x): if a had spare capacity, x silently overwrites a[2]. Classic interview gotcha. Safe copy: c := make([]int, len(a)); copy(c, a)."
+      }
+    ]
+  },
+  {
+    "id": "behavioral",
+    "title": "Behavioral & Senior Signals",
+    "track": "career",
+    "topics": [
+      {
+        "q": "STAR Framework & Story Bank",
+        "level": "junior",
+        "a": [
+          "STAR: Situation (one sentence of context), Task (what YOU owned), Action (what YOU did: 70% of the answer, say 'I' not 'we'), Result (quantified outcome + what you learned). Keep the whole answer 2-3 minutes.",
+          "Prepare 6-8 stories before interviews and map them to the usual questions: hardest technical problem, conflict with a colleague, failure/mistake, tight deadline, mentoring someone, disagreeing with a decision, leading without authority. One strong story can serve multiple questions from different angles.",
+          "Quantify results: '82M requests/month', 'cut p99 from 800ms to 120ms', 'onboarding time from 2 weeks to 3 days'. Numbers make stories credible and memorable."
+        ],
+        "example": "'Tell me about a production issue you owned': Situation: checkout errors spiked at peak. Task: I was on call and led the incident. Action: I checked the RED dashboard, traced it to pool exhaustion, applied a bulkhead + capped pools, wrote the postmortem. Result: 40 minutes of impact, and the class of incident never recurred; the fix became a platform default."
+      },
+      {
+        "q": "Mentoring & Code Review Answers",
+        "level": "senior",
+        "a": [
+          "Senior roles are expected to mentor, so have concrete answers ready. Mentoring: pair on real tickets rather than lecture, give the junior a slightly-too-big task with a safety net, do regular 1:1s, measure success by them not needing you anymore.",
+          "Code review philosophy: review for correctness, tests and design first, style last (linters own style). Distinguish blocking issues from nitpicks explicitly ('nit:' prefix). Comment on the code, never the person; ask questions instead of commanding ('what happens if this times out?'). Big PRs get a synchronous walkthrough instead of 200 comments.",
+          "Senior signal: you raise the team's level (docs, patterns, onboarding), not just your own output."
+        ],
+        "example": "Question: 'A junior keeps submitting buggy PRs, what do you do?' Answer shape: first pair with them privately to find the real gap (testing habits? domain knowledge?), agree on a pre-PR checklist, pair-write tests for the next feature, then track improvement over a month before involving the manager."
+      },
+      {
+        "q": "Conflict, Disagreement & Ambiguity",
+        "level": "mid",
+        "a": [
+          "Disagreement pattern interviewers want: you argued with data and prototypes, not volume; you genuinely listened to the other side; a decision got made (by you, consensus or escalation); then you committed fully even if it wasn't your choice: disagree and commit.",
+          "Ambiguity (a standard senior-role requirement): show a bias for reversible action. Timebox research, write a one-page proposal with options and a recommendation, pick the reversible option when unsure, set a checkpoint to revisit. Never 'I waited for someone to decide.'",
+          "Escalation is not failure: escalating a stuck decision with a clear write-up of both options is a senior move."
+        ],
+        "example": "'I pushed for Postgres, a teammate wanted MongoDB. I wrote a one-pager comparing both against our access patterns and ran a load test on the riskiest query. We picked Postgres, but their concern about schema churn was valid, so we added a jsonb column for the volatile attributes. Shipped on time; both of us owned the result.'"
+      },
+      {
+        "q": "Go, Ruby/Rails, Java/JVM, Python Quick Notes",
+        "level": "mid",
+        "a": [
+          "Go: compiled to one static binary, goroutines make high concurrency cheap (no GIL/GVL equivalent), low memory footprint and fast startup: the default pick for new microservices, proxies and infra tooling. Small language by design: little magic, fast onboarding, but more boilerplate than Rails/Django. The dedicated Go section above covers it in depth.",
+          "Ruby/Rails: MRI has a GVL (global VM lock), so one process runs one thread of Ruby at a time; scaling is multi-process (Puma workers) plus threads for I/O. Rails = convention over configuration: ActiveRecord ORM (watch N+1: use includes), migrations, Sidekiq (Redis-backed) for background jobs. Many delivery and e-commerce companies still run a Rails monolith, so expect at least respect-level questions.",
+          "Java/JVM: real OS threads (virtual threads since 21 for cheap concurrency), generational GC (G1 default, ZGC for low pause), JIT warms up hot paths. Spring Boot: DI container, @Transactional, heavy but battle-tested for large teams.",
+          "Python: GIL means threads don't help CPU-bound work: use multiprocessing or async I/O (FastAPI/asyncio) for concurrency. Type hints + mypy for large codebases. Common in tooling, data and ML services around a Go/Java core.",
+          "Interview stance: 'strongest in Go/Node, productive quickly in the others, and the fundamentals (DB, HTTP, testing, design) transfer.' Then prove it with these specifics."
+        ],
+        "example": "Question: 'Rails app is slow under load, what do you check?' Answer: N+1 queries via the log (bullet gem), missing indexes, GVL contention meaning too few Puma workers, slow external calls without timeouts inside request threads, then cache fragments/queries. Same playbook as any stack, named in Rails terms."
+      }
+    ]
+  }
+]

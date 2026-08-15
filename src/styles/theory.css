@@ -1,0 +1,487 @@
+/* Backend Engineer Theory — compact master-detail layout.
+   Uses global design tokens only (dark default + [data-theme="light"] overrides). */
+
+.theory-page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+}
+
+.theory-head {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.theory-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+}
+
+.theory-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.02em;
+    color: var(--text-hi);
+    margin-top: 8px;
+}
+
+.theory-sub {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 10px;
+}
+
+/* Controls */
+.theory-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.theory-search {
+    flex: 1 1 260px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-hi);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.theory-search:focus {
+    border-color: var(--cyan);
+}
+
+.theory-search::placeholder {
+    color: var(--text-dim);
+}
+
+.theory-levels {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.theory-level-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.theory-level-btn:hover {
+    color: var(--text-hi);
+    border-color: var(--border2);
+}
+
+.theory-level-btn.is-active {
+    color: var(--text-hi);
+    border-color: var(--text-dim);
+    background: var(--surface2);
+}
+
+.theory-level-btn.lv-junior.is-active { border-color: var(--green); }
+.theory-level-btn.lv-mid.is-active { border-color: var(--blue); }
+.theory-level-btn.lv-senior.is-active { border-color: var(--purple); }
+
+.theory-level-count {
+    font-size: 10px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border-radius: 999px;
+    padding: 1px 7px;
+}
+
+/* Two-pane layout */
+.theory-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Left: compact list */
+.theory-section {
+    margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.theory-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px 8px;
+}
+
+.theory-section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    color: var(--text-hi);
+}
+
+.theory-track {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+.theory-topics {
+    border-top: 1px solid var(--border);
+    padding: 4px 0;
+}
+
+.theory-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: var(--font-hero);
+    font-size: 13px;
+    color: var(--text);
+    transition: background 0.15s, color 0.15s;
+}
+
+.theory-row:hover {
+    background: var(--surface2);
+    color: var(--text-hi);
+}
+
+.theory-row.is-active {
+    background: var(--surface2);
+    color: var(--text-hi);
+    font-weight: 700;
+}
+
+.theory-row-q {
+    flex: 1;
+}
+
+/* Level markers */
+.theory-level-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+}
+
+.theory-level-dot.lv-junior { background: var(--green); }
+.theory-level-dot.lv-mid { background: var(--blue); }
+.theory-level-dot.lv-senior { background: var(--purple); }
+
+.theory-level-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 2px 9px;
+    border: 1px solid var(--border);
+}
+
+.theory-level-pill.lv-junior { color: var(--green); border-color: var(--green); }
+.theory-level-pill.lv-mid { color: var(--blue); border-color: var(--blue); }
+.theory-level-pill.lv-senior { color: var(--purple); border-color: var(--purple); }
+
+/* Right: sticky detail pane */
+.theory-detail {
+    position: sticky;
+    top: 84px;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+}
+
+.theory-detail-close {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-hi);
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.theory-detail-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+}
+
+.theory-detail-q {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    color: var(--text-hi);
+    margin-bottom: 12px;
+}
+
+.theory-detail-body p {
+    font-family: var(--font-hero);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-top: 10px;
+}
+
+.theory-detail-body p:first-child {
+    margin-top: 0;
+}
+
+.theory-example {
+    margin-top: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.theory-example-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 6px;
+}
+
+.theory-example pre {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+.theory-empty {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 40px 0;
+}
+
+/* Mode toggle */
+.theory-mode-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.theory-mode-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: background 0.15s, color 0.15s;
+}
+
+.theory-mode-btn.is-active {
+    background: var(--text-hi);
+    color: var(--bg);
+}
+
+/* Quiz mode */
+.quiz-card {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+}
+
+.quiz-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+}
+
+.quiz-top-level {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+}
+
+.quiz-top-level.lv-junior { color: var(--green); }
+.quiz-top-level.lv-mid { color: var(--blue); }
+.quiz-top-level.lv-senior { color: var(--purple); }
+
+.quiz-q {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--text-hi);
+    margin-bottom: 14px;
+}
+
+.quiz-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.quiz-actions-center {
+    justify-content: center;
+}
+
+.quiz-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 9px 17px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.quiz-btn:hover {
+    background: var(--surface2);
+    color: var(--text-hi);
+}
+
+.quiz-btn-reveal {
+    background: var(--text-hi);
+    color: var(--bg);
+    border-color: transparent;
+}
+
+.quiz-btn-reveal:hover {
+    background: var(--text-hi);
+    color: var(--bg);
+    opacity: 0.85;
+}
+
+.quiz-btn-know {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.quiz-btn-review {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.quiz-btn-skip {
+    color: var(--text-dim);
+}
+
+.quiz-kbd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 16px;
+}
+
+.quiz-done {
+    text-align: center;
+    padding: 50px 0;
+}
+
+.quiz-done p {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    margin-bottom: 18px;
+}
+
+.quiz-done .quiz-kbd {
+    margin-top: 20px;
+}
+
+/* Mobile: single column, detail becomes a bottom sheet */
+@media (max-width: 860px) {
+    .theory-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .theory-detail {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        max-height: 78vh;
+        z-index: 60;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35);
+        transform: translateY(105%);
+        transition: transform 0.25s ease;
+    }
+
+    .theory-detail.is-open {
+        transform: none;
+    }
+
+    .theory-detail-close {
+        display: flex;
+    }
+}
