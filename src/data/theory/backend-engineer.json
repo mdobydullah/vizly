@@ -299,6 +299,33 @@
     "track": "design",
     "topics": [
       {
+        "q": "OOP Pillars (Encapsulation, Abstraction, Inheritance, Polymorphism)",
+        "level": "junior",
+        "a": [
+          "Encapsulation: bundle data with the methods that operate on it and hide internal state behind a small public surface (private fields, expose only what callers need). Abstraction: expose what a thing does, hide how (interfaces, abstract types). Inheritance: an is-a relationship reusing a parent's behavior; powerful but the tightest coupling in OOP. Polymorphism: one interface, many implementations; the caller invokes the method without knowing which concrete type answers.",
+          "Interview trap: encapsulation vs abstraction sound alike. Encapsulation hides state (implementation data), abstraction hides complexity (implementation logic)."
+        ],
+        "example": "PaymentMethod interface with pay(amount). CreditCard, ApplePay and CashOnDelivery each implement it. Checkout calls method.pay(total) and never branches on the concrete type: polymorphism is what kills the if/else chain."
+      },
+      {
+        "q": "Composition vs Inheritance",
+        "level": "junior",
+        "a": [
+          "Inheritance: is-a. The subclass is tightly coupled to parent internals, and deep hierarchies turn fragile: change a base class and every child can break (the fragile base class problem). Composition: has-a. Build behavior by combining small objects; parts are swappable at runtime and testable in isolation.",
+          "The answer interviewers want: prefer composition, reach for inheritance only on a genuine, stable is-a relationship. Go dropped inheritance entirely in favor of embedding, and even classic Java guidance says favor composition."
+        ],
+        "example": "Bad: ElectricCar extends Car extends Vehicle, then a hybrid breaks the tree. Good: Car has an Engine (electric, petrol or hybrid injected at construction). New combinations need no new hierarchy, and each Engine is unit-tested alone."
+      },
+      {
+        "q": "Abstract Class vs Interface",
+        "level": "junior",
+        "a": [
+          "Interface: a pure contract, no state, a class can implement many. Use for capabilities shared across unrelated types (Comparable, PaymentGateway, Notifiable). Abstract class: can hold state and partial implementation, single inheritance only. Use to share a code skeleton among closely related subclasses (template method pattern).",
+          "Modern languages blur the line (Java default methods, Kotlin interfaces with bodies), but the decision rule survives: contract across unrelated types → interface; shared skeleton within one family → abstract class."
+        ],
+        "example": "BaseRepository abstract class wires common CRUD once; each subclass fills in only the entity mapping (template method). Meanwhile Notifiable stays an interface because User, Vendor and Rider are unrelated types that all receive notifications."
+      },
+      {
         "q": "SOLID Principles",
         "level": "junior",
         "a": [

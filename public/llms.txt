@@ -189,7 +189,7 @@
 
 ## Theory
 
-- [Backend Engineer Theory](/theory/backend-engineer): 101 interview theory topics across 16 sections, tagged junior, mid and senior, each with a plain explanation and concrete example.
+- [Backend Engineer Theory](/theory/backend-engineer): 114 interview theory topics across 18 sections, tagged junior, mid and senior, each with a plain explanation and concrete example.
 
 ## About
 
