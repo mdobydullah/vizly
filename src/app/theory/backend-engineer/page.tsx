@@ -37,6 +37,21 @@ function shuffle<T>(input: T[]): T[] {
     return arr;
 }
 
+// Lightweight highlighter: comments, quoted strings, SQL keywords. Input is
+// HTML-escaped before any spans are added, so the innerHTML below is safe.
+function highlightExample(text: string): string {
+    const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return escaped
+        .split("\n")
+        .map(line =>
+            line
+                .replace(/("[^"\n]*"|'[^' ]{1,40}')/g, '<span class="tok-s">$1</span>')
+                .replace(/\b(SELECT|FROM|WHERE|JOIN|ON|CREATE|INDEX|UPDATE|INSERT|DELETE|BEGIN|COMMIT|SET)\b/g, '<span class="tok-k">$1</span>')
+                .replace(/(^|\s)((?:#|\/\/)\s.*)$/, (_m, pre: string, com: string) => `${pre}<span class="tok-c">${com}</span>`)
+        )
+        .join("\n");
+}
+
 function TopicBody({ topic }: { topic: TheoryTopic }) {
     return (
         <div className="theory-detail-body">
@@ -46,7 +61,7 @@ function TopicBody({ topic }: { topic: TheoryTopic }) {
             {topic.example && (
                 <div className="theory-example">
                     <span className="theory-example-label">Example</span>
-                    <pre>{topic.example}</pre>
+                    <pre dangerouslySetInnerHTML={{ __html: highlightExample(topic.example) }} />
                 </div>
             )}
         </div>

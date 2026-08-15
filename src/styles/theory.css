@@ -297,6 +297,22 @@
     margin-bottom: 6px;
 }
 
+/* Example syntax tokens (lightweight, regex-based) */
+.theory-example .tok-c,
+.theory-example .tok-c * {
+    color: var(--green);
+    font-style: italic;
+}
+
+.theory-example .tok-s {
+    color: var(--yellow);
+}
+
+.theory-example .tok-k {
+    color: var(--cyan);
+    font-weight: 700;
+}
+
 .theory-example pre {
     font-family: var(--font-body);
     font-size: 12px;
