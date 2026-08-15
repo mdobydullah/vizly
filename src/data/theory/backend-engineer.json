@@ -148,9 +148,9 @@
         "a": [
           "Normalization removes duplicate data by splitting tables so each fact lives in exactly one place.",
           "1NF: every column holds a single atomic value, no repeating groups. 2NF: 1NF + every non-key column depends on the WHOLE primary key (matters for composite keys). 3NF: 2NF + no non-key column depends on another non-key column (no transitive dependency). BCNF: a stricter 3NF for edge cases with overlapping candidate keys.",
-          "In interviews: denormalization is a valid trade-off for read-heavy systems — say so, don't just recite the forms."
+          "In interviews: denormalization is a valid trade-off for read-heavy systems. Say so, don't just recite the forms."
         ],
-        "example": "Bad (violates 2NF): orders(order_id, product_id, product_name, qty) — product_name depends only on product_id, not the full key.\nFixed: orders(order_id, product_id, qty) + products(product_id, product_name)."
+        "example": "Bad (violates 2NF):\n orders(order_id, product_id, product_name, qty)\n                              └ depends on product_id only, not the full key\n\nFixed:\n orders(order_id, product_id, qty)\n products(product_id, product_name)   ← each fact lives once\n\nReal world: rename a product in the normalized schema = 1 row update. In the bad schema = millions of order rows to fix (and some get missed: inconsistent data). Analytics warehouses denormalize on purpose (star schema) to skip joins on read-heavy queries."
       },
       {
         "q": "ACID Principles",
@@ -159,72 +159,72 @@
           "ACID is what a database transaction guarantees so your data stays correct even under failures or concurrent access.",
           "Atomicity: all steps in a transaction succeed or none do (all-or-nothing). Consistency: a transaction moves the DB from one valid state to another, respecting constraints. Isolation: concurrent transactions don't see each other's half-finished work. Durability: once committed, data survives a crash (written to disk/WAL)."
         ],
-        "example": "Bank transfer: debit account A, credit account B. Atomicity ensures if the credit fails, the debit is rolled back too — money never disappears. This is why it's wrapped in BEGIN ... COMMIT."
+        "example": "A: -100 ──┐\n          ├── one transaction: both apply or both roll back\nB: +100 ──┘\n\nBEGIN;\n  UPDATE accounts SET balance = balance - 100 WHERE id = 1;  -- debit A\n  UPDATE accounts SET balance = balance + 100 WHERE id = 2;  -- credit B\nCOMMIT;  -- atomic: crash between the two = full rollback\n\nReal world: server dies after the debit but before the credit: on restart the DB replays the WAL and rolls the half-done transaction back, money never vanishes. Durability = the WAL is fsynced to disk before COMMIT returns. Checkout flows wrap order row + payment row + stock decrement in one transaction for the same reason."
       },
       {
         "q": "Isolation Levels & Read Phenomena",
         "level": "mid",
         "a": [
           "Isolation level = how much one transaction is allowed to 'see' of another's uncommitted or concurrent changes. Stricter = safer but slower.",
-          "Read Uncommitted: can see uncommitted changes (dirty reads). Read Committed (Postgres default): only sees committed data, but a re-read within the same transaction can change (non-repeatable read). Repeatable Read: same rows stay stable for the transaction's duration, but new matching rows can appear (phantom read). Serializable: transactions behave as if run one after another — no anomalies, but most locking/retries.",
+          "Read Uncommitted: can see uncommitted changes (dirty reads). Read Committed (Postgres default): only sees committed data, but a re-read within the same transaction can change (non-repeatable read). Repeatable Read: rows you read stay stable for the whole transaction, but new matching rows can appear (phantom read). Serializable: transactions behave as if run one after another. No anomalies, but the most locking and retries.",
           "Phenomena to name-drop: dirty read, non-repeatable read, phantom read, lost update."
         ],
-        "example": "Two transactions both run SELECT balance WHERE id=1 under Read Committed. Between their two reads, another transaction commits an update — the second read in each returns a different value (non-repeatable read)."
+        "example": "level            │ dirty │ non-repeat │ phantom\nread uncommitted │  yes  │    yes     │  yes\nread committed   │  no   │    yes     │  yes   ← Postgres default\nrepeatable read  │  no   │    no      │  yes\nserializable     │  no   │    no      │  no\n\nBEGIN ISOLATION LEVEL REPEATABLE READ;\nSELECT balance FROM accounts WHERE id = 1;  -- same answer for whole transaction\n\nReal world: normal CRUD runs fine on Read Committed. Long reports use Repeatable Read for a stable snapshot (numbers don't shift mid-report). Money movement uses Serializable plus a retry loop: Postgres aborts one transaction with a serialization error instead of allowing an anomaly."
       },
       {
         "q": "Indexing",
         "level": "junior",
         "a": [
-          "An index is a separate data structure (usually a B-Tree) that lets the DB find rows without scanning the whole table — trades write speed + storage for read speed.",
-          "B-Tree index: default, good for equality and range queries (=, <, >, BETWEEN, ORDER BY). Hash index: fast equality lookups only. Composite (multi-column) index: order matters — it helps queries that filter on a left-to-right prefix of the columns. Covering index: includes all columns a query needs so it never touches the table (index-only scan).",
-          "Cost: every INSERT/UPDATE/DELETE has to update every index on that table too — don't over-index write-heavy tables."
+          "An index is a separate data structure (usually a B-Tree) that lets the DB find rows without scanning the whole table. It trades write speed and storage for read speed.",
+          "B-Tree index: default, good for equality and range queries (=, <, >, BETWEEN, ORDER BY). Hash index: fast equality lookups only. Composite (multi-column) index: order matters. It helps queries that filter on a left-to-right prefix of the columns. Covering index: includes every column a query needs so it never touches the table (index-only scan).",
+          "Cost: every INSERT/UPDATE/DELETE must update every index on that table too. Don't over-index write-heavy tables."
         ],
-        "example": "CREATE INDEX idx_orders_user_created ON orders(user_id, created_at);\nThis speeds up WHERE user_id = 5 AND created_at > '2026-01-01', and also just WHERE user_id = 5 — but NOT a query that filters on created_at alone."
+        "example": "Seq scan:  row1 ▶ row2 ▶ ... ▶ row 10,000,000   (reads everything)\nB-Tree:    root ▶ branch ▶ leaf ▶ row pointer     (3-4 hops, even at 10M rows)\n\nCREATE INDEX idx_orders_user_created ON orders(user_id, created_at);\n-- helps: WHERE user_id = 5 AND created_at > '2026-01-01'\n-- helps: WHERE user_id = 5             (leftmost prefix)\n-- useless: WHERE created_at > '2026-01-01'   (skips the first column)\n\nReal world: EXPLAIN showing Seq Scan on a big table is the classic slow-query smell, add the index and it flips to Index Scan. A write-heavy events table with 8 indexes updates 8 trees per insert: inserts crawl. Postgres primary keys get a B-Tree index automatically."
       },
       {
         "q": "Query Optimization",
         "level": "mid",
         "a": [
           "Use EXPLAIN / EXPLAIN ANALYZE to see the query planner's chosen path (seq scan vs index scan, join order, estimated vs actual rows) before guessing.",
-          "Common wins: add an index on filter/join/order-by columns, avoid SELECT *, avoid functions on indexed columns in WHERE (kills index usage), fix N+1 queries (one query per loop iteration) by batching or using JOIN/eager loading, and watch for implicit type casts that force a full scan."
+          "Common wins: add an index on filter/join/order-by columns, avoid SELECT *, avoid functions on indexed columns in WHERE (kills index usage), fix N+1 queries (one query per loop iteration) with JOIN or eager loading and watch for implicit type casts that force a full scan."
         ],
-        "example": "N+1 in an ORM: fetching 50 orders then looping to fetch each order's user = 51 queries. Fix: eager-load with a JOIN — SELECT * FROM orders o JOIN users u ON u.id = o.user_id — one query instead of 51."
+        "example": "N+1: 50 orders ▶ loop ▶ 50 user queries = 51 round trips\nFix: SELECT * FROM orders o JOIN users u ON u.id = o.user_id  (1 query)\n\nEXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 5;\n  Seq Scan on orders  (actual rows=2400000)   -- before: reads whole table\n  Index Scan using idx_user  (actual rows=120) -- after CREATE INDEX\n\nReal world: WHERE DATE(created_at) = '2026-08-15' kills the index (function on column), rewrite as a range: created_at >= '2026-08-15' AND created_at < '2026-08-16'. ORMs cause most N+1s silently: Django select_related, Rails includes, GORM Preload fix them."
       },
       {
         "q": "Memory Caching (Redis vs Memcached)",
         "level": "mid",
         "a": [
-          "Caching stores hot data in memory to skip expensive DB/computation round-trips. Redis: rich data structures (strings, hashes, lists, sets, sorted sets), persistence options, pub/sub, TTLs — closer to an in-memory data store. Memcached: pure key-value, multi-threaded, simpler and slightly faster for plain get/set at scale, no persistence.",
-          "Patterns: cache-aside (app checks cache, falls back to DB, then populates cache — most common), write-through (write to cache and DB together), write-behind (write to cache, async flush to DB). Always set a TTL and have an invalidation plan — 'cache invalidation' is famously one of the two hard problems in CS."
+          "Caching stores hot data in memory to skip expensive DB or computation round trips. Redis: rich data structures (strings, hashes, lists, sets, sorted sets), persistence options, pub/sub, TTLs. Closer to an in-memory data store. Memcached: pure key-value, multi-threaded, simpler and slightly faster for plain get/set at scale, no persistence.",
+          "Patterns: cache-aside (app checks cache, falls back to DB, then fills cache: most common), write-through (write cache and DB together), write-behind (write cache, flush to DB async). Always set a TTL and have an invalidation plan. Cache invalidation is famously one of the two hard problems in CS."
         ],
-        "example": "Cache-aside for a user profile: GET user:42 from Redis → miss → SELECT * FROM users WHERE id=42 → SETEX user:42 300 (the JSON payload, 5-min TTL) → return data. Next request within 5 min hits Redis, skips Postgres."
+        "example": "Cache-aside:\n app ─▶ Redis GET user:42 ── hit: return (~1ms)\n              │ miss\n              └▶ Postgres SELECT (~30ms) ─▶ SETEX user:42 300 ─▶ return\n\nPython:\n  val = r.get(key)                     # try cache first\n  if not val:\n      val = db.fetch(key); r.setex(key, 300, val)   # fill with 5 min TTL\n\nReal world: session store and rate-limit counters live in Redis, not Postgres. A 30ms profile query behind a 1ms cache cuts DB load ~97% at high traffic. Forgot TTL = stale data forever after the row changes: the invalidation plan matters more than the caching."
       },
       {
         "q": "SQL vs NoSQL",
         "level": "junior",
         "a": [
-          "SQL (Postgres/MySQL): fixed schema, strong ACID transactions, relational joins — best when data is structured and consistency matters (money, inventory).",
-          "NoSQL isn't one thing: document stores (MongoDB — flexible JSON-like docs), key-value (DynamoDB, Redis — simple, extremely fast), wide-column (Cassandra — huge write volume, time-series), graph (Neo4j — relationships-first). Trade-offs usually follow CAP: many NoSQL stores favor availability + partition tolerance over strict consistency, using eventual consistency instead."
+          "SQL (Postgres/MySQL): fixed schema, strong ACID transactions, relational joins. Best when data is structured and consistency matters (money, inventory).",
+          "NoSQL isn't one thing: document stores (MongoDB: flexible JSON-like docs), key-value (DynamoDB, Redis: simple, extremely fast), wide-column (Cassandra: huge write volume, time-series), graph (Neo4j: relationships-first). Trade-offs usually follow CAP: many NoSQL stores favor availability and partition tolerance over strict consistency, settling for eventual consistency."
         ],
-        "example": "E-commerce: orders/payments → Postgres (need ACID). Product catalog with wildly varying attributes per category → MongoDB (flexible schema). Session store / rate-limit counters → Redis (speed, TTL)."
+        "example": "One e-commerce app, four stores:\n orders, payments    ─▶ Postgres   (ACID, joins)\n product catalog     ─▶ MongoDB    (every category has different fields)\n sessions, counters  ─▶ Redis      (speed + TTL)\n clickstream events  ─▶ Cassandra  (massive append-only writes)\n\nReal world: banks stay on SQL because a lost update is real money. DynamoDB gives single-digit ms reads at any scale but no joins: you model around access patterns instead. Most products start Postgres-only and add NoSQL pieces when one workload outgrows it."
       },
       {
         "q": "Transactions & Locking",
         "level": "mid",
         "a": [
-          "Locking controls concurrent access to the same row/table. Pessimistic locking: lock the row up front (SELECT ... FOR UPDATE) and block others until you commit — safe but reduces concurrency. Optimistic locking: don't lock; instead check a version/timestamp column at write time and reject if it changed — better throughput, needs a retry loop.",
-          "Deadlock: two transactions each hold a lock the other needs — DB detects and kills one (deadlock victim). Avoid by always acquiring locks in the same order."
+          "Locking controls concurrent access to the same row or table. Pessimistic locking: lock the row up front (SELECT ... FOR UPDATE) and block others until commit. Safe but cuts concurrency. Optimistic locking: don't lock. Check a version column at write time and reject if it changed. Better throughput, needs a retry loop.",
+          "Deadlock: two transactions each hold a lock the other needs. The DB detects it and kills one (deadlock victim). Avoid by always acquiring locks in the same order."
         ],
-        "example": "Optimistic locking: UPDATE accounts SET balance = 90, version = 6 WHERE id = 1 AND version = 5. If 0 rows affected, someone else updated it first — reload and retry."
+        "example": "Pessimistic: T2 waits at the lock ░░░░ until T1 commits\nOptimistic:  both proceed, loser fails the version check ─▶ reload, retry\n\nSELECT * FROM seats WHERE id = 7 FOR UPDATE;   -- pessimistic: row locked\n\nUPDATE accounts SET balance = 90, version = 6\nWHERE id = 1 AND version = 5;   -- optimistic: 0 rows = someone won, retry\n\nReal world: seat and ticket booking uses FOR UPDATE: two buyers must not hold the same seat. ORMs ship optimistic locking as a version column (JPA @Version, Django F() updates). Hot counters skip both: a single atomic UPDATE counter = counter + 1 needs no explicit lock."
       },
       {
         "q": "Replication & Sharding",
         "level": "senior",
         "a": [
-          "Replication: copy data to multiple nodes for availability + read scaling. Primary-replica (leader-follower): writes go to the primary, reads can go to replicas (with replication lag to be aware of). Multi-leader/leaderless setups exist but add conflict resolution complexity.",
-          "Sharding (partitioning): split a huge table across multiple nodes by a shard key (e.g. user_id range or hash) so no single node holds all the data — scales writes, but cross-shard joins/transactions get hard."
+          "Replication: copy the same data to multiple nodes for availability and read scaling. Primary-replica (leader-follower): writes go to the primary, reads can go to replicas (mind the replication lag). Multi-leader and leaderless setups exist but add conflict resolution complexity.",
+          "Sharding (partitioning): split a huge table across nodes by a shard key (user_id range or hash) so no single node holds everything. Scales writes, but cross-shard joins and transactions get hard."
         ],
-        "example": "A social app shards its posts table by hash(user_id) % 16 across 16 database nodes. A read replica of each shard's primary serves analytics queries so they never slow down live traffic."
+        "example": "Replication (same data, copies)     Sharding (split data)\n primary ──▶ replica 1 (reads)        users 0-4M  ─▶ shard A\n         └─▶ replica 2 (reads)        users 4-8M  ─▶ shard B\n writes hit primary only              key: hash(user_id) % shards\n\nReal world: replication lag bites as read-your-writes: user saves profile, next page reads a stale replica, edit looks lost. Fix: read own writes from the primary briefly. Instagram sharded Postgres by user id: all one user's data on one shard keeps queries single-shard. Combine both: each shard has its own replicas."
       }
     ]
   },
