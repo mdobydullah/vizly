@@ -156,7 +156,7 @@ export function ArticleLayout({
       </div>
 
       {/* Reading Panel */}
-      <div className={`article-reading-panel article-theme-${theme}`}>
+      <div className={`article-reading-panel article-theme-${theme === 'dark' ? 'dark' : 'light'}`}>
         <article className="article-content">
           {article.storySummary && Object.keys(article.storySummary).length > 0 && (
             <StorySummary summary={article.storySummary} primaryColor={colorConfig.primary} />
