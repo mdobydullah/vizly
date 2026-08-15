@@ -241,7 +241,7 @@
           "Cost: old versions become dead tuples (bloat). VACUUM reclaims them; autovacuum does it in the background. If autovacuum falls behind on a hot table, the table and its indexes bloat and scans slow down. Also prevents transaction ID wraparound, which is why you never disable it.",
           "Interview line: long-running transactions are dangerous in Postgres because VACUUM cannot clean anything their snapshot might still see."
         ],
-        "example": "A batch job holds a transaction open for 2 hours while an orders table takes heavy updates. Dead tuples pile up because VACUUM must keep every version since the snapshot. Table bloats 3x, p99 read latency climbs. Fix: chunk the batch job into short transactions."
+        "example": "UPDATE writes a new version, never overwrites:\n row v1 (xmin=100, xmax=205) ← old version stays for old snapshots\n row v2 (xmin=205)           ← new version appended\n VACUUM removes v1 once no snapshot can still see it\n\nSELECT relname, n_dead_tup FROM pg_stat_user_tables;  -- bloat check\nVACUUM (ANALYZE, VERBOSE) orders;  -- reclaim dead tuples by hand\n\nReal world: a batch job holds one transaction open for 2 hours while orders takes heavy updates. VACUUM must keep every version that snapshot might see, dead tuples pile up, the table bloats 3x, p99 climbs. Fix: chunk the batch into short transactions. Autovacuum also prevents transaction ID wraparound: the failure mode that turns a whole DB read-only."
       },
       {
         "q": "WAL, Checkpoints & Replication",
@@ -250,17 +250,17 @@
           "Write-Ahead Log: every change is appended to the WAL and fsynced before it is considered committed; data pages in memory are flushed later at checkpoints. Crash recovery replays WAL from the last checkpoint. This is the D in ACID.",
           "The WAL is also the replication stream: streaming replication ships WAL to replicas (async by default: small lag window; synchronous: zero loss but slower commits). Logical replication/CDC (Debezium) decodes WAL into row-change events, which is how you feed Kafka from Postgres without dual writes."
         ],
-        "example": "synchronous_commit = on + a sync replica means a commit waits until the replica has the WAL record: RPO of zero for payments. Analytics replicas stay async: seconds of lag is fine there."
+        "example": "write ─▶ WAL append + fsync ─▶ COMMIT returns\n            │ later, in batches\n            └▶ checkpoint flushes data pages to disk\ncrash ─▶ replay WAL since last checkpoint: nothing committed is lost\n\nThe same WAL feeds replicas:\n streaming (async): replica seconds behind, fast commits\n streaming (sync):  commit waits for the replica, zero loss\n logical / CDC:     Debezium decodes WAL ─▶ Kafka row events\n\nReal world: payments run synchronous_commit = on with a sync replica: RPO zero. Analytics replicas stay async: seconds of lag is fine there. CDC from the WAL is how you feed Kafka from Postgres without dual writes."
       },
       {
         "q": "Connection Pooling (PgBouncer)",
         "level": "mid",
         "a": [
-          "Each Postgres connection is a whole OS process with real memory cost, so max_connections is small (low hundreds). Kubernetes makes this a trap: 50 pods × 20 connections in each app pool = 1000 connections, and Postgres falls over.",
+          "Each Postgres connection is a whole OS process with real memory cost, so max_connections is small (low hundreds). Kubernetes makes this a trap: 50 pods × 20 connections in each app pool = 1000 connections and Postgres falls over.",
           "PgBouncer sits in front and multiplexes thousands of client connections onto few real ones. Modes: session (1 client = 1 server conn while connected, safest), transaction (server conn borrowed per transaction, the usual choice, but session state like prepared statements and SET breaks), statement (rarely used).",
           "App side: always use a pool with a max, sane idle timeout and a connect timeout, so a slow DB causes fast failures instead of goroutine/thread pileups."
         ],
-        "example": "Incident story shape: deploy doubles pod count, DB hits max_connections, everything errors. Fix: PgBouncer in transaction mode, app pools capped at 5 per pod, total real connections ~80. Same hardware, no more connection storms."
+        "example": "No pooler:  50 pods × 20 conns = 1000 ─▶ Postgres (max_connections 100) ✗\nPgBouncer:  50 pods ─▶ pooler ─▶ ~80 real connections ✓\n\npgbouncer.ini:\n  pool_mode = transaction   # server conn borrowed per transaction\n\nGo:\n  db.SetMaxOpenConns(5)   // per-pod cap: fail fast, no pileup\n\nReal world: a deploy doubles pod count, the DB hits max_connections, everything errors. Fix: PgBouncer in transaction mode plus app pools capped at 5 per pod, ~80 real connections total. Same hardware, no more connection storms. The ceiling is low because every Postgres connection is a full OS process."
       },
       {
         "q": "Postgres Index Types Beyond B-Tree",
@@ -269,7 +269,7 @@
           "GIN: inverted index for multi-value columns: jsonb containment (@>), arrays, full-text search. Slower to update, great to query. GiST: geometric/nearest-neighbor searches, powers PostGIS: directly relevant to delivery radius and rider proximity queries. BRIN: tiny index storing min/max per block range, perfect for huge append-only tables queried by time.",
           "Partial index: index only rows matching a WHERE clause: small and fast when queries always target a subset (active orders). Expression index: index a computed value like lower(email) so the query can use it."
         ],
-        "example": "CREATE INDEX ON orders (restaurant_id) WHERE status IN ('placed','preparing'): the index only holds live orders (thousands), not all-time history (millions). Dispatch queries hit it constantly and stay fast. Delivered orders fall out of the index automatically."
+        "example": "GIN        ─ jsonb @>, arrays, full-text (inverted index)\nGiST       ─ geo + nearest-neighbor, powers PostGIS\nBRIN       ─ min/max per block: huge append-only time-series\nPartial    ─ only rows matching a WHERE\nExpression ─ index a computed value like lower(email)\n\nCREATE INDEX ON orders (restaurant_id)\n  WHERE status IN ('placed', 'preparing');  -- live orders only\n\nReal world: the partial index holds thousands of live orders instead of millions of all-time ones, so dispatch queries stay fast and delivered orders fall out automatically. Rider-proximity search runs on a GiST index via PostGIS. BRIN on an append-only events table is megabytes where a B-Tree would be gigabytes."
       },
       {
         "q": "Redis Persistence & Eviction",
@@ -279,7 +279,7 @@
           "Eviction at maxmemory: noeviction (writes error: default, wrong for caches), allkeys-lru (evict least-recently-used anywhere: the usual cache choice), volatile-lru (only keys with TTL), allkeys-lfu (frequency-based). Wrong policy is a classic prod incident: cache fills, writes start failing.",
           "One more: Redis is single-threaded for commands, so one slow command (KEYS *, huge SMEMBERS) blocks everything. Use SCAN, keep values small."
         ],
-        "example": "Cache cluster at maxmemory with noeviction: SETs start erroring, cache hit rate collapses, DB gets the full read load and browns out. Fix: allkeys-lru, alerts on evicted_keys and hit rate."
+        "example": "RDB: snapshot every N minutes ── compact, fast restart, can lose minutes\nAOF: append every write       ── minimal loss, bigger file, slower restart\nmaxmemory reached ─▶ eviction policy decides what dies\n\nredis-cli:\n  CONFIG SET maxmemory-policy allkeys-lru   # the usual cache choice\n  INFO stats                                # watch evicted_keys + hit rate\n\nReal world: a cache cluster hits maxmemory with noeviction: SETs start erroring, hit rate collapses, the DB takes the full read load and browns out. Fix: allkeys-lru plus alerts on evicted_keys. And one slow KEYS * blocks the whole single-threaded server: use SCAN instead."
       },
       {
         "q": "Cache Stampede, Hot Keys & Distributed Locks",
@@ -287,9 +287,9 @@
         "a": [
           "Stampede (thundering herd): a popular key expires and 5,000 concurrent requests all miss and hit the DB at once. Fixes: per-key mutex so one request recomputes while the rest wait or serve stale, TTL jitter so keys don't expire together, background refresh before expiry for known-hot keys.",
           "Hot key: one key (top restaurant's menu) takes so much traffic that its Redis shard saturates. Fixes: replicate the value under N suffixed keys and read a random one, or add a small in-process cache with a short TTL in front.",
-          "Distributed lock: SET key value NX PX 30000, delete only if value matches (Lua) so you never release someone else's lock. Redlock exists but is debated; for correctness-critical exclusion prefer DB row locks or a consensus store, and say that in the interview."
+          "Distributed lock: SET key value NX PX 30000, delete only if value matches (Lua) so you never release someone else's lock. Redlock exists but is debated; for correctness-critical exclusion prefer DB row locks or a consensus store and say that in the interview."
         ],
-        "example": "Dinner-rush spike: menu:top-restaurant expires at peak, DB gets hammered. Fix: singleflight mutex per key (one recompute, others serve stale for 2s), TTL 300s ± random 30s, top-100 menus refreshed by a background worker every 60s."
+        "example": "Stampede: hot key expires ─▶ 5000 requests miss ─▶ 5000 DB queries\nFix:      1 request recomputes ██, 4999 serve stale ░░ for 2s\n\nRedis lock (one recomputer wins):\n  SET lock:menu42 token NX PX 30000   # only the first caller gets it\n\nGo:\n  g.Do(\"menu42\", fetchMenu)   // singleflight: dedupes concurrent calls\n\nReal world: iftar spike: menu:top-restaurant expires at peak and the DB gets hammered. Fix: per-key singleflight (one recompute, the rest serve stale), TTL 300s plus random 30s jitter so keys never expire together, a background worker refreshes the top-100 menus every 60s. Hot key trick: copy the value under N suffixed keys and read a random one."
       }
     ]
   },
@@ -305,16 +305,16 @@
           "Encapsulation: bundle data with the methods that operate on it and hide internal state behind a small public surface (private fields, expose only what callers need). Abstraction: expose what a thing does, hide how (interfaces, abstract types). Inheritance: an is-a relationship reusing a parent's behavior; powerful but the tightest coupling in OOP. Polymorphism: one interface, many implementations; the caller invokes the method without knowing which concrete type answers.",
           "Interview trap: encapsulation vs abstraction sound alike. Encapsulation hides state (implementation data), abstraction hides complexity (implementation logic)."
         ],
-        "example": "PaymentMethod interface with pay(amount). CreditCard, ApplePay and CashOnDelivery each implement it. Checkout calls method.pay(total) and never branches on the concrete type: polymorphism is what kills the if/else chain."
+        "example": "PaymentMethod (interface): pay(amount)\n ├── CreditCard.pay()\n ├── ApplePay.pay()\n └── CashOnDelivery.pay()   ← checkout never branches on the type\n\nPython:\n  class PaymentMethod(Protocol):\n      def pay(self, amount): ...        # abstraction: what, not how\n  def checkout(m): m.pay(total)         # polymorphism kills the if/else chain\n\nGo:\n  type PaymentMethod interface { Pay(amount int) error }\n  func Checkout(m PaymentMethod) { m.Pay(total) }   // any implementation fits\n\nReal world: Stripe's SDK charges cards, wallets and bank debits through one call shape. Encapsulation in practice: an Account exposes deposit() and hides its balance field so nothing writes it directly. Every ORM model is abstraction: you call save(), never see the SQL."
       },
       {
         "q": "Composition vs Inheritance",
         "level": "junior",
         "a": [
-          "Inheritance: is-a. The subclass is tightly coupled to parent internals, and deep hierarchies turn fragile: change a base class and every child can break (the fragile base class problem). Composition: has-a. Build behavior by combining small objects; parts are swappable at runtime and testable in isolation.",
-          "The answer interviewers want: prefer composition, reach for inheritance only on a genuine, stable is-a relationship. Go dropped inheritance entirely in favor of embedding, and even classic Java guidance says favor composition."
+          "Inheritance: is-a. The subclass is tightly coupled to parent internals and deep hierarchies turn fragile: change a base class and every child can break (the fragile base class problem). Composition: has-a. Build behavior by combining small objects; parts are swappable at runtime and testable in isolation.",
+          "The answer interviewers want: prefer composition, reach for inheritance only on a genuine, stable is-a relationship. Go dropped inheritance entirely in favor of embedding and even classic Java guidance says favor composition."
         ],
-        "example": "Bad: ElectricCar extends Car extends Vehicle, then a hybrid breaks the tree. Good: Car has an Engine (electric, petrol or hybrid injected at construction). New combinations need no new hierarchy, and each Engine is unit-tested alone."
+        "example": "Bad (is-a tree):  Vehicle ◀── Car ◀── ElectricCar   (hybrid breaks the tree)\nGood (has-a):     Car { engine }, engine = Electric | Petrol | Hybrid\n\nPython:\n  class Car:\n      def __init__(self, engine): self.engine = engine   # part injected, swappable\n\nGo:\n  type Car struct { engine Engine }   // interface field: any engine fits\n  // Go has no inheritance: only embedding + interfaces\n\nReal world: Go's standard library composes tiny interfaces (io.Reader, io.Writer) instead of class trees. React docs say use composition, not component inheritance. Game engines moved from deep class hierarchies to entity-component systems for the same reason."
       },
       {
         "q": "Abstract Class vs Interface",
@@ -323,39 +323,39 @@
           "Interface: a pure contract, no state, a class can implement many. Use for capabilities shared across unrelated types (Comparable, PaymentGateway, Notifiable). Abstract class: can hold state and partial implementation, single inheritance only. Use to share a code skeleton among closely related subclasses (template method pattern).",
           "Modern languages blur the line (Java default methods, Kotlin interfaces with bodies), but the decision rule survives: contract across unrelated types → interface; shared skeleton within one family → abstract class."
         ],
-        "example": "BaseRepository abstract class wires common CRUD once; each subclass fills in only the entity mapping (template method). Meanwhile Notifiable stays an interface because User, Vendor and Rider are unrelated types that all receive notifications."
+        "example": "Interface: pure contract          Abstract class: contract + shared code\n Notifiable.notify()               BaseRepository\n  User, Vendor, Rider:              ├ save(), find() written once\n  unrelated, all implement          └ map_row(): subclass fills in\n\nPython:\n  class BaseRepo(ABC):\n      def save(self, x): ...          # shared skeleton\n      @abstractmethod\n      def map_row(self, row): ...     # subclass hook (template method)\n\nGo:\n  type Notifiable interface { Notify(msg string) }   // contract only\n  // no abstract classes in Go: share code by embedding a base struct\n\nReal world: Comparable is an interface because String and Integer are unrelated yet both sortable. Django's Model is the abstract-class side: shared save and query machinery, you only declare fields."
       },
       {
         "q": "SOLID Principles",
         "level": "junior",
         "a": [
-          "S — Single Responsibility: a class/module should have one reason to change. O — Open/Closed: open for extension, closed for modification (add new behavior via new code, not by editing existing tested code). L — Liskov Substitution: a subclass should be usable anywhere its parent type is expected, without breaking correctness. I — Interface Segregation: prefer several small, focused interfaces over one large one clients are forced to depend on fully. D — Dependency Inversion: depend on abstractions (interfaces), not concrete implementations — high-level modules shouldn't depend on low-level details."
+          "S (Single Responsibility): a class or module has one reason to change. O (Open/Closed): open for extension, closed for modification. Add behavior with new code, not by editing tested code. L (Liskov Substitution): a subclass must work anywhere its parent is expected without breaking correctness. I (Interface Segregation): several small focused interfaces beat one fat one that clients must depend on fully. D (Dependency Inversion): depend on abstractions, not concrete implementations. High-level modules shouldn't depend on low-level details."
         ],
-        "example": "Dependency Inversion in practice: an OrderService depends on a PaymentGateway interface, not directly on StripeGateway — so swapping to a different provider, or mocking it in tests, doesn't require touching OrderService at all."
+        "example": "D in one picture:\n OrderService ──▶ PaymentGateway (interface) ◀── StripeGateway\n  high level depends on the abstraction; the concrete class plugs in\n\nPython:\n  class OrderService:\n      def __init__(self, gateway): self.gateway = gateway   # inject the abstraction\n\nGo:\n  type PaymentGateway interface { Charge(cents int) error }\n  func NewOrderService(g PaymentGateway) *OrderService      // fake in tests, Stripe in prod\n\nReal world: adding a new shipping method as a new class with zero edits to checkout = Open/Closed. Square extending Rectangle and breaking setWidth is the classic Liskov violation. A fat interface forcing a printer class to implement fax() = Interface Segregation smell."
       },
       {
         "q": "Common Design Patterns",
         "level": "junior",
         "a": [
-          "Singleton: exactly one instance of a class exists app-wide (e.g. a DB connection pool) — use sparingly, it's effectively global state. Factory: centralizes object creation logic so callers don't need to know concrete classes. Strategy: encapsulate interchangeable algorithms/behaviors behind a common interface, swappable at runtime. Observer: subscribers get notified automatically when a subject's state changes (pub/sub within a single process). Repository: abstracts data access behind an interface, so business logic doesn't depend on the specific ORM/DB in use."
+          "Singleton: exactly one instance app-wide (a DB connection pool). Use sparingly: it is global state. Factory: centralizes object creation so callers never name concrete classes. Strategy: interchangeable algorithms behind one interface, swappable at runtime. Observer: subscribers get notified when a subject's state changes (in-process pub/sub). Repository: data access behind an interface so business logic doesn't depend on the specific ORM or DB."
         ],
-        "example": "Strategy pattern: a ShippingCostCalculator interface with StandardShipping, ExpressShipping, and FreeShipping implementations — the checkout flow picks one at runtime based on the order, without an if/else chain scattered through the code."
+        "example": "Strategy:\n ShippingCost (interface) ◀── Standard | Express | Free\n checkout picks one at runtime: no if/else chain spread through the code\n\nPython:\n  order.shipping = ExpressShipping()    # swap behavior at runtime\n  cost = order.shipping.cost(order)\n\nGo:\n  var s Shipping = FreeShipping{}   // same call site, different behavior\n  total += s.Cost(order)\n\nReal world: every UI event listener is Observer. Go's database/sql is Factory plus Repository flavored: one interface, many drivers registered by name. Most logging libraries ship a singleton default logger. Strategy shows up in pricing, shipping, tax and retry policies."
       },
       {
         "q": "Dependency Injection",
         "level": "junior",
         "a": [
-          "Instead of a class constructing its own dependencies internally (tight coupling), dependencies are 'injected' from outside (constructor, setter, or a DI framework/container) — makes code easier to test (swap in mocks/fakes) and easier to reconfigure without editing the class itself."
+          "Instead of a class building its own dependencies (tight coupling), dependencies come from outside: constructor, setter or a DI container. Tests get easy (swap in fakes) and wiring changes without editing the class itself."
         ],
-        "example": "class OrderService {\n  constructor(private paymentGateway: PaymentGateway) {}\n}\nIn production, inject StripeGateway; in tests, inject a FakePaymentGateway that never hits the network — OrderService's code never changes."
+        "example": "Without DI: OrderService ──creates──▶ StripeGateway   (hard-wired, untestable)\nWith DI:    OrderService(gateway)   ◀── prod: Stripe, tests: fake\n\nPython:\n  class OrderService:\n      def __init__(self, gateway): self.gateway = gateway   # injected\n  OrderService(FakeGateway())      # unit test: no network call\n\nGo:\n  func NewOrderService(g PaymentGateway) *OrderService   // constructor injection\n\nReal world: Spring and NestJS are DI containers: they build the whole object graph. Go culture skips the framework and wires by hand in main(). Every mock in your unit tests exists because of this pattern."
       },
       {
         "q": "Layered / Clean Architecture",
         "level": "mid",
         "a": [
-          "Organizes code into layers with a strict dependency direction — typically: presentation (controllers/API) → application/business logic (use cases/services) → domain (core entities/rules) → infrastructure (DB, external APIs). The core idea (from Clean/Hexagonal architecture): business logic shouldn't depend on frameworks, databases, or UI — those are 'details' that plug into the core via interfaces, not the other way around, so you can swap infrastructure (e.g. Postgres → DynamoDB) without touching business rules."
+          "Organize code into layers with a strict dependency direction: presentation (controllers/API) → application (use cases/services) → domain (core entities and rules) → infrastructure (DB, external APIs). Core idea from Clean and Hexagonal architecture: business logic must not depend on frameworks, databases or UI. Those are details that plug into the core through interfaces, not the other way around. So you can swap infrastructure (Postgres → DynamoDB) without touching business rules."
         ],
-        "example": "A UserService (business logic) depends on a UserRepository interface, not directly on Postgres — the Postgres-backed implementation lives in the infrastructure layer and is injected in. Swapping to MongoDB later means writing a new repository implementation, not rewriting UserService."
+        "example": "HTTP handler ─▶ UserService ─▶ UserRepository (interface)\n                                       ▲ implements\n                            PostgresUserRepo (infrastructure layer)\n\nPython:\n  class UserService:\n      def __init__(self, repo): self.repo = repo   # domain sees the interface only\n\nGo:\n  type UserRepository interface { Find(id int) (User, error) }\n  // postgres.UserRepo satisfies it from the infra package\n\nReal world: moving Postgres to MongoDB = one new repository implementation, UserService untouched. Unit tests run the service with an in-memory repo: no DB container. Framework upgrades stay at the edges so domain code doesn't churn."
       }
     ]
   },
@@ -368,10 +368,10 @@
         "q": "Bounded Context & Ubiquitous Language",
         "level": "senior",
         "a": [
-          "Ubiquitous language: the team and the code use the exact same domain terms, so methods read the way the business talks. A bounded context is the boundary inside which one model and one language stay consistent: the same word can mean different things in different contexts, and that is fine as long as the boundary is explicit.",
+          "Ubiquitous language: the team and the code use the exact same domain terms, so methods read the way the business talks. A bounded context is the boundary inside which one model and one language stay consistent: the same word can mean different things in different contexts and that is fine as long as the boundary is explicit.",
           "Bounded contexts are the best starting point for microservice boundaries: roughly one context per service. Context mapping describes the relationships between them; an anti-corruption layer translates another context's model at the border so it never leaks into yours."
         ],
-        "example": "'Order' in the checkout context means cart, payment and promo codes. 'Order' in the logistics context means pickup point, rider and ETA. Two models, two services: logistics consumes an OrderPlaced event and translates it into its own Delivery model."
+        "example": "Checkout context               Logistics context\n 'Order' = cart, payment,       'Order' = pickup point, rider, ETA\n           promo codes\n      └── OrderPlaced event ──▶ ACL translates ──▶ Delivery model\n\nGo:\n  func FromOrderPlaced(e OrderPlaced) Delivery   // anti-corruption layer: their model stops at the border\n\nReal world: 'customer' means payer in billing but ticket owner in support: two contexts, two models, both correct. A food delivery app splits checkout service and logistics service on exactly this line: logistics consumes OrderPlaced and builds its own Delivery. Naming code with the business words (ubiquitous language) kills translation bugs between requirements and code."
       },
       {
         "q": "Entities, Value Objects & Aggregates",
@@ -380,7 +380,7 @@
           "Entity: has an identity that persists over time (User #42 stays the same user as fields change). Value object: no identity, immutable, compared by value (Money(10, 'SAR'), an Address). Prefer value objects where possible: immutable things are safer to reason about.",
           "Aggregate: a cluster of entities and value objects treated as one consistency unit, with a single aggregate root that outside code must go through. Invariants (order total equals sum of lines) are enforced by the root. Rule: one transaction updates one aggregate; effects on other aggregates go through domain events, eventually consistent."
         ],
-        "example": "Order is the aggregate root holding OrderLine children. Code never edits an OrderLine directly: it calls order.AddItem(product, qty) and the root revalidates invariants (max items, recalculated total). The repository loads and saves the whole aggregate."
+        "example": "Order  (aggregate root, entity: has identity)\n ├── OrderLine ×3        (child entities, only the root touches them)\n ├── Money(120, 'SAR')   (value object: immutable, compared by value)\n └── Address             (value object)\n\nGo:\n  type Money struct { Amount int; Currency string }   // value object\n  func (o *Order) AddItem(p Product, qty int) error   // root enforces invariants\n\nReal world: outside code never sets line.qty directly. It calls order.AddItem(product, qty) and the root revalidates (max items, total = sum of lines). The repository loads and saves the whole Order as one unit. Two Money(10, 'SAR') values are equal, but two users with the same name are still different users: value vs identity."
       },
       {
         "q": "Repositories, Domain Events & the Outbox",
@@ -389,7 +389,7 @@
           "Repository: one per aggregate root, gives the domain collection-like access (FindByID, Save) and hides the database. Domain event: a fact that happened, named in past tense (OrderPlaced), used to trigger reactions in other aggregates or contexts without direct coupling.",
           "Outbox pattern: saving the aggregate and publishing the event must not half-fail. Write the event into an outbox table in the same DB transaction as the aggregate, then a relay publishes it to Kafka/PubSub and marks it sent. Guarantees at-least-once publishing; consumers stay idempotent."
         ],
-        "example": "PlaceOrder use case: one transaction inserts the order rows and an OrderPlaced row into outbox. A poller reads outbox, publishes to Pub/Sub, marks the row sent. If the process crashes right after commit, the event still goes out on the next poll: nothing is lost."
+        "example": "One DB transaction:\n ┌ INSERT INTO orders ...             ┐\n └ INSERT INTO outbox (OrderPlaced)   ┘  atomic: both rows or neither\n      relay polls outbox ─▶ publishes to Kafka ─▶ marks row sent\n\nGo:\n  tx.Exec(insertOrder)\n  tx.Exec(insertOutboxEvent)   // same tx as the order: cannot half-fail\n  tx.Commit()\n\nReal world: crash right after commit: the event sits in outbox and the next poll publishes it, nothing lost. Debezium implements the relay by tailing the table. Publishing is at-least-once, so consumers dedupe by event id (idempotent handlers). Without outbox: order saved, Kafka publish fails, logistics never hears about the order."
       }
     ]
   },
@@ -405,7 +405,7 @@
           "Unit tests: fast, isolated, test one function/class with dependencies faked. The base of the pyramid, you want the most of these. Integration tests: verify real pieces working together (your code plus a real Postgres/Redis/broker). Fewer and slower. E2E tests: drive the whole deployed system through its public API or UI. Fewest, slowest, most brittle.",
           "Anti-pattern: the ice-cream cone (mostly e2e, few unit tests). The suite gets slow and flaky and the feedback loop dies."
         ],
-        "example": "Orders service: ~200 unit tests for pricing/discount logic (run in milliseconds), ~30 integration tests against a real Postgres in a container, ~5 e2e happy-path flows on staging before deploy."
+        "example": "      /   e2e   \\      ~5    whole system, slowest, most brittle\n     / integration\\    ~30   real Postgres/Redis in Docker\n    /     unit     \\   ~200  pure logic, milliseconds\n\nPython:\n  def test_discount(): assert price(100, 'SAVE10') == 90   # unit: no DB, no network\n\nGo:\n  cases := []struct{ in, want int }{{100, 90}, {50, 45}}   // table-driven unit test\n\nReal world: CI ladder: unit tests on every push (seconds), integration tests per PR against containers (minutes), 5 e2e happy paths on staging before deploy. Ice-cream cone teams (mostly e2e) wait 40 minutes to learn a typo broke checkout."
       },
       {
         "q": "Mocks, Stubs & Fakes",
@@ -414,7 +414,7 @@
           "Test double = any stand-in for a real dependency. Stub: returns canned answers, no assertions. Mock: also verifies interactions (was sendEmail called exactly once with X). Fake: a real but lightweight implementation, like an in-memory repository. Spy: records calls for later inspection.",
           "Rule of thumb: test behavior, not implementation. Over-mocking couples tests to internals, so refactors break tests even when behavior is unchanged. Prefer fakes for interfaces you own, mock only at true external boundaries (payment gateway, email)."
         ],
-        "example": "OrderService test injects a FakeOrderRepository (in-memory map) and a mocked PaymentGateway. Assert: order saved with status=paid and gateway.charge called exactly once. No real DB, runs in milliseconds."
+        "example": "stub: returns canned answers        (no checks)\nfake: working mini implementation   (in-memory repo)\nmock: verifies the interaction      (charge called once?)\nspy:  records calls for later inspection\n\nPython:\n  repo = FakeOrderRepo()                    # fake: real behavior, in memory\n  gateway.charge.assert_called_once()       # mock: verify the interaction\n\nGo:\n  type FakeRepo struct{ m map[int]Order }   // fake: implements the interface\n\nReal world: OrderService test injects a fake repo plus a mocked payment gateway: asserts order saved as paid and charge called exactly once, runs in milliseconds. Over-mocked suites break on every refactor even when behavior is unchanged. Mock only true externals (Stripe, email), fake what you own."
       },
       {
         "q": "Integration & Contract Testing (Microservices)",
@@ -423,7 +423,7 @@
           "Testcontainers pattern: spin up a real Postgres/Kafka/Redis in Docker for integration tests, so tests hit the same engine as production instead of an in-memory imitation.",
           "Consumer-driven contract testing (Pact): the consumer publishes a contract describing exactly what it calls and what shape it expects back; the provider's CI replays that contract against the real service. Catches breaking API changes without a shared staging environment or a slow e2e suite."
         ],
-        "example": "checkout-service (consumer) publishes a contract: GET /menu-items/42 must return {id, price, available}. menu-service CI verifies every build against it. Renaming price to unit_price fails the provider build before deploy, not in production."
+        "example": "consumer (checkout) ── contract: GET /menu-items/42 ▶ {id, price, available}\n                            │ published to a contract broker\nprovider (menu) CI ──▶ replays contract against real service\n                       rename price ▶ unit_price = provider build fails\n\nPython:\n  postgres = PostgresContainer('postgres:16')   # testcontainers: real engine in Docker\n\nGo:\n  pgc, _ := tcpostgres.Run(ctx, \"postgres:16\")   // same idea, Go testcontainers\n\nReal world: checkout-service publishes what it expects from menu-service (Pact). menu-service CI verifies every build against that contract, so a breaking rename fails at build time, not in production. Testcontainers replaced in-memory DB fakes because SQLite-in-tests hid Postgres-only bugs."
       },
       {
         "q": "TDD & Testing Mindset",
@@ -432,7 +432,7 @@
           "TDD loop: red (write a failing test first), green (simplest code that passes), refactor (clean up with the test as a safety net). Even without strict TDD the mindset matters: every bug fix starts with a failing test that reproduces the bug, so it can never silently return.",
           "Deterministic tests: no sleeps, no real clocks, no shared mutable state between tests. Inject time and randomness so you control them. Flaky tests destroy trust in the whole suite."
         ],
-        "example": "Bug: discount applied twice on retry. Step 1: write a failing test that retries the request and asserts one discount. Step 2: fix with an idempotency check. Step 3: the test passes and stays forever as a regression guard."
+        "example": "red ──▶ green ──▶ refactor ──▶ red ...\n │ failing     │ simplest      │ clean up,\n │ test first  │ code to pass  │ tests as safety net\n\nPython:\n  def test_retry_applies_one_discount():   # red: reproduces the bug first\n      assert retried_order.total == 90\n\nGo:\n  t.Run(\"retry applies one discount\", ...)   // bug fix starts as a failing test\n\nReal world: bug: discount applied twice on retry. Write the failing test, fix with an idempotency check, the test stays forever as a regression guard. Flaky suite fix: replace time.sleep waits with an injected fake clock, tests get deterministic and fast."
       }
     ]
   },
@@ -445,67 +445,67 @@
         "q": "Authentication vs Authorization",
         "level": "junior",
         "a": [
-          "Authentication (AuthN): verifying who you are (login — password, OTP, biometric, SSO). Authorization (AuthZ): verifying what you're allowed to do once identified (permissions, roles, scopes). They're often confused but are separate steps — you can be authenticated but not authorized for a specific action."
+          "Authentication (AuthN): verifying who you are (login: password, OTP, biometric, SSO). Authorization (AuthZ): verifying what you may do once identified (permissions, roles, scopes). Often confused but separate steps. You can be authenticated yet not authorized for a specific action."
         ],
-        "example": "You log into an app with your password (authentication). You then try to delete another user's account and get a 403 Forbidden because you're not an admin (authorization) — you were correctly identified, just not permitted."
+        "example": "request ─▶ AuthN: who is this?    (bad login ─▶ 401 Unauthorized)\n        └▶ AuthZ: may they do it? (no permission ─▶ 403 Forbidden)\n\nPython:\n  user = verify_token(request)         # AuthN: identity, 401 if invalid\n  if not user.is_admin: abort(403)     # AuthZ: permission check\n\nGo:\n  user, err := auth.Verify(token)              // AuthN: who\n  if !user.Can(\"orders:delete\") { deny(403) }  // AuthZ: what\n\nReal world: you log in fine (authenticated), then delete another user's account and get 403 (not authorized). Status codes tell the story: 401 means 'who are you', 403 means 'I know you, still no'. Company admin panel: everyone logs in through the same door, roles decide who sees what."
       },
       {
         "q": "OWASP Top 10 (Overview)",
         "level": "mid",
         "a": [
-          "A regularly-updated list of the most critical web app security risks, maintained by OWASP — useful shorthand vocabulary in interviews. Recurring themes: broken access control (missing authorization checks), cryptographic failures (weak/missing encryption), injection (SQL/command/etc.), insecure design, security misconfiguration, vulnerable/outdated components, identification & authentication failures, software/data integrity failures, logging & monitoring failures, and server-side request forgery (SSRF)."
+          "A regularly updated list of the most critical web app security risks, maintained by OWASP. Useful shorthand vocabulary in interviews. Recurring themes: broken access control (missing authorization checks), cryptographic failures (weak or missing encryption), injection (SQL, command), insecure design, security misconfiguration, vulnerable or outdated components, identification and authentication failures, software and data integrity failures, logging and monitoring failures, plus server-side request forgery (SSRF)."
         ],
-        "example": "Broken access control example: an API endpoint /api/orders/123 returns order 123's data for any logged-in user, without checking that order 123 actually belongs to them — the classic 'insecure direct object reference' (IDOR)."
+        "example": "GET /api/orders/123\n  check 1: logged in?  yes ─▶ return order 123\n  missing: does order 123 belong to THIS user?   ← IDOR\n\nThe missing line:\n  order = db.get(order_id)\n  if order.user_id != current_user.id: abort(403)   # ownership check\n\nReal world: broken access control sits at #1 on the list and IDOR is its classic form: change a numeric id in the URL, see someone else's data. Bug bounty programs at Meta and Shopify pay out for exactly this constantly. Log4Shell (2021) made 'vulnerable components' concrete: one logging library, internet on fire."
       },
       {
         "q": "SQL Injection",
         "level": "junior",
         "a": [
-          "SQL injection happens when untrusted user input is concatenated directly into a SQL query, letting an attacker change the query's meaning. Prevented by parameterized queries/prepared statements (the DB driver keeps user input strictly as data, never as executable SQL) or an ORM that does this by default — never by 'escaping' strings manually."
+          "SQL injection happens when untrusted user input is concatenated straight into a SQL query, letting an attacker change the query's meaning. Prevention: parameterized queries / prepared statements (the driver keeps input strictly as data, never executable SQL) or an ORM that does this by default. Never manual string escaping."
         ],
-        "example": "Vulnerable: \"SELECT * FROM users WHERE email = '\" + input + \"'\" — input=\"' OR '1'='1\" returns every user. Safe: db.query(\"SELECT * FROM users WHERE email = ?\", [input]) — the input is always treated as a literal value, never as SQL syntax."
+        "example": "Query:   SELECT * FROM users WHERE email = '<input>'\nInput:   ' OR '1'='1\nBecomes: WHERE email = '' OR '1'='1'   ← always true, returns every row\n\nPython:\n  cur.execute(f\"... WHERE email = '{email}'\")     # vulnerable: input becomes SQL\n  cur.execute(\"... WHERE email = %s\", (email,))   # safe: input stays data\n\nGo:\n  db.Query(\"SELECT * FROM users WHERE email = $1\", email)  // placeholder, safe\n\nReal world: the xkcd 'Bobby Tables' comic is this exact bug. The 2015 TalkTalk breach started as SQLi in one web form. Every mainstream ORM parameterizes by default, so raw string-built SQL is the code review red flag."
       },
       {
         "q": "XSS vs CSRF",
         "level": "mid",
         "a": [
-          "XSS (Cross-Site Scripting): attacker injects malicious JavaScript into a page that other users view — runs in the victim's browser with their session, can steal cookies/tokens. Prevented by escaping/sanitizing any user content rendered as HTML and setting a Content-Security-Policy.",
-          "CSRF (Cross-Site Request Forgery): tricks a logged-in user's browser into submitting an unwanted request to a site they're authenticated on (e.g. via a malicious link/form on another site), since browsers auto-attach cookies. Prevented by CSRF tokens, SameSite cookies, and checking the request's origin."
+          "XSS (Cross-Site Scripting): attacker injects malicious JavaScript into a page other users view. It runs in the victim's browser with their session and can steal cookies or tokens. Prevention: escape or sanitize any user content rendered as HTML, set a Content-Security-Policy and mark cookies HttpOnly.",
+          "CSRF (Cross-Site Request Forgery): tricks a logged-in user's browser into sending an unwanted request to a site they are authenticated on, because browsers auto-attach cookies. Prevention: CSRF tokens, SameSite cookies and origin checks."
         ],
-        "example": "XSS: a comment field stores an injected script payload (e.g. one that reads document.cookie and sends it to an attacker's server) unescaped — it runs for every visitor who views that comment. CSRF: a malicious page auto-submits a hidden form to bank.com/transfer while you're logged into your bank in another tab — SameSite cookies block this."
+        "example": "XSS:  attacker's script in a comment ─▶ victim's browser runs it as the site\nCSRF: attacker's page ─▶ hidden form ─▶ bank.com (browser attaches your cookie)\n\nMemory hook: XSS = attacker's code runs ON the site. CSRF = attacker uses YOUR logged-in browser FROM another site.\n\nDefenses:\n  html.escape(user_comment)                        # XSS: render as text, not HTML\n  Set-Cookie: session=x; SameSite=Lax; HttpOnly    # CSRF + cookie theft\n\nReal world: the MySpace Samy worm (2005) was XSS: one profile infected a million users in a day. React JSX and Django templates escape by default, danger comes back with dangerouslySetInnerHTML or the safe filter. Chrome defaulting cookies to SameSite=Lax killed most classic CSRF."
       },
       {
         "q": "JWT vs Session-Based Auth",
         "level": "mid",
         "a": [
-          "Session-based: server creates a session on login, stores it server-side (memory/Redis/DB), and gives the client a session ID cookie — server can revoke instantly, but needs shared/centralized session storage to scale across instances. JWT (JSON Web Token): a signed, self-contained token holding claims (user id, roles, expiry) — the server verifies the signature without a DB lookup, making it stateless and easy to scale — but revoking a single JWT before it expires is hard (needs a blocklist, which reintroduces state)."
+          "Session-based: server creates a session on login, stores it server-side (Redis, DB) and gives the client a session ID cookie. The server can revoke instantly, but scaling needs shared session storage across instances. JWT (JSON Web Token): a signed self-contained token holding claims (user id, roles, expiry). Any server verifies the signature without a DB lookup: stateless, easy to scale. But revoking one JWT before it expires is hard (needs a blocklist, which reintroduces state)."
         ],
-        "example": "A microservices system uses JWTs so any service can verify a request's identity/roles from the token alone (no call back to an auth service needed) — but they keep JWT expiry short (e.g. 15 min) with a refresh token flow, to limit the damage window if a token leaks."
+        "example": "Session: cookie sid=abc ─▶ server looks up abc in Redis ─▶ identity (revoke anytime)\nJWT:     header.payload.signature ─▶ verify signature locally ─▶ trust the claims\n\nJWT shape: eyJhbGci... . eyJzdWIiOiI0MiJ9 . x7Kp...\n           base64, readable by anyone! signed, not encrypted\n\nPython:\n  jwt.decode(token, key, algorithms=[\"HS256\"])   # verify + read claims, no DB hit\n\nReal world: microservices verify JWTs locally, no auth-service call per request. Standard combo: 15 min access token + refresh token, so a leaked token has a small damage window. The 'log out everywhere' button is the session model's win: delete the server rows. JWT needs a blocklist hack for that."
       },
       {
         "q": "OAuth2 / OpenID Connect",
         "level": "senior",
         "a": [
-          "OAuth2 is an authorization framework: lets a user grant a third-party app limited access to their data on another service, without sharing their password (e.g. 'Sign in with Google' granting calendar access) — the core output is an access token. OpenID Connect (OIDC) is built on top of OAuth2 specifically for authentication — it adds an ID token (a JWT) that proves who the user is, standardizing login.",
-          "Common flow: Authorization Code flow (with PKCE for public/mobile clients) — app redirects to the provider, user approves, provider redirects back with a code, app exchanges the code (server-side) for tokens."
+          "OAuth2 is an authorization framework: a user grants a third-party app limited access to their data on another service without sharing their password. The core output is an access token. OpenID Connect (OIDC) sits on top of OAuth2 for authentication: it adds an ID token (a JWT) proving who the user is, standardizing login.",
+          "Common flow: Authorization Code flow (with PKCE for mobile and SPA clients). App redirects to the provider, user approves, provider redirects back with a code, the app exchanges the code server-side for tokens."
         ],
-        "example": "'Sign in with Google' on a website: OIDC gives the app an ID token confirming 'this is jane@gmail.com', and if the app also requested Calendar scope, OAuth2 gives an access token the app can use to call Google Calendar's API on Jane's behalf."
+        "example": "app ─▶ redirect to Google (scope: openid calendar)\nuser ─▶ approves on Google's page (password never touches the app)\nGoogle ─▶ redirect back with one-time code\napp server ─▶ exchange code ─▶ ID token (who) + access token (what)\n\nMemory hook: OAuth2 = what the app may access. OIDC = who the user is.\n\nReal world: 'Sign in with Google/GitHub' is OIDC. A scheduling app reading your Google Calendar uses the OAuth2 access token with the calendar scope only. PKCE became mandatory for mobile because the redirect back to the app can be intercepted without it."
       },
       {
         "q": "Encryption vs Hashing vs Encoding",
         "level": "junior",
         "a": [
-          "Encryption: reversible with the right key — used to protect data confidentiality (you can decrypt it back). Symmetric (same key encrypts/decrypts, fast — AES) vs asymmetric (public key encrypts, private key decrypts — RSA/ECC, slower, used for key exchange and signatures). Hashing: one-way, deterministic, fixed-size output — used for passwords (never store plaintext) and integrity checks; a good password hash (bcrypt/argon2) is deliberately slow to resist brute force. Encoding (Base64, URL-encoding): not security at all — just a reversible format transformation, anyone can decode it."
+          "Encryption: reversible with the right key, protects confidentiality. Symmetric (one key both ways, fast: AES) vs asymmetric (public key encrypts, private key decrypts: RSA/ECC, slower, used for key exchange and signatures). Hashing: one-way, deterministic, fixed-size output. Used for passwords and integrity checks. A good password hash (bcrypt, argon2) is deliberately slow to resist brute force. Encoding (Base64, URL-encoding): not security at all. Just a reversible format change anyone can undo."
         ],
-        "example": "Storing passwords: hash with bcrypt/argon2 + a per-user salt, never encrypt (you should never be able to recover the original password, only verify a match). Storing credit card numbers you must retrieve later: encrypt with AES, key managed by a KMS."
+        "example": "encryption: data + key ─▶ ciphertext ── key ──▶ data again (two-way, secret)\nhashing:    data ─▶ digest                         (one-way, no way back)\nencoding:   data ─▶ base64 ─▶ data again           (two-way, no secret at all)\n\nPython:\n  bcrypt.hashpw(pw, bcrypt.gensalt())   # slow on purpose, per-user salt\n  base64.b64encode(data)                # NOT security, anyone decodes\n\nReal world: passwords get hashed (bcrypt/argon2), never encrypted: nobody should recover them, only verify a match. Card numbers you must show later get AES encryption with keys in a KMS. Interview trap: 'we base64 our tokens for security' is wrong by definition."
       },
       {
         "q": "HTTPS/TLS in Practice",
         "level": "mid",
         "a": [
-          "Beyond the handshake: TLS certificates are issued by a Certificate Authority (CA) and chain up to a root CA the browser trusts; HSTS (HTTP Strict Transport Security) header forces browsers to always use HTTPS for a domain, preventing downgrade attacks; certificate pinning (mostly mobile apps) hard-codes the expected certificate/key to resist even a compromised CA."
+          "Beyond the handshake: TLS certificates are issued by a Certificate Authority (CA) and chain up to a root CA the browser trusts. The HSTS header (HTTP Strict Transport Security) makes browsers always use HTTPS for a domain, killing downgrade attacks. Certificate pinning (mostly mobile apps) hard-codes the expected certificate or key to resist even a compromised CA."
         ],
-        "example": "Strict-Transport-Security: max-age=63072000; includeSubDomains header tells the browser 'never even try plain HTTP for this domain again for 2 years' — closing the window where a man-in-the-middle could intercept an initial HTTP request before a redirect to HTTPS."
+        "example": "trust chain: bank.com cert ─▶ intermediate CA ─▶ root CA (in browser trust store)\n\nHeader:\n  Strict-Transport-Security: max-age=63072000; includeSubDomains\n  # browser: never try plain HTTP on this domain for 2 years\n\nReal world: HSTS closes the first-visit gap where a man-in-the-middle could catch the one plain HTTP request before the HTTPS redirect. Let's Encrypt automated free certificates and pushed the web past 90% HTTPS. Mobile banking apps pin their certificate so even a cert from a rogue CA fails."
       }
     ]
   },
@@ -518,71 +518,71 @@
         "q": "Microservices vs Monolith",
         "level": "mid",
         "a": [
-          "Monolith: one deployable app, one codebase — simple to develop and deploy early, but scaling and team ownership get harder as it grows.",
-          "Microservices: the app is split into small, independently deployable services (each owns its own data), communicating over the network (REST/gRPC/events). Gains: independent scaling, deploys, and team ownership. Costs: network latency, distributed debugging, data consistency across services, operational overhead (more moving parts to monitor/deploy)."
+          "Monolith: one deployable app, one codebase. Simple to develop and deploy early, but scaling and team ownership get harder as it grows.",
+          "Microservices: the app splits into small independently deployable services (each owns its own data), talking over the network (REST/gRPC/events). Gains: independent scaling, deploys and team ownership. Costs: network latency, distributed debugging, data consistency across services and more moving parts to monitor and deploy."
         ],
-        "example": "An e-commerce monolith splits into: orders-service, payments-service, inventory-service, notifications-service — each with its own DB and deploy pipeline, talking via REST calls and a Kafka event bus for order-placed events."
+        "example": "Monolith                      Microservices\n ┌────────────┐                orders ────▶ own DB\n │ orders     │                payments ──▶ own DB\n │ payments   │  one DB        inventory ─▶ own DB\n │ inventory  │  one deploy    talk via REST + Kafka events\n └────────────┘\n\nReal world: Shopify runs a famous modular monolith at huge scale: monolith is not a junior choice. Netflix and Amazon split into services when team count, not traffic, forced it: deploys blocked each other. Rule of thumb: start with a monolith, split when teams step on each other, not before."
       },
       {
         "q": "Docker Fundamentals",
         "level": "junior",
         "a": [
           "Docker packages an app + its dependencies into an image, run as an isolated container sharing the host OS kernel (lighter than a VM). An image is built in layers (each Dockerfile instruction = a cached layer), which makes rebuilds fast when only the top layers change.",
-          "Key objects: Image (the blueprint), Container (a running instance of an image), Dockerfile (build recipe), Volume (persistent storage outside the container's writable layer), Registry (e.g. Docker Hub/ECR — stores images)."
+          "Key objects: Image (the blueprint), Container (a running instance of an image), Dockerfile (build recipe), Volume (persistent storage outside the container's writable layer), Registry (Docker Hub, ECR: stores images)."
         ],
-        "example": "FROM node:20-slim\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production\nCOPY . .\nCMD [\"node\", \"server.js\"]\nCopying package.json before the rest of the source lets Docker cache the npm install layer across builds."
+        "example": "Image (layered recipe) ── docker run ──▶ Container (running instance)\n layer 3: COPY . .          ← changes often, rebuilt each time\n layer 2: RUN npm ci        ← cached while package.json is unchanged\n layer 1: FROM node:20-slim\n\nFROM node:20-slim\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production   # cached layer: skipped on rebuild\nCOPY . .\nCMD [\"node\", \"server.js\"]\n\nReal world: a VM boots a whole OS, a container starts a process in milliseconds sharing the host kernel. Copying package.json before the source keeps the npm install layer cached: CI builds drop from minutes to seconds. Registries (Docker Hub, ECR) store tagged images the way git stores commits: push, pull, roll back to any tag."
       },
       {
         "q": "Kubernetes Core Objects",
         "level": "mid",
         "a": [
           "Kubernetes (K8s) orchestrates containers across a cluster of machines: scheduling, scaling, self-healing, networking.",
-          "Pod: smallest deployable unit — one or more containers sharing network/storage. Deployment: manages a set of replica Pods, handles rolling updates and self-healing. Service: stable network endpoint (ClusterIP/NodePort/LoadBalancer) that load-balances traffic to matching Pods (Pods' IPs are ephemeral). Ingress: HTTP(S) routing into the cluster from outside. ConfigMap/Secret: externalize config and sensitive values from the container image."
+          "Pod: smallest deployable unit, one or more containers sharing network and storage. Deployment: manages a set of replica Pods, handles rolling updates and self-healing. Service: stable network endpoint (ClusterIP/NodePort/LoadBalancer) that load-balances traffic to matching Pods (Pod IPs are ephemeral). Ingress: HTTP(S) routing into the cluster from outside. ConfigMap/Secret: externalize config and sensitive values from the container image."
         ],
-        "example": "A Deployment with replicas: 3 keeps 3 Pods of your API running; if one crashes, K8s reschedules a new one automatically. A Service in front load-balances requests across whichever 3 Pods are currently healthy."
+        "example": "Ingress (HTTP routing from outside)\n   │\nService (stable IP, load-balances)\n   │\nDeployment (desired state: 3 replicas)\n ├─ Pod api-1    ├─ Pod api-2    └─ Pod api-3\n\nkubectl apply -f deploy.yaml   # declare desired state\nkubectl get pods               # K8s makes reality match it\n\nReal world: kill a Pod and the Deployment sees 2 running vs 3 desired, starts a replacement: self-healing with no human. Pod IPs change constantly, which is exactly why the Service exists. The same image runs in staging and prod because config lives in ConfigMap/Secret, not in the image."
       },
       {
         "q": "Kubernetes Scaling (HPA / Resource Limits)",
         "level": "senior",
         "a": [
-          "Horizontal Pod Autoscaler (HPA): automatically adds/removes Pod replicas based on metrics (CPU, memory, or custom metrics like queue depth) to match load.",
-          "Resource requests vs limits (set per container): 'requests' = what the scheduler guarantees/reserves for placement; 'limits' = the hard ceiling before the container is throttled (CPU) or OOM-killed (memory). Under-setting limits risks noisy-neighbor issues; over-setting wastes cluster capacity."
+          "Horizontal Pod Autoscaler (HPA): automatically adds or removes Pod replicas based on metrics (CPU, memory or custom metrics like queue depth) to match load.",
+          "Resource requests vs limits (set per container): requests = what the scheduler reserves for placement, limits = the hard ceiling before the container is throttled (CPU) or OOM-killed (memory). Skipping limits risks noisy neighbors hogging a node; over-reserving requests wastes cluster capacity."
         ],
-        "example": "resources:\n  requests: { cpu: \"250m\", memory: \"256Mi\" }\n  limits: { cpu: \"500m\", memory: \"512Mi\" }\nHPA rule: scale between 3-10 replicas, target 70% average CPU utilization."
+        "example": "load rises ▶ avg CPU hits 70% ▶ HPA adds Pods: 3 ─▶ 5 ─▶ 8 (max 10)\nload drops ▶ HPA scales back down to min 3\n\nresources:\n  requests: { cpu: \"250m\", memory: \"256Mi\" }   # scheduler reserves this\n  limits:   { cpu: \"500m\", memory: \"512Mi\" }   # ceiling: throttle or OOM-kill\n\nReal world: dinner-rush traffic doubles, HPA scales the API from 3 to 8 Pods, back to 3 after midnight. Memory limit too low shows up as random OOMKilled restarts. CPU limit too low shows up as throttling: latency climbs while the CPU graph still looks fine."
       },
       {
         "q": "Service Mesh Basics",
         "level": "senior",
         "a": [
-          "A service mesh (e.g. Istio, Linkerd) adds a network layer of sidecar proxies next to each service to handle cross-cutting concerns without changing app code: mTLS encryption between services, retries/timeouts/circuit breaking, traffic shifting (canary), and fine-grained observability (per-hop latency, error rate)."
+          "A service mesh (Istio, Linkerd) adds a network layer of sidecar proxies next to each service to handle cross-cutting concerns without changing app code: mTLS encryption between services, retries/timeouts/circuit breaking, traffic shifting (canary) and fine-grained observability (per-hop latency, error rate)."
         ],
-        "example": "Canary rollout via service mesh: route 95% of traffic to app v1 and 5% to app v2, watch error rate/latency on v2, then gradually shift more traffic — all via mesh config, no app redeploy needed."
+        "example": "service A ─▶ [sidecar] ══ mTLS ══ [sidecar] ─▶ service B\n                └ retries, timeouts, metrics live here, not in app code\n\nCanary via mesh config (no app redeploy):\n  95% ──▶ v1\n   5% ──▶ v2   # error rate OK? ramp: 25% ▶ 50% ▶ 100%\n\nReal world: Istio and Linkerd inject an Envoy sidecar into every Pod. One rollout gives mTLS between all services with zero app changes. A canary shift is a config edit: route 5% to v2, watch the dashboards, ramp up or roll back without touching code."
       },
       {
         "q": "CI/CD Pipelines",
         "level": "junior",
         "a": [
-          "CI (Continuous Integration): every push triggers automated build + tests, catching integration bugs early. CD (Continuous Delivery/Deployment): automatically packages and ships that build toward production — Delivery stops at a manual approval gate, Deployment goes straight to prod.",
-          "A typical pipeline: lint → unit tests → build image → push to registry → deploy to staging → integration/e2e tests → (approval) → deploy to prod, often with a rollback step wired in."
+          "CI (Continuous Integration): every push triggers automated build + tests, catching integration bugs early. CD (Continuous Delivery/Deployment): automatically packages and ships that build toward production. Delivery stops at a manual approval gate, Deployment goes straight to prod.",
+          "A typical pipeline: lint → unit tests → build image → push to registry → deploy to staging → integration/e2e tests → (approval) → deploy to prod, with a rollback step wired in."
         ],
-        "example": "GitHub Actions workflow on push to main: run tests → docker build & push to ECR → kubectl apply the new image tag → run smoke tests → if smoke tests fail, automatically roll back the Deployment to the previous image."
+        "example": "push ▶ lint ▶ tests ▶ build image ▶ staging ▶ e2e ▶ (approval) ▶ prod\n        └ fail anywhere: pipeline stops, main stays deployable\n\nGitHub Actions on push to main:\n  npm test                                    # CI gate\n  docker build -t api:$SHA . && docker push   # one image per commit\n  kubectl set image deploy/api api=api:$SHA   # roll out the new tag\n\nReal world: CI catches 'works on my machine' at the pull request, not in prod. Smoke test fails after deploy: the pipeline rolls the Deployment back to the previous image tag automatically. Delivery vs Deployment is one question: is there a human approval gate before prod?"
       },
       {
         "q": "Infrastructure as Code",
         "level": "mid",
         "a": [
-          "IaC defines infrastructure (servers, networks, DBs) in version-controlled config files instead of manual console clicks — reproducible, reviewable, and diffable like application code.",
-          "Terraform (declarative, provider-agnostic — describe the desired end state, it figures out the plan). Ansible (mostly imperative/procedural — good for config management and app deploys on top of existing servers). Both support 'plan before apply' to preview changes."
+          "IaC defines infrastructure (servers, networks, DBs) in version-controlled config files instead of manual console clicks. Reproducible, reviewable and diffable like application code.",
+          "Terraform: declarative and provider-agnostic. Describe the desired end state, it figures out the plan. Ansible: mostly imperative, good for config management and app deploys on top of existing servers. Both support plan-before-apply to preview changes."
         ],
-        "example": "resource \"aws_instance\" \"web\" {\n  ami           = \"ami-123456\"\n  instance_type = \"t3.medium\"\n}\nterraform plan shows exactly what will be created/changed/destroyed before terraform apply touches real infrastructure."
+        "example": "console clicks: snowflake servers, no history, no review\nIaC: git diff ▶ code review ▶ terraform plan ▶ apply ▶ same result every time\n\nresource \"aws_instance\" \"web\" {\n  ami           = \"ami-123456\"\n  instance_type = \"t3.medium\"\n}\n# terraform plan prints create/change/destroy before touching anything\n\nReal world: a new environment is one terraform apply, identical to prod in minutes. Someone edits infra by hand in the console: the next plan shows the drift. Disaster recovery: region down, run the same code against another region."
       },
       {
         "q": "Deployment Strategies",
         "level": "mid",
         "a": [
-          "Rolling update: replace old instances with new ones gradually, keeping the service up the whole time (K8s Deployment default). Blue-green: run two full identical environments (blue = live, green = new); switch traffic all at once, instant rollback by switching back. Canary: release the new version to a small % of traffic first, watch metrics, then ramp up — catches bad releases before they hit everyone."
+          "Rolling update: replace old instances with new ones gradually, keeping the service up the whole time (K8s Deployment default). Blue-green: run two full identical environments (blue = live, green = new). Switch traffic all at once, instant rollback by switching back. Canary: release to a small % of traffic first, watch metrics, then ramp up. Catches bad releases before they hit everyone."
         ],
-        "example": "Blue-green on a payments API: green (v2) is deployed and smoke-tested with zero live traffic; once verified, the load balancer target group is switched from blue to green in one shot — if something's wrong, switch back instantly."
+        "example": "Rolling:    v1 v1 v1 ▶ v2 v1 v1 ▶ v2 v2 v1 ▶ v2 v2 v2   (gradual)\nBlue-green: blue (v1, live) │ green (v2, idle) ── flip LB ──▶ green live\nCanary:     95% ▶ v1, 5% ▶ v2 ── metrics OK ──▶ 25% ▶ 50% ▶ 100%\n\nReal world: blue-green on a payments API: deploy green, smoke-test it with zero live traffic, flip the load balancer in one shot, flip back instantly if anything looks wrong. Canary catches a bad release at 5% of users instead of 100%. K8s rolls by default: maxSurge and maxUnavailable tune the wave."
       },
       {
         "q": "AWS & GCP Core Services (Backend)",
@@ -591,16 +591,16 @@
           "The concepts transfer 1:1 between clouds; interviews mostly test that you can name the managed service for each need. Managed Kubernetes: EKS (AWS) / GKE (GCP). Managed Postgres/MySQL: RDS and Aurora / Cloud SQL. Managed Redis: ElastiCache / Memorystore. Messaging: SQS for queues + SNS for fanout / Pub/Sub covers both. Object storage: S3 / Cloud Storage. Serverless containers: Fargate or App Runner / Cloud Run. Functions: Lambda / Cloud Functions.",
           "Glue to know on both: IAM roles/service accounts with least privilege for workloads, VPC networking, CloudWatch / Cloud Monitoring for metrics and logs, ECR / Artifact Registry for container images. Learn one cloud deeply and map the names in the other."
         ],
-        "example": "Same delivery-app stack, both clouds: API pods on EKS or GKE, orders in RDS Postgres or Cloud SQL, cart cache in ElastiCache or Memorystore Redis, order.placed on SNS+SQS or Pub/Sub, invoices in S3 or Cloud Storage, dashboards in CloudWatch or Cloud Monitoring plus Grafana."
+        "example": "need             AWS              GCP\nkubernetes       EKS              GKE\nPostgres/MySQL   RDS / Aurora     Cloud SQL\nRedis            ElastiCache      Memorystore\nqueue + fanout   SQS + SNS        Pub/Sub\nobject storage   S3               Cloud Storage\ncontainers       Fargate          Cloud Run\nfunctions        Lambda           Cloud Functions\n\nReal world: the same delivery-app stack runs on either cloud: API pods on EKS or GKE, orders in RDS or Cloud SQL, cart cache in ElastiCache or Memorystore, order.placed events on SNS+SQS or Pub/Sub, invoices in S3 or Cloud Storage, dashboards in CloudWatch or Cloud Monitoring plus Grafana. Learn one cloud deeply and map the names in the other."
       },
       {
         "q": "Monolith → Microservices Migration (Strangler Fig)",
         "level": "senior",
         "a": [
           "Strangler fig pattern: put a gateway/facade in front of the monolith, then peel capabilities out one at a time into services. The gateway routes each request to either the monolith or the new service, so migration is gradual and reversible. Avoid a big-bang rewrite: it freezes features for months and usually fails.",
-          "Order of attack: start with a domain that is loosely coupled and changes often (high payoff, low risk). The hardest part is the database: give each extracted service its own schema/DB, sync data during transition with events or CDC (change data capture), and remove shared-table access last."
+          "Order of attack: start with a domain that is loosely coupled and changes often (high payoff, low risk). The hardest part is the database: give each extracted service its own schema/DB, sync data during transition with events or CDC (change data capture) and remove shared-table access last."
         ],
-        "example": "Extracting payments from a food-delivery monolith: build payments-service with its own DB, route POST /payments to it at the gateway, make the monolith read payment status via the service API instead of the old table, run both paths behind a feature flag, then delete the monolith's payment module."
+        "example": "           ┌──▶ monolith (everything else)\ngateway ───┤\n           └──▶ payments-service (extracted, own DB)\n     peel one capability at a time, route at the gateway\n\n1 build payments-service with its own DB\n2 gateway routes POST /payments to it\n3 monolith reads payment status via the service API, not the old table\n4 feature flag keeps both paths, easy revert\n5 delete the monolith's payments module\n\nReal world: named after the strangler fig tree that grows around a host until the host is gone. Shopify and Airbnb ran multi-year extractions this way: the monolith shrinks safely in production. The database is the hard part: sync with events or CDC during transition, remove shared-table access last."
       }
     ]
   },
@@ -613,60 +613,60 @@
         "q": "Observability: Metrics, Logs, Traces",
         "level": "junior",
         "a": [
-          "The three pillars. Metrics: numeric time-series (request rate, error rate, latency, CPU) — cheap to store, great for dashboards/alerts, but no per-request detail. Logs: timestamped event records — great for 'what exactly happened' on one request, expensive at scale if unstructured. Traces: follow a single request across multiple services, showing where time was spent at each hop.",
-          "Together they answer: metrics say something's wrong, traces show where, logs show why."
+          "The three pillars. Metrics: numeric time-series (request rate, error rate, latency, CPU). Cheap to store, great for dashboards and alerts, but no per-request detail. Logs: timestamped event records. Great for 'what exactly happened' on one request, expensive at scale if unstructured. Traces: follow a single request across services, showing where time went at each hop.",
+          "Together they answer: metrics say something is wrong, traces show where, logs show why."
         ],
-        "example": "Alert fires: p99 latency on checkout-service spiked (metric). You open the trace for a slow request and see 400ms was spent in a call to the inventory-service (trace). You check inventory-service logs at that timestamp and find it was retrying a timed-out DB query (log)."
+        "example": "metrics ─▶ something is wrong   (p99 latency spiked)\ntraces  ─▶ where                (400ms inside inventory-service)\nlogs    ─▶ why                  (DB query timed out, retrying)\n\nPython:\n  REQUEST_ERRORS.inc()                          # metric: one number goes up\n  log.error(\"gateway timeout\", trace_id=tid)    # log: the story, linked by trace id\n\nGo:\n  requestDuration.Observe(elapsed)        // metric: histogram sample\n  ctx, span := tracer.Start(ctx, \"charge\")   // trace: one span per unit of work\n\nReal world: alert fires on checkout p99 (Prometheus metric). The trace waterfall shows 400ms spent in inventory-service (Jaeger/Tempo). Logs at that timestamp show a timed-out DB query being retried (Loki/Elasticsearch). Three tools, one investigation."
       },
       {
         "q": "Prometheus Metric Types",
         "level": "mid",
         "a": [
-          "Counter: only goes up (or resets to 0 on restart) — e.g. total requests served, total errors. Gauge: goes up or down — e.g. current memory usage, active connections. Histogram: buckets observations (e.g. request duration) so you can compute percentiles/quantiles server-side or at query time. Summary: similar to histogram but computes quantiles client-side (less flexible for aggregation across instances)."
+          "Counter: only goes up (resets to 0 on restart). Total requests, total errors. Gauge: goes up and down. Current memory, active connections. Histogram: buckets observations (request duration) so percentiles can be computed at query time. Summary: like a histogram but computes quantiles client-side, harder to aggregate across instances."
         ],
-        "example": "http_requests_total (counter) increments on every request. http_request_duration_seconds (histogram) buckets latencies so you can query histogram_quantile(0.99, ...) in PromQL to get p99 latency."
+        "example": "counter    ▲ only up:       http_requests_total 1041 ▶ 1042\ngauge      ▲▼ up and down:  active_connections 87 ▶ 62\nhistogram  buckets:         duration ≤0.1s: 900  ≤0.5s: 990  ≤1s: 999\n\nPromQL:\n  rate(http_requests_total[5m])   # counter ▶ requests per second\n  histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))  # p99\n\nReal world: a RED dashboard is two counters (rate, errors) plus one histogram (duration). Every Go service exports go_goroutines (gauge) out of the box. rate() handles counter resets after restarts, so counters stay safe to graph."
       },
       {
         "q": "SLI / SLO / SLA",
         "level": "mid",
         "a": [
-          "SLI (Service Level Indicator): the actual measured metric — e.g. '99.95% of requests succeeded in the last 30 days.' SLO (Service Level Objective): your internal target for that SLI — e.g. 'we aim for 99.9% availability.' SLA (Service Level Agreement): an external, often contractual promise to customers, usually with a penalty if missed — typically looser than your internal SLO so you have buffer."
+          "SLI (Service Level Indicator): the actual measured metric. Example: 99.95% of requests succeeded in the last 30 days. SLO (Service Level Objective): your internal target for that SLI. Example: aim for 99.9% availability. SLA (Service Level Agreement): the external contractual promise to customers, usually with a penalty if missed. Set looser than the internal SLO so there is buffer."
         ],
-        "example": "SLI: measured uptime = 99.92% this month. SLO (internal target): 99.9%. SLA (customer contract): 99.5%, with service credits if breached. You're inside SLO and SLA, but watching the trend closely."
+        "example": "SLI  measured:  99.92% this month\nSLO  internal:  99.90%  ← target (error budget: the 0.1% you may fail)\nSLA  contract:  99.50%  ← penalty line (service credits)\n     inside SLO and SLA here, but watch the trend\n\nBudget math:\n  99.9% monthly SLO = about 43 minutes of allowed downtime  # the error budget\n\nReal world: AWS and GCP publish SLAs with service credits when breached. Google SRE teams freeze feature launches once the error budget is spent: reliability work only until it recovers. Pages tie to budget burn rate, not raw uptime."
       },
       {
         "q": "Alerting Best Practices",
         "level": "senior",
         "a": [
-          "Alert on symptoms users feel (high error rate, high latency, SLO burn rate) — not on every internal cause, or you get alert fatigue and people start ignoring pages. Every alert should be actionable: if it fires and there's nothing to do, it shouldn't page anyone (make it a dashboard instead).",
-          "Use burn-rate alerting for SLOs: alert faster when you're burning your error budget fast (multi-window, multi-burn-rate alerts), not on a single static threshold."
+          "Alert on symptoms users feel (high error rate, high latency, SLO burn rate), not on every internal cause. Cause-based alerts create fatigue and people start ignoring pages. Every alert must be actionable: if there is nothing to do when it fires, make it a dashboard panel, not a page.",
+          "Use burn-rate alerting for SLOs: alert faster when the error budget is burning fast (multi-window, multi-burn-rate), not on a single static threshold."
         ],
-        "example": "Instead of paging on 'CPU > 80% for 1 minute' (noisy, not always user-impacting), page on 'error rate > 5% for 5 minutes' or 'we've burned 10% of this month's error budget in the last hour' — both directly reflect user pain."
+        "example": "bad:   CPU > 80% for 1m        ─▶ pages at 3am, users fine, gets muted\ngood:  error rate > 5% for 5m  ─▶ users are hurting right now\ngood:  10% of monthly error budget burned in 1h ─▶ fast burn, page\n\nPromQL:\n  rate(errors_total[5m]) / rate(requests_total[5m]) > 0.05   # symptom, not cause\n\nReal world: Google SRE burn-rate alerts page on fast burn and open a ticket on slow burn. The classic failure story: noisy CPU alerts get silenced, then a real outage scrolls past in the muted channel. Symptom alerts survive because every page means user pain."
       },
       {
         "q": "Centralized Logging",
         "level": "junior",
         "a": [
-          "In distributed systems, logs from dozens of services/instances must be shipped to one searchable place — you can't SSH into every box. Common stack: app writes structured (JSON) logs → shipped (Fluentd/Vector/Filebeat) → stored & indexed (Elasticsearch/Loki) → visualized (Kibana/Grafana).",
-          "Structured logging (key-value/JSON, not free-text) is what makes logs queryable and correlatable across a whole request."
+          "In distributed systems, logs from dozens of services and instances must ship to one searchable place. You can't SSH into every box. Common stack: app writes structured JSON logs → shipper (Fluentd/Vector/Filebeat) → store and index (Elasticsearch/Loki) → view (Kibana/Grafana).",
+          "Structured logging (key-value JSON, not free text) is what makes logs queryable and correlatable across a whole request."
         ],
-        "example": "{\"timestamp\":\"...\",\"level\":\"error\",\"service\":\"checkout\",\"trace_id\":\"abc123\",\"msg\":\"payment gateway timeout\",\"user_id\":42}\nThe shared trace_id lets you pull every log line across every service for that one request."
+        "example": "app instances ─▶ Vector/Filebeat ─▶ Elasticsearch/Loki ─▶ Kibana/Grafana\n(every box ships, one place to search)\n\n{\"level\":\"error\",\"service\":\"checkout\",\"trace_id\":\"abc123\",\"msg\":\"payment gateway timeout\",\"user_id\":42}\n\nquery trace_id=abc123 ─▶ every log line from every service for that one request\n\nPython:\n  log.error(\"gateway timeout\", extra={\"trace_id\": tid})   # structured, not printf\n\nReal world: grep over SSH dies at the second server. Loki keeps cost down by indexing labels only, not full text. ELK/Datadog bills explode when teams ship free-text debug logs: structure plus sampling is the fix."
       },
       {
         "q": "Distributed Tracing",
         "level": "mid",
         "a": [
-          "A trace represents one request's full journey across services; it's made of spans (one span per unit of work, e.g. one service call or DB query), each with a start/end time and parent-child relationship. OpenTelemetry (OTel) is the current standard for instrumenting apps to emit traces/metrics/logs consistently."
+          "A trace is one request's full journey across services. It is made of spans: one span per unit of work (a service call, a DB query), each with start/end time and a parent-child link. OpenTelemetry (OTel) is the current standard for emitting traces, metrics and logs consistently."
         ],
-        "example": "Request → API gateway span → auth-service span (50ms) → orders-service span (30ms) → payments-service span (400ms, the slow one) → response. The trace waterfall view instantly shows payments-service as the bottleneck."
+        "example": "trace abc123 (waterfall)\n gateway   ├─────────────────────────────┤ 500ms\n  auth     ├──┤ 50ms\n  orders       ├─┤ 30ms\n  payments        ├───────────────┤ 400ms  ← bottleneck\n\nPython:\n  with tracer.start_as_current_span(\"charge\"):   # one span per unit of work\n      charge_card()\n\nGo:\n  ctx, span := tracer.Start(ctx, \"charge\")   // child of the caller's span\n  defer span.End()\n\nReal world: OTel propagates context between services in the traceparent HTTP header, so spans from different services join into one trace. Jaeger, Tempo and Zipkin store and render the waterfalls. Uber built Jaeger to debug requests crossing thousands of microservices."
       },
       {
         "q": "Dashboards (Grafana)",
         "level": "junior",
         "a": [
-          "Grafana visualizes metrics (from Prometheus, ClickHouse, etc.) as dashboards — graphs, gauges, tables — usually organized around a service or an SLO, so on-call can see health at a glance without querying manually. Good dashboards follow the USE method (Utilization, Saturation, Errors) for resources, or the RED method (Rate, Errors, Duration) for services."
+          "Grafana visualizes metrics (Prometheus, ClickHouse and others) as dashboards: graphs, gauges, tables. Usually organized around a service or an SLO so on-call sees health at a glance without querying by hand. Good dashboards follow USE for resources (Utilization, Saturation, Errors) or RED for services (Rate, Errors, Duration)."
         ],
-        "example": "A service dashboard using RED: request rate (req/s), error rate (%), duration (p50/p95/p99 latency) — three panels that answer 'is this service healthy right now' in one glance."
+        "example": "RED service dashboard (one glance: healthy or not?)\n ┌ Rate ─────┐ ┌ Errors ───┐ ┌ Duration ─────────┐\n │ 1.2k req/s│ │ 0.3%      │ │ p99 180ms         │\n └───────────┘ └───────────┘ └───────────────────┘\n\nPanels behind it:\n  rate(http_requests_total[5m])              # Rate\n  histogram_quantile(0.99, ...)              # Duration p99\n\nReal world: RED for services, USE for hosts (CPU utilization, run-queue saturation, hardware errors). On-call opens the service dashboard first, then jumps to traces from a panel link. Grafana alert rules can page straight from the same queries."
       }
     ]
   },
@@ -679,68 +679,68 @@
         "q": "Message Queue vs Pub/Sub",
         "level": "junior",
         "a": [
-          "Message queue (e.g. RabbitMQ, SQS): a message is typically consumed by exactly one worker from the queue — good for distributing work/tasks across a worker pool. Pub/Sub (e.g. Kafka topics, SNS): a message is broadcast to every subscriber independently — good for fanning an event out to multiple, unrelated consumers who each need to react to it."
+          "Message queue (RabbitMQ, SQS): each message is consumed by exactly one worker from the queue. Good for spreading work across a worker pool. Pub/Sub (Kafka topics, SNS): a message is broadcast to every subscriber independently. Good for fanning one event out to multiple unrelated consumers that each react to it."
         ],
-        "example": "A queue: image-resize jobs are pushed to a queue, and any one of 10 worker instances picks up and processes each job exactly once. Pub/Sub: an order-placed event is published once, and both the email-service and the analytics-service each independently receive and process their own copy."
+        "example": "Queue:   producer ─▶ [job|job|job] ─▶ one of N workers   (each job done once)\nPub/Sub: producer ─▶ topic ─┬▶ email-service      (every subscriber\n                            └▶ analytics-service   gets its own copy)\n\nReal world: image-resize jobs go to a queue, any one of 10 workers grabs each job. An order.placed event goes pub/sub: email-service and analytics-service each get their own copy. AWS: SQS is the queue, SNS is the fan-out. Kafka does both: one consumer group behaves like a queue, several groups behave like pub/sub."
       },
       {
         "q": "Delivery Guarantees",
         "level": "mid",
         "a": [
-          "At-most-once: message might be lost, never duplicated (fire and forget). At-least-once: message is guaranteed delivered, but might be delivered more than once (most common default — retries on ambiguous failures). Exactly-once: delivered and processed exactly one time — very hard/expensive to guarantee end-to-end in a distributed system; in practice it's usually 'effectively-once' via at-least-once delivery + idempotent processing."
+          "At-most-once: message might be lost, never duplicated (fire and forget). At-least-once: guaranteed to arrive but maybe more than once. The most common default: brokers retry on ambiguous failures. Exactly-once: delivered and processed exactly one time. Very hard and expensive end-to-end. In practice you build effectively-once: at-least-once delivery plus idempotent processing."
         ],
-        "example": "A payment consumer might receive the same 'charge card' message twice due to a retry after a network blip (at-least-once) — without idempotency, that's a double charge. Making the handler idempotent (checked by a unique request/idempotency key) turns 'at-least-once delivery' into 'effectively-once processing.'"
+        "example": "at-most-once:  send ─▶ ?         (maybe lost, never duplicated)\nat-least-once: send ─▶ ✓ ✓       (timeout ─▶ retry ─▶ duplicate possible)\nexactly-once:  send ─▶ ✓         (needs dedup or transactions everywhere)\n\nReal world: a consumer gets the same charge-card message twice after a network blip retry. Without idempotency that is a double charge. With an idempotency key the second copy is ignored: effectively-once. Kafka and SQS default to at-least-once. Metrics and logs often accept at-most-once: losing one data point is fine."
       },
       {
         "q": "Idempotency",
         "level": "mid",
         "a": [
-          "An operation is idempotent if running it multiple times has the same effect as running it once — critical for safely retrying in distributed systems, since retries are inevitable (timeouts, network blips) and you often can't tell if the first attempt actually succeeded.",
-          "Common technique: an idempotency key (client-generated unique ID per logical operation) — the server stores which keys it has already processed and returns the original result instead of re-executing on a duplicate."
+          "An operation is idempotent if running it many times has the same effect as running it once. Critical for safe retries in distributed systems: retries are inevitable (timeouts, network blips) and you often can't tell if the first attempt succeeded.",
+          "Common technique: an idempotency key (client-generated unique id per logical operation). The server remembers processed keys and returns the original result instead of re-executing a duplicate."
         ],
-        "example": "POST /payments with header Idempotency-Key: abc123. If the client retries the same request (e.g. after a timeout) with the same key, the server recognizes it's already been processed and returns the original charge result instead of charging the card again."
+        "example": "attempt 1 ─▶ POST /payments (Idempotency-Key: abc123) ─▶ charge, save key\nretry     ─▶ same key ─▶ seen before ─▶ return saved result, no second charge\n\nPython:\n  cached = store.get(key)      # duplicate? replay the saved result\n  if cached: return cached\n  result = charge(card); store.set(key, result)\n\nReal world: Stripe requires an Idempotency-Key header on payment POSTs. Naturally idempotent: SET status = 'paid', deleting a row. Not idempotent: counter = counter + 1, appending to a list: those need the key check."
       },
       {
         "q": "Event-Driven Architecture",
         "level": "mid",
         "a": [
-          "Services communicate by emitting events ('order placed', 'user signed up') to a broker, and other services react asynchronously — instead of directly calling each other synchronously. Decouples producers from consumers (a producer doesn't need to know who's listening), improves resilience (a consumer being down doesn't block the producer) and scalability, at the cost of harder-to-trace flows and eventual consistency between services."
+          "Services communicate by emitting events ('order placed', 'user signed up') to a broker and other services react asynchronously, instead of calling each other directly. Decouples producers from consumers (a producer doesn't know who listens), improves resilience (a consumer being down doesn't block the producer) and scalability. Cost: flows are harder to trace and services are eventually consistent."
         ],
-        "example": "When an order is placed, orders-service just publishes order.placed — it doesn't know or care that inventory-service will decrement stock and notifications-service will send a confirmation email; both react independently, and orders-service isn't blocked waiting on either."
+        "example": "orders-service ─▶ broker: order.placed ─┬▶ inventory-service  (stock -1)\n                                         ├▶ email-service      (confirmation)\n                                         └▶ analytics-service\nproducer publishes and moves on: never waits, never knows who listens\n\nReal world: checkout publishes order.placed and returns fast. If email-service is down for 5 minutes, emails arrive late but orders keep flowing: the broker holds the backlog. Tracing pain is real, so teams attach a correlation id to every event to follow one order across services."
       },
       {
         "q": "Kafka Partitions & Consumer Groups",
         "level": "mid",
         "a": [
-          "A Kafka topic is split into partitions for parallelism — each partition is an ordered, append-only log. Order is guaranteed within a partition, not across the whole topic. A consumer group has multiple consumer instances that split up a topic's partitions between them (each partition is read by exactly one consumer in the group at a time) — this is how Kafka scales consumption horizontally while still guaranteeing at-least-once processing per partition."
+          "A Kafka topic is split into partitions for parallelism. Each partition is an ordered append-only log. Order is guaranteed within a partition, not across the topic. A consumer group splits a topic's partitions between its instances (each partition is read by exactly one consumer in the group at a time). That is how Kafka scales consumption horizontally while keeping at-least-once processing per partition."
         ],
-        "example": "A topic with 6 partitions and a consumer group of 3 instances: each instance gets 2 partitions. Messages for the same order_id are keyed to the same partition (same key → same partition), so all events for that order are processed in order by the same consumer."
+        "example": "topic: orders (6 partitions)     consumer group (3 instances)\n  p0, p1 ──────────────────────▶ consumer 1\n  p2, p3 ──────────────────────▶ consumer 2\n  p4, p5 ──────────────────────▶ consumer 3\n\nproducer.send('orders', key=order_id, value=event)  # same key ─▶ same partition\n\nReal world: keying by order_id lands all of one order's events in one partition, so one consumer replays them in order. 6 partitions cap the group at 6 useful consumers: a 7th sits idle, which is why partition count is a scaling decision made up front. When a consumer dies the group rebalances and its partitions move to the survivors."
       },
       {
         "q": "Consensus & Eventual Consistency",
         "level": "senior",
         "a": [
-          "Consensus algorithms (Raft, Paxos) let a cluster of nodes agree on a single value/state even if some nodes fail or messages are delayed — the backbone of leader election in systems like etcd, Zookeeper, and many distributed databases. Raft in particular is popular because it's designed to be more understandable than Paxos: nodes elect a leader, the leader replicates a log to followers, and a value is committed once a majority acknowledge it.",
-          "Eventual consistency (contrast): no coordination overhead, replicas just converge over time — much simpler and more available, but the app must tolerate briefly stale reads."
+          "Consensus algorithms (Raft, Paxos) let a cluster of nodes agree on one value or state even when some nodes fail or messages are delayed. They are the backbone of leader election in etcd, Zookeeper and many distributed databases. Raft is popular because it is easier to understand than Paxos: nodes elect a leader, the leader replicates a log to followers and a value commits once a majority acknowledge it.",
+          "Eventual consistency (the contrast): no coordination overhead, replicas just converge over time. Much simpler and more available, but the app must tolerate briefly stale reads."
         ],
-        "example": "etcd (used by Kubernetes to store cluster state) uses Raft: a write is only acknowledged once a majority of etcd nodes have durably stored it, so the cluster state survives the loss of a minority of nodes without losing data or electing two conflicting leaders."
+        "example": "Raft (3 nodes): client ─▶ leader ─┬▶ follower ✓\n                                  └▶ follower ✓\n                commit once a majority (2 of 3) have written it\n\nReal world: etcd stores Kubernetes cluster state with Raft: a write is acknowledged only after a majority stores it, so losing 1 of 3 nodes loses nothing and two conflicting leaders can't exist. DNS is the everyday eventual-consistency example: updates spread over TTLs and everyone converges eventually."
       },
       {
         "q": "Circuit Breaker Pattern",
         "level": "mid",
         "a": [
-          "Prevents a failing downstream service from cascading failure through the whole system. States: Closed (normal, requests flow through), Open (after too many failures, requests fail fast immediately without even calling the downstream service, giving it room to recover), Half-Open (after a cooldown, let a few test requests through to see if it's healthy again before fully closing)."
+          "Prevents a failing downstream service from cascading failure through the whole system. States: Closed (normal, requests flow), Open (after too many failures, calls fail fast without touching the downstream service, giving it room to recover), Half-Open (after a cooldown, a few test requests probe whether it is healthy before fully closing)."
         ],
-        "example": "orders-service calls a flaky recommendations-service. After 5 consecutive failures, the circuit opens — for the next 30s, orders-service instantly returns a fallback (e.g. no recommendations) instead of waiting on timeouts, protecting its own latency and threads from the downstream outage."
+        "example": "Closed ──── 5 failures in a row ────▶ Open (fail fast, no calls)\n   ▲                                     │ 30s cooldown\n   └──── test call succeeds ──── Half-Open (let a few through)\n\nReal world: orders-service calls a flaky recommendations-service. The circuit opens after 5 failures: for 30s orders-service instantly returns a fallback (empty recommendations) instead of burning threads on timeouts, so its own latency stays flat. Netflix Hystrix made the pattern famous; today resilience4j (Java) and gobreaker (Go) implement it."
       },
       {
         "q": "Saga Pattern (Distributed Transactions)",
         "level": "senior",
         "a": [
-          "Since a single ACID transaction can't span multiple services/databases, a saga breaks a business transaction into a sequence of local transactions, each with a compensating action to undo it if a later step fails — trading strict atomicity for eventual consistency plus explicit rollback logic.",
-          "Choreography: each service listens for events and reacts, no central coordinator (simple, but flow gets hard to trace as it grows). Orchestration: a central coordinator explicitly tells each service what to do next (clearer flow, one more moving part to maintain)."
+          "A single ACID transaction can't span multiple services and databases, so a saga breaks a business transaction into a chain of local transactions, each with a compensating action that undoes it if a later step fails. Trades strict atomicity for eventual consistency plus explicit rollback logic.",
+          "Choreography: each service listens for events and reacts, no central coordinator. Simple, but the flow gets hard to trace as it grows. Orchestration: a central coordinator tells each service what to do next. Clearer flow, one more moving part."
         ],
-        "example": "Booking a trip = reserve flight → reserve hotel → charge card. If charging the card fails, the saga runs compensating actions in reverse: cancel hotel reservation, cancel flight reservation — no single DB transaction ever touched all three services."
+        "example": "reserve flight ─▶ reserve hotel ─▶ charge card ✗ fails\ncancel flight  ◀─ cancel hotel  ◀─ compensate in reverse order\n\nReal world: booking a trip touches three services and no single DB transaction covers them. The card charge fails, so the saga cancels the hotel then the flight. Orchestrated sagas run on tools like Temporal or AWS Step Functions; choreographed ones are just services reacting to each other's events."
       }
     ]
   },
@@ -756,16 +756,16 @@
           "Naive retries make outages worse: a struggling service gets hit by original traffic plus every client's retries (retry storm). Rules: retry only idempotent operations (or make them idempotent with keys), cap attempts (2-3), exponential backoff (1s, 2s, 4s) with jitter (randomness) so thousands of clients don't retry in synchronized waves.",
           "Retry at ONE layer. If the client, the gateway and the service each retry 3x, one user click becomes 27 downstream calls. Also budget retries: stop retrying when overall error rate is high (retry budget/circuit breaker combo)."
         ],
-        "example": "Payment call times out. Wrong: retry immediately in a loop, 5 times, at three layers. Right: idempotency key on the charge, 2 retries with backoff 500ms×2^n + jitter, then fail the request and let the circuit breaker open if the error rate stays high."
+        "example": "attempt 1 ─▶ fail ░wait 500ms░ attempt 2 ─▶ fail ░wait 1s░ attempt 3 ─▶ give up\nwith jitter: clients retry at 480ms, 530ms, 610ms... not one synchronized wave\n\nPython:\n  delay = base * 2**attempt + random.uniform(0, 0.3)   # exponential + jitter\n  time.sleep(min(delay, max_delay))                    # always cap the wait\n\nGo:\n  delay := base * (1 << attempt)   // exponential backoff\n  time.Sleep(delay + time.Duration(rand.Intn(300))*time.Millisecond)   // jitter\n\nReal world: payment call times out: put an idempotency key on the charge, retry twice with backoff plus jitter, then fail and let the circuit breaker take over. AWS SDKs ship exponential backoff with jitter by default. The post-outage thundering herd (every client retrying at the same second) is exactly what jitter prevents."
       },
       {
         "q": "Timeouts & Deadline Propagation",
         "level": "mid",
         "a": [
-          "Every network call needs an explicit timeout: the default in most clients is infinite, and infinite waits pile up threads/goroutines until the service itself dies. A hanging dependency should cost you milliseconds of latency budget, not your worker pool.",
+          "Every network call needs an explicit timeout: the default in most clients is infinite and infinite waits pile up threads/goroutines until the service itself dies. A hanging dependency should cost you milliseconds of latency budget, not your worker pool.",
           "Deadline propagation: the edge sets an overall budget (say 2s) and passes the remaining time down the chain (gRPC deadlines, Go context). Inner calls fail fast instead of doing work the caller already gave up on. Timeouts should shrink as you go deeper, never grow."
         ],
-        "example": "Gateway budget 2s → orders-service uses 1.5s for its work → its call to inventory gets 500ms max. Without propagation: inventory happily takes 10s, gateway already returned 504 at 2s, and the work was wasted on a response nobody reads."
+        "example": "gateway (2s budget)\n  └▶ orders-service (1.5s left)\n       └▶ inventory (500ms left)   ← deadline shrinks going deeper\n\nPython:\n  requests.get(url, timeout=(0.5, 1.0))   # connect + read timeout, never infinite\n\nGo:\n  ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)   // deadline rides the context\n  resp, err := client.Do(req.WithContext(ctx))\n\nReal world: without propagation inventory happily works 10s on a request the gateway already answered with 504 at 2s: wasted work nobody reads. gRPC forwards deadlines automatically across hops. Classic outage shape: an HTTP client with no default timeout hangs threads until the caller dies too."
       },
       {
         "q": "Bulkheads, Load Shedding & Backpressure",
@@ -775,7 +775,7 @@
           "Load shedding: past a threshold, reject cheap and early (429/503 at the edge) instead of degrading for everyone. A bounded queue with rejection beats an unbounded queue that grows until OOM. Backpressure: consumers signal producers to slow down (bounded channels, Kafka consumer lag, TCP flow control) so pressure propagates instead of exploding somewhere.",
           "Priority under stress: shed analytics and recommendations first, keep order placement and payment alive."
         ],
-        "example": "recommendations-service goes slow. With one shared thread pool, all 200 threads end up stuck waiting on it and checkout dies too. With a 20-thread bulkhead for recommendations: those 20 block, timeouts + fallback (empty list) fire, checkout keeps its 180 threads."
+        "example": "shared pool (200): slow recs eats all 200 threads ─▶ checkout dies too\nbulkheads: [checkout 180] [recs 20] ─▶ only the 20 stall, checkout fine\n\nPython:\n  sem = asyncio.Semaphore(20)        # bulkhead: recs calls capped at 20\n  async with sem: await get_recs()\n\nGo:\n  slots := make(chan struct{}, 20)   // bounded slots for the slow dependency\n  select { case slots <- struct{}{}: default: return fallback }   // full: shed early\n\nReal world: recommendations-service goes slow, its 20-thread bulkhead stalls, the fallback returns an empty list and checkout keeps its 180 threads. Netflix Hystrix made this pattern famous. Under stress shed analytics first and keep payments alive: a 429 at the edge beats an OOM in the core."
       },
       {
         "q": "Kafka Rebalancing & Offset Management",
@@ -785,7 +785,7 @@
           "Offsets: auto-commit on a timer can commit offsets for messages you have not finished processing (crash = message lost) or lose work done after last commit (crash = reprocessing). For at-least-once: process first, then commit manually. Consumer lag (latest offset minus committed) is THE health metric for consumers: alert on it.",
           "Poison pill risk: a message that always crashes the consumer blocks its whole partition forever unless you catch, route to DLQ and commit past it."
         ],
-        "example": "order-events consumer crash-loops on one malformed message: partition 3 lag grows unbounded while other partitions are fine. Fix: try/catch around processing, 3 local attempts, then produce to order-events-dlq and commit the offset. Alert on DLQ rate and lag."
+        "example": "group: [C1: p0 p1] [C2: p2 p3], then C3 joins\n eager:       everyone stops, ALL partitions reshuffle\n cooperative: only p1 moves to C3, the rest keep consuming\n\nPython:\n  for msg in consumer:\n      process(msg)\n      consumer.commit()   # at-least-once: process first, commit after\n\nGo:\n  session.MarkMessage(msg, \"\")   // sarama: mark offset after processing, not before\n\nReal world: a rolling deploy of 10 consumer pods triggers a rebalance per restart: with eager rebalancing the group pauses 10 times. One malformed order-events message crash-loops a consumer: partition 3 lag grows unbounded while other partitions stay fine. Fix: 3 local attempts, produce to the DLQ, commit past it, alert on lag."
       },
       {
         "q": "Dead Letter Queues & Replay",
@@ -795,7 +795,7 @@
           "Retry topics pattern (Kafka): retry-5m and retry-1h topics with delayed consumers give transient failures time to heal before the DLQ. Replay: after fixing the bug, re-produce DLQ messages to the original topic. This only works because consumers are idempotent: replay means duplicates by design.",
           "A DLQ nobody monitors is a silent data-loss pit: alert on DLQ depth and age."
         ],
-        "example": "Payment webhook handler fails on a new provider field: 40 messages land in webhooks-dlq, alert fires, main flow unaffected. Deploy the fix, run the replay job, 40 messages reprocess cleanly, idempotency keys prevent double-charging the two that had partially succeeded."
+        "example": "orders ─▶ consumer ── ok ─▶ done\n             │ fail ×3\n             ├▶ retry-5m ─▶ retry-1h         (transient errors heal)\n             └▶ orders-dlq + error metadata   (alert on depth + age)\n\nPython:\n  except ProcessingError as e:\n      if attempts >= 3:\n          producer.send(\"orders-dlq\", enrich(msg, e))   # then commit past it\n\nReal world: payment webhook handler breaks on a new provider field: 40 messages land in webhooks-dlq, the alert fires, the main flow keeps moving. Deploy the fix, replay the 40, idempotency keys stop double-charging the two that half-succeeded. A DLQ nobody monitors is a silent data-loss pit."
       }
     ]
   },
@@ -808,69 +808,69 @@
         "q": "CAP Theorem",
         "level": "mid",
         "a": [
-          "In a distributed system, when a network partition happens, you must choose between Consistency (every read gets the latest write) and Availability (every request gets a response, even if not the latest data) — you can't have both during the partition. Partition tolerance is basically mandatory for any real distributed system, so CAP is really a C-vs-A trade-off during a partition.",
-          "CP systems (e.g. traditional RDBMS with sync replication, Zookeeper, HBase): reject requests rather than return stale data. AP systems (e.g. Cassandra, DynamoDB default): stay available and reconcile/eventual-consistency later."
+          "In a distributed system, when a network partition happens, you must choose between Consistency (every read gets the latest write) and Availability (every request gets a response, even if not the latest data). You can't have both during the partition. Partition tolerance is basically mandatory for any real distributed system, so CAP is really a C-vs-A trade-off during a partition.",
+          "CP systems (traditional RDBMS with sync replication, Zookeeper, HBase): reject requests rather than return stale data. AP systems (Cassandra, DynamoDB default): stay available and reconcile later with eventual consistency."
         ],
-        "example": "Two DB replicas in different regions lose their network link. A CP system refuses writes on the minority side until the link is restored (consistency over availability). An AP system keeps accepting writes on both sides and reconciles conflicts once reconnected (availability over consistency)."
+        "example": "Region 1 ══╳══ Region 2   (partition: link cut)\n\nCP: minority side refuses writes ─▶ stays consistent, partly down\nAP: both sides keep accepting    ─▶ stays up, conflicts merged later\n\nReal world: bank ledgers pick CP: better to reject a request than show a wrong balance. Amazon's cart is the classic AP story: never block add-to-cart, merge carts after the partition heals. Zookeeper is CP: lose quorum and it stops answering rather than lie."
       },
       {
         "q": "Consistency Models",
         "level": "senior",
         "a": [
-          "Strong consistency: every read sees the latest committed write, everywhere, immediately — simplest to reason about, costliest to scale globally. Eventual consistency: replicas converge to the same value over time, but a read right after a write might return stale data — much easier to scale, needs conflict-resolution thinking. Causal consistency sits in between: operations that are causally related are seen in the same order by everyone, unrelated ones can differ."
+          "Strong consistency: every read sees the latest committed write, everywhere, immediately. Simplest to reason about, costliest to scale globally. Eventual consistency: replicas converge over time, but a read right after a write can return stale data. Much easier to scale, needs conflict-resolution thinking. Causal consistency sits in between: causally related operations are seen in the same order by everyone, unrelated ones can differ."
         ],
-        "example": "You update your profile photo. On a strongly consistent system, every friend sees the new photo instantly on any server. On an eventually consistent system, some friends might briefly still see the old photo until replication catches up (usually milliseconds to seconds)."
+        "example": "write new photo ─▶ replica A (updated)\n                 └▶ replica B (old for ~100ms, still replicating)\n\nStrong:   read waits or routes to latest ─▶ always the new photo\nEventual: read B in that window ─▶ old photo briefly\n\nReal world: your own profile edit should be read-your-writes (route that user to the primary). A like counter can be eventual: nobody notices a 1s-late count. DynamoDB lets you choose per read: eventually consistent by default, strongly consistent for double the cost."
       },
       {
         "q": "Horizontal vs Vertical Scaling",
         "level": "junior",
         "a": [
-          "Vertical scaling: make one machine bigger (more CPU/RAM) — simple, no architecture change needed, but has a hard ceiling and a single point of failure. Horizontal scaling: add more machines and distribute load across them (with a load balancer) — near-unlimited ceiling and better fault tolerance, but requires the app to be stateless (or externalize state to a shared store like Redis/DB) so any instance can handle any request."
+          "Vertical scaling: make one machine bigger (more CPU/RAM). Simple, no architecture change, but it has a hard ceiling and stays a single point of failure. Horizontal scaling: add more machines and spread load with a load balancer. Near-unlimited ceiling and better fault tolerance, but the app must be stateless (or push state to a shared store like Redis or the DB) so any instance can handle any request."
         ],
-        "example": "A stateful app storing sessions in local memory can't scale horizontally without breaking logins on other instances — moving sessions to Redis makes any instance interchangeable, unlocking horizontal scaling behind a load balancer."
+        "example": "Vertical:   [ 4 CPU ] ─▶ [ 64 CPU ]     (same 1 box, just bigger)\nHorizontal: LB ─▶ [app] [app] [app]     (more boxes, any can serve)\n\nReal world: sessions kept in local memory break horizontal scaling: the next request lands on another instance and the user is logged out. Move sessions to Redis and every instance becomes interchangeable. Scaling up first is fine: one strong box serves thousands of QPS. Kubernetes HPA is horizontal scaling on autopilot: add pods when CPU climbs."
       },
       {
         "q": "Caching Strategies (System-Level)",
         "level": "mid",
         "a": [
-          "Layer caches close to where they save the most work: browser cache → CDN (static assets) → application-layer cache (Redis, for computed/DB results) → database's own query cache/buffer pool.",
-          "Key decisions: what to cache, TTL, and invalidation strategy (time-based expiry vs explicit invalidation on write vs versioned/keyed cache entries that just go stale naturally)."
+          "Layer caches close to where they save the most work: browser cache → CDN (static assets) → application-layer cache (Redis, for computed or DB results) → the database's own buffer pool.",
+          "Key decisions: what to cache, TTL and invalidation strategy (time-based expiry vs explicit invalidation on write vs versioned keys that just go stale naturally)."
         ],
-        "example": "A product page: static images via CDN, the rendered page fragment cached in Redis for 60s (accepts slightly stale prices for huge read reduction), and the DB itself indexed so any cache miss is still fast."
+        "example": "request ─▶ browser ─▶ CDN edge ─▶ Redis ─▶ Postgres\n            0ms hit     ~20ms       ~1ms     ~30ms + load\n            each layer stops a share of traffic before the next\n\nReal world: a product page serves images from the CDN, caches the rendered fragment in Redis for 60s (slightly stale price, massive read cut) and keeps the DB indexed so misses are still fast. News sites cache the whole homepage HTML at the CDN for ~30s to absorb traffic spikes millions strong."
       },
       {
         "q": "Rate Limiting Algorithms",
         "level": "mid",
         "a": [
-          "Fixed window: count requests per fixed time bucket (e.g. per minute) — simple but allows bursts at window edges (2x limit right at the boundary). Sliding window: smooths that out by weighting the previous window. Token bucket: tokens refill at a steady rate, each request consumes one — allows short bursts up to the bucket size while enforcing a long-term average rate. Leaky bucket: requests queue and are processed at a constant rate, smoothing bursts entirely."
+          "Fixed window: count requests per fixed time bucket (per minute). Simple, but bursts slip through at window edges (2x the limit right at the boundary). Sliding window: smooths that by weighting the previous window. Token bucket: tokens refill at a steady rate, each request takes one. Allows short bursts up to bucket size while holding a long-term average. Leaky bucket: requests queue and drain at a constant rate, smoothing bursts entirely."
         ],
-        "example": "Token bucket with 10 tokens, refilling 1/sec: a client can burst 10 requests instantly, then is limited to 1/sec after — good for APIs that need to tolerate occasional bursts without being abusable."
+        "example": "Fixed window edge: |......xxxxx|xxxxx......|  10 at 0:59 + 10 at 1:00 = 20 in 2s\nToken bucket (10, refill 1/s): ●●●●●●●●●● burst 10 ─▶ then steady 1/s\n\nReal world: token bucket is the API default: Stripe and AWS let clients burst then settle to a steady rate. Nginx limit_req is a leaky bucket: excess requests queue or drop. Whichever algorithm, the contract to the client is 429 plus a Retry-After header."
       },
       {
         "q": "Database Sharding Strategies",
         "level": "senior",
         "a": [
-          "Range-based sharding: split by value ranges (e.g. user_id 1–1M on shard A) — simple, but can create hot shards if traffic isn't uniform. Hash-based sharding: hash the shard key to pick a shard — spreads load evenly, but makes range queries across shards harder and resharding painful. Directory-based: a lookup service maps keys to shards — flexible but adds a dependency/bottleneck.",
-          "Also decide a shard key that keeps related data together (e.g. shard by tenant_id in a multi-tenant app) to avoid expensive cross-shard joins."
+          "Range-based sharding: split by value ranges (user_id 1-1M on shard A). Simple, but hot shards appear when traffic isn't uniform. Hash-based sharding: hash the shard key to pick a shard. Spreads load evenly, but cross-shard range queries get harder and resharding is painful. Directory-based: a lookup service maps keys to shards. Flexible, but the directory becomes a dependency and possible bottleneck.",
+          "Also pick a shard key that keeps related data together (shard by tenant_id in a multi-tenant app) to avoid expensive cross-shard joins."
         ],
-        "example": "A multi-tenant SaaS shards its DB by tenant_id % N, so every query for one customer's data always hits a single shard — no cross-shard joins needed for normal app queries."
+        "example": "Range: ids 1-1M ─▶ A    1M-2M ─▶ B    (all new users hit B: hot shard)\nHash:  hash(id) % 4 ─▶ A │ B │ C │ D   (even spread, no range scans)\n\nReal world: a multi-tenant SaaS shards by tenant_id so one customer's queries always stay on one shard: no cross-shard joins in normal traffic. New-signup growth makes range sharding run hot on the newest shard. Consistent hashing exists because plain hash resharding moves almost every key; with a hash ring, adding a node moves only ~1/N of them."
       },
       {
         "q": "Reverse Proxy vs Load Balancer vs API Gateway",
         "level": "junior",
         "a": [
-          "Reverse proxy: sits in front of one or more backend servers, forwarding client requests to them (can also do TLS termination, caching, compression) — e.g. Nginx. Load balancer: a reverse proxy whose main job is distributing traffic across multiple identical backend instances. API Gateway: a reverse proxy specialized for APIs — adds auth, rate limiting, request routing to different microservices, request/response transformation, all in one entry point."
+          "Reverse proxy: sits in front of backend servers and forwards client requests to them (plus TLS termination, caching, compression). Nginx is the classic. Load balancer: a reverse proxy whose main job is spreading traffic across identical instances. API Gateway: a reverse proxy specialized for APIs. It adds auth, rate limiting, routing to different microservices and request transformation in one entry point."
         ],
-        "example": "An API Gateway sits at the edge: authenticates the JWT, rate-limits the client, then routes /orders/* to the orders-service and /payments/* to the payments-service, each of which has its own internal load balancer across its Pods."
+        "example": "client ─▶ API Gateway (checks JWT, rate limits)\n             ├─ /orders/*   ─▶ LB ─▶ orders pods\n             └─ /payments/* ─▶ LB ─▶ payments pods\n\nReal world: the same binary can play all three roles: plain Nginx is a reverse proxy, give it upstreams and it is a load balancer. Kong and AWS API Gateway handle the API tier (auth, quotas, routing). In Kubernetes the Ingress sits at the edge while each Service load-balances its pods."
       },
       {
         "q": "Back-of-Envelope Estimation",
         "level": "mid",
         "a": [
           "Interviewers often want quick capacity math to sanity-check a design, not exact numbers. Know rough orders of magnitude: 1 day ≈ 86,400s (~100k for quick math), memory access ~100ns, SSD read ~100μs, network round trip within a region ~0.5-1ms, cross-continent ~100-150ms.",
-          "Standard approach: estimate DAU/QPS → estimate read:write ratio and peak factor (often 2-3x average) → estimate storage growth per day/year → sanity check against a single machine's typical capacity (thousands of QPS, TBs of disk) to decide if you actually need to distribute."
+          "Standard approach: estimate DAU/QPS → estimate read:write ratio and peak factor (often 2-3x average) → estimate storage growth per day and year → sanity check against a single machine's typical capacity (thousands of QPS, TBs of disk) to decide if you actually need to distribute."
         ],
-        "example": "10M DAU, each makes 10 requests/day → 100M requests/day → ~1,150 req/s average, ~3,000-4,000 req/s at peak. That's enough to justify multiple app instances behind a load balancer, but likely still fits on a single well-indexed Postgres primary with read replicas — no need to shard yet."
+        "example": "10M DAU × 10 req/day = 100M req/day\n100M ÷ ~100k s ≈ 1,150 req/s average ─▶ ×3 peak ≈ 3,500 req/s\nstorage: 100M × 1KB/day ≈ 100GB/day ≈ 36TB/year\n\nReal world: handy shortcuts: 1M requests/day ≈ 12 req/s, 1 day ≈ 100k seconds. A single well-indexed Postgres primary with read replicas handles thousands of QPS, so this math usually ends with 'load-balance the app tier, no shard yet'. Interviewers grade the method, not the decimals."
       }
     ]
   },
@@ -886,7 +886,7 @@
           "Fixed order, say it out loud: 1) Requirements: functional + non-functional (scale, latency, consistency needs). 2) Back-of-envelope: DAU, QPS, storage. 3) API sketch: main endpoints. 4) Data model: core tables/entities. 5) High-level diagram: services, DB, cache, queue. 6) Deep dive where the interviewer steers. 7) Bottlenecks: single points of failure, hot spots, what breaks at 10x.",
           "Senior signal: state trade-offs explicitly ('I choose eventual consistency here because...') and name what you are NOT building. Do not jump to microservices and Kafka before justifying them."
         ],
-        "example": "Bad open: 'So we'll have a load balancer, some microservices and Kafka.' Good open: 'Who are the users, how many orders/day, and is order placement allowed to be down for a minute or never? That decides how much I invest in availability.'"
+        "example": "1 Requirements ─▶ 2 Numbers ─▶ 3 API ─▶ 4 Data model\n                                                │\n    7 Bottlenecks ◀─ 6 Deep dive ◀─ 5 High-level diagram\n\nQuick math you say out loud:\n  1M DAU × 2 orders = 2M orders/day ≈ 23 QPS average, ~100 QPS peak (4-5x)\n  2M × 2 KB per order ≈ 4 GB/day: one Postgres handles this fine\n\nBad open: 'So we'll have a load balancer, some microservices and Kafka.'\nGood open: 'Who are the users, how many orders per day and can order placement ever be down? That decides how much I invest in availability.'"
       },
       {
         "q": "Design a Food Delivery App",
@@ -896,7 +896,7 @@
           "Rider tracking: riders ping location every few seconds. That write volume does not belong in Postgres: push to Redis (geo sets) or a time-series store, fan out to the customer over WebSocket/SSE. Dispatch: match by proximity (geohash / Redis GEO), rider load and restaurant prep time.",
           "Peak handling (lunch and dinner rush): autoscale stateless services (HPA), queue order processing so bursts buffer instead of dropping, degrade gracefully: ETA and tracking can be stale, order placement and payment must not fail."
         ],
-        "example": "Order flow: POST /orders → order-service validates cart against menu cache, creates order in Postgres + outbox event in one tx → payments charges (idempotency key) → order.paid event → restaurant tablet accepts → dispatch assigns nearest free rider via Redis GEO query → rider app streams GPS → customer WebSocket shows live ETA."
+        "example": "POST /orders ─▶ order-service ─▶ Postgres: order + outbox event (1 tx)\n                    │\n             broker (order.paid)\n             ├─▶ restaurant tablet accepts\n             ├─▶ dispatch ─▶ Redis GEO: nearest free rider\n             └─▶ notifications\n customer ◀══ WebSocket live ETA ══ rider GPS pings ─▶ Redis (not Postgres)\n\nNumbers to drop: 10K active riders pinging every 3s ≈ 3.3K writes/s. That is why GPS goes to Redis geo sets, not Postgres. Dinner rush is 5-10x baseline: queue order processing so bursts buffer, autoscale the stateless services.\n\nRetellable rule: order placement and payment must never fail; ETA and tracking may go stale. Uber and Careem degrade exactly this way under load. Payment charge carries an idempotency key so a retry never double-charges."
       },
       {
         "q": "Design a Rate Limiter",
@@ -906,7 +906,7 @@
           "Standard answer: token bucket per key stored in Redis, so all API instances share state. Check-and-decrement must be atomic: use a Lua script (read count, refill by elapsed time, decrement, set TTL in one call), otherwise two instances race. Local in-memory limiter in front as a cheap first layer is a nice bonus point.",
           "Mention failure mode: if Redis is down, fail open (allow traffic) for availability or fail closed for protection. Say which and why for this API."
         ],
-        "example": "Key rl:user:42, bucket size 20, refill 10/s. Lua script returns allowed/denied plus remaining. Response headers: X-RateLimit-Remaining, Retry-After on 429. Payment endpoints get a stricter separate bucket than read endpoints."
+        "example": "request ─▶ any API instance ─▶ Redis Lua script (atomic):\n              refill by elapsed time ─▶ take 1 token\n              │ token available: pass, X-RateLimit-Remaining: 7\n              └ bucket empty: 429 + Retry-After: 2\n\nKey rl:user:42, bucket 20, refill 10/s: bursts up to 20 allowed, steady 10/s after. Lua matters because read + refill + decrement happen in one call: two instances cannot race. Payment endpoints get a stricter separate bucket than reads.\n\nReal world: Stripe and GitHub return exactly these rate-limit headers. Redis down? Fail open for a public read API (availability), fail closed for login or payments (protection). Saying which and why is the senior point."
       },
       {
         "q": "Design a Notification System",
@@ -916,7 +916,7 @@
           "Reliability: retries with backoff per provider, DLQ for poison messages, idempotency key per notification so retries never double-send. Priority queues: OTP beats marketing. Dedup/collapse: 10 likes become one 'You have 10 likes' push.",
           "Scale reads: delivery status and unread counts in Redis; full history in DB, partitioned by user."
         ],
-        "example": "order.delivered event → notification-service worker checks prefs (push on, SMS off) → renders template in user's language (AR/EN) → pushes via FCM adapter with idempotency key order-123-delivered → marks sent. FCM 5xx: retry 3x with backoff, then DLQ + alert."
+        "example": "event ─▶ queue ─▶ worker ─▶ prefs + quiet hours ─▶ adapter (FCM / SMS / email)\n                     │ provider 5xx: retry 3x with backoff\n                     └ still failing: DLQ + alert\n\nWhy the queue: SMS and email providers are slow flaky third parties, so they must never sit in the request path. Idempotency key per notification (order-123-delivered) means a retry never double-sends. Templates render in the user's language (AR/EN).\n\nRetellable details: the OTP queue outranks the marketing queue (priority). 10 likes collapse into one 'You have 10 likes' push (dedup). Chat apps keep unread counts in Redis and partition full history by user."
       },
       {
         "q": "Design a URL Shortener",
@@ -926,7 +926,7 @@
           "Read path dominates (100:1 or more): cache code → URL in Redis, CDN can even cache redirects. 301 (permanent, browsers cache, less analytics) vs 302 (temporary, every hit reaches you, full analytics): pick 302 if click tracking matters.",
           "Storage math: 100M URLs × ~500 bytes ≈ 50 GB. Fits one Postgres with replicas: say that instead of sharding reflexively."
         ],
-        "example": "GET /abc123 → Redis hit → 302 to long URL, click event dropped onto a queue for async analytics. Miss → Postgres lookup → backfill cache with TTL. Write path: POST /shorten → next ID from allocated range → base62 → store → return short URL."
+        "example": "Write: POST /shorten ─▶ ID from node's range ─▶ base62 ─▶ store ─▶ short URL\nRead:  GET /abc123 ─▶ Redis ── hit: 302 redirect\n                        │ miss\n                        └─▶ Postgres ─▶ backfill cache (TTL)\n       click event ─▶ queue ─▶ async analytics\n\nNumbers: 100M URLs × 500 bytes ≈ 50 GB: one Postgres with replicas, no sharding needed. Reads beat writes 100:1, so the cache does the real work.\n\nRetellable trade-off: 301 gets cached by browsers (fast, loses analytics), 302 hits your server every time (full click tracking). Bitly-style services pick 302 because clicks are the product."
       }
     ]
   },
@@ -942,7 +942,7 @@
           "A fixed order beats intuition under pressure: 1) Scope the blast radius: one endpoint or everything, one region or all, all users or a subset. 2) Check what changed: deploys, config flags, traffic shifts, dependency releases. Most incidents follow a change. 3) Read RED metrics (rate, errors, duration) for the service, then USE (utilization, saturation, errors) for its resources. 4) Follow one failing request with a trace, then read its logs. 5) Mitigate first (rollback, scale, flag off), root-cause later.",
           "Say the mitigation-first part out loud in interviews: restoring service beats finding the bug. Rollback is a valid answer, not an admission of defeat."
         ],
-        "example": "Checkout error rate hits 8% at 12:03. Deploy log shows a release at 11:58. Roll back first, confirm recovery at 12:07, then diff the release to find the bug. Total impact: 9 minutes. The wrong version: debugging live while users keep failing for an hour."
+        "example": "scope blast radius ▶ what changed? ▶ RED metrics ▶ one trace ▶ mitigate\n\nCommands:\n  kubectl rollout history deploy/api   # what shipped recently\n  kubectl rollout undo deploy/api      # mitigate first, root-cause later\n\nReal world: checkout error rate hits 8% at 12:03. Deploy log shows a release at 11:58. Roll back first, confirm recovery at 12:07, then diff the release to find the bug. Total impact: 9 minutes. The wrong version: debugging live while users keep failing for an hour."
       },
       {
         "q": "API Latency Spike (p99 up 10x)",
@@ -951,7 +951,7 @@
           "First split: p99 up while p50 flat means a subset of requests is slow: queueing, lock contention, one slow shard or dependency, GC pauses, cold cache. Both up means systemic: saturation, downstream slowdown or a bad deploy.",
           "Checklist: RED dashboard to find which endpoint; a trace to see where the time goes (own CPU vs downstream call vs DB); connection pool wait time; DB slow query log; cache hit rate; GC pause metrics; retry amplification (a slow dependency plus retries multiplies its own load)."
         ],
-        "example": "Trace shows 1.8s of a 2s request inside one DB call. pg_stat_activity: dozens of queries waiting on the same row lock. Root cause: a new cron job runs a long transaction updating hot rows. Kill the job, p99 recovers instantly; permanent fix: move it off-peak and commit in small chunks."
+        "example": "p99 up, p50 flat ─▶ a subset is slow: locks, one shard, GC, cold cache\np99 up, p50 up   ─▶ systemic: saturation, downstream, bad deploy\n\nFind lock waits:\n  SELECT pid, wait_event, query FROM pg_stat_activity\n  WHERE wait_event_type = 'Lock';\n\nReal world: trace shows 1.8s of a 2s request inside one DB call. pg_stat_activity: dozens of queries waiting on the same row lock. Root cause: a new cron job runs a long transaction updating hot rows. Kill the job, p99 recovers instantly. Permanent fix: run it off-peak and commit in small chunks."
       },
       {
         "q": "Database CPU at 100%",
@@ -960,7 +960,7 @@
           "Order of checks: 1) pg_stat_activity: what runs right now, is one query piled up many times. 2) pg_stat_statements: top queries by total time. 3) EXPLAIN the top offender: a seq scan on a big table usually means a missing or unusable index (function on an indexed column, implicit cast, stale statistics). 4) Connection count: hundreds of active backends burn CPU on context switching even when each query is fine. 5) Autovacuum health: bloat and outdated stats push the planner into bad plans.",
           "Quick mitigations: kill the offending query, CREATE INDEX CONCURRENTLY for the missing index, route reads to a replica, cache the hot query in Redis."
         ],
-        "example": "An ORM upgrade silently dropped eager loading: 50k identical single-row SELECTs per minute (N+1 flood). Each query is cheap; together they eat all CPU. pg_stat_statements shows the calls count exploding while mean time stays tiny: that signature = N+1. Fix: restore the JOIN/eager load."
+        "example": "pg_stat_activity ▶ pg_stat_statements ▶ EXPLAIN top query ▶ connections ▶ vacuum\n (running now)      (top by total time)    (seq scan? bad plan?)\n\nSELECT query, calls, total_exec_time FROM pg_stat_statements\nORDER BY total_exec_time DESC LIMIT 5;   -- who burns the CPU\nCREATE INDEX CONCURRENTLY idx_orders_user ON orders(user_id);   -- no write lock\n\nReal world: an ORM upgrade silently dropped eager loading: 50k identical single-row SELECTs per minute (N+1 flood). Each query is cheap, together they eat all CPU. pg_stat_statements shows calls exploding while mean time stays tiny: that signature = N+1. Fix: restore the eager load."
       },
       {
         "q": "Memory Leak Hunt",
@@ -969,7 +969,7 @@
           "Symptoms: RSS climbs steadily under flat traffic, restarts fix it temporarily, Kubernetes shows OOMKilled (exit code 137) restart loops that look like random crashes. Confirm leak vs load: memory must grow while traffic does not.",
           "Method: take two heap profiles at different times and diff them (pprof in Go, heap snapshots in Node, jmap + MAT in Java). Usual suspects: unbounded in-memory caches or maps, listeners and goroutines never cleaned up on error paths, per-connection buffers, globals holding request-scoped data."
         ],
-        "example": "Go service: goroutine count in pprof grows forever. Each request spawns a goroutine waiting on a channel that is never closed on the error path. Fix: pass a context and select on ctx.Done() so the goroutine exits when the request dies."
+        "example": "RSS under flat traffic: ▁▂▃▄▅▆▇   restart ▶ drops ▶ climbs again = leak\n\nGo (diff two heap profiles):\n  curl :6060/debug/pprof/heap > h1.prof      # snapshot now\n  go tool pprof -diff_base h1.prof h2.prof   # 10 min later: what grew\n\nReal world: Go service where goroutine count in pprof grows forever. Each request spawns a goroutine waiting on a channel never closed on the error path. Fix: pass a context and select on ctx.Done() so the goroutine exits when the request dies. Kubernetes face of the same bug: OOMKilled (exit 137) restart loops."
       },
       {
         "q": "Queue Backlog Growing",
@@ -978,17 +978,17 @@
           "Lag grows when produce rate exceeds consume rate. First question: spike (will drain on its own) or steady growth (never drains without action). Then check consumer health: crash loops, rebalance storms, one stuck partition (poison message), or a slow downstream dependency inside the handler.",
           "Fix by cause: scale consumers (in Kafka this only helps up to the partition count), DLQ the poison message and commit past it, batch the slow downstream call, raise partition count for future headroom, apply backpressure upstream if producers can slow down."
         ],
-        "example": "Lag alert: one partition lagging, the rest fine → poison message crash-looping its consumer; DLQ it and lag drains in minutes. All partitions lagging evenly → the payment API the handler calls got 300ms slower; batch the calls or scale consumers."
+        "example": "produce 5k/s ─▶ [ queue lag ▁▂▃▅▇ ] ─▶ consume 3k/s\n spike: drains on its own     steady growth: never drains without action\n\nKafka:\n  kafka-consumer-groups --describe --group orders   # per-partition lag\n\nReal world: one partition lagging, the rest fine → poison message crash-looping its consumer. DLQ it and commit past it, lag drains in minutes. All partitions lagging evenly → the payment API inside the handler got 300ms slower. Batch the calls or scale consumers (helps only up to the partition count)."
       },
       {
         "q": "Cascading Failure Triage",
         "level": "senior",
         "a": [
-          "The pattern: one dependency slows down, callers' threads and connections pile up waiting on it, their pools exhaust, their own callers start failing, and the whole system browns out. Retries and aggressive health-check evictions amplify every step.",
+          "The pattern: one dependency slows down, callers' threads and connections pile up waiting on it, their pools exhaust, their own callers start failing and the whole system browns out. Retries and aggressive health-check evictions amplify every step.",
           "Triage: find the deepest unhealthy service (the first to degrade in the timeline), not the loudest alert: alerts fire top-down but causes live bottom-up. Mitigate: shed load at the edge, open circuit breakers or flag the feature off, scale the true bottleneck, temporarily disable retries.",
           "Prevention vocabulary to name: timeouts with deadline propagation, circuit breakers, bulkheads, load shedding, jittered retries, graceful degradation."
         ],
-        "example": "Recommendations DB slows → recommendations-service saturates → product-page calls it with no timeout and exhausts its thread pool → homepage goes down. One 200ms timeout plus an empty-list fallback at the top restores everything except recommendations while the DB is fixed."
+        "example": "DB slow ─▶ svc A pool full ─▶ svc B threads wait ─▶ edge 5xx\n alerts fire top-down ▲         cause lives bottom-up ▼\n\nTriage rule: walk the timeline to the first service that degraded, not the loudest alert.\n\nReal world: recommendations DB slows → recommendations-service saturates → product-page calls it with no timeout and exhausts its thread pool → homepage goes down. One 200ms timeout plus an empty-list fallback at the top restores everything except recommendations while the DB is fixed."
       }
     ]
   },
@@ -1004,7 +1004,7 @@
           "Sorted input + target or pair → two pointers or binary search. Contiguous subarray/substring with a constraint → sliding window. Counting, duplicates, complements → hash map. Top-K or K-th largest → heap. All paths, permutations, nested choices → DFS/backtracking. Shortest path or level-by-level → BFS. Overlapping subproblems with optimal substructure → dynamic programming. Prerequisites or ordering → topological sort. Connectivity and grouping → union-find.",
           "Interviews reward naming the pattern before coding: 'longest substring with at most K distinct characters is a sliding window with a frequency map.' It shows recognition, not luck."
         ],
-        "example": "Two numbers summing to a target: unsorted → one-pass hash map of complements, O(n). Already sorted → two pointers from both ends, O(n) time and O(1) space. Same problem, two patterns; the sorted property decides."
+        "example": "sorted + pair        ─▶ two pointers / binary search\nsubarray constraint  ─▶ sliding window\ncounts, complements  ─▶ hash map\ntop-K                ─▶ heap\nall combinations     ─▶ DFS / backtracking\nfewest steps         ─▶ BFS\nordering with deps   ─▶ topological sort\n\nPython (two sum, unsorted):\n  seen = {}\n  for i, x in enumerate(nums):\n      if target - x in seen: return [seen[target - x], i]   # complement seen before\n      seen[x] = i\n\nSame problem on a sorted array: two pointers from both ends, O(1) space. The sorted property decides the pattern.\n\nReal world: rate limiters are sliding windows, autocomplete top suggestions is a heap, build systems and job schedulers with dependencies run topological sort."
       },
       {
         "q": "Two Pointers & Sliding Window",
@@ -1013,7 +1013,7 @@
           "Two pointers, three flavors: converging ends on sorted data (pair sum, container with most water), fast/slow (cycle detection, middle of a linked list), read/write (in-place dedup or removal). Sliding window: grow the right edge, shrink the left edge while the constraint is broken, keep window state in counters or a frequency map.",
           "Why they are O(n): each element enters and leaves the window (or is passed by a pointer) at most once. No restart from scratch per position."
         ],
-        "example": "Longest substring without repeating characters: move right adding chars to a set; on a duplicate, move left removing chars until unique again; track max window size. Every char is added once and removed at most once."
+        "example": "Longest substring without repeats: abcabcbb\n  a b c a b c b b\n  L───R             window abc unique: grow R\n      L───R         duplicate a: shrink L until unique again\n\nPython:\n  seen = set(); L = best = 0\n  for R, ch in enumerate(s):\n      while ch in seen: seen.remove(s[L]); L += 1   # shrink on duplicate\n      seen.add(ch); best = max(best, R - L + 1)     # grow + record\n\nO(n): every char enters the window once and leaves at most once.\n\nReal world: TCP flow control slides a window over the byte stream. Log scanners answer 'most errors in any 5 minute span' with a time-based window. Fast/slow pointers detect cycles in linked structures (Floyd's algorithm)."
       },
       {
         "q": "BFS vs DFS vs Binary Search Decisions",
@@ -1022,17 +1022,17 @@
           "BFS: shortest path in unweighted graphs, minimum number of steps, level-order processing. Queue plus a visited set. DFS: exhaustive exploration, path existence, backtracking, tree recursion, topological sort. Watch recursion depth on large inputs.",
           "Binary search is not just for sorted arrays: any monotonic yes/no question ('does capacity X suffice?') can be binary searched on the answer space. If feasibility only flips once as X grows, binary search the smallest feasible X."
         ],
-        "example": "Minimum ship capacity to deliver packages within D days: bigger capacity always still works (monotonic), so binary search capacity between max(weight) and sum(weights), greedily checking each candidate in O(n). Classic binary search on the answer."
+        "example": "BFS: level by level (queue)     DFS: dive deep, backtrack (stack)\n shortest steps, min moves       all paths, cycles, topo sort\n\nBinary search on the answer (monotonic feasibility):\n capacity:  no no no YES YES YES ─▶ find the first YES in O(log range)\n\nPython (min ship capacity in D days):\n  lo, hi = max(w), sum(w)\n  while lo < hi:\n      mid = (lo + hi) // 2\n      if days_needed(mid) <= D: hi = mid   # feasible: try smaller\n      else: lo = mid + 1                   # too small: go bigger\n\nReal world: BFS = fewest hops in a social graph or network route. DFS = dependency resolution and cycle detection in service call graphs. Binary search on the answer = capacity planning: smallest worker count that keeps latency under the SLO."
       },
       {
         "q": "Complexity Quick Reference",
         "level": "junior",
         "a": [
           "Rules of thumb: roughly 10^8 simple operations per second. n ≤ 20 → exponential/backtracking is fine. n ≤ 5,000 → O(n²) is fine. n around 10^5 to 10^6 → you need O(n log n) or O(n). Sorting is O(n log n); heap push/pop O(log n); hash operations O(1) average; binary search O(log n).",
-          "Space counts too: recursion depth is stack space, and many DP tables compress to two rows.",
+          "Space counts too: recursion depth is stack space and many DP tables compress to two rows.",
           "Practice reps live in vizly DSA Quest; this section is recall only."
         ],
-        "example": "n = 10^5 with a nested loop = 10^10 operations: guaranteed timeout. That number alone tells you to reach for sort + two pointers, a hash map, or a heap to drop a factor of n before writing any code."
+        "example": "What survives 1 second (~10^8 simple ops):\n n ≤ 20     ─▶ 2^n backtracking OK\n n ≤ 5,000  ─▶ O(n²) OK\n n ≥ 10^5   ─▶ need O(n log n) or O(n)\n\nn = 10^5 nested loop = 10^10 ops: timeout, no code needed to know it.\n\nPython:\n  nums.sort()            # O(n log n)\n  heapq.heappush(h, x)   # O(log n)\n  x in seen              # set/dict lookup: O(1) average\n\nReal world: the same math sizes production code: an O(n²) dedup that passed review at 1K rows melts at 1M. Postgres chooses hash join vs nested loop with the same estimates."
       }
     ]
   },
@@ -1048,7 +1048,7 @@
           "A goroutine is a lightweight thread managed by the Go runtime: a few KB of stack, multiplexed onto OS threads by the scheduler (M:N), so hundreds of thousands are fine. Started with the go keyword.",
           "Channels are typed pipes between goroutines: 'share memory by communicating, not communicate by sharing memory.' Unbuffered channel: send blocks until a receiver is ready (a synchronization point). Buffered channel: send blocks only when the buffer is full. close(ch) signals no more values; range over a channel reads until it is closed."
         ],
-        "example": "Worker pool: jobs := make(chan Job, 100). Start 10 goroutines that do 'for job := range jobs { process(job) }'. The producer sends jobs and calls close(jobs) when done; a sync.WaitGroup waits for all workers to finish."
+        "example": "go keyword: main ─▶ go f() runs concurrently (~2KB stack, scheduler maps M:N)\nchannel:    producer ──▶ [ jobs buffer 100 ] ──▶ 10 workers\n\nGo:\n  jobs := make(chan Job, 100)   // buffered channel\n  for i := 0; i < 10; i++ {\n      go func() { for j := range jobs { process(j) } }()   // worker pool\n  }\n  close(jobs)   // no more jobs: workers' range loops end\n\nReal world: every request in a Go HTTP server runs in its own goroutine, no thread pool tuning. A crawler fetches 10,000 URLs with 10 workers reading one jobs channel. Docker and Kubernetes are Go programs juggling thousands of goroutines this way."
       },
       {
         "q": "select, context & sync",
@@ -1057,7 +1057,7 @@
           "select waits on multiple channel operations and runs whichever is ready first: the core tool for timeouts, cancellation and multiplexing. context.Context carries deadlines and cancellation down a call chain; every blocking call should respect ctx.Done(). Cancel a parent context and everything below it stops.",
           "sync package: Mutex/RWMutex for shared state, WaitGroup to wait for a set of goroutines, Once for one-time init. errgroup (golang.org/x/sync) combines WaitGroup with error propagation and context cancellation."
         ],
-        "example": "HTTP handler: ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second); defer cancel(). Pass ctx into the DB query. If the client disconnects or 2s pass, the query is cancelled instead of leaking a goroutine."
+        "example": "select: whichever channel is ready first wins\n  case msg := <-ch:      // data arrived\n  case <-ctx.Done():     // timeout or cancel fired\n\nGo:\n  ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)\n  defer cancel()\n  row := db.QueryRowContext(ctx, query)   // client gone or 2s up: query stops\n\nReal world: gRPC propagates context across services: one client timeout cancels the whole downstream call tree. errgroup fans out 3 API calls and the first error cancels the siblings. Handlers that ignore ctx leak goroutines every time a client disconnects."
       },
       {
         "q": "Interfaces & Composition",
@@ -1066,7 +1066,7 @@
           "Go interfaces are satisfied implicitly: any type with the matching methods implements the interface, no 'implements' keyword. This keeps packages decoupled: define the interface where it is used (the consumer), not where it is implemented.",
           "Idioms: keep interfaces small (io.Reader has one method), 'accept interfaces, return structs.' There is no inheritance: reuse comes from struct embedding (composition)."
         ],
-        "example": "The orders package defines: type Notifier interface { Notify(ctx context.Context, msg string) error }. EmailNotifier and SlackNotifier satisfy it automatically just by having that method, and never need to import the orders package."
+        "example": "consumer defines the interface:\n  orders pkg ─▶ Notifier { Notify(ctx, msg) error }\n  EmailNotifier ✓   SlackNotifier ✓   (matching methods = implements, no keyword)\n\nGo:\n  type Notifier interface { Notify(ctx context.Context, msg string) error }\n  func NewService(n Notifier) *Service   // accept interfaces, return structs\n\nReal world: io.Reader has one method, so files, sockets, gzip streams and bytes.Buffer all plug into the same code. Tests hand-write a fake Notifier struct, no mocking framework needed. http.Handler is one interface and every Go web framework builds on it."
       },
       {
         "q": "Error Handling in Go",
@@ -1075,7 +1075,7 @@
           "Errors are plain values returned as the last result and checked with if err != nil. No exceptions for normal control flow. Wrap errors with context: fmt.Errorf(\"fetch user %d: %w\", id, err); inspect the chain with errors.Is (sentinel match) and errors.As (type match).",
           "panic/recover is only for truly unrecoverable states, never for expected failures like a missing row. defer runs cleanup on the way out (close files, unlock mutexes) in LIFO order."
         ],
-        "example": "if errors.Is(err, sql.ErrNoRows) { return nil, ErrUserNotFound }. The repository translates a driver-level error into a domain error, and the HTTP handler maps that domain error to a 404."
+        "example": "sql.ErrNoRows (driver)\n  └─ wrap: fmt.Errorf(\"get user 42: %w\", err)\n       └─ errors.Is ─▶ domain ErrUserNotFound ─▶ handler returns 404\n\nGo:\n  if err != nil { return fmt.Errorf(\"fetch user %d: %w\", id, err) }  // add context, keep chain\n  if errors.Is(err, sql.ErrNoRows) { return ErrUserNotFound }        // translate to domain error\n\nReal world: wrapped errors make log lines read like a story: 'handle order 9: charge card: gateway timeout'. Each layer translates upward: driver error to domain error to HTTP status. Web frameworks recover() per request so one panicking handler doesn't kill the server."
       },
       {
         "q": "Slices, Maps & the Runtime",
@@ -1084,7 +1084,7 @@
           "A slice is a small header (pointer, length, capacity) over a backing array: two slices can share the same array, so a write through one is visible in the other. append may reallocate, so always assign the result back. Maps are not safe for concurrent writes: guard with a mutex or use sync.Map.",
           "Runtime: concurrent mark-and-sweep GC tuned for sub-millisecond pauses, GOMAXPROCS controls parallelism. Go compiles to one static binary, which is why Go container images are tiny (FROM scratch works)."
         ],
-        "example": "b := a[:2] then b = append(b, x): if a had spare capacity, x silently overwrites a[2]. Classic interview gotcha. Safe copy: c := make([]int, len(a)); copy(c, a)."
+        "example": "backing array: [10][20][30][40]   a = full slice, cap 4\nb := a[:2] ─▶ same array\nb = append(b, 99) ─▶ [10][20][99][40]   ← a[2] silently overwritten\n\nGo:\n  b := a[:2]\n  b = append(b, 99)                        // spare capacity: writes into a's array\n  c := make([]int, len(a)); copy(c, a)     // safe independent copy\n\nReal world: classic prod bug: slice a cached response, append to the sub-slice, corrupt the cache. Concurrent map writes crash the process (fatal error: concurrent map writes): guard with a mutex or sync.Map. Go builds one static binary, so FROM scratch Docker images are a few MB."
       }
     ]
   },
@@ -1101,7 +1101,7 @@
           "Prepare 6-8 stories before interviews and map them to the usual questions: hardest technical problem, conflict with a colleague, failure/mistake, tight deadline, mentoring someone, disagreeing with a decision, leading without authority. One strong story can serve multiple questions from different angles.",
           "Quantify results: '82M requests/month', 'cut p99 from 800ms to 120ms', 'onboarding time from 2 weeks to 3 days'. Numbers make stories credible and memorable."
         ],
-        "example": "'Tell me about a production issue you owned': Situation: checkout errors spiked at peak. Task: I was on call and led the incident. Action: I checked the RED dashboard, traced it to pool exhaustion, applied a bulkhead + capped pools, wrote the postmortem. Result: 40 minutes of impact, and the class of incident never recurred; the fix became a platform default."
+        "example": "S ─ Situation: 1 sentence of context\nT ─ Task: what YOU owned\nA ─ Action: what YOU did, 70% of the answer, say 'I'\nR ─ Result: a number + a lesson\n\nSample ('tell me about a production issue you owned'):\n S: checkout errors spiked at peak.\n T: I was on call and led the incident.\n A: I checked the RED dashboard, traced it to connection pool exhaustion, applied a bulkhead and capped the pools, wrote the postmortem.\n R: 40 minutes of impact. The incident class never recurred and the fix became a platform default.\n\nRetell one strong story from different angles (failure, deadline, conflict): it serves many questions. Numbers do the convincing."
       },
       {
         "q": "Mentoring & Code Review Answers",
@@ -1111,7 +1111,7 @@
           "Code review philosophy: review for correctness, tests and design first, style last (linters own style). Distinguish blocking issues from nitpicks explicitly ('nit:' prefix). Comment on the code, never the person; ask questions instead of commanding ('what happens if this times out?'). Big PRs get a synchronous walkthrough instead of 200 comments.",
           "Senior signal: you raise the team's level (docs, patterns, onboarding), not just your own output."
         ],
-        "example": "Question: 'A junior keeps submitting buggy PRs, what do you do?' Answer shape: first pair with them privately to find the real gap (testing habits? domain knowledge?), agree on a pre-PR checklist, pair-write tests for the next feature, then track improvement over a month before involving the manager."
+        "example": "People-question shape:\n 1. diagnose privately (find the real gap)\n 2. agree a plan together\n 3. pair on it\n 4. measure over time\n 5. escalate only after that\n\nSample ('a junior keeps submitting buggy PRs, what do you do?'):\n 'First I pair with them privately to find the real gap: testing habits or domain knowledge. We agree a pre-PR checklist, I pair-write tests on their next feature and we track a month of PRs. The manager only hears about it if nothing improves.'\n\nReview lines that land well: 'nit:' prefix for non-blockers, 'what happens if this times out?' instead of 'this is wrong', a walkthrough call for big PRs instead of 200 comments."
       },
       {
         "q": "Conflict, Disagreement & Ambiguity",
@@ -1121,7 +1121,7 @@
           "Ambiguity (a standard senior-role requirement): show a bias for reversible action. Timebox research, write a one-page proposal with options and a recommendation, pick the reversible option when unsure, set a checkpoint to revisit. Never 'I waited for someone to decide.'",
           "Escalation is not failure: escalating a stuck decision with a clear write-up of both options is a senior move."
         ],
-        "example": "'I pushed for Postgres, a teammate wanted MongoDB. I wrote a one-pager comparing both against our access patterns and ran a load test on the riskiest query. We picked Postgres, but their concern about schema churn was valid, so we added a jsonb column for the volatile attributes. Shipped on time; both of us owned the result.'"
+        "example": "Disagreement skeleton:\n data ▶ listen ▶ decide ▶ commit (even when it wasn't your choice)\n\nAmbiguity skeleton:\n timebox research ▶ one-pager with options + recommendation ▶ pick the reversible option ▶ set a checkpoint\n\nSample: 'I pushed for Postgres, a teammate wanted MongoDB. I wrote a one-pager comparing both against our access patterns and load tested the riskiest query. We picked Postgres, but their schema-churn concern was valid, so we added a jsonb column for the volatile attributes. Shipped on time. Both of us owned the result.'\n\nEscalating a stuck decision with a clear write-up of both options is a senior move, not a failure."
       },
       {
         "q": "Go, Ruby/Rails, Java/JVM, Python Quick Notes",
@@ -1131,9 +1131,9 @@
           "Ruby/Rails: MRI has a GVL (global VM lock), so one process runs one thread of Ruby at a time; scaling is multi-process (Puma workers) plus threads for I/O. Rails = convention over configuration: ActiveRecord ORM (watch N+1: use includes), migrations, Sidekiq (Redis-backed) for background jobs. Many delivery and e-commerce companies still run a Rails monolith, so expect at least respect-level questions.",
           "Java/JVM: real OS threads (virtual threads since 21 for cheap concurrency), generational GC (G1 default, ZGC for low pause), JIT warms up hot paths. Spring Boot: DI container, @Transactional, heavy but battle-tested for large teams.",
           "Python: GIL means threads don't help CPU-bound work: use multiprocessing or async I/O (FastAPI/asyncio) for concurrency. Type hints + mypy for large codebases. Common in tooling, data and ML services around a Go/Java core.",
-          "Interview stance: 'strongest in Go/Node, productive quickly in the others, and the fundamentals (DB, HTTP, testing, design) transfer.' Then prove it with these specifics."
+          "Interview stance: 'strongest in Go/Node, productive quickly in the others and the fundamentals (DB, HTTP, testing, design) transfer.' Then prove it with these specifics."
         ],
-        "example": "Question: 'Rails app is slow under load, what do you check?' Answer: N+1 queries via the log (bullet gem), missing indexes, GVL contention meaning too few Puma workers, slow external calls without timeouts inside request threads, then cache fragments/queries. Same playbook as any stack, named in Rails terms."
+        "example": "One-line map:\n Go     ─ static binary, cheap goroutines, infra default\n Rails  ─ GVL, multi-process scaling (Puma workers), convention magic\n JVM    ─ real threads (virtual since 21), tuned GC, Spring DI\n Python ─ GIL, async or multiprocessing, glue + ML services\n\nSample ('Rails app is slow under load, what do you check?'):\n 'N+1 queries in the log (bullet gem), missing indexes, too few Puma workers fighting the GVL, external calls without timeouts holding request threads, then fragment and query caching.'\n\nSame playbook as any stack, named in Rails terms. Interview stance: strongest in Go/Node, productive quickly in the others, fundamentals transfer."
       }
     ]
   }
