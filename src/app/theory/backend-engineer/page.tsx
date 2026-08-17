@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import theoryData from "@/data/theory/backend-engineer.json";
 import type { TheoryLevel, TheorySection, TheoryTopic } from "@/types/theory";
+import { slugify } from "@/lib/slug";
 import "@/styles/theory.css";
 
 const sections = theoryData as TheorySection[];
@@ -275,6 +276,17 @@ export default function BackendTheoryPage() {
 
     const [activeKey, setActiveKey] = useState(allTopics[0]?.key ?? "");
 
+    // Deep link: /theory/backend-engineer#<topic-slug> selects and opens that topic
+    useEffect(() => {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
+        if (!hash) return;
+        const entry = allTopics.find(t => slugify(t.topic.q) === hash);
+        if (entry) {
+            setActiveKey(entry.key);
+            setPaneOpen(true);
+        }
+    }, [allTopics]);
+
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = { all: allTopics.length, junior: 0, mid: 0, senior: 0 };
         allTopics.forEach(({ topic }) => counts[topic.level]++);
@@ -303,9 +315,10 @@ export default function BackendTheoryPage() {
     const visibleCount = filtered.reduce((n, entry) => n + entry.topics.length, 0);
     const active = allTopics.find(t => t.key === activeKey) ?? allTopics[0];
 
-    const selectTopic = (key: string) => {
+    const selectTopic = (key: string, q: string) => {
         setActiveKey(key);
         setPaneOpen(true);
+        history.replaceState(null, "", `#${slugify(q)}`);
     };
 
     return (
@@ -383,7 +396,7 @@ export default function BackendTheoryPage() {
                                                 key={key}
                                                 type="button"
                                                 className={`theory-row${activeKey === key ? " is-active" : ""}`}
-                                                onClick={() => selectTopic(key)}
+                                                onClick={() => selectTopic(key, topic.q)}
                                             >
                                                 <span className={`theory-level-dot lv-${topic.level}`} title={topic.level} />
                                                 <span className="theory-row-q">{topic.q}</span>

@@ -26,6 +26,7 @@ const NAV_LINKS: NavItem[] = [
             { href: '/theory/backend-engineer', label: 'Backend Engineer' },
         ],
     },
+    { href: '/shorts', label: 'Shorts' },
     { href: '/jobs', label: 'Jobs' },
 ];
 
