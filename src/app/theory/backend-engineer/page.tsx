@@ -53,7 +53,7 @@ function highlightExample(text: string): string {
         .join("\n");
 }
 
-function ShortEmbed({ videoId, videoSrc }: { videoId?: string; videoSrc?: string }) {
+function ShortEmbed({ videoSrc }: { videoSrc: string }) {
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
@@ -93,16 +93,7 @@ function ShortEmbed({ videoId, videoSrc }: { videoId?: string; videoSrc?: string
                             ×
                         </button>
                         <div className="theory-video">
-                            {videoSrc ? (
-                                <video src={videoSrc} controls autoPlay playsInline />
-                            ) : (
-                                <iframe
-                                    src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1`}
-                                    title="YouTube short"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            )}
+                            <video src={videoSrc} controls autoPlay playsInline />
                         </div>
                     </div>
                 </div>
@@ -215,12 +206,8 @@ function QuizView({ pool }: { pool: TopicEntry[] }) {
             <div className="quiz-top">
                 <span>{current.section.title}</span>
                 <span className="theory-detail-top-right">
-                    {revealed && (current.topic.videoId || current.topic.videoSrc) && (
-                        <ShortEmbed
-                            key={current.topic.videoSrc ?? current.topic.videoId}
-                            videoId={current.topic.videoId}
-                            videoSrc={current.topic.videoSrc}
-                        />
+                    {revealed && current.topic.videoSrc && (
+                        <ShortEmbed key={current.topic.videoSrc} videoSrc={current.topic.videoSrc} />
                     )}
                     <span>
                         {index + 1} / {queue.length}
@@ -423,12 +410,8 @@ export default function BackendTheoryPage() {
                                 <div className="theory-detail-top">
                                     <span>{active.section.title}</span>
                                     <span className="theory-detail-top-right">
-                                        {(active.topic.videoId || active.topic.videoSrc) && (
-                                            <ShortEmbed
-                                                key={active.topic.videoSrc ?? active.topic.videoId}
-                                                videoId={active.topic.videoId}
-                                                videoSrc={active.topic.videoSrc}
-                                            />
+                                        {active.topic.videoSrc && (
+                                            <ShortEmbed key={active.topic.videoSrc} videoSrc={active.topic.videoSrc} />
                                         )}
                                         <span className={`theory-level-pill lv-${active.topic.level}`}>
                                             {active.topic.level}

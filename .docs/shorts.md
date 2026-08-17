@@ -12,12 +12,11 @@ The feed merges two sources and shuffles them together:
    {
      "q": "Process vs Thread",
      "level": "junior",
-     "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/process-vs-thread.mp4",
-     "videoId": "ZPbuXK0y4nY"
+     "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/process-vs-thread.mp4"
    }
    ```
 
-   `videoSrc` powers the feed and the modal player on the theory page. `videoId` (YouTube) is only a modal fallback for topics without an mp4 and does not appear in the feed. The overlay shows the section title and topic name, plus a link to the track's theory page.
+   `videoSrc` powers both the feed and the modal player on the theory page. The overlay shows the section title and topic name, plus a deep link (`#<topic-slug>`) to the topic on the track's theory page.
 
 2. **Standalone shorts** — `src/data/shorts.json`, for videos that don't belong to a theory topic (visual guides, one-off explainers, anything from another R2 folder):
 

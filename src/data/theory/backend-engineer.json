@@ -7,7 +7,6 @@
       {
         "q": "Process vs Thread",
         "level": "junior",
-        "videoId": "ZPbuXK0y4nY",
         "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/process-vs-thread.mp4",
         "a": [
           "A process is an independent running program with its own memory space. It is isolated, so a crash in one process doesn't directly corrupt another. A thread is a unit of execution within a process, sharing that process's memory with other threads in it. Threads are cheaper to create and switch than processes, but shared memory means threads can step on each other's data without synchronization."

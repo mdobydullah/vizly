@@ -5,7 +5,6 @@ export interface TheoryTopic {
     level: TheoryLevel;
     a: string[];
     example?: string;
-    videoId?: string;
     videoSrc?: string;
 }
 
