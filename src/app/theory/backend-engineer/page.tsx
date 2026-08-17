@@ -52,6 +52,64 @@ function highlightExample(text: string): string {
         .join("\n");
 }
 
+function ShortEmbed({ videoId, videoSrc }: { videoId?: string; videoSrc?: string }) {
+    const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setOpen(false);
+        };
+        document.addEventListener("keydown", onKey);
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.removeEventListener("keydown", onKey);
+            document.body.style.overflow = "";
+        };
+    }, [open]);
+
+    return (
+        <>
+            <button type="button" className="theory-video-btn" onClick={() => setOpen(true)}>
+                <span className="theory-video-play">▶</span>
+                Watch short
+            </button>
+            {open && (
+                <div
+                    className="theory-video-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Video short"
+                    onClick={() => setOpen(false)}
+                >
+                    <div className="theory-video-modal" onClick={e => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="theory-video-close"
+                            aria-label="Close video"
+                            onClick={() => setOpen(false)}
+                        >
+                            ×
+                        </button>
+                        <div className="theory-video">
+                            {videoSrc ? (
+                                <video src={videoSrc} controls autoPlay playsInline />
+                            ) : (
+                                <iframe
+                                    src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1`}
+                                    title="YouTube short"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
 function TopicBody({ topic }: { topic: TheoryTopic }) {
     return (
         <div className="theory-detail-body">
@@ -155,10 +213,19 @@ function QuizView({ pool }: { pool: TopicEntry[] }) {
         <div className="quiz-card">
             <div className="quiz-top">
                 <span>{current.section.title}</span>
-                <span>
-                    {index + 1} / {queue.length}
-                    {" · "}
-                    <span className={`quiz-top-level lv-${current.topic.level}`}>{current.topic.level}</span>
+                <span className="theory-detail-top-right">
+                    {revealed && (current.topic.videoId || current.topic.videoSrc) && (
+                        <ShortEmbed
+                            key={current.topic.videoSrc ?? current.topic.videoId}
+                            videoId={current.topic.videoId}
+                            videoSrc={current.topic.videoSrc}
+                        />
+                    )}
+                    <span>
+                        {index + 1} / {queue.length}
+                        {" · "}
+                        <span className={`quiz-top-level lv-${current.topic.level}`}>{current.topic.level}</span>
+                    </span>
                 </span>
             </div>
             <h2 className="quiz-q">{current.topic.q}</h2>
@@ -342,8 +409,17 @@ export default function BackendTheoryPage() {
                             <article>
                                 <div className="theory-detail-top">
                                     <span>{active.section.title}</span>
-                                    <span className={`theory-level-pill lv-${active.topic.level}`}>
-                                        {active.topic.level}
+                                    <span className="theory-detail-top-right">
+                                        {(active.topic.videoId || active.topic.videoSrc) && (
+                                            <ShortEmbed
+                                                key={active.topic.videoSrc ?? active.topic.videoId}
+                                                videoId={active.topic.videoId}
+                                                videoSrc={active.topic.videoSrc}
+                                            />
+                                        )}
+                                        <span className={`theory-level-pill lv-${active.topic.level}`}>
+                                            {active.topic.level}
+                                        </span>
                                     </span>
                                 </div>
                                 <h2 className="theory-detail-q">{active.topic.q}</h2>

@@ -7,6 +7,8 @@
       {
         "q": "Process vs Thread",
         "level": "junior",
+        "videoId": "ZPbuXK0y4nY",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/process-vs-thread.mp4",
         "a": [
           "A process is an independent running program with its own memory space. It is isolated, so a crash in one process doesn't directly corrupt another. A thread is a unit of execution within a process, sharing that process's memory with other threads in it. Threads are cheaper to create and switch than processes, but shared memory means threads can step on each other's data without synchronization."
         ],
@@ -15,6 +17,7 @@
       {
         "q": "Concurrency vs Parallelism",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/concurrency-vs-parallelism.mp4",
         "a": [
           "Concurrency: multiple tasks making progress over the same time period. It can happen on a single core via time-slicing: fast task switching gives the illusion of 'at once'. Parallelism: multiple tasks literally executing at the exact same instant, which requires multiple cores. Concurrency is about structure (how you design the program), parallelism is about execution (whether it actually runs simultaneously)."
         ],
@@ -23,6 +26,7 @@
       {
         "q": "Mutex vs Semaphore",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/mutex-vs-semaphore.mp4",
         "a": [
           "Mutex (mutual exclusion lock): binary, owned by whoever locked it. Only the locking thread can unlock it. It protects a critical section so only one thread touches a shared resource at a time. Semaphore: a counter allowing up to N holders at once, not tied to a single owner. It limits concurrent access to a pool of N resources (for example N DB connections)."
         ],
@@ -31,6 +35,7 @@
       {
         "q": "Deadlock",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/deadlock.mp4",
         "a": [
           "Deadlock: two or more threads or processes each wait on a resource the other holds, so none can proceed. It needs 4 conditions at the same time (Coffman conditions): mutual exclusion, hold-and-wait, no preemption, circular wait. Break any one to prevent deadlock. Easiest fix in practice: kill circular wait by always acquiring locks in a fixed order."
         ],
@@ -39,6 +44,7 @@
       {
         "q": "Race Condition",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/race-condition.mp4",
         "a": [
           "A race condition happens when the result depends on the unpredictable timing or order of concurrent operations, usually unsynchronized access to shared state. The classic shape is read-modify-write on shared data without protection. It can pass every test and fail rarely in production under real load, which makes it notoriously hard to debug."
         ],
