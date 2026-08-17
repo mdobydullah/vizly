@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { config } from "@/lib/config";
-import { Menu, X, Sun, Moon, Lightbulb, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon, Lightbulb, ChevronDown, CodeXml } from "lucide-react";
+import { GithubIcon } from "@/components/icons/social";
 import { useSettings } from "@/context/SettingsContext";
 
 interface NavItem {
@@ -101,22 +102,7 @@ export default function Header() {
                     cursor: 'pointer',
                     textDecoration: 'none'
                 }} onClick={() => setIsMenuOpen(false)}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        background: 'linear-gradient(135deg, var(--cyan), var(--purple))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '.7rem',
-                        fontWeight: 700,
-                        color: '#000',
-                        fontFamily: 'var(--font-mono)',
-                        flexShrink: 0
-                    }}>
-                        &lt;/&gt;
-                    </div>
+                    <CodeXml size={24} strokeWidth={2.4} style={{ color: 'var(--cyan)', flexShrink: 0 }} />
                     <span style={{
                         fontFamily: 'var(--font-display)',
                         fontWeight: 800,
@@ -207,21 +193,24 @@ export default function Header() {
                         <button
                             onClick={() => window.open(config.urls.githubRepo, '_blank')}
                             style={{
-                                background: 'linear-gradient(90deg, var(--cyan), var(--purple))',
-                                color: '#000',
-                                fontWeight: 700,
-                                fontSize: '.75rem',
-                                fontFamily: 'var(--font-mono)',
-                                border: 'none',
-                                padding: '.4rem 1rem',
-                                borderRadius: '20px',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border2)',
+                                background: 'var(--surface)',
+                                color: 'var(--text-dim)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 cursor: 'pointer',
-                                transition: 'opacity .2s, transform .15s',
-                                whiteSpace: 'nowrap'
+                                transition: 'all .2s',
+                                flexShrink: 0
                             }}
                             className="header-cta"
+                            aria-label="GitHub repository"
+                            title="GitHub repository"
                         >
-                            GitHub →
+                            <GithubIcon width={15} height={15} />
                         </button>
                     </div>
 

@@ -9,8 +9,9 @@ export const config = {
   urls: {
     domain: "vizly.dev",
     githubRepo: "https://github.com/mdobydullah/vizly",
-    github: "https://github.com/mdobydullah",
-    linkedin: "https://www.linkedin.com/in/obydul/",
-    twitter: "https://x.com/0xObydul",
+    youtube: "https://www.youtube.com/@obydulinsights",
+    instagram: "https://www.instagram.com/obydulinsights",
+    tiktok: "https://www.tiktok.com/@obydulinsights",
+    facebook: "https://www.facebook.com/obydulinsights",
   },
 } as const;

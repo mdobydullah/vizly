@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Twitter, Github, Linkedin, Heart, Settings } from "lucide-react";
+import { Heart, Settings, CodeXml } from "lucide-react";
 import { config } from "@/lib/config";
+import { FacebookIcon, InstagramIcon, TiktokIcon, YoutubeIcon } from "@/components/icons/social";
 import { useSettings } from "@/context/SettingsContext";
 
 import { useState, useEffect } from "react";
 import { guidesData } from "@/data/guides";
+
+const socialLinks = [
+    { name: "YouTube", href: config.urls.youtube, Icon: YoutubeIcon },
+    { name: "Instagram", href: config.urls.instagram, Icon: InstagramIcon },
+    { name: "TikTok", href: config.urls.tiktok, Icon: TiktokIcon },
+    { name: "Facebook", href: config.urls.facebook, Icon: FacebookIcon },
+];
 
 const vizlyLinks = [
     { name: "About", href: "/about" },
@@ -64,22 +72,7 @@ export default function Footer() {
                         textDecoration: 'none',
                         marginBottom: '.8rem'
                     }}>
-                        <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: 'linear-gradient(135deg, var(--cyan), var(--purple))',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '.7rem',
-                            fontWeight: 700,
-                            color: '#000',
-                            fontFamily: 'var(--font-mono)',
-                            flexShrink: 0
-                        }}>
-                            &lt;/&gt;
-                        </div>
+                        <CodeXml size={24} strokeWidth={2.4} style={{ color: 'var(--cyan)', flexShrink: 0 }} />
                         <span style={{
                             fontFamily: 'var(--font-display)',
                             fontWeight: 800,
@@ -189,7 +182,7 @@ export default function Footer() {
                 gap: '1rem'
             }}>
                 <span style={{ fontFamily: 'var(--font-mono)' }}>
-                    © {new Date().getFullYear()} {config.app.name} · Made with Love <Heart size={14} style={{ display: 'inline-block', verticalAlign: 'middle', color: '#ef4444' }} /> by Obydul
+                    © {new Date().getFullYear()} {config.app.name} · Made with Love <Heart size={14} style={{ display: 'inline-block', verticalAlign: 'middle', color: '#ef4444' }} /> by <a href="https://obydul.me" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ color: 'inherit', textDecoration: 'none' }}>Obydul</a>
                 </span>
                 <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center' }}>
                     <button
@@ -212,54 +205,24 @@ export default function Footer() {
                     >
                         <Settings size={14} />
                     </button>
-                    <a href={config.urls.linkedin} target="_blank" rel="noopener noreferrer" style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s',
-                        textDecoration: 'none'
-                    }} className="social-btn" aria-label="LinkedIn">
-                        <Linkedin size={14} />
-                    </a>
-                    <a href={config.urls.twitter} target="_blank" rel="noopener noreferrer" style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s',
-                        textDecoration: 'none'
-                    }} className="social-btn" aria-label="Twitter">
-                        <Twitter size={14} />
-                    </a>
-                    <a href={config.urls.github} target="_blank" rel="noopener noreferrer" style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border2)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-dim)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all .2s',
-                        textDecoration: 'none'
-                    }} className="social-btn" aria-label="GitHub">
-                        <Github size={14} />
-                    </a>
+                    {socialLinks.map(({ name, href, Icon }) => (
+                        <a key={name} href={href} target="_blank" rel="noopener noreferrer" style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border2)',
+                            background: 'var(--surface)',
+                            color: 'var(--text-dim)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all .2s',
+                            textDecoration: 'none'
+                        }} className="social-btn" aria-label={name}>
+                            <Icon width={14} height={14} />
+                        </a>
+                    ))}
                 </div>
             </div>
 
