@@ -51,6 +51,7 @@
       },
       {
         "q": "Memory Management (Stack, Heap, GC)",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/memory-management.mp4",
         "level": "junior",
         "a": [
           "Stack: fast fixed-size memory for function calls and local variables. LIFO: each call pushes a frame, each return pops it, so freeing is automatic and instant. Heap: larger memory for dynamic or long-lived data. Allocation costs more and something must free it: manually (C) or a garbage collector.",
@@ -61,6 +62,7 @@
       {
         "q": "Context Switching",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/context-switching.mp4",
         "a": [
           "When the CPU switches from one thread or process to another, it saves the current state (registers, program counter) and loads the next one's. That overhead is a context switch. It also cools the CPU cache, so the real cost is bigger than the save/load itself. Too many threads on too few cores means the CPU spends time switching instead of working."
         ],
