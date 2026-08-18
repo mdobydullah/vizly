@@ -18,13 +18,14 @@
 }
 
 .shorts-item {
+    box-sizing: border-box;
     height: 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 0;
+    padding: 18px 0 calc(18px + env(safe-area-inset-bottom));
 }
 
 .shorts-player {
@@ -32,10 +33,11 @@
     height: 100%;
     aspect-ratio: 9 / 16;
     max-width: calc(100vw - 24px);
-    border-radius: 16px;
+    border-radius: 18px;
     overflow: hidden;
     background: #000;
     border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
 .shorts-player video {
@@ -78,7 +80,7 @@
 .shorts-overlay-q {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 17px;
+    font-size: 14px;
     letter-spacing: -0.01em;
     color: #fff;
     margin: 4px 0 6px;
@@ -173,13 +175,12 @@
 
 @media (max-width: 640px) {
     .shorts-item {
-        padding: 0;
+        padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
     }
 
     .shorts-player {
-        max-width: 100vw;
-        border-radius: 0;
-        border: none;
+        max-width: calc(100vw - 20px);
+        border-radius: 16px;
     }
 
     .shorts-side {

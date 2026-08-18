@@ -228,7 +228,7 @@
 .theory-video-overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 200;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -571,11 +571,15 @@
         left: 0;
         right: 0;
         bottom: 0;
-        top: auto;
-        max-height: 78vh;
+        top: clamp(56px, 10vw, 60px);
+        height: auto;
+        max-height: none;
         z-index: 60;
-        border-radius: 16px 16px 0 0;
-        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35);
+        border-radius: 0;
+        border: none;
+        border-top: 1px solid var(--border);
+        box-shadow: none;
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
         transform: translateY(105%);
         transition: transform 0.25s ease;
     }
@@ -586,5 +590,36 @@
 
     .theory-detail-close {
         display: flex;
+        position: fixed;
+        top: calc(clamp(56px, 10vw, 60px) + 10px);
+        right: 12px;
+        z-index: 5;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+    }
+}
+
+/* Fullscreen video modal on mobile */
+@media (max-width: 640px) {
+    .theory-video-overlay {
+        padding: 0;
+    }
+
+    .theory-video-modal {
+        width: 100%;
+        height: 100dvh;
+    }
+
+    .theory-video {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: auto;
+        border-radius: 0;
+        border: none;
+    }
+
+    .theory-video-close {
+        top: max(12px, env(safe-area-inset-top));
+        right: 12px;
     }
 }

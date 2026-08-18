@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import theoryData from "@/data/theory/backend-engineer.json";
 import type { TheoryLevel, TheorySection, TheoryTopic } from "@/types/theory";
 import { slugify } from "@/lib/slug";
@@ -75,7 +76,7 @@ function ShortEmbed({ videoSrc }: { videoSrc: string }) {
                 <span className="theory-video-play">▶</span>
                 Watch short
             </button>
-            {open && (
+            {open && createPortal(
                 <div
                     className="theory-video-overlay"
                     role="dialog"
@@ -96,7 +97,8 @@ function ShortEmbed({ videoSrc }: { videoSrc: string }) {
                             <video src={videoSrc} controls autoPlay playsInline />
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

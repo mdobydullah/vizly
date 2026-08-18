@@ -237,46 +237,47 @@ export default function Header() {
 
             {/* Mobile Menu Overlay */}
             <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
-                <div className="mobile-menu-links">
-                    {NAV_LINKS.map(({ href, label, children }, i) => {
+                <nav className="mobile-menu-links">
+                    {NAV_LINKS.map(({ href, label, children }) => {
+                        if (children) {
+                            return (
+                                <div key={href} className="mobile-group">
+                                    <span className="mobile-group-label">{label}</span>
+                                    {children.map(child => (
+                                        <Link
+                                            key={child.href}
+                                            href={child.href}
+                                            onClick={() => setIsMenuOpen(false)}
+                                            className={`mobile-link mobile-sublink${pathname === child.href ? ' is-active' : ''}`}
+                                        >
+                                            {child.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            );
+                        }
                         const isActive = pathname === href || pathname.startsWith(href + '/');
                         return (
-                            <span key={href}>
-                                {children ? (
-                                    <span>
-                                        <span className="mobile-link-text mobile-group-label">{label}</span>
-                                        {children.map(child => (
-                                            <Link key={child.href} href={child.href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                                                <span className="mobile-link-text mobile-sublink" style={{ textDecoration: 'none', border: 'none', color: pathname === child.href ? 'var(--cyan)' : undefined }}>
-                                                    {child.label}
-                                                </span>
-                                            </Link>
-                                        ))}
-                                    </span>
-                                ) : (
-                                    <Link href={href} onClick={() => setIsMenuOpen(false)} className="mobile-link" style={{ textDecoration: 'none', backgroundImage: 'none', border: 'none', boxShadow: 'none' }}>
-                                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', color: isActive ? 'var(--cyan)' : undefined }}>
-                                            {label}
-                                        </span>
-                                    </Link>
-                                )}
-                                {i < NAV_LINKS.length - 1 && <hr className="mobile-divider" />}
-                            </span>
+                            <Link
+                                key={href}
+                                href={href}
+                                onClick={() => setIsMenuOpen(false)}
+                                className={`mobile-link${isActive ? ' is-active' : ''}`}
+                            >
+                                {label}
+                            </Link>
                         );
                     })}
+                </nav>
 
+                <div className="mobile-menu-footer">
                     <button
                         onClick={() => { toggleTheme(); setIsMenuOpen(false); }}
-                        className="mobile-link"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, width: '100%' }}
+                        className="mobile-link mobile-theme-btn"
                     >
-                        <span className="mobile-link-text" style={{ textDecoration: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                            <NextThemeIcon size={18} />
-                            {THEME_LABEL[nextTheme]}
-                        </span>
+                        <NextThemeIcon size={17} />
+                        {THEME_LABEL[nextTheme]}
                     </button>
-
-                    <hr className="mobile-divider" />
 
                     <button
                         onClick={() => {
