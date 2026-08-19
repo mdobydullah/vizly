@@ -106,6 +106,7 @@
       {
         "q": "Load Balancing (L4 vs L7)",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/load-balancing-l4-vs-l7.mp4",
         "a": [
           "A load balancer spreads traffic across backend instances for availability and scale. L4 (transport layer): routes by IP and port only. Fast, protocol-agnostic, cannot see HTTP. L7 (application layer): routes by HTTP content (path, host, headers). Enables smart routing and TLS termination.",
           "Common algorithms: round robin, least connections, weighted (bigger instance gets more), consistent hashing (same key hits the same backend, good for caching)."
