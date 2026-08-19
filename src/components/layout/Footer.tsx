@@ -20,7 +20,9 @@ const socialLinks = [
 const vizlyLinks = [
     { name: "About", href: "/about" },
     { name: "Jobs", href: "/jobs" },
-    { name: "GitHub", href: config.urls.githubRepo, isExternal: true }
+    { name: "GitHub", href: config.urls.githubRepo, isExternal: true },
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms of Use", href: "/terms" }
 ];
 
 export default function Footer() {
