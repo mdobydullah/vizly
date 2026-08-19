@@ -78,6 +78,7 @@
       {
         "q": "TCP vs UDP",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/tcp-vs-udp.mp4",
         "a": [
           "TCP: connection-oriented. Handshake, acknowledgements and retransmission give ordered reliable delivery. Use when correctness beats raw speed (HTTP, databases). UDP: connectionless. No delivery guarantee, no ordering, but lower overhead and latency. Use when speed beats occasional loss (video calls, DNS, gaming, metrics)."
         ],
@@ -86,6 +87,7 @@
       {
         "q": "HTTP/HTTPS & TLS Handshake",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/tls-handshake.mp4",
         "a": [
           "HTTP is stateless request/response over TCP. HTTPS = HTTP over TLS, which adds encryption, integrity and server authentication (via certificates).",
           "TLS handshake (simplified): client hello (supported ciphers) → server hello + certificate → key exchange derives a shared symmetric session key → both sides switch to encrypted traffic with that key. Asymmetric crypto is used only up front to exchange the key: too slow for bulk data."
