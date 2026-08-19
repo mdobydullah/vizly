@@ -97,6 +97,7 @@
       {
         "q": "REST vs GraphQL vs gRPC",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/rest-vs-graphql-vs-grpc.mp4",
         "a": [
           "REST: resource URLs + HTTP verbs. Simple, cacheable, widely understood. Weakness: over-fetching or under-fetching and extra round trips for related resources. GraphQL: client asks for exactly the fields it needs in one query. Solves over/under-fetching but is harder to cache and naive resolvers hide N+1 queries. gRPC: binary Protobuf over HTTP/2. Strongly typed contracts, very fast, supports streaming. Great for internal service-to-service calls, less natural for public browser APIs."
         ],
