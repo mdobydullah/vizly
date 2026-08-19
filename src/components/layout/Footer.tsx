@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { Heart, Settings, CodeXml } from "lucide-react";
 import { config } from "@/lib/config";
-import { FacebookIcon, InstagramIcon, TiktokIcon, YoutubeIcon } from "@/components/icons/social";
+import { FacebookIcon, GithubIcon, InstagramIcon, TiktokIcon, YoutubeIcon } from "@/components/icons/social";
 import { useSettings } from "@/context/SettingsContext";
 
 import { useState, useEffect } from "react";
 import { guidesData } from "@/data/guides";
 
 const socialLinks = [
+    { name: "GitHub", href: config.urls.githubRepo, Icon: GithubIcon },
     { name: "YouTube", href: config.urls.youtube, Icon: YoutubeIcon },
     { name: "Instagram", href: config.urls.instagram, Icon: InstagramIcon },
     { name: "TikTok", href: config.urls.tiktok, Icon: TiktokIcon },
@@ -19,8 +20,7 @@ const socialLinks = [
 const vizlyLinks = [
     { name: "About", href: "/about" },
     { name: "Jobs", href: "/jobs" },
-    { name: "GitHub", href: config.urls.githubRepo, isExternal: true },
-    { name: "How to Contribute", href: `${config.urls.githubRepo}/blob/main/.docs/contribute.md`, isExternal: true }
+    { name: "GitHub", href: config.urls.githubRepo, isExternal: true }
 ];
 
 export default function Footer() {

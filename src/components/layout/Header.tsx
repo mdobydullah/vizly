@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { config } from "@/lib/config";
 import { Menu, X, Sun, Moon, Lightbulb, ChevronDown, CodeXml } from "lucide-react";
-import { GithubIcon } from "@/components/icons/social";
 import { useSettings } from "@/context/SettingsContext";
 
 interface NavItem {
@@ -191,28 +189,6 @@ export default function Header() {
                         >
                             <NextThemeIcon size={15} />
                         </button>
-                        <button
-                            onClick={() => window.open(config.urls.githubRepo, '_blank')}
-                            style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border2)',
-                                background: 'var(--surface)',
-                                color: 'var(--text-dim)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all .2s',
-                                flexShrink: 0
-                            }}
-                            className="header-cta"
-                            aria-label="GitHub repository"
-                            title="GitHub repository"
-                        >
-                            <GithubIcon width={15} height={15} />
-                        </button>
                     </div>
 
                     {/* Mobile Hamburger Toggle */}
@@ -279,15 +255,6 @@ export default function Header() {
                         {THEME_LABEL[nextTheme]}
                     </button>
 
-                    <button
-                        onClick={() => {
-                            window.open(config.urls.githubRepo, '_blank');
-                            setIsMenuOpen(false);
-                        }}
-                        className="mobile-github-link"
-                    >
-                        GitHub Repository &rarr;
-                    </button>
                 </div>
             </div>
         </header>
