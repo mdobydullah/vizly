@@ -116,6 +116,7 @@
       {
         "q": "DNS Resolution",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/dns-resolution.mp4",
         "a": [
           "DNS translates a human-readable domain into an IP address. Simplified lookup path: browser cache → OS cache → recursive resolver (often your ISP or 8.8.8.8) → root nameserver → TLD nameserver (.com) → authoritative nameserver for the domain, which returns the IP. Results are cached at each layer according to TTL."
         ],
@@ -124,6 +125,7 @@
       {
         "q": "CDN",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/cdn.mp4",
         "a": [
           "A Content Delivery Network caches static (and sometimes dynamic) content on edge servers close to users, cutting latency and offloading the origin. Cache behavior is controlled by headers (Cache-Control, ETag) and caches can be purged on deploy."
         ],
@@ -136,11 +138,13 @@
           "Rate limiting protects an API from abuse or buggy clients by capping requests per client over a time window. Common algorithms: token bucket and sliding window. State usually lives in Redis so all instances share the counts.",
           "Versioning lets an API evolve without breaking existing clients: URL (/v1/users), header (Accept: application/vnd.api.v2+json) or query param. Prefer additive backward-compatible changes. Reserve a new version for breaking changes."
         ],
-        "example": "Token bucket (cap 10, refill 1 per 6s)\n  request takes 1 token: ●●●●●●●○○○\n  bucket empty ─▶ 429 Too Many Requests + Retry-After: 30\n\nRedis fixed window:\n  INCR rate:user42:1712        # count this minute's window\n  EXPIRE rate:user42:1712 60   # window dies after 60s\n\nReal world: GitHub API allows 5000 requests/hour and returns X-RateLimit-Remaining headers. Stripe versions by date header (Stripe-Version: 2024-06-20) so old integrations never break. /v1/orders keeps its shape while /v2/orders changes fields."
+        "example": "Token bucket (cap 10, refill 1 per 6s)\n  request takes 1 token: ●●●●●●●○○○\n  bucket empty ─▶ 429 Too Many Requests + Retry-After: 30\n\nRedis fixed window:\n  INCR rate:user42:1712        # count this minute's window\n  EXPIRE rate:user42:1712 60   # window dies after 60s\n\nReal world: GitHub API allows 5000 requests/hour and returns X-RateLimit-Remaining headers. Stripe versions by date header (Stripe-Version: 2024-06-20) so old integrations never break. /v1/orders keeps its shape while /v2/orders changes fields.",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/api-rate-limiting-versioning.mp4"
       },
       {
         "q": "WebSockets vs Polling",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/websockets-vs-polling.mp4",
         "a": [
           "Polling: client asks 'anything new?' on an interval. Simple but wasteful and updates arrive late. Long polling: server holds the request open until it has data, then the client immediately reopens. Less waste, still one request per message. WebSockets: one persistent full-duplex connection. Server pushes instantly with no per-message HTTP overhead. Ideal for chat, live dashboards, notifications."
         ],
@@ -155,6 +159,7 @@
     "topics": [
       {
         "q": "Normal Forms (1NF, 2NF, 3NF, BCNF)",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/normal-forms.mp4",
         "level": "junior",
         "a": [
           "Normalization removes duplicate data by splitting tables so each fact lives in exactly one place.",
