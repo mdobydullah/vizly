@@ -170,6 +170,7 @@
       },
       {
         "q": "ACID Principles",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/acid-principles.mp4",
         "level": "junior",
         "a": [
           "ACID is what a database transaction guarantees so your data stays correct even under failures or concurrent access.",
@@ -180,6 +181,7 @@
       {
         "q": "Isolation Levels & Read Phenomena",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/isolation-levels.mp4",
         "a": [
           "Isolation level = how much one transaction is allowed to 'see' of another's uncommitted or concurrent changes. Stricter = safer but slower.",
           "Read Uncommitted: can see uncommitted changes (dirty reads). Read Committed (Postgres default): only sees committed data, but a re-read within the same transaction can change (non-repeatable read). Repeatable Read: rows you read stay stable for the whole transaction, but new matching rows can appear (phantom read). Serializable: transactions behave as if run one after another. No anomalies, but the most locking and retries.",
@@ -190,6 +192,7 @@
       {
         "q": "Indexing",
         "level": "junior",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/database-indexing.mp4",
         "a": [
           "An index is a separate data structure (usually a B-Tree) that lets the DB find rows without scanning the whole table. It trades write speed and storage for read speed.",
           "B-Tree index: default, good for equality and range queries (=, <, >, BETWEEN, ORDER BY). Hash index: fast equality lookups only. Composite (multi-column) index: order matters. It helps queries that filter on a left-to-right prefix of the columns. Covering index: includes every column a query needs so it never touches the table (index-only scan).",
@@ -200,6 +203,7 @@
       {
         "q": "Query Optimization",
         "level": "mid",
+        "videoSrc": "https://cdn.vizly.dev/shorts/backend-engineer/query-optimization.mp4",
         "a": [
           "Use EXPLAIN / EXPLAIN ANALYZE to see the query planner's chosen path (seq scan vs index scan, join order, estimated vs actual rows) before guessing.",
           "Common wins: add an index on filter/join/order-by columns, avoid SELECT *, avoid functions on indexed columns in WHERE (kills index usage), fix N+1 queries (one query per loop iteration) with JOIN or eager loading and watch for implicit type casts that force a full scan."
